@@ -94,6 +94,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
           Export backup (.json)
         </button>
+        <button id="btnSync">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+          Sync now
+        </button>
         <button id="btnRepo">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8"/><path d="m8 17 4 4 4-4"/><path d="M4.5 15.5A5 5 0 0 1 7 6a6 6 0 0 1 11.3 2A4.5 4.5 0 0 1 18 17"/></svg>
           Load from repo
@@ -123,11 +127,15 @@
   "use strict";
 
   var PREFIX = "motion-tracker:";
+  var SYNC_URL = "/api/data";
   var SEED_URL = "motion-data.json";
   var EXPORT_NAME = "motion-data.json";
+  var UPDATED_KEY = "motion-store:updatedAt";
 
   function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+  function localUpdatedAt(){ return Number(lsGet(UPDATED_KEY)) || 0; }
+  function setUpdatedAt(t){ lsSet(UPDATED_KEY, String(t)); }
   function allKeys(){
     var out=[]; try { for (var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf(PREFIX)===0) out.push(k); } } catch(e){} return out;
   }
@@ -183,7 +191,37 @@
   function snapshot(){
     var data={};
     allKeys().forEach(function(k){ var raw=lsGet(k); if(raw==null) return; try { data[k]=JSON.parse(raw); } catch(e){ data[k]=raw; } });
-    return { version:1, app:"motion-specialist-dashboard", exportedAt:new Date().toISOString(), data:data };
+    return { version:1, app:"motion-specialist-dashboard", updatedAt: localUpdatedAt() || Date.now(), exportedAt:new Date().toISOString(), data:data };
+  }
+
+  /* ---- server sync (shared across machines) ---- */
+  var apiAvailable = false;
+  function pullFromServer(silent){
+    if (typeof fetch !== "function") { return Promise.resolve(false); }
+    if (!silent) setStatus("Syncing with server\u2026", null);
+    return fetch(SYNC_URL, { method:"GET", cache:"no-store" })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(remote){
+        apiAvailable = true;
+        var hasRemote = remote && remote.data && Object.keys(remote.data).length > 0;
+        if (hasRemote && (Number(remote.updatedAt)||0) >= localUpdatedAt()) {
+          var n = applyData(remote, "replace"); setUpdatedAt(Number(remote.updatedAt)||Date.now());
+          if(!silent) setStatus("Loaded "+n+" item"+(n===1?"":"s")+" from the shared store.", "ok");
+        } else if (!hasRemote) {
+          if(!silent) setStatus("Shared store is empty — nothing to pull yet.", null);
+        } else {
+          if(!silent) setStatus("This device is ahead of the server; pushing up.", null);
+          return pushToServer(true).then(function(){ return true; });
+        }
+        render(); return true;
+      })
+      .catch(function(){ apiAvailable = false; if(!silent) setStatus("No sync endpoint reachable (deploy /api/data to enable cross-device sync).", "err"); return false; });
+  }
+  function pushToServer(silent){
+    if (typeof fetch !== "function") return Promise.resolve(false);
+    return fetch(SYNC_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(snapshot()) })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); apiAvailable=true; if(!silent) setStatus("Pushed to the shared store.", "ok"); return true; })
+      .catch(function(){ apiAvailable=false; if(!silent) setStatus("Couldn't reach the sync endpoint.", "err"); return false; });
   }
   function applyData(obj, mode){
     if(!obj||typeof obj!=="object") return 0;
@@ -213,7 +251,7 @@
     setStatus("Fetching "+SEED_URL+"…", null);
     fetch(SEED_URL, { cache:"no-store" })
       .then(function(r){ if(!r.ok) throw new Error("404"); return r.json(); })
-      .then(function(json){ var n=applyData(json,"replace"); setStatus("Loaded "+n+" item"+(n===1?"":"s")+" from repo.", "ok"); render(); })
+      .then(function(json){ var n=applyData(json,"replace"); setUpdatedAt(Date.now()); pushToServer(true); setStatus("Loaded "+n+" item"+(n===1?"":"s")+" from repo.", "ok"); render(); })
       .catch(function(){ setStatus("No "+SEED_URL+" found in the repo yet.", "err"); });
   });
 
@@ -223,7 +261,7 @@
     var reader = new FileReader();
     reader.onload = function(){
       var parsed; try { parsed=JSON.parse(String(reader.result)); } catch(err){ setStatus("That file isn't valid JSON.", "err"); return; }
-      var n = applyData(parsed, "replace");
+      var n = applyData(parsed, "replace"); setUpdatedAt(Date.now()); pushToServer(true);
       setStatus("Restored "+n+" item"+(n===1?"":"s")+".", "ok"); render();
     };
     reader.onerror = function(){ setStatus("Couldn't read that file.", "err"); };
@@ -231,9 +269,11 @@
     e.target.value="";
   });
 
+  document.getElementById("btnSync").addEventListener("click", function(){ pullFromServer(false); });
   document.getElementById("btnRefresh").addEventListener("click", function(){ render(); setStatus("Refreshed.", "ok"); });
 
   render();
+  pullFromServer(true);   // on open, bring in whatever other machines have saved
 })();
 </script>
 </body>

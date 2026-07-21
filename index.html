@@ -31,115 +31,130 @@
      Inlined here so window.storage is guaranteed to exist before the app runs. -->
 <script>
 /* ============================================================================
-   motion-data-store.js
-   Persistence + repo-backup layer for the Motion Specialist Dashboard.
+   Persistence + cross-device sync layer for the Motion Specialist Dashboard.
 
-   WHAT IT DOES
-   ------------
-   1. Provides `window.storage` (the get/set/delete the dashboard expects),
-      backed by the browser's localStorage — so everything you type, including
-      every intake-form submission, is saved automatically, as you type.
-   2. On load, seeds any missing data from a `motion-data.json` file sitting
-      next to this script in your repo. That JSON is your repo-level copy of
-      the data.
-   3. Adds a small "Data" control (bottom-left) to:
-        • Export a backup  -> downloads motion-data.json (commit it to the repo)
-        • Load from repo   -> re-reads motion-data.json (use on a second device)
-        • Import a file     -> restore from a backup on disk
+   ORDER OF TRUTH ON LOAD:
+     1. Shared server store  (GET /api/data)    -> authoritative across machines
+     2. Repo seed file       (motion-data.json) -> first-run / fallback
+     3. This browser         (localStorage)     -> offline / no backend
 
-   WHY A MANUAL EXPORT STEP
-   ------------------------
-   GitHub Pages serves your site read-only. A browser page cannot write files
-   back into the repo on its own. So: typing saves to this browser instantly,
-   and you push that to the repo by exporting the JSON and committing it. The
-   "Load from repo" button pulls it back down on any other browser/device.
+   AS YOU TYPE: writes go to localStorage instantly, and (if the server is
+   reachable) the whole document is pushed to /api/data, debounced. Any other
+   machine picks it up on its next load. Last write wins.
 
-   HOW TO WIRE IT UP
-   -----------------
-   In motion-dashboard.html, DELETE the small inline block that defines
-   `window.storage = { ... }`, and in its place (still inside <head>, before the
-   React/app scripts) add:
-
-       <script src="motion-data-store.js"><\/script>
-
-   Then commit this file — and, once you've exported one, motion-data.json —
-   to the same folder as the HTML in your repo.
+   If /api/data isn't reachable (opened locally, offline, or the function isn't
+   deployed yet), everything still works -- it just stays on this device.
    ========================================================================== */
 
 (function () {
   "use strict";
 
-  var PREFIX = "motion-tracker:";        // every dashboard key starts with this
-  var SEED_URL = "motion-data.json";      // repo data file, next to this script
-  var DATA_PAGE_URL = "https://hub-flax-five.vercel.app/data.html"; // companion data manager
-  var EXPORT_NAME = "motion-data.json";   // download filename (matches the seed)
+  var PREFIX = "motion-tracker:";
+  var SYNC_URL = "/api/data";                      // Vercel serverless function
+  var SEED_URL = "motion-data.json";               // repo fallback seed
+  var EXPORT_NAME = "motion-data.json";
+  var DATA_PAGE_URL = "https://hub-flax-five.vercel.app/data.html";
+  var UPDATED_KEY = "motion-store:updatedAt";
   var LAST_EXPORT_KEY = "motion-store:lastExport";
-  var SEED_TIMEOUT_MS = 4000;             // don't let a missing/slow file hang boot
+  var PULL_TIMEOUT_MS = 5000;
+  var PUSH_DEBOUNCE_MS = 1200;
 
-  /* ---- theme (kept in step with the dashboard) --------------------------- */
   var C = {
-    bg: "#18181b", surface: "#0d0d0f", line: "#27272a", lineStrong: "#3f3f46",
-    text: "#f4f4f5", muted: "#a1a1aa", faint: "#71717a", accent: "#22c55e",
-    accentDim: "rgba(34,197,94,0.13)", error: "#fb7185",
+    bg: "#18181b", line: "#27272a", lineStrong: "#3f3f46", text: "#f4f4f5",
+    muted: "#a1a1aa", faint: "#71717a", accent: "#22c55e", error: "#fb7185",
     font: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
     mono: "ui-monospace, SFMono-Regular, Menlo, 'Liberation Mono', monospace",
   };
 
-  /* ---- localStorage helpers (fail-safe; never throw) --------------------- */
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-  function lsRemove(k) { try { localStorage.removeItem(k); } catch (e) {} }
-  function allKeys() {
-    var out = [];
-    try {
-      for (var i = 0; i < localStorage.length; i++) {
-        var k = localStorage.key(i);
-        if (k && k.indexOf(PREFIX) === 0) out.push(k);
-      }
-    } catch (e) {}
-    return out;
+  function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+  function lsSet(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return false; } }
+  function lsRemove(k){ try { localStorage.removeItem(k); } catch(e){} }
+  function allKeys(){
+    var out=[]; try { for (var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf(PREFIX)===0) out.push(k); } } catch(e){} return out;
   }
+  function toRaw(v){ return typeof v==="string" ? v : JSON.stringify(v); }
+  function localUpdatedAt(){ return Number(lsGet(UPDATED_KEY)) || 0; }
+  function setUpdatedAt(t){ lsSet(UPDATED_KEY, String(t)); }
 
+  var apiAvailable = false;
+  var lastSyncAt = 0;
+  var pushTimer = null;
   var lastChange = Number(lsGet("motion-store:lastChange")) || 0;
-  function markChanged() {
-    lastChange = Date.now();
-    lsSet("motion-store:lastChange", String(lastChange));
-    refreshBadge();
-  }
+  function markChanged(){ lastChange = Date.now(); lsSet("motion-store:lastChange", String(lastChange)); refreshBadge(); }
 
-  /* ---- seed from the repo's motion-data.json (missing keys only) --------- */
-  // Values in the JSON are stored readably (parsed) where possible; convert
-  // back to the raw string form the dashboard writes before putting them in
-  // localStorage.
-  function toRaw(value) {
-    return typeof value === "string" ? value : JSON.stringify(value);
+  function snapshot(){
+    var data={};
+    allKeys().forEach(function(k){ var raw=lsGet(k); if(raw==null) return; try { data[k]=JSON.parse(raw); } catch(e){ data[k]=raw; } });
+    return { version:1, app:"motion-specialist-dashboard", updatedAt: localUpdatedAt() || Date.now(), exportedAt:new Date().toISOString(), data:data };
   }
-  function applyData(obj, mode) {
-    // mode: "fill" (only missing keys) or "replace" (overwrite matching keys)
-    if (!obj || typeof obj !== "object") return 0;
-    var data = obj.data && typeof obj.data === "object" ? obj.data : obj;
-    var n = 0;
-    Object.keys(data).forEach(function (k) {
-      if (k.indexOf(PREFIX) !== 0) return;
-      if (mode === "fill" && lsGet(k) !== null) return;
-      if (lsSet(k, toRaw(data[k]))) n++;
+  function applyData(obj, mode){
+    if(!obj||typeof obj!=="object") return 0;
+    var data = obj.data && typeof obj.data==="object" ? obj.data : obj;
+    var n=0;
+    Object.keys(data).forEach(function(k){
+      if(k.indexOf(PREFIX)!==0) return;
+      if(mode==="fill" && lsGet(k)!==null) return;
+      if(lsSet(k, toRaw(data[k]))) n++;
     });
     return n;
   }
 
-  var seedPromise = (function () {
-    // Only meaningful over http(s); on file:// fetch will simply fail -> skip.
-    if (typeof fetch !== "function") return Promise.resolve();
-    var timeout = new Promise(function (res) { setTimeout(res, SEED_TIMEOUT_MS); });
-    var load = fetch(SEED_URL, { cache: "no-store" })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (json) { if (json) applyData(json, "fill"); })
-      .catch(function () { /* no seed file, offline, or local file:// — fine */ });
-    return Promise.race([load, timeout]);
+  function fetchJSON(url, opts, timeoutMs){
+    if (typeof fetch !== "function") return Promise.reject(new Error("no fetch"));
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var t = setTimeout(function(){ if(ctrl) ctrl.abort(); }, timeoutMs || PULL_TIMEOUT_MS);
+    opts = opts || {};
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(url, opts).then(function(r){
+      clearTimeout(t);
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).catch(function(e){ clearTimeout(t); throw e; });
+  }
+
+  function pushNow(){
+    if (!apiAvailable) return Promise.resolve(false);
+    var snap = snapshot();
+    return fetchJSON(SYNC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snap),
+    }, PULL_TIMEOUT_MS).then(function(){
+      lastSyncAt = Date.now(); refreshBadge(); return true;
+    }).catch(function(){ apiAvailable = false; refreshBadge(); return false; });
+  }
+  function schedulePush(){
+    if (!apiAvailable) return;
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(pushNow, PUSH_DEBOUNCE_MS);
+  }
+
+  var seedPromise = (function(){
+    return fetchJSON(SYNC_URL, { method: "GET", cache: "no-store" })
+      .then(function(remote){
+        apiAvailable = true;
+        var hasRemote = remote && remote.data && Object.keys(remote.data).length > 0;
+        if (hasRemote && (Number(remote.updatedAt)||0) >= localUpdatedAt()) {
+          applyData(remote, "replace");
+          setUpdatedAt(Number(remote.updatedAt) || Date.now());
+          lastSyncAt = Date.now();
+        } else if (!hasRemote) {
+          return fetchJSON(SEED_URL, { cache:"no-store" })
+            .then(function(j){ applyData(j, "fill"); })
+            .catch(function(){})
+            .then(function(){ if (!localUpdatedAt()) setUpdatedAt(Date.now()); return pushNow(); });
+        } else {
+          return pushNow();
+        }
+      })
+      .catch(function(){
+        apiAvailable = false;
+        return fetchJSON(SEED_URL, { cache:"no-store" })
+          .then(function(j){ applyData(j, "fill"); })
+          .catch(function(){});
+      });
   })();
 
-  /* ---- window.storage: the interface the dashboard calls ----------------- */
-  // get() waits for the seed to settle so first reads see repo data.
   window.storage = {
     get: function (key) {
       return seedPromise.then(function () {
@@ -149,161 +164,102 @@
     },
     set: function (key, value) {
       lsSet(key, value);
-      if (String(key).indexOf(PREFIX) === 0) markChanged();
+      if (String(key).indexOf(PREFIX) === 0) { setUpdatedAt(Date.now()); markChanged(); schedulePush(); }
       return Promise.resolve();
     },
     delete: function (key) {
       lsRemove(key);
-      if (String(key).indexOf(PREFIX) === 0) markChanged();
+      if (String(key).indexOf(PREFIX) === 0) { setUpdatedAt(Date.now()); markChanged(); schedulePush(); }
       return Promise.resolve();
     },
   };
 
-  /* ---- export / import --------------------------------------------------- */
-  function snapshot() {
-    // Build a readable { version, exportedAt, data:{ key: parsed-or-string } }.
-    var data = {};
-    allKeys().forEach(function (k) {
-      var raw = lsGet(k);
-      if (raw == null) return;
-      try { data[k] = JSON.parse(raw); } catch (e) { data[k] = raw; }
-    });
-    return { version: 1, app: "motion-specialist-dashboard", exportedAt: new Date().toISOString(), data: data };
-  }
-
-  function exportBackup() {
+  function exportBackup(){
     var text = JSON.stringify(snapshot(), null, 2);
-    var blob = new Blob([text], { type: "application/json" });
+    var blob = new Blob([text], { type:"application/json" });
     var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url; a.download = EXPORT_NAME;
+    var a = document.createElement("a"); a.href=url; a.download=EXPORT_NAME;
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-    lsSet(LAST_EXPORT_KEY, String(Date.now()));
-    refreshBadge();
-    setStatus("Downloaded " + EXPORT_NAME + " — commit it to your repo.", "ok");
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    lsSet(LAST_EXPORT_KEY, String(Date.now())); refreshBadge();
+    setStatus("Downloaded " + EXPORT_NAME + " -- commit it to your repo.", "ok");
   }
-
-  function importFromFile(file) {
+  function importFromFile(file){
     var reader = new FileReader();
-    reader.onload = function () {
-      var parsed;
-      try { parsed = JSON.parse(String(reader.result)); }
-      catch (e) { setStatus("That file isn't valid JSON.", "error"); return; }
-      var n = applyData(parsed, "replace");
-      lsSet(LAST_EXPORT_KEY, String(Date.now()));
-      setStatus("Restored " + n + " item" + (n === 1 ? "" : "s") + ". Reloading…", "ok");
-      setTimeout(function () { location.reload(); }, 700);
+    reader.onload = function(){
+      var parsed; try { parsed=JSON.parse(String(reader.result)); } catch(e){ setStatus("That file isn't valid JSON.", "error"); return; }
+      var n = applyData(parsed, "replace"); setUpdatedAt(Date.now());
+      pushNow();
+      setStatus("Restored " + n + " item" + (n===1?"":"s") + ". Reloading...", "ok");
+      setTimeout(function(){ location.reload(); }, 700);
     };
-    reader.onerror = function () { setStatus("Couldn't read that file.", "error"); };
+    reader.onerror = function(){ setStatus("Couldn't read that file.", "error"); };
     reader.readAsText(file);
   }
 
-  function loadFromRepo() {
-    if (typeof fetch !== "function") { setStatus("Not available when opened as a local file.", "error"); return; }
-    setStatus("Fetching " + SEED_URL + "…", null);
-    fetch(SEED_URL, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("not found"); return r.json(); })
-      .then(function (json) {
-        var n = applyData(json, "replace");
-        setStatus("Loaded " + n + " item" + (n === 1 ? "" : "s") + " from repo. Reloading…", "ok");
-        setTimeout(function () { location.reload(); }, 700);
-      })
-      .catch(function () { setStatus("No " + SEED_URL + " found in the repo yet.", "error"); });
-  }
+  window.MotionData = { export: exportBackup, snapshot: snapshot, pushNow: pushNow, keys: allKeys,
+    isSynced: function(){ return apiAvailable; } };
 
-  // Small public API in case you want to script it from the console.
-  window.MotionData = {
-    export: exportBackup,
-    loadFromRepo: loadFromRepo,
-    snapshot: snapshot,
-    keys: allKeys,
-  };
+  var panelEl, statusEl, badgeEl, syncLineEl, launcherEl;
 
-  /* ---- unobtrusive on-page control (bottom-left) ------------------------- */
-  var panelEl, statusEl, badgeEl, launcherEl;
-
-  function hasUnbackedChanges() {
-    var lastExport = Number(lsGet(LAST_EXPORT_KEY)) || 0;
-    return lastChange > lastExport;
-  }
-  function refreshBadge() {
-    if (!badgeEl) return;
-    badgeEl.style.display = hasUnbackedChanges() ? "block" : "none";
-  }
-  function setStatus(msg, kind) {
-    if (!statusEl) return;
-    statusEl.textContent = msg || "";
-    statusEl.style.color = kind === "error" ? C.error : kind === "ok" ? C.accent : C.muted;
-  }
-
-  function styleBtn(el, primary) {
-    el.style.cssText =
-      "display:flex;align-items:center;justify-content:center;gap:7px;width:100%;" +
-      "padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;font-family:" + C.font + ";" +
-      "border:1px solid " + (primary ? C.accent : C.line) + ";" +
-      "background:" + (primary ? C.accent : "transparent") + ";" +
-      "color:" + (primary ? "#0a0a0a" : C.text) + ";transition:border-color 140ms ease,background 140ms ease;";
-    el.addEventListener("focus", function () { el.style.outline = "2px solid " + C.accent; el.style.outlineOffset = "2px"; });
-    el.addEventListener("blur", function () { el.style.outline = "none"; });
-    if (!primary) {
-      el.addEventListener("mouseenter", function () { el.style.borderColor = C.lineStrong; });
-      el.addEventListener("mouseleave", function () { el.style.borderColor = C.line; });
+  function hasUnbackedChanges(){ return lastChange > (Number(lsGet(LAST_EXPORT_KEY)) || 0); }
+  function refreshBadge(){
+    if (badgeEl) badgeEl.style.display = (!apiAvailable && hasUnbackedChanges()) ? "block" : "none";
+    if (syncLineEl) {
+      if (apiAvailable) { syncLineEl.textContent = "\u25CF Synced across devices"; syncLineEl.style.color = C.accent; }
+      else { syncLineEl.textContent = "\u25CB This device only (no sync endpoint)"; syncLineEl.style.color = C.faint; }
     }
   }
+  function setStatus(msg, kind){ if(!statusEl) return; statusEl.textContent = msg||""; statusEl.style.color = kind==="error"?C.error:kind==="ok"?C.accent:C.muted; }
 
-  function icon(paths) {
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" ' +
-      'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      paths + "</svg>";
+  function styleBtn(el, primary){
+    el.style.cssText =
+      "display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px 12px;border-radius:9px;" +
+      "cursor:pointer;font-size:13px;font-family:" + C.font + ";border:1px solid " + (primary?C.accent:C.line) + ";" +
+      "background:" + (primary?C.accent:"transparent") + ";color:" + (primary?"#0a0a0a":C.text) + ";transition:border-color 140ms ease;";
+    el.addEventListener("focus", function(){ el.style.outline="2px solid "+C.accent; el.style.outlineOffset="2px"; });
+    el.addEventListener("blur", function(){ el.style.outline="none"; });
+    if(!primary){ el.addEventListener("mouseenter", function(){ el.style.borderColor=C.lineStrong; }); el.addEventListener("mouseleave", function(){ el.style.borderColor=C.line; }); }
   }
+  function icon(paths){ return '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+paths+"</svg>"; }
   var ICON_DB = icon('<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>');
   var ICON_DOWN = icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>');
-  var ICON_CLOUD = icon('<path d="M12 13v8"/><path d="m8 17 4 4 4-4"/><path d="M4.5 15.5A5 5 0 0 1 7 6a6 6 0 0 1 11.3 2A4.5 4.5 0 0 1 18 17"/>');
   var ICON_UP = icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>');
 
-  function buildUI() {
+  function buildUI(){
     if (document.getElementById("motion-store-ui")) return;
-
     var root = document.createElement("div");
     root.id = "motion-store-ui";
     root.style.cssText = "position:fixed;left:16px;bottom:16px;z-index:40;font-family:" + C.font + ";";
 
-    // launcher pill
     launcherEl = document.createElement("button");
     launcherEl.type = "button";
-    launcherEl.setAttribute("aria-label", "Open data backup panel");
-    launcherEl.style.cssText =
-      "position:relative;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;" +
-      "cursor:pointer;font-size:12.5px;color:" + C.text + ";background:" + C.bg + ";" +
-      "border:1px solid " + C.line + ";box-shadow:0 6px 20px rgba(0,0,0,0.35);font-family:" + C.font + ";";
+    launcherEl.setAttribute("aria-label", "Open data and sync panel");
+    launcherEl.style.cssText = "position:relative;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:999px;cursor:pointer;font-size:12.5px;color:" + C.text + ";background:" + C.bg + ";border:1px solid " + C.line + ";box-shadow:0 6px 20px rgba(0,0,0,0.35);font-family:" + C.font + ";";
     launcherEl.innerHTML = '<span style="color:' + C.accent + ';display:inline-flex">' + ICON_DB + "</span><span>Data</span>";
-    launcherEl.addEventListener("mouseenter", function () { launcherEl.style.borderColor = C.lineStrong; });
-    launcherEl.addEventListener("mouseleave", function () { launcherEl.style.borderColor = C.line; });
+    launcherEl.addEventListener("mouseenter", function(){ launcherEl.style.borderColor=C.lineStrong; });
+    launcherEl.addEventListener("mouseleave", function(){ launcherEl.style.borderColor=C.line; });
 
-    // "unsaved to repo" dot
     badgeEl = document.createElement("span");
     badgeEl.title = "Local changes not yet exported to the repo";
-    badgeEl.style.cssText =
-      "position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:999px;" +
-      "background:" + C.accent + ";border:2px solid " + C.bg + ";display:none;";
+    badgeEl.style.cssText = "position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:999px;background:" + C.accent + ";border:2px solid " + C.bg + ";display:none;";
     launcherEl.appendChild(badgeEl);
 
-    // panel
     panelEl = document.createElement("div");
     panelEl.setAttribute("role", "dialog");
-    panelEl.setAttribute("aria-label", "Data backup");
-    panelEl.style.cssText =
-      "display:none;position:absolute;left:0;bottom:52px;width:280px;padding:16px;border-radius:14px;" +
-      "background:" + C.bg + ";border:1px solid " + C.line + ";box-shadow:0 12px 40px rgba(0,0,0,0.5);";
+    panelEl.setAttribute("aria-label", "Data and sync");
+    panelEl.style.cssText = "display:none;position:absolute;left:0;bottom:52px;width:288px;padding:16px;border-radius:14px;background:" + C.bg + ";border:1px solid " + C.line + ";box-shadow:0 12px 40px rgba(0,0,0,0.5);";
 
     var title = document.createElement("div");
-    title.textContent = "Data backup";
+    title.textContent = "Data & sync";
     title.style.cssText = "font-weight:600;font-size:14px;color:" + C.text + ";margin-bottom:4px;";
+
+    syncLineEl = document.createElement("div");
+    syncLineEl.style.cssText = "font-size:12px;font-family:" + C.mono + ";margin-bottom:12px;";
 
     var sub = document.createElement("div");
     sub.style.cssText = "font-size:12px;line-height:1.45;color:" + C.muted + ";margin-bottom:14px;";
-    sub.textContent = "Your work saves to this browser automatically. Export the JSON and commit it to keep a copy in your repo.";
+    sub.textContent = "When the sync endpoint is live, your data loads and saves across every machine automatically. Export is a separate repo backup.";
 
     var btnExport = document.createElement("button");
     btnExport.type = "button";
@@ -311,65 +267,41 @@
     styleBtn(btnExport, true);
     btnExport.addEventListener("click", exportBackup);
 
-    var btnRepo = document.createElement("button");
-    btnRepo.type = "button";
-    btnRepo.innerHTML = '<span style="display:inline-flex">' + ICON_CLOUD + "</span>Load from repo";
-    btnRepo.title = "Replace this browser's data with the committed motion-data.json";
-    styleBtn(btnRepo, false);
-    btnRepo.style.marginTop = "8px";
-    btnRepo.addEventListener("click", function () {
-      if (confirm("Replace this browser's data with motion-data.json from the repo? Anything not yet exported will be lost.")) loadFromRepo();
-    });
-
     var btnImport = document.createElement("button");
     btnImport.type = "button";
     btnImport.innerHTML = '<span style="display:inline-flex">' + ICON_UP + "</span>Import a backup file";
     styleBtn(btnImport, false);
     btnImport.style.marginTop = "8px";
-
     var fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "application/json,.json";
-    fileInput.style.display = "none";
-    fileInput.addEventListener("change", function () {
-      if (fileInput.files && fileInput.files[0]) {
-        if (confirm("Restore from this file? It replaces matching data in this browser.")) importFromFile(fileInput.files[0]);
-      }
-      fileInput.value = "";
-    });
-    btnImport.addEventListener("click", function () { fileInput.click(); });
+    fileInput.type = "file"; fileInput.accept = "application/json,.json"; fileInput.style.display = "none";
+    fileInput.addEventListener("change", function(){ if(fileInput.files&&fileInput.files[0]){ if(confirm("Restore from this file? It replaces matching data on this device and pushes to sync.")) importFromFile(fileInput.files[0]); } fileInput.value=""; });
+    btnImport.addEventListener("click", function(){ fileInput.click(); });
+
+    var manageLink = document.createElement("a");
+    manageLink.href = DATA_PAGE_URL;
+    manageLink.textContent = "Open full data manager \u2197";
+    manageLink.style.cssText = "display:block;text-align:center;margin-top:8px;padding:9px 12px;border-radius:9px;font-size:12.5px;text-decoration:none;font-family:" + C.font + ";border:1px solid " + C.line + ";color:" + C.muted + ";transition:border-color 140ms ease,color 140ms ease;";
+    manageLink.addEventListener("mouseenter", function(){ manageLink.style.borderColor=C.lineStrong; manageLink.style.color=C.text; });
+    manageLink.addEventListener("mouseleave", function(){ manageLink.style.borderColor=C.line; manageLink.style.color=C.muted; });
 
     statusEl = document.createElement("div");
     statusEl.setAttribute("aria-live", "polite");
     statusEl.style.cssText = "min-height:16px;margin-top:12px;font-size:11.5px;line-height:1.4;font-family:" + C.mono + ";color:" + C.muted + ";";
 
     panelEl.appendChild(title);
+    panelEl.appendChild(syncLineEl);
     panelEl.appendChild(sub);
     panelEl.appendChild(btnExport);
-    panelEl.appendChild(btnRepo);
     panelEl.appendChild(btnImport);
     panelEl.appendChild(fileInput);
-    var manageLink = document.createElement("a");
-    manageLink.href = DATA_PAGE_URL;
-    manageLink.textContent = "Open full data manager \u2197";
-    manageLink.style.cssText = "display:block;text-align:center;margin-top:8px;padding:9px 12px;" +
-      "border-radius:9px;font-size:12.5px;text-decoration:none;font-family:" + C.font + ";" +
-      "border:1px solid " + C.line + ";color:" + C.muted + ";transition:border-color 140ms ease,color 140ms ease;";
-    manageLink.addEventListener("mouseenter", function(){ manageLink.style.borderColor=C.lineStrong; manageLink.style.color=C.text; });
-    manageLink.addEventListener("mouseleave", function(){ manageLink.style.borderColor=C.line; manageLink.style.color=C.muted; });
     panelEl.appendChild(manageLink);
     panelEl.appendChild(statusEl);
 
     var open = false;
-    function setOpen(v) {
-      open = v;
-      panelEl.style.display = v ? "block" : "none";
-      launcherEl.setAttribute("aria-expanded", v ? "true" : "false");
-      if (v) refreshStatusLine();
-    }
-    launcherEl.addEventListener("click", function () { setOpen(!open); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && open) setOpen(false); });
-    document.addEventListener("click", function (e) { if (open && !root.contains(e.target)) setOpen(false); });
+    function setOpen(v){ open=v; panelEl.style.display=v?"block":"none"; launcherEl.setAttribute("aria-expanded", v?"true":"false"); if(v){ refreshBadge(); } }
+    launcherEl.addEventListener("click", function(){ setOpen(!open); });
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape"&&open) setOpen(false); });
+    document.addEventListener("click", function(e){ if(open && !root.contains(e.target)) setOpen(false); });
 
     root.appendChild(panelEl);
     root.appendChild(launcherEl);
@@ -377,22 +309,8 @@
     refreshBadge();
   }
 
-  function refreshStatusLine() {
-    var lastExport = Number(lsGet(LAST_EXPORT_KEY)) || 0;
-    if (hasUnbackedChanges()) {
-      setStatus(lastExport ? "You have changes since your last export." : "Not yet exported to the repo.", null);
-    } else if (lastExport) {
-      setStatus("Backed up " + new Date(lastExport).toLocaleString() + ".", "ok");
-    } else {
-      setStatus("", null);
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", buildUI);
-  } else {
-    buildUI();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildUI);
+  else buildUI();
 })();
 
 </script>
