@@ -26,7 +26,32 @@
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:border-color .14s ease}
   .btn:hover{border-color:var(--line2)}
+  .iconbtn{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
+  .iconbtn:hover{border-color:var(--line2);color:var(--text)}
+  .iconbtn.active{border-color:var(--accent);color:var(--accent)}
+  .searchwrap{display:flex;align-items:center;gap:8px}
+  .searchinput{width:190px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font)}
+  .searchinput:focus{border-color:var(--accent)}
+  .searchinput[hidden]{display:none}
+  .btn.active{border-color:var(--accent);color:var(--accent)}
+  .cnt{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
+  .btn.active .cnt{border-color:var(--accent);color:var(--accent)}
   .btn.primary{background:var(--accent);color:#0a0a0a;border-color:var(--accent);font-weight:600}
+  .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
+  .titlerow .eyebrow{margin-bottom:0}
+  .navwrap{position:relative;flex-shrink:0}
+  .hamb{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
+  .hamb:hover{border-color:var(--line2);color:var(--text)}
+  .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:248px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden;z-index:60}
+  .navmenu[hidden]{display:none}
+  .navhdr{padding:9px 13px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line)}
+  .navitem{display:flex;align-items:center;gap:10px;padding:11px 13px;text-decoration:none;color:var(--text);transition:background .14s ease}
+  .navitem:hover{background:var(--surface)}
+  .navitem .ni-txt{min-width:0;flex:1;display:flex;flex-direction:column}
+  .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navitem .ni-ext{color:var(--faint);flex-shrink:0}
   .btn.primary:hover{background:#4ade80}
   .updated{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
   section{margin-top:26px}
@@ -48,6 +73,13 @@
   .due.over{color:var(--rose)} .due.soon{color:var(--amber)} .due.calm{color:var(--faint)}
   .high{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--rose);background:rgba(251,113,133,.15);padding:2px 6px;border-radius:5px;font-weight:600}
   .empty{color:var(--faint);font-size:13px;font-style:italic;padding:16px 15px;text-align:center}
+  .pitem{border-top:1px solid var(--line)}
+  .pitem:first-child{border-top:none}
+  .pitem .row{border-top:none}
+  .plinks{display:flex;flex-wrap:wrap;gap:6px;padding:0 15px 11px 33px}
+  .plink{display:inline-flex;align-items:center;gap:5px;max-width:100%;font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 9px;text-decoration:none;transition:border-color .14s ease,color .14s ease}
+  .plink:hover{border-color:var(--accent);color:var(--accent)}
+  .plink .pltxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
   /* week strip */
   .week{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
   .day{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px;min-height:76px}
@@ -81,21 +113,51 @@
 <body>
   <div class="wrap">
     <header>
-      <div>
-        <div class="eyebrow">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="#22c55e"/></svg>
-          Motion Design · UX
+      <div class="hleft">
+        <div class="titlerow">
+          <div class="navwrap" id="navwrap">
+          <button class="hamb" id="navBtn" aria-label="Menu" aria-expanded="false" aria-haspopup="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="navmenu" id="navMenu" role="menu" hidden>
+            <div class="navhdr">Links</div>
+            <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html" target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              <span class="ni-txt"><span class="ni-lbl">Intake form</span><span class="ni-desc">Public request form</span></span>
+              <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+            </a>
+            <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html" target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+              <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Full motion dashboard</span></span>
+              <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+            </a>
+          </div>
         </div>
-        <h1>Manager view</h1>
+          <h1>Manager view</h1>
+          <div class="eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="#22c55e"/></svg>
+            Motion Design · UX
+          </div>
+        </div>
         <div class="roflag">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          View-only — you can add checklist items and open the intake form
+          View-only — you can add checklist items and open the linked pages
         </div>
       </div>
       <div class="btnrow">
-        <a class="btn primary" href="https://hub-mospec.vercel.app/intake.html">
+        <div class="searchwrap">
+          <button class="iconbtn" id="searchBtn" aria-label="Search projects" title="Search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+          <input id="searchInput" class="searchinput" type="text" placeholder="Search projects…" hidden />
+        </div>
+        <button class="btn" id="completedBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Completed <span class="cnt" id="completedCount">0</span>
+        </button>
+        <a class="btn" href="https://hub-mospec.vercel.app/intake.html" target="_blank" rel="noopener noreferrer">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-          Open intake form
+          Intake form
         </a>
         <button class="btn" id="refreshBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
@@ -128,6 +190,7 @@
   var ACTIVE = ["discovery", "wip", "review", "revisions"];
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+  function hrefFor(url){ var u=(url||"").trim(); if(!u) return "#"; if(/^https?:\/\//i.test(u)||u.indexOf("mailto:")===0) return u; return "https://"+u; }
   function arr(v){ return Array.isArray(v) ? v : []; }
   function sumHours(entries){ return arr(entries).reduce(function(s,e){return s+(Number(e.hours)||0);},0); }
   function midnight(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
@@ -148,6 +211,8 @@
   function fmtWhen(ts){ if(!ts) return ""; var d=new Date(ts); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}); }
 
   var msgEl, updatedEl;
+  var lastSnap = null, searchQuery = "", showCompleted = false;
+  function rerender(){ if (lastSnap) render(lastSnap); }
   function setMsg(t,k){ if(msgEl){ msgEl.textContent=t||""; msgEl.className=k==="ok"?"ok":k==="err"?"err":""; } }
 
   async function getSnapshot(){
@@ -188,6 +253,15 @@
     var completed = arr(data[PREFIX+"completed"]);
     var checklist = arr(data[CHK_KEY]);
     var weekPicks = data[PREFIX+"weekPicks"] || null;
+    var links = arr(data[PREFIX+"links"]);
+    var linksByProject = {};
+    links.forEach(function(l){ if(!l || !l.projectId) return; (linksByProject[l.projectId] = linksByProject[l.projectId] || []).push(l); });
+
+    lastSnap = snap;
+    var q = (searchQuery || "").trim().toLowerCase();
+    function nameMatch(p){ return !q || (p.name || "").toLowerCase().indexOf(q) >= 0; }
+    var completedList = completed.concat(projects.filter(function(p){ return p.status === "delivered"; }));
+    var cc = document.getElementById("completedCount"); if (cc) cc.textContent = completedList.length;
 
     var today = midnight(new Date());
     var monday = mondayOf(today);
@@ -216,14 +290,16 @@
     html += '</section>';
 
     // in motion
-    var inMotion = projects.filter(function(p){ return ACTIVE.indexOf(p.status)>=0; }).sort(function(a,b){ return urgency(b,today)-urgency(a,today); });
+    var inMotion = projects.filter(function(p){ return ACTIVE.indexOf(p.status)>=0 && nameMatch(p); }).sort(function(a,b){ return urgency(b,today)-urgency(a,today); });
     html += '<section><h2>'+iconSvg("play")+'In motion ('+inMotion.length+')</h2>';
-    if(!inMotion.length){ html += '<div class="card"><div class="empty">Nothing active right now.</div></div>'; }
+    if(!inMotion.length){ html += '<div class="card"><div class="empty">'+(q?"No matches.":"Nothing active right now.")+'</div></div>'; }
     else {
       html += '<div class="card">';
       inMotion.forEach(function(p){
         var st = STATUS[p.status] || {label:p.status,dot:"#71717a"};
         var due = dueLabel(p.deadline, p.status);
+        var myLinks = (linksByProject[p.id] || []).slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+        html += '<div class="pitem">';
         html += '<div class="row">'+
           '<span class="dot" style="background:'+st.dot+'"></span>'+
           '<span class="name">'+esc(p.name)+'</span>'+
@@ -233,10 +309,46 @@
             (due?'<span class="due '+due.cls+'">'+esc(due.text)+'</span>':'')+
           '</span>'+
         '</div>';
+        if(myLinks.length){
+          html += '<div class="plinks">';
+          myLinks.forEach(function(l){
+            html += '<a class="plink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer" title="'+esc(l.url)+'">'+
+              '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>'+
+              '<span class="pltxt">'+esc(l.label || l.url)+'</span>'+
+            '</a>';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
       });
       html += '</div>';
     }
     html += '</section>';
+
+    // completed (toggled by the header Completed button)
+    if(showCompleted){
+      var cl = completedList.filter(nameMatch);
+      html += '<section><h2>'+iconSvg("check")+'Completed ('+completedList.length+')</h2>';
+      if(!cl.length){ html += '<div class="card"><div class="empty">'+(completedList.length?"No matches.":"Nothing completed yet.")+'</div></div>'; }
+      else {
+        html += '<div class="card">';
+        cl.forEach(function(p){
+          var hrs = Math.round(sumHours(p.timeEntries)*10)/10;
+          var when = p.deliveredAt ? new Date(p.deliveredAt) : (p.deadline ? new Date(p.deadline+"T00:00:00") : null);
+          var whenTxt = (when && !isNaN(when.getTime())) ? when.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
+          html += '<div class="row">'+
+            '<span class="dot" style="background:#34d399"></span>'+
+            '<span class="name">'+esc(p.name)+'</span>'+
+            '<span class="meta">'+
+              (hrs?'<span class="tag">'+hrs+'h</span>':'')+
+              (whenTxt?'<span class="due calm">'+esc(whenTxt)+'</span>':'')+
+            '</span>'+
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</section>';
+    }
 
     // checklist (view + add only)
     var tKey = todayKey();
@@ -323,9 +435,47 @@
       'If this keeps happening, the data endpoint may be unreachable.</div>'; }
   }
 
+  function setupNav(){
+    var wrap = document.getElementById("navwrap");
+    var btn = document.getElementById("navBtn");
+    var menu = document.getElementById("navMenu");
+    if(!wrap || !btn || !menu) return;
+    function setOpen(o){ menu.hidden = !o; btn.setAttribute("aria-expanded", o ? "true" : "false"); }
+    btn.addEventListener("click", function(e){ e.stopPropagation(); setOpen(menu.hidden); });
+    document.addEventListener("click", function(e){ if(!menu.hidden && !wrap.contains(e.target)) setOpen(false); });
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") setOpen(false); });
+    Array.prototype.forEach.call(menu.querySelectorAll(".navitem"), function(a){ a.addEventListener("click", function(){ setOpen(false); }); });
+  }
+
+  function setupControls(){
+    var sBtn = document.getElementById("searchBtn");
+    var sInput = document.getElementById("searchInput");
+    var cBtn = document.getElementById("completedBtn");
+    if(sBtn && sInput){
+      sBtn.addEventListener("click", function(){
+        var open = sInput.hidden;
+        sInput.hidden = !open;
+        sBtn.classList.toggle("active", open);
+        if(open){ sInput.focus(); }
+        else { sInput.value = ""; searchQuery = ""; rerender(); }
+      });
+      sInput.addEventListener("input", function(){ searchQuery = sInput.value; rerender(); });
+      sInput.addEventListener("keydown", function(e){ if(e.key==="Escape"){ sInput.value=""; searchQuery=""; sInput.hidden=true; sBtn.classList.remove("active"); rerender(); } });
+    }
+    if(cBtn){
+      cBtn.addEventListener("click", function(){
+        showCompleted = !showCompleted;
+        cBtn.classList.toggle("active", showCompleted);
+        rerender();
+      });
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", function(){
     updatedEl = document.getElementById("updated");
     document.getElementById("refreshBtn").addEventListener("click", function(){ load(false); });
+    setupNav();
+    setupControls();
     load(false);
     setInterval(function(){ load(true); }, POLL_MS);
   });
