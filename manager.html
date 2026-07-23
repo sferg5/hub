@@ -95,7 +95,15 @@
   .chk .box{width:16px;height:16px;border-radius:999px;border:2px solid var(--line2);flex-shrink:0;display:grid;place-items:center}
   .chk.done .box{border-color:var(--accent);background:var(--accent)}
   .chk .box svg{display:none} .chk.done .box svg{display:block}
-  .chk .txt{font-size:13.5px}
+  .chk .txt{font-size:13.5px;flex:1;min-width:0}
+  .chk-actions{display:flex;gap:4px;flex-shrink:0}
+  .chk-btn{display:inline-flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;background:transparent;border:none;cursor:pointer;color:var(--faint);transition:color .14s ease,background .14s ease}
+  .chk-btn:hover{background:var(--surface);color:var(--text)}
+  .chk-btn.remove:hover{color:var(--rose)}
+  .chk-btn.save{color:var(--accent)}
+  .chk-btn.save:hover{background:var(--surface)}
+  .chk-edit-input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font)}
+  .chk-edit-input:focus{border-color:var(--accent)}
   .chk.done .txt{color:var(--faint);text-decoration:line-through}
   .addbar{display:flex;gap:8px;padding:12px 15px;border-top:1px solid var(--line);background:var(--panel)}
   .addbar input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font)}
@@ -212,7 +220,7 @@
   function fmtWhen(ts){ if(!ts) return ""; var d=new Date(ts); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}); }
 
   var msgEl, updatedEl;
-  var lastSnap = null, searchQuery = "";
+  var lastSnap = null, searchQuery = "", editingId = null;
   function rerender(){ if (lastSnap) render(lastSnap); }
   function setMsg(t,k){ if(msgEl){ msgEl.textContent=t||""; msgEl.className=k==="ok"?"ok":k==="err"?"err":""; } }
 
@@ -233,6 +241,32 @@
     var items = arr(snap.data[CHK_KEY]);
     var item = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,7), text: text.trim(), doneOn: null };
     snap.data[CHK_KEY] = items.concat([item]);   // dashboard appends to the end too
+    snap.updatedAt = Date.now();
+    try {
+      var res = await fetch(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) });
+      return res.ok;
+    } catch(e){ return false; }
+  }
+
+  async function editChecklistItem(id, text){
+    var snap;
+    try { snap = await getSnapshot(); } catch(e){ return false; }
+    if(!snap || typeof snap.data!=="object") return false;
+    var items = arr(snap.data[CHK_KEY]);
+    snap.data[CHK_KEY] = items.map(function(it){ return (it && it.id===id) ? Object.assign({}, it, { text: String(text).trim() }) : it; });
+    snap.updatedAt = Date.now();
+    try {
+      var res = await fetch(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) });
+      return res.ok;
+    } catch(e){ return false; }
+  }
+
+  async function removeChecklistItem(id){
+    var snap;
+    try { snap = await getSnapshot(); } catch(e){ return false; }
+    if(!snap || typeof snap.data!=="object") return false;
+    var items = arr(snap.data[CHK_KEY]);
+    snap.data[CHK_KEY] = items.filter(function(it){ return !it || it.id!==id; });
     snap.updatedAt = Date.now();
     try {
       var res = await fetch(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) });
@@ -302,15 +336,17 @@
         var days=Math.round((ed-sd)/86400000)+1;
         return fmtD(x.start)+" – "+fmtD(x.end)+" · "+days+"d";
       }
+      var TYPE_DOT = { "PTO":"#fbbf24", "Holiday":"#38bdf8", "R+R":"#a78bfa" };
       html += '<section><h2>'+iconSvg("cal")+'Upcoming time off ('+upcoming.length+')</h2>';
       if(!upcoming.length){ html += '<div class="card"><div class="empty">No time off scheduled.</div></div>'; }
       else {
         html += '<div class="card">';
         upcoming.forEach(function(x){
+          var t = x.type || "PTO";
           html += '<div class="row">'+
-            '<span class="dot" style="background:#fbbf24"></span>'+
+            '<span class="dot" style="background:'+(TYPE_DOT[t]||"#fbbf24")+'"></span>'+
             '<span class="name">'+esc(label(x))+'</span>'+
-            (x.note?'<span class="meta"><span class="due calm">'+esc(x.note)+'</span></span>':'')+
+            '<span class="meta"><span class="tag">'+esc(t)+'</span>'+(x.note?'<span class="due calm">'+esc(x.note)+'</span>':'')+'</span>'+
           '</div>';
         });
         html += '</div>';
@@ -386,21 +422,34 @@
     else {
       checklist.forEach(function(it){
         var done = it.doneOn === tKey;
-        html += '<div class="chk'+(done?" done":"")+'">'+
-          '<span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'+
-          '<span class="txt">'+esc(it.text)+'</span>'+
-        '</div>';
+        if(editingId === it.id){
+          html += '<div class="chk editing">'+
+            '<input class="chk-edit-input" type="text" value="'+esc(it.text)+'" data-id="'+esc(it.id)+'" maxlength="200" />'+
+            '<button class="chk-btn save" data-id="'+esc(it.id)+'" title="Save"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>'+
+            '<button class="chk-btn cancel" title="Cancel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+          '</div>';
+        } else {
+          html += '<div class="chk'+(done?" done":"")+'">'+
+            '<span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'+
+            '<span class="txt">'+esc(it.text)+'</span>'+
+            '<div class="chk-actions">'+
+              '<button class="chk-btn edit" data-id="'+esc(it.id)+'" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>'+
+              '<button class="chk-btn remove" data-id="'+esc(it.id)+'" title="Remove"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>'+
+            '</div>'+
+          '</div>';
+        }
       });
     }
     html += '<div class="addbar"><input id="chkInput" type="text" placeholder="Add a checklist item for today…" maxlength="200" />'+
             '<button id="chkAdd" type="button">Add</button></div>';
     html += '</div><div id="msg"></div>'+
-            '<p class="note">Adding an item writes only to the checklist — it appears on the dashboard on its next refresh. You can\u2019t edit or remove anything else from here.</p>';
+            '<p class="note">You can add, edit, or remove checklist items here — changes appear on the dashboard on its next refresh. Other data stays view-only.</p>';
     html += '</section>';
 
     document.getElementById("content").innerHTML = html;
     msgEl = document.getElementById("msg");
     wireAdd();
+    wireChecklist();
     updatedEl.textContent = "updated " + fmtWhen(Date.now());
   }
 
@@ -457,7 +506,52 @@
     input.addEventListener("keydown", function(e){ if(e.key==="Enter") go(); });
   }
 
+  function wireChecklist(){
+    document.querySelectorAll(".chk-btn.edit").forEach(function(b){
+      b.addEventListener("click", function(){
+        editingId = b.getAttribute("data-id");
+        rerender();
+        setTimeout(function(){ var inp = document.querySelector(".chk-edit-input"); if(inp){ inp.focus(); inp.select(); } }, 0);
+      });
+    });
+    document.querySelectorAll(".chk-btn.remove").forEach(function(b){
+      b.addEventListener("click", async function(){
+        var id = b.getAttribute("data-id");
+        if(!window.confirm("Remove this checklist item?")) return;
+        setMsg("Removing…", null);
+        var ok = await removeChecklistItem(id);
+        if(ok){ setMsg("Removed.", "ok"); load(true); }
+        else { setMsg("Couldn't remove — try again.", "err"); }
+      });
+    });
+    document.querySelectorAll(".chk-btn.save").forEach(function(b){
+      b.addEventListener("click", function(){ saveEdit(b.getAttribute("data-id")); });
+    });
+    document.querySelectorAll(".chk-btn.cancel").forEach(function(b){
+      b.addEventListener("click", function(){ editingId = null; rerender(); });
+    });
+    var inp = document.querySelector(".chk-edit-input");
+    if(inp){
+      inp.addEventListener("keydown", function(e){
+        if(e.key==="Enter") saveEdit(inp.getAttribute("data-id"));
+        else if(e.key==="Escape"){ editingId = null; rerender(); }
+      });
+    }
+  }
+
+  async function saveEdit(id){
+    var inp = document.querySelector(".chk-edit-input");
+    var val = inp ? (inp.value||"").trim() : "";
+    if(!val){ editingId = null; rerender(); return; }
+    setMsg("Saving…", null);
+    editingId = null;
+    var ok = await editChecklistItem(id, val);
+    if(ok){ setMsg("Saved.", "ok"); load(true); }
+    else { setMsg("Couldn't save — try again.", "err"); rerender(); }
+  }
+
   async function load(silent){
+    if(silent && editingId !== null) return; // don't disrupt an in-progress edit
     if(!silent) document.getElementById("content").innerHTML = '<div class="loading">Loading…</div>';
     try { var snap = await getSnapshot(); render(snap); }
     catch(e){ document.getElementById("content").innerHTML = '<div class="loading">Couldn\u2019t load data. <br/><br/>'+
