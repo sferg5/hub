@@ -4,13 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark" />
-<title>Motion Library</title>
-<meta name="description" content="A showcase of motion design work." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><path d='M40 32 L70 50 L40 68 Z' fill='%23f472b6'/></svg>" />
+<title>Motion Tools</title>
+<meta name="description" content="Tools built for motion + UX work." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='24' height='24' rx='5' fill='%2318181b' stroke='none'/><path d='M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z'/></svg>" />
 <style>
   :root {
     --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
-    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#ec4899; --accent-dim:rgba(236,72,153,0.14);
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#06b6d4; --accent-dim:rgba(6,182,212,0.14);
     --rose:#fb7185; --amber:#fbbf24;
     --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
@@ -23,14 +23,13 @@
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
   .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
   .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
-  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
   h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
   .sub{font-size:13px;color:var(--faint)}
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:border-color .14s ease}
   .btn:hover{border-color:var(--line2)}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
-  .btn.primary:hover{background:#f472b6}
+  .btn.primary{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:600}
+  .btn.primary:hover{background:#22d3ee}
   .updated{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
   /* hamburger */
   .navwrap{position:relative;flex-shrink:0}
@@ -45,33 +44,25 @@
   .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-ext{color:var(--faint);flex-shrink:0}
-  /* from-completed bar */
-  .frombar{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-  .frombar .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-  .chips{display:flex;flex-wrap:wrap;gap:7px}
-  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 10px;border-radius:8px;border:1px dashed var(--line2);background:var(--surface);color:var(--muted);cursor:pointer;transition:border-color .14s,color .14s}
-  .chip:hover{border-color:var(--accent);color:var(--accent)}
   /* grid */
   .grid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
   .media{display:flex;flex-direction:column;background:#000}
-  .media-img{width:100%;max-height:280px;object-fit:cover;display:block}
+  .media-img{width:100%;max-height:220px;object-fit:cover;display:block}
   .media-embed{position:relative;width:100%;aspect-ratio:16/9;background:#000}
   .media-embed iframe,.media-embed video{position:absolute;inset:0;width:100%;height:100%;border:0}
   .media-more{display:flex;gap:6px;padding:6px;flex-wrap:wrap;background:var(--panel)}
-  .media-none{aspect-ratio:16/9;display:grid;place-items:center;background:linear-gradient(135deg,#1a1a1f,#0d0d10);color:var(--faint);font-size:12px;gap:6px}
+  .media-none{aspect-ratio:16/6;display:grid;place-items:center;background:linear-gradient(135deg,#12181b,#0d0d10);color:var(--faint)}
   .cbody{padding:14px 15px 16px;display:flex;flex-direction:column;gap:9px;flex:1}
   .ctop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
   .cname{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:0}
-  .ctype{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--accent-dim);color:#f9a8d4;white-space:nowrap;flex-shrink:0}
-  .cdate{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+  .ctype{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--accent-dim);color:#67e8f9;white-space:nowrap;flex-shrink:0}
   .cnotes{font-size:13px;color:var(--muted);white-space:pre-wrap}
-  .meta-row{display:flex;flex-wrap:wrap;gap:6px}
-  .stake{font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
-  .stake b{color:var(--text);font-weight:600}
+  .open{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:2px;padding:9px 13px;border-radius:10px;background:var(--accent);color:#04222a;font-size:13px;font-weight:600;text-decoration:none;transition:background .14s}
+  .open:hover{background:#22d3ee}
   .clinks{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
   .clink{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 9px;text-decoration:none;transition:border-color .14s,color .14s;max-width:100%}
-  .clink:hover{border-color:var(--accent);color:var(--accent)}
+  .clink:hover{border-color:var(--accent);color:#67e8f9}
   .clink span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
   .cactions{display:flex;gap:6px;margin-top:auto;padding-top:6px}
   .cbtn{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;transition:border-color .14s,color .14s}
@@ -82,8 +73,8 @@
   /* modal */
   .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
   .backdrop[hidden]{display:none}
-  .modal{width:100%;max-width:640px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.6);margin:auto}
-  .mhead{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:16px 18px;display:flex;align-items:center;justify-content:between;justify-content:space-between;border-radius:16px 16px 0 0}
+  .modal{width:100%;max-width:600px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.6);margin:auto}
+  .mhead{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-radius:16px 16px 0 0}
   .mhead h2{margin:0;font-size:17px;font-weight:700}
   .mclose{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;display:grid;place-items:center}
   .mclose:hover{color:var(--text);border-color:var(--line2)}
@@ -98,7 +89,7 @@
   .row2 input,.row2 select{flex:1;min-width:0}
   .rowdel{width:32px;height:34px;flex-shrink:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--faint);cursor:pointer;display:grid;place-items:center}
   .rowdel:hover{color:var(--rose);border-color:var(--rose)}
-  .addrow{align-self:flex-start;font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 0;display:inline-flex;align-items:center;gap:5px}
+  .addrow{align-self:flex-start;font-size:12px;color:#67e8f9;background:none;border:none;cursor:pointer;padding:2px 0;display:inline-flex;align-items:center;gap:5px}
   .mfoot{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:0 0 16px 16px}
   #mmsg{font-size:12px;font-family:var(--mono);color:var(--muted);min-height:14px}
   #mmsg.err{color:var(--rose)}
@@ -119,35 +110,35 @@
             <div class="navmenu" id="navMenu" role="menu" hidden>
               <div class="navhdr">Links</div>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Full motion dashboard</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html" target="_blank" rel="noopener noreferrer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Motion library</span><span class="ni-desc">Showcase of completed work</span></span>
+                <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+              </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Manager view</span><span class="ni-desc">Read-only quick view</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
-              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/tools.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">Motion tools</span><span class="ni-desc">Tools I've built</span></span>
-                <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-              </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Intake form</span><span class="ni-desc">Public request form</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
             </div>
           </div>
-          <h1>Motion Library</h1>
+          <h1>Motion Tools</h1>
         </div>
-        <div class="sub">A showcase of delivered motion work — sourced from the dashboard's completed projects.</div>
+        <div class="sub">Tools I've built for motion &amp; UX work.</div>
       </div>
       <div class="btnrow">
         <button class="btn primary" id="addBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Add project
+          Add tool
         </button>
         <button class="btn" id="refreshBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
@@ -161,9 +152,9 @@
   </div>
 
   <div class="backdrop" id="backdrop" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-label="Add or edit library project">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Add or edit tool">
       <div class="mhead">
-        <h2 id="mtitle">Add project</h2>
+        <h2 id="mtitle">Add tool</h2>
         <button class="mclose" id="mclose" aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
@@ -173,7 +164,7 @@
         <div id="mmsg"></div>
         <div style="display:flex;gap:10px">
           <button class="btn" id="mcancel">Cancel</button>
-          <button class="btn primary" id="msave">Save to library</button>
+          <button class="btn primary" id="msave">Save tool</button>
         </div>
       </div>
     </div>
@@ -184,28 +175,18 @@
   "use strict";
   var SYNC_URL = "/api/data";
   var PREFIX = "motion-tracker:";
-  var LIB_KEY = PREFIX + "library";
+  var TOOLS_KEY = PREFIX + "tools";
   var POLL_MS = 60000;
 
-  var lastData = null;
-  var library = [];   // [{id, projectId, name, type, date, stakeholders:[{team,name}], notes, links:[{label,url}], media:[{kind,url}]}]
-  var completed = [];
-  var links = [];
-  var form = null;    // current modal form object
+  var tools = [];   // [{id, name, category, url, notes, links:[{label,url}], media:[{kind,url}], createdAt}]
+  var form = null;
   var editingId = null;
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
   function arr(v){ return Array.isArray(v) ? v : []; }
   function hrefFor(u){ u=(u||"").trim(); if(!u) return "#"; if(/^https?:\/\//i.test(u)||u.indexOf("mailto:")===0) return u; return "https://"+u; }
-  function isoOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-  function fmtDate(s){ if(!s) return ""; var d=new Date(s+"T00:00:00"); return isNaN(d.getTime())?s:d.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"}); }
-  function projDate(p){
-    if(p.deliveredAt && /^\d{4}-\d{2}-\d{2}/.test(String(p.deliveredAt))) return String(p.deliveredAt).slice(0,10);
-    if(p.completedAt){ var d=new Date(p.completedAt); if(!isNaN(d.getTime())) return isoOf(d); }
-    if(p.deadline) return p.deadline;
-    return "";
-  }
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function hostOf(u){ try { return new URL(hrefFor(u)).hostname.replace(/^www\./,""); } catch(e){ return ""; } }
 
   function mediaEmbed(m){
     if(!m || !m.url) return "";
@@ -225,12 +206,12 @@
     if(!j || j.error || typeof j.data!=="object") throw new Error(j && j.error ? j.error : "bad-data");
     return j;
   }
-  // Safe read-modify-write: only ever touches the library key.
-  async function saveLibrary(nextArr){
+  // Safe read-modify-write: only ever touches the tools key.
+  async function saveTools(nextArr){
     var snap;
     try { snap = await getSnapshot(); } catch(e){ return false; }
     if(!snap || typeof snap.data!=="object") return false;
-    snap.data[LIB_KEY] = nextArr;
+    snap.data[TOOLS_KEY] = nextArr;
     snap.updatedAt = Date.now();
     try {
       var res = await fetch(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) });
@@ -238,43 +219,15 @@
     } catch(e){ return false; }
   }
 
-  function setState(data){
-    lastData = data || {};
-    library = arr(data[LIB_KEY]);
-    completed = arr(data[PREFIX+"completed"]);
-    links = arr(data[PREFIX+"links"]);
-  }
-
-  function projectLinks(projectId){
-    return links.filter(function(l){ return l && l.projectId === projectId; })
-      .map(function(l){ return { label: l.label||"", url: l.url||"" }; });
-  }
-
   // ---------- rendering ----------
   function render(){
-    var html = "";
-    // From-completed bar (completed projects not yet in the library)
-    var inLib = {}; library.forEach(function(e){ if(e && e.projectId) inLib[e.projectId] = true; });
-    var pending = completed.filter(function(p){ return p && !inLib[p.id]; });
-    if(pending.length){
-      html += '<div class="frombar"><div class="lbl">Add from your Completed projects</div><div class="chips">';
-      pending.forEach(function(p){
-        html += '<button class="chip" data-completed="'+esc(p.id)+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>'+esc(p.name||"Untitled")+'</button>';
-      });
-      html += '</div></div>';
-    }
-
-    // Grid of library entries
-    html += '<div class="grid">';
-    if(!library.length){
-      html += '<div class="empty">No projects in the library yet.<br/>Click <b>Add project</b> to feature your completed work — pick a completed project to pull in its details, then attach imagery or video.</div>';
+    var html = '<div class="grid">';
+    if(!tools.length){
+      html += '<div class="empty">No tools yet.<br/>Click <b>Add tool</b> to link something you\u2019ve built — a prototype, plugin, generator or utility.</div>';
     } else {
-      library.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){
-        html += card(e);
-      });
+      tools.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){ html += card(e); });
     }
     html += '</div>';
-
     document.getElementById("content").innerHTML = html;
     document.getElementById("updated").textContent = "updated " + new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     wireCards();
@@ -282,33 +235,25 @@
 
   function card(e){
     var media = arr(e.media).filter(function(m){ return m && m.url; });
-    var mediaHtml = "";
+    var mediaHtml;
     if(media.length){
       mediaHtml = '<div class="media">' + mediaEmbed(media[0]);
-      if(media.length > 1){
-        mediaHtml += '<div class="media-more">';
-        media.slice(1).forEach(function(m){ mediaHtml += mediaEmbed(m); });
-        mediaHtml += '</div>';
-      }
+      if(media.length > 1){ mediaHtml += '<div class="media-more">'; media.slice(1).forEach(function(m){ mediaHtml += mediaEmbed(m); }); mediaHtml += '</div>'; }
       mediaHtml += '</div>';
     } else {
-      mediaHtml = '<div class="media-none"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.6-3.6a2 2 0 0 0-2.8 0L6 21"/></svg>No media yet</div>';
+      mediaHtml = '<div class="media-none"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg></div>';
     }
-    var stakes = arr(e.stakeholders).filter(function(s){ return s && (s.name||s.team); });
-    var stakeHtml = stakes.length ? '<div class="meta-row">'+stakes.map(function(s){
-      return '<span class="stake">'+(s.name?('<b>'+esc(s.name)+'</b>'):'')+(s.name&&s.team?' · ':'')+(s.team?esc(s.team):'')+'</span>';
-    }).join('')+'</div>' : "";
     var lks = arr(e.links).filter(function(l){ return l && l.url; });
     var linkHtml = lks.length ? '<div class="clinks">'+lks.map(function(l){
       return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer" title="'+esc(l.url)+'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>'+esc(l.label||l.url)+'</span></a>';
     }).join('')+'</div>' : "";
+    var openHtml = e.url ? '<a class="open" href="'+esc(hrefFor(e.url))+'" target="_blank" rel="noopener noreferrer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open tool'+(hostOf(e.url)?' · '+esc(hostOf(e.url)):'')+'</a>' : "";
     return '<div class="card">'+
       mediaHtml +
       '<div class="cbody">'+
-        '<div class="ctop"><div class="cname">'+esc(e.name||"Untitled")+'</div>'+(e.type?'<span class="ctype">'+esc(e.type)+'</span>':'')+'</div>'+
-        (e.date?'<div class="cdate">'+esc(fmtDate(e.date))+'</div>':'')+
+        '<div class="ctop"><div class="cname">'+esc(e.name||"Untitled")+'</div>'+(e.category?'<span class="ctype">'+esc(e.category)+'</span>':'')+'</div>'+
         (e.notes?'<div class="cnotes">'+esc(e.notes)+'</div>':'')+
-        stakeHtml +
+        openHtml +
         linkHtml +
         '<div class="cactions">'+
           '<button class="cbtn edit" data-edit="'+esc(e.id)+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>'+
@@ -319,17 +264,14 @@
   }
 
   function wireCards(){
-    document.querySelectorAll("[data-completed]").forEach(function(b){
-      b.addEventListener("click", function(){ openFromCompleted(b.getAttribute("data-completed")); });
-    });
     document.querySelectorAll("[data-edit]").forEach(function(b){
       b.addEventListener("click", function(){ openEdit(b.getAttribute("data-edit")); });
     });
     document.querySelectorAll("[data-del]").forEach(function(b){
       b.addEventListener("click", async function(){
         var id = b.getAttribute("data-del");
-        if(!window.confirm("Remove this project from the library?")) return;
-        var ok = await saveLibrary(library.filter(function(e){ return e.id !== id; }));
+        if(!window.confirm("Remove this tool from the list?")) return;
+        var ok = await saveTools(tools.filter(function(e){ return e.id !== id; }));
         if(ok) load(true);
       });
     });
@@ -337,32 +279,19 @@
 
   // ---------- modal ----------
   function blankForm(){
-    return { id:"", projectId:"", name:"", type:"", date:"", notes:"",
-      stakeholders:[{team:"",name:""}], links:[{label:"",url:""}], media:[{kind:"image",url:""}] };
+    return { id:"", name:"", category:"", url:"", notes:"", links:[{label:"",url:""}], media:[{kind:"image",url:""}] };
   }
-  function fromCompleted(p){
-    var pl = projectLinks(p.id);
-    return {
-      id:"", projectId:p.id,
-      name:p.name||"", type:p.type||"", date:projDate(p), notes:p.notes||"",
-      stakeholders:(p.stakeholders&&p.stakeholders.length)?p.stakeholders.map(function(s){return {team:s.team||"",name:s.name||""};}):[{team:"",name:""}],
-      links: pl.length ? pl : [{label:"",url:""}],
-      media:[{kind:"image",url:""}]
-    };
-  }
-  function openAdd(){ form = blankForm(); editingId = null; showModal("Add project"); }
-  function openFromCompleted(pid){ var p = completed.find(function(x){return x.id===pid;}); form = p ? fromCompleted(p) : blankForm(); editingId=null; showModal("Add project"); }
+  function openAdd(){ form = blankForm(); editingId = null; showModal("Add tool"); }
   function openEdit(id){
-    var e = library.find(function(x){return x.id===id;});
+    var e = tools.find(function(x){return x.id===id;});
     if(!e) return;
     form = {
-      id:e.id, projectId:e.projectId||"", name:e.name||"", type:e.type||"", date:e.date||"", notes:e.notes||"",
-      stakeholders:(e.stakeholders&&e.stakeholders.length)?e.stakeholders.map(function(s){return {team:s.team||"",name:s.name||""};}):[{team:"",name:""}],
+      id:e.id, name:e.name||"", category:e.category||"", url:e.url||"", notes:e.notes||"",
       links:(e.links&&e.links.length)?e.links.map(function(l){return {label:l.label||"",url:l.url||""};}):[{label:"",url:""}],
       media:(e.media&&e.media.length)?e.media.map(function(m){return {kind:m.kind||"image",url:m.url||""};}):[{kind:"image",url:""}]
     };
     editingId = id;
-    showModal("Edit project");
+    showModal("Edit tool");
   }
 
   function showModal(title){
@@ -376,36 +305,23 @@
   function setMsg(t, err){ var m=document.getElementById("mmsg"); m.textContent=t||""; m.className=err?"err":""; }
 
   function renderModalBody(){
-    var completedOpts = '<option value="">— Start from scratch —</option>' + completed.map(function(p){
-      return '<option value="'+esc(p.id)+'"'+(form.projectId===p.id?' selected':'')+'>'+esc(p.name||"Untitled")+'</option>';
-    }).join('');
     var h = "";
-    h += '<div class="fld"><label>Populate from a completed project</label><select id="f_from">'+completedOpts+'</select><div class="note">Pulls name, type, date, collaborators, notes and links from the dashboard. You can edit anything below.</div></div>';
-    h += '<div class="two"><div class="fld"><label>Project name</label><input id="f_name" type="text" value="'+esc(form.name)+'" placeholder="Project name" /></div>'+
-         '<div class="fld"><label>Type</label><input id="f_type" type="text" value="'+esc(form.type)+'" placeholder="e.g. Signature Moment" /></div></div>';
-    h += '<div class="fld"><label>Delivered date</label><input id="f_date" type="date" value="'+esc(form.date)+'" /></div>';
-    h += '<div class="fld"><label>Notes</label><textarea id="f_notes" placeholder="What it is, the approach, the outcome…">'+esc(form.notes)+'</textarea></div>';
+    h += '<div class="two"><div class="fld"><label>Tool name</label><input id="f_name" type="text" value="'+esc(form.name)+'" placeholder="Tool name" /></div>'+
+         '<div class="fld"><label>Category</label><input id="f_category" type="text" value="'+esc(form.category)+'" placeholder="e.g. Prototype, Plugin, Utility" /></div></div>';
+    h += '<div class="fld"><label>Tool URL</label><input id="f_url" type="text" value="'+esc(form.url)+'" placeholder="https://… (where the tool lives)" /></div>';
+    h += '<div class="fld"><label>Description</label><textarea id="f_notes" placeholder="What it does, how to use it, who it\u2019s for…">'+esc(form.notes)+'</textarea></div>';
 
-    // collaborators
-    h += '<div class="fld"><label>Collaborators / stakeholders</label><div class="rows" id="rows_stake">';
-    form.stakeholders.forEach(function(s,i){
-      h += '<div class="row2"><input data-sk="name" data-i="'+i+'" type="text" value="'+esc(s.name)+'" placeholder="Name" /><input data-sk="team" data-i="'+i+'" type="text" value="'+esc(s.team)+'" placeholder="Team" /><button class="rowdel" data-rm="stake" data-i="'+i+'" title="Remove"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
-    });
-    h += '</div><button class="addrow" data-add="stake"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add collaborator</button></div>';
-
-    // links
-    h += '<div class="fld"><label>Links</label><div class="rows" id="rows_link">';
+    h += '<div class="fld"><label>Additional links</label><div class="rows" id="rows_link">';
     form.links.forEach(function(l,i){
-      h += '<div class="row2"><input data-lk="label" data-i="'+i+'" type="text" value="'+esc(l.label)+'" placeholder="Label" /><input data-lk="url" data-i="'+i+'" type="text" value="'+esc(l.url)+'" placeholder="https://…" /><button class="rowdel" data-rm="link" data-i="'+i+'" title="Remove"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+      h += '<div class="row2"><input data-lk="label" data-i="'+i+'" type="text" value="'+esc(l.label)+'" placeholder="Label (e.g. Docs, Repo)" /><input data-lk="url" data-i="'+i+'" type="text" value="'+esc(l.url)+'" placeholder="https://…" /><button class="rowdel" data-rm="link" data-i="'+i+'" title="Remove"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
     });
     h += '</div><button class="addrow" data-add="link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add link</button></div>';
 
-    // media
-    h += '<div class="fld"><label>Imagery &amp; video</label><div class="rows" id="rows_media">';
+    h += '<div class="fld"><label>Preview (image or video)</label><div class="rows" id="rows_media">';
     form.media.forEach(function(m,i){
       h += '<div class="row2"><select data-mk="kind" data-i="'+i+'"><option value="image"'+(m.kind==="image"?" selected":"")+'>Image</option><option value="video"'+(m.kind==="video"?" selected":"")+'>Video</option></select><input data-mk="url" data-i="'+i+'" type="text" value="'+esc(m.url)+'" placeholder="Image URL, or YouTube/Vimeo/video URL" /><button class="rowdel" data-rm="media" data-i="'+i+'" title="Remove"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
     });
-    h += '</div><button class="addrow" data-add="media"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add media</button><div class="note">Paste a direct image URL, or a YouTube / Vimeo / video-file link.</div></div>';
+    h += '</div><button class="addrow" data-add="media"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add preview</button><div class="note">Optional. Paste a direct image URL, or a YouTube / Vimeo / video-file link.</div></div>';
 
     document.getElementById("mbody").innerHTML = h;
     wireModal();
@@ -413,11 +329,7 @@
 
   function captureForm(){
     var g = function(id){ var el=document.getElementById(id); return el?el.value:""; };
-    form.name = g("f_name"); form.type = g("f_type"); form.date = g("f_date"); form.notes = g("f_notes");
-    var stake=[]; document.querySelectorAll('#rows_stake .row2').forEach(function(r){
-      stake.push({ name:(r.querySelector('[data-sk="name"]')||{}).value||"", team:(r.querySelector('[data-sk="team"]')||{}).value||"" });
-    });
-    form.stakeholders = stake.length?stake:[{team:"",name:""}];
+    form.name = g("f_name"); form.category = g("f_category"); form.url = g("f_url"); form.notes = g("f_notes");
     var lks=[]; document.querySelectorAll('#rows_link .row2').forEach(function(r){
       lks.push({ label:(r.querySelector('[data-lk="label"]')||{}).value||"", url:(r.querySelector('[data-lk="url"]')||{}).value||"" });
     });
@@ -429,20 +341,10 @@
   }
 
   function wireModal(){
-    var fromSel = document.getElementById("f_from");
-    if(fromSel){
-      fromSel.addEventListener("change", function(){
-        var pid = fromSel.value;
-        if(!pid){ var keepMedia=form.media; form = blankForm(); form.media = keepMedia; renderModalBody(); return; }
-        var p = completed.find(function(x){return x.id===pid;});
-        if(p){ var keepMedia=form.media; form = fromCompleted(p); if(keepMedia && keepMedia.some(function(m){return m.url;})) form.media = keepMedia; renderModalBody(); }
-      });
-    }
     document.querySelectorAll("[data-add]").forEach(function(b){
       b.addEventListener("click", function(){
         captureForm();
         var kind = b.getAttribute("data-add");
-        if(kind==="stake") form.stakeholders.push({team:"",name:""});
         if(kind==="link") form.links.push({label:"",url:""});
         if(kind==="media") form.media.push({kind:"image",url:""});
         renderModalBody();
@@ -452,10 +354,8 @@
       b.addEventListener("click", function(){
         captureForm();
         var kind=b.getAttribute("data-rm"), i=Number(b.getAttribute("data-i"));
-        if(kind==="stake") form.stakeholders.splice(i,1);
         if(kind==="link") form.links.splice(i,1);
         if(kind==="media") form.media.splice(i,1);
-        if(!form.stakeholders.length) form.stakeholders=[{team:"",name:""}];
         if(!form.links.length) form.links=[{label:"",url:""}];
         if(!form.media.length) form.media=[{kind:"image",url:""}];
         renderModalBody();
@@ -466,24 +366,20 @@
   async function saveEntry(){
     captureForm();
     var name = (form.name||"").trim();
-    if(!name){ setMsg("Please enter a project name.", true); return; }
+    if(!name){ setMsg("Please enter a tool name.", true); return; }
     var clean = {
       id: editingId || uid(),
-      projectId: form.projectId || "",
       name: name,
-      type: (form.type||"").trim(),
-      date: form.date||"",
+      category: (form.category||"").trim(),
+      url: (form.url||"").trim(),
       notes: (form.notes||"").trim(),
-      stakeholders: form.stakeholders.filter(function(s){ return (s.name||"").trim()||(s.team||"").trim(); }).map(function(s){ return {name:(s.name||"").trim(),team:(s.team||"").trim()}; }),
       links: form.links.filter(function(l){ return (l.url||"").trim(); }).map(function(l){ return {label:(l.label||"").trim(),url:(l.url||"").trim()}; }),
       media: form.media.filter(function(m){ return (m.url||"").trim(); }).map(function(m){ return {kind:m.kind==="video"?"video":"image",url:(m.url||"").trim()}; }),
-      createdAt: editingId ? (library.find(function(e){return e.id===editingId;})||{}).createdAt || Date.now() : Date.now()
+      createdAt: editingId ? (tools.find(function(e){return e.id===editingId;})||{}).createdAt || Date.now() : Date.now()
     };
-    var next;
-    if(editingId){ next = library.map(function(e){ return e.id===editingId ? clean : e; }); }
-    else { next = library.concat([clean]); }
+    var next = editingId ? tools.map(function(e){ return e.id===editingId ? clean : e; }) : tools.concat([clean]);
     setMsg("Saving…");
-    var ok = await saveLibrary(next);
+    var ok = await saveTools(next);
     if(ok){ closeModal(); load(true); }
     else { setMsg("Couldn't save — check your connection and try again.", true); }
   }
@@ -499,7 +395,7 @@
 
   async function load(silent){
     if(!silent) document.getElementById("content").innerHTML = '<div class="loading">Loading…</div>';
-    try { var snap = await getSnapshot(); setState(snap.data || {}); render(); }
+    try { var snap = await getSnapshot(); tools = arr((snap.data||{})[TOOLS_KEY]); render(); }
     catch(e){ document.getElementById("content").innerHTML = '<div class="loading">Couldn\u2019t load data. If this persists, the data endpoint may be unreachable.</div>'; }
   }
 
