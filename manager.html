@@ -131,6 +131,11 @@
               <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Full motion dashboard</span></span>
               <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
             </a>
+            <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html" target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+              <span class="ni-txt"><span class="ni-lbl">Data manager</span><span class="ni-desc">Export / import / sync</span></span>
+              <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+            </a>
           </div>
         </div>
           <h1>Manager view</h1>
@@ -151,10 +156,6 @@
           </button>
           <input id="searchInput" class="searchinput" type="text" placeholder="Search projects…" hidden />
         </div>
-        <button class="btn" id="completedBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Completed <span class="cnt" id="completedCount">0</span>
-        </button>
         <a class="btn" href="https://hub-mospec.vercel.app/intake.html" target="_blank" rel="noopener noreferrer">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           Intake form
@@ -211,7 +212,7 @@
   function fmtWhen(ts){ if(!ts) return ""; var d=new Date(ts); return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}); }
 
   var msgEl, updatedEl;
-  var lastSnap = null, searchQuery = "", showCompleted = false;
+  var lastSnap = null, searchQuery = "";
   function rerender(){ if (lastSnap) render(lastSnap); }
   function setMsg(t,k){ if(msgEl){ msgEl.textContent=t||""; msgEl.className=k==="ok"?"ok":k==="err"?"err":""; } }
 
@@ -260,8 +261,7 @@
     lastSnap = snap;
     var q = (searchQuery || "").trim().toLowerCase();
     function nameMatch(p){ return !q || (p.name || "").toLowerCase().indexOf(q) >= 0; }
-    var completedList = completed.concat(projects.filter(function(p){ return p.status === "delivered"; }));
-    var cc = document.getElementById("completedCount"); if (cc) cc.textContent = completedList.length;
+    var deliveredList = projects.filter(function(p){ return p.status === "delivered"; });
 
     var today = midnight(new Date());
     var monday = mondayOf(today);
@@ -288,6 +288,35 @@
     html += '<section><h2>'+iconSvg("cal")+'This week</h2>';
     html += weekStrip(weekPicks, monday, projects.concat(completed));
     html += '</section>';
+
+    // upcoming time off (PTO the owner entered in the Time Log)
+    (function(){
+      var ptoDates = arr(data[PREFIX+"ptoDates"]);
+      var todayStr = (function(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
+      var upcoming = ptoDates.filter(function(x){ return x && (x.end || x.start) >= todayStr; })
+        .sort(function(a,b){ return (a.start||"").localeCompare(b.start||""); });
+      function fmtD(s){ var d=new Date(s+"T00:00:00"); return isNaN(d.getTime())?s:d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+      function label(x){
+        if(!x.end || x.end===x.start) return fmtD(x.start);
+        var sd=new Date(x.start+"T00:00:00"), ed=new Date(x.end+"T00:00:00");
+        var days=Math.round((ed-sd)/86400000)+1;
+        return fmtD(x.start)+" – "+fmtD(x.end)+" · "+days+"d";
+      }
+      html += '<section><h2>'+iconSvg("cal")+'Upcoming time off ('+upcoming.length+')</h2>';
+      if(!upcoming.length){ html += '<div class="card"><div class="empty">No time off scheduled.</div></div>'; }
+      else {
+        html += '<div class="card">';
+        upcoming.forEach(function(x){
+          html += '<div class="row">'+
+            '<span class="dot" style="background:#fbbf24"></span>'+
+            '<span class="name">'+esc(label(x))+'</span>'+
+            (x.note?'<span class="meta"><span class="due calm">'+esc(x.note)+'</span></span>':'')+
+          '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</section>';
+    })();
 
     // in motion
     var inMotion = projects.filter(function(p){ return ACTIVE.indexOf(p.status)>=0 && nameMatch(p); }).sort(function(a,b){ return urgency(b,today)-urgency(a,today); });
@@ -325,14 +354,14 @@
     }
     html += '</section>';
 
-    // completed (toggled by the header Completed button)
-    if(showCompleted){
-      var cl = completedList.filter(nameMatch);
-      html += '<section><h2>'+iconSvg("check")+'Completed ('+completedList.length+')</h2>';
-      if(!cl.length){ html += '<div class="card"><div class="empty">'+(completedList.length?"No matches.":"Nothing completed yet.")+'</div></div>'; }
+    // delivered — mirrors the dashboard's "Delivered" column; archived (Completed) items drop off
+    {
+      var dl = deliveredList.filter(nameMatch);
+      html += '<section><h2>'+iconSvg("check")+'Delivered ('+deliveredList.length+')</h2>';
+      if(!dl.length){ html += '<div class="card"><div class="empty">'+(deliveredList.length?"No matches.":"Nothing delivered right now.")+'</div></div>'; }
       else {
         html += '<div class="card">';
-        cl.forEach(function(p){
+        dl.forEach(function(p){
           var hrs = Math.round(sumHours(p.timeEntries)*10)/10;
           var when = p.deliveredAt ? new Date(p.deliveredAt) : (p.deadline ? new Date(p.deadline+"T00:00:00") : null);
           var whenTxt = (when && !isNaN(when.getTime())) ? when.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "";
@@ -450,7 +479,6 @@
   function setupControls(){
     var sBtn = document.getElementById("searchBtn");
     var sInput = document.getElementById("searchInput");
-    var cBtn = document.getElementById("completedBtn");
     if(sBtn && sInput){
       sBtn.addEventListener("click", function(){
         var open = sInput.hidden;
@@ -461,13 +489,6 @@
       });
       sInput.addEventListener("input", function(){ searchQuery = sInput.value; rerender(); });
       sInput.addEventListener("keydown", function(e){ if(e.key==="Escape"){ sInput.value=""; searchQuery=""; sInput.hidden=true; sBtn.classList.remove("active"); rerender(); } });
-    }
-    if(cBtn){
-      cBtn.addEventListener("click", function(){
-        showCompleted = !showCompleted;
-        cBtn.classList.toggle("active", showCompleted);
-        rerender();
-      });
     }
   }
 
