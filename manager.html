@@ -323,34 +323,55 @@
     html += weekStrip(weekPicks, monday, projects.concat(completed));
     html += '</section>';
 
-    // upcoming time off (PTO the owner entered in the Time Log)
+    // upcoming time off — only shown if there's time off within the next 2 weeks
     (function(){
       var ptoDates = arr(data[PREFIX+"ptoDates"]);
+      // Also fold in this week's time off set on the Suggested Week Structure
+      // (dedup with any already-mirrored entries by their stable week id).
+      var combined = ptoDates.slice();
+      if(weekPicks && weekPicks.week === mondayKey(monday) && weekPicks.pto){
+        var byId = {}; combined.forEach(function(e,i){ if(e && e.id) byId[e.id]=i; });
+        Object.keys(weekPicks.pto).forEach(function(idx){
+          var v = weekPicks.pto[idx];
+          var h = (typeof v === "number") ? v : ((v && Number(v.hours)) || 0);
+          if(h <= 0) return;
+          var type = (v && typeof v === "object" && v.type) ? v.type : "PTO";
+          var d = new Date(monday); d.setDate(monday.getDate() + Number(idx));
+          var iso = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+          var id = "week-" + mondayKey(monday) + "-" + idx;
+          var entry = { id: id, start: iso, end: iso, type: type, hours: h, src: "week" };
+          if(id in byId) combined[byId[id]] = entry; else combined.push(entry);
+        });
+      }
       var todayStr = (function(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
-      var upcoming = ptoDates.filter(function(x){ return x && (x.end || x.start) >= todayStr; })
+      var horizon = (function(){ var d=new Date(); d.setDate(d.getDate()+14); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
+      // qualifies if it overlaps the next 14 days: starts on/before the horizon and ends on/after today
+      var soon = combined.filter(function(x){ return x && (x.start||"") <= horizon && (x.end || x.start) >= todayStr; })
         .sort(function(a,b){ return (a.start||"").localeCompare(b.start||""); });
+      if(!soon.length) return; // hide the whole section when there's nothing in the next 2 weeks
       function fmtD(s){ var d=new Date(s+"T00:00:00"); return isNaN(d.getTime())?s:d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
       function label(x){
-        if(!x.end || x.end===x.start) return fmtD(x.start);
+        if(!x.end || x.end===x.start){
+          var base=fmtD(x.start);
+          if(x.hours && Number(x.hours)>0 && Number(x.hours)<8) base+=" · "+x.hours+"h";
+          return base;
+        }
         var sd=new Date(x.start+"T00:00:00"), ed=new Date(x.end+"T00:00:00");
         var days=Math.round((ed-sd)/86400000)+1;
         return fmtD(x.start)+" – "+fmtD(x.end)+" · "+days+"d";
       }
       var TYPE_DOT = { "PTO":"#fbbf24", "Holiday":"#38bdf8", "R+R":"#a78bfa" };
-      html += '<section><h2>'+iconSvg("cal")+'Upcoming time off ('+upcoming.length+')</h2>';
-      if(!upcoming.length){ html += '<div class="card"><div class="empty">No time off scheduled.</div></div>'; }
-      else {
-        html += '<div class="card">';
-        upcoming.forEach(function(x){
-          var t = x.type || "PTO";
-          html += '<div class="row">'+
-            '<span class="dot" style="background:'+(TYPE_DOT[t]||"#fbbf24")+'"></span>'+
-            '<span class="name">'+esc(label(x))+'</span>'+
-            '<span class="meta"><span class="tag">'+esc(t)+'</span>'+(x.note?'<span class="due calm">'+esc(x.note)+'</span>':'')+'</span>'+
-          '</div>';
-        });
-        html += '</div>';
-      }
+      html += '<section><h2>'+iconSvg("cal")+'Upcoming time off · next 2 weeks ('+soon.length+')</h2>';
+      html += '<div class="card">';
+      soon.forEach(function(x){
+        var t = x.type || "PTO";
+        html += '<div class="row">'+
+          '<span class="dot" style="background:'+(TYPE_DOT[t]||"#fbbf24")+'"></span>'+
+          '<span class="name">'+esc(label(x))+'</span>'+
+          '<span class="meta"><span class="tag">'+esc(t)+'</span>'+(x.note?'<span class="due calm">'+esc(x.note)+'</span>':'')+'</span>'+
+        '</div>';
+      });
+      html += '</div>';
       html += '</section>';
     })();
 
