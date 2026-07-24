@@ -105,6 +105,25 @@
   .note{font-size:11.5px;color:var(--faint);margin-top:4px}
   svg{flex-shrink:0}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* motion */
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.add-btn,.btn-secondary,.hamb,.cbtn,.open,.clink,.chip{transition:transform .12s ease,background-color .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease}
+    .btn:active,.add-btn:active,.btn-secondary:active,.hamb:active,.cbtn:active,.open:active,.chip:active{transform:translateY(1px)}
+    .navmenu:not([hidden]){animation:navPop .16s cubic-bezier(.2,.7,.2,1);transform-origin:top left}
+    @keyframes navPop{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
+    .navitem .ni-ext{transition:transform .16s ease}
+    .navitem:hover .ni-ext{transform:translate(2px,-2px)}
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .card:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+    .backdrop:not([hidden]){animation:fadeIn .15s ease}
+    .modal{animation:popIn .2s cubic-bezier(.2,.7,.2,1)}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+  }
 </style>
 </head>
 <body>
@@ -128,6 +147,11 @@
                 <span class="ni-txt"><span class="ni-lbl">Overview</span><span class="ni-desc">Read-only quick view</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Motion library</span><span class="ni-desc">Showcase of completed work</span></span>
+                <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+              </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/tools.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Motion tools</span><span class="ni-desc">Tools I've built</span></span>
@@ -136,6 +160,11 @@
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Intake form</span><span class="ni-desc">Public request form</span></span>
+                <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Data manager</span><span class="ni-desc">Export / import / sync</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
             </div>
