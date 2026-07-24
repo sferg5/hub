@@ -18,8 +18,8 @@
   body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 72px}
   .wrap{max-width:1400px;margin:0 auto;padding:0 16px}
 
-  header{position:sticky;top:0;z-index:40;background:var(--bg);margin-bottom:22px}
-  .hbar{max-width:1400px;margin:0 auto;padding:18px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header{position:sticky;top:0;z-index:40;background:var(--bg);margin-bottom:24px}
+  .hbar{max-width:1400px;margin:0 auto;padding:20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
   .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
   h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
@@ -34,73 +34,73 @@
   .btn:disabled{opacity:.5;cursor:default}
 
   .navwrap{position:relative;flex-shrink:0}
-  .hamb{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
+  .hamb{display:flex;align-items:center;justify-content:center;padding:8px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
   .hamb:hover{border-color:var(--line2);color:var(--text)}
   .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden;z-index:60}
   .navmenu[hidden]{display:none}
-  .navitem{display:flex;align-items:center;gap:10px;padding:11px 13px;text-decoration:none;color:var(--text);transition:background .14s;font-size:13.5px}
+  .navitem{display:flex;align-items:center;gap:12px;padding:12px 12px;text-decoration:none;color:var(--text);transition:background .14s;font-size:13.5px}
   .navitem:hover{background:var(--surface)}
   .navitem .ni-txt{min-width:0;flex:1;display:flex;flex-direction:column}
   .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-ext{color:var(--faint);flex-shrink:0}
 
-  .hero{margin-top:24px;padding:30px;background:linear-gradient(155deg, rgba(34,197,94,.10), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:18px}
-  .hero h2{margin:0 0 10px;font-size:28px;font-weight:700;letter-spacing:-.02em}
+  .hero{margin-top:24px;padding:32px;background:linear-gradient(155deg, rgba(34,197,94,.10), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:18px}
+  .hero h2{margin:0 0 12px;font-size:28px;font-weight:700;letter-spacing:-.02em}
   .hero .lead{color:var(--muted);font-size:15px;line-height:1.65;max-width:74ch;margin:0}
 
-  .section{margin-top:34px}
+  .section{margin-top:36px;scroll-margin-top:92px}
   .section-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
   .section h3{margin:0 0 4px;font-size:19px;font-weight:700;letter-spacing:-.01em}
   .section .section-sub{color:var(--faint);font-size:13px;margin:0}
 
-  .gloss{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  .gloss{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
   @media (max-width:1040px){.gloss{grid-template-columns:repeat(2,1fr)}}
   @media (max-width:640px){.gloss{grid-template-columns:1fr}}
   .term{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .term h4{margin:0 0 6px;font-size:14px;font-weight:600;color:var(--text)}
+  .term h4{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--text)}
   .term p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
   .term .kw{color:var(--accent);font-weight:600}
 
   .concepts{display:flex;flex-direction:column;gap:16px;margin-top:16px}
-  .concept{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
-  .concept h4{margin:0 0 10px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .concept{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 24px}
+  .concept h4{margin:0 0 12px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
   .concept h4 .ic{width:30px;height:30px;border-radius:8px;background:rgba(34,197,94,.15);display:grid;place-items:center;flex-shrink:0}
-  .concept p{margin:0 0 10px;color:var(--muted);font-size:13.5px;line-height:1.65}
+  .concept p{margin:0 0 12px;color:var(--muted);font-size:13.5px;line-height:1.65}
   .concept p:last-child{margin-bottom:0}
   .concept b{color:var(--text);font-weight:600}
 
   /* Q&A */
   .qa{margin-top:16px}
-  .qa-form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
-  .qa-form label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
-  .qa-form input,.qa-form textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .14s}
+  .qa-form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .qa-form label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+  .qa-form input,.qa-form textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .14s}
   .qa-form input:focus,.qa-form textarea:focus{border-color:var(--accent)}
   .qa-form textarea{min-height:84px;resize:vertical;margin-bottom:12px}
   .qa-row{display:flex;gap:12px;flex-wrap:wrap}
   .qa-row .fld{flex:1;min-width:180px;margin-bottom:12px}
   .qa-actions{display:flex;align-items:center;gap:12px}
   .qa-note{color:var(--faint);font-size:12px}
-  .qa-list{margin-top:18px;display:flex;flex-direction:column;gap:12px}
-  .q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 17px}
+  .qa-list{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px}
   .q .qtext{font-size:14.5px;color:var(--text);line-height:1.5;white-space:pre-wrap}
-  .q .qmeta{margin-top:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .q .qtag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:10px;letter-spacing:.06em}
+  .q .qmeta{margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .q .qtag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:10px;letter-spacing:.06em}
   .qtag.wait{background:rgba(251,191,36,.13);color:#fbbf24}
   .qtag.done{background:rgba(34,197,94,.14);color:var(--accent)}
-  .answer{margin-top:12px;padding:12px 14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.22);border-radius:10px}
-  .answer .albl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .answer{margin-top:12px;padding:12px 16px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.22);border-radius:10px}
+  .answer .albl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:8px}
   .answer .atext{font-size:13.5px;color:var(--text);line-height:1.55;white-space:pre-wrap}
-  .q-tools{margin-top:10px;display:flex;gap:8px}
+  .q-tools{margin-top:12px;display:flex;gap:8px}
   .lnk{background:none;border:0;color:var(--faint);font-size:12px;cursor:pointer;padding:2px 0;font-family:var(--font)}
   .lnk:hover{color:var(--text)}
-  .ansedit textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;min-height:70px;resize:vertical}
+  .ansedit textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px 12px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;min-height:70px;resize:vertical}
   .ansedit textarea:focus{border-color:var(--accent)}
   .ansedit .row{display:flex;gap:8px;margin-top:8px}
   .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;color:var(--muted);font-size:14px}
   .loading .ldr-ring{width:32px;height:32px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:ldrspin .9s linear infinite;margin:0 auto 12px}
   @keyframes ldrspin{to{transform:rotate(360deg)}}
-  .empty{color:var(--faint);font-size:13.5px;font-style:italic;padding:22px 0;text-align:center}
+  .empty{color:var(--faint);font-size:13.5px;font-style:italic;padding:24px 0;text-align:center}
 
   /* motion */
   @media (prefers-reduced-motion: no-preference){
@@ -117,6 +117,39 @@
   @media (prefers-reduced-motion: reduce){ .loading .ldr-ring{animation-duration:2.4s} }
 
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* help + search */
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .search-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px}
+  .search-overlay[hidden]{display:none}
+  .search-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+  .search-panel{position:relative;width:100%;max-width:640px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:24px;max-height:84vh;overflow:auto}
+  .search-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .search-close:hover{color:var(--text);border-color:var(--line2)}
+  .search-greeting{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 4px;padding-right:36px}
+  .search-sub{color:var(--faint);font-size:13px;margin:0 0 16px}
+  .search-composer{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 16px;transition:border-color .14s}
+  .search-composer:focus-within{border-color:var(--accent)}
+  .search-composer .s-ico{color:var(--faint);flex-shrink:0}
+  .search-composer input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font-size:15px;font-family:var(--font);padding:8px 0;line-height:1.5}
+  .search-composer input::placeholder{color:var(--faint)}
+  .search-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font);transition:border-color .14s,color .14s,background .14s}
+  .chip:hover{color:var(--text);border-color:var(--line2)}
+  .chip.active{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.5);color:var(--accent)}
+  .search-suggest{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
+  .search-suggest .s-label{color:var(--faint);font-size:12.5px;margin-right:2px}
+  .pill{border:1px solid var(--line);background:var(--panel);color:#d4d4d8;border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font)}
+  .pill:hover{border-color:var(--line2);color:var(--text)}
+  .search-results{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .search-lead{color:var(--muted);font-size:13.5px;margin:2px 0 2px}
+  .result{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px}
+  .result:hover{border-color:var(--line2)}
+  .result-cat{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .result-title{display:block;color:var(--text);font-size:14.5px;font-weight:600;margin-bottom:4px}
+  .result-snip{display:block;color:var(--muted);font-size:12.5px;line-height:1.5}
+  .result-go{display:inline-block;margin-top:8px;color:var(--accent);font-size:12.5px;font-weight:600}
+  .search-empty{color:var(--muted);font-size:13.5px;margin:2px 0}
+  @media (prefers-reduced-motion: no-preference){ .result{transition:border-color .16s ease,transform .16s ease} .result:hover{transform:translateY(-1px)} }
 </style>
 </head>
 <body>
@@ -178,7 +211,11 @@
           <h1>Learn Motion</h1>
         </div>
       </div>
-      <div class="btnrow"><button class="btn primary" id="askBtn">Ask A Question</button></div>
+      <div class="btnrow"><button class="btn primary" id="askBtn">Ask A Question</button>  <button class="btn" id="helpBtn" aria-haspopup="dialog" aria-label="Open help and site search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Help
+        </button>
+      </div>
     </div>
   </header>
   <div class="wrap" role="main">
@@ -188,7 +225,7 @@
       <p class="lead">A short, plain-language primer on how motion design works — the vocabulary you'll hear in reviews and handoffs, and the core ideas behind good movement. Read through the essentials below, then drop any question in the box at the bottom. I gather these and answer them live during office hours and our community of practice.</p>
     </section>
 
-    <section class="section">
+    <section class="section" id="vocabulary">
       <div class="section-eyebrow">Vocabulary</div>
       <h3>Terms you'll hear</h3>
       <p class="section-sub">The building blocks — enough to follow along in any motion conversation.</p>
@@ -208,7 +245,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="concepts">
       <div class="section-eyebrow">Core concepts</div>
       <h3>Three ideas that do most of the work</h3>
       <div class="concepts">
@@ -230,7 +267,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="office-hours">
       <div class="section-eyebrow">Office hours &amp; community of practice</div>
       <h3>Ask a motion question</h3>
       <p class="section-sub">Post anything — a term you keep hearing, a "how would you animate this?", or a review question. I collect these and answer them live.</p>
@@ -357,6 +394,143 @@
   b.addEventListener("click",function(){
     var t=document.getElementById("qText");
     if(t){ t.scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(function(){ try{t.focus();}catch(e){} },350); }
+  });
+})();
+</script>
+<div class="search-overlay" id="searchOverlay" hidden role="dialog" aria-modal="true" aria-label="Help and site search">
+    <div class="search-backdrop" id="searchBackdrop"></div>
+    <div class="search-panel">
+      <button class="search-close" id="searchClose" aria-label="Close help">&times;</button>
+      <p class="search-greeting">Hi! What can I help you find?</p>
+      <p class="search-sub">Ask in your own words and I'll point you to the right page.</p>
+      <div class="search-composer">
+        <svg class="s-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="e.g. how do I request motion work?" autocomplete="off" aria-label="Search the hub" />
+        <button class="btn primary" id="searchGo">Search</button>
+      </div>
+      <div class="search-filters" id="searchFilters" role="group" aria-label="Filter results by category">
+        <button class="chip active" data-cat="all" type="button">All</button>
+        <button class="chip" data-cat="start" type="button">Get started</button>
+        <button class="chip" data-cat="learn" type="button">Learn motion</button>
+        <button class="chip" data-cat="work" type="button">See work</button>
+        <button class="chip" data-cat="tools" type="button">Tools</button>
+        <button class="chip" data-cat="status" type="button">Status</button>
+      </div>
+      <div class="search-suggest" id="searchSuggest">
+        <span class="s-label">Try:</span>
+        <button class="pill" data-q="how do I request motion work" type="button">Request work</button>
+        <button class="pill" data-q="what is easing" type="button">What is easing?</button>
+        <button class="pill" data-q="see past motion work" type="button">Past work</button>
+        <button class="pill" data-q="ask a motion question" type="button">Ask a question</button>
+      </div>
+      <div class="search-results" id="searchResults" aria-live="polite"></div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var INDEX = [
+    {t:"Request motion work", cat:"start", url:"intake.html", s:"Fill out the Intake Form to request a motion project \u2014 signature moments, icons, transitions, video and more.", kw:["request","intake","form","new project","brief","submit","need motion","ask for work","get started","commission"]},
+    {t:"Types of motion work", cat:"start", url:"intake.html", s:"Project types include Signature Moment, Strategic Moment, Motion System, Icon, Effect, Transition, Video and Experience.", kw:["project types","signature moment","strategic moment","motion system","icon","effect","transition","video","experience","kinds"]},
+    {t:"How to work with Sean", cat:"start", url:"about.html", s:"About Motion Hub explains how to request work, follow status, browse past work, and learn the basics.", kw:["about","how to work","collaborate","overview","start here","welcome","help","getting started"]},
+    {t:"Check current status", cat:"status", url:"manager.html", s:"Specialist Status shows what Sean is working on, what has shipped recently, and upcoming time off.", kw:["status","what is sean working on","in progress","delivered","shipped","upcoming","time off","pto","check in","update","progress"]},
+    {t:"See past and completed motion work", cat:"work", url:"library.html", s:"The Motion Library is a visual showcase of delivered work \u2014 handy for references, inspiration, or aligning on a direction.", kw:["library","past work","completed","showcase","examples","references","gallery","previous","inspiration","see work","portfolio"]},
+    {t:"Motion tools", cat:"tools", url:"tools.html", s:"Motion Tools collects the interactive things Sean has built for motion and UX work.", kw:["tools","interactive","try","utilities","widgets","apps","builder"]},
+    {t:"User flow template", cat:"tools", url:"flows.html", s:"A storyboard tool for mapping flows step by step.", kw:["flow","user flow","storyboard","template","map","journey"]},
+    {t:"Learn motion \u2014 the basics", cat:"learn", url:"learn.html", s:"A short, plain-language primer on how motion design works.", kw:["learn","basics","primer","intro","how motion works","education"]},
+    {t:"Keyframes & keyframing", cat:"learn", url:"learn.html#vocabulary", s:"A keyframe stores a value at a moment in time; the software fills in the frames in between.", kw:["keyframe","keyframes","keyframing","key frame"]},
+    {t:"Timelines", cat:"learn", url:"learn.html#vocabulary", s:"The timeline is where time runs left to right and you arrange layers, keyframes and the playhead.", kw:["timeline","playhead","track","tracks","sequence","layers"]},
+    {t:"Easing (ease-in / ease-out)", cat:"learn", url:"learn.html#vocabulary", s:"Easing controls how motion speeds up or slows down so it feels natural instead of robotic.", kw:["easing","ease","ease in","ease out","ease-in","ease-out","acceleration","deceleration","curve feel"]},
+    {t:"Tweening & interpolation", cat:"learn", url:"learn.html#vocabulary", s:"Tweens are the in-between frames the software generates from one keyframe to the next.", kw:["tween","tweening","interpolation","interpolate","in between","inbetween"]},
+    {t:"Bezier curves", cat:"learn", url:"learn.html#vocabulary", s:"A bezier curve is the editable curve behind an ease; its handles shape how a value changes over time.", kw:["bezier","curve","curves","handles","graph editor"]},
+    {t:"Frame rate (fps)", cat:"learn", url:"learn.html#vocabulary", s:"Frame rate is how many frames play each second \u2014 higher fps looks smoother.", kw:["fps","frame rate","framerate","frames per second"]},
+    {t:"Duration & delay", cat:"learn", url:"learn.html#vocabulary", s:"Duration is how long a move takes; delay is a pause before it starts.", kw:["duration","delay","timing","milliseconds","length"]},
+    {t:"Stagger", cat:"learn", url:"learn.html#vocabulary", s:"Staggering offsets the start of several elements so they cascade instead of moving all at once.", kw:["stagger","cascade","offset","sequence"]},
+    {t:"Anticipation & follow-through", cat:"learn", url:"learn.html#vocabulary", s:"Anticipation is a small opposite move before an action; follow-through carries slightly past the target.", kw:["anticipation","follow through","follow-through","overshoot","wind up","settle","principles"]},
+    {t:"Core concepts: keyframing, timelines, easing", cat:"learn", url:"learn.html#concepts", s:"Three core ideas that do most of the work in motion design.", kw:["concepts","core concepts","how it works","fundamentals"]},
+    {t:"Ask a motion question (office hours)", cat:"learn", url:"learn.html#office-hours", s:"Post a question on Learn Motion and Sean answers it during office hours and the community of practice.", kw:["ask","question","office hours","community of practice","cop","help","q and a","qa","support"]}
+  ];
+  var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
+
+  var overlay=document.getElementById("searchOverlay");
+  var input=document.getElementById("searchInput");
+  var results=document.getElementById("searchResults");
+  var suggest=document.getElementById("searchSuggest");
+  var filters=document.getElementById("searchFilters");
+  var activeCat="all", lastFocus=null;
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function toks(s){return (s||"").toLowerCase().match(/[a-z0-9]+/g)||[];}
+
+  function openO(){
+    lastFocus=document.activeElement;
+    overlay.hidden=false;
+    document.body.style.overflow="hidden";
+    render("");
+    setTimeout(function(){input.focus();},30);
+  }
+  function closeO(){
+    overlay.hidden=true;
+    document.body.style.overflow="";
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();
+  }
+
+  function scoreEntry(e,q){
+    var title=e.t.toLowerCase(), kw=e.kw.join(" | ").toLowerCase(), snip=e.s.toLowerCase();
+    var qt=toks(q); if(!qt.length) return 0;
+    var sc=0, ql=q.toLowerCase().trim();
+    if(ql && (kw.indexOf(ql)>=0 || title.indexOf(ql)>=0)) sc+=6;
+    qt.forEach(function(t){
+      if(title.indexOf(t)>=0) sc+=3;
+      else if(kw.indexOf(t)>=0) sc+=2;
+      else if(snip.indexOf(t)>=0) sc+=1;
+    });
+    return sc;
+  }
+
+  function render(q){
+    var qt=toks(q);
+    if(!qt.length){ results.innerHTML=""; suggest.style.display=""; return; }
+    suggest.style.display="none";
+    var scored=INDEX
+      .filter(function(e){return activeCat==="all"||e.cat===activeCat;})
+      .map(function(e){return {e:e,s:scoreEntry(e,q)};})
+      .filter(function(x){return x.s>0;})
+      .sort(function(a,b){return b.s-a.s;})
+      .slice(0,8);
+    if(!scored.length){
+      results.innerHTML='<p class="search-empty">Hmm, I couldn\u2019t find anything for \u201c'+esc(q)+'.\u201d Try rephrasing, or pick a different filter above.</p>';
+      return;
+    }
+    var lead='<p class="search-lead">Here\u2019s what I found for \u201c'+esc(q)+'\u201d:</p>';
+    results.innerHTML=lead+scored.map(function(x){
+      var e=x.e;
+      return '<a class="result" href="'+esc(e.url)+'">'+
+        '<span class="result-cat">'+esc(CATLABEL[e.cat]||"")+'</span>'+
+        '<span class="result-title">'+esc(e.t)+'</span>'+
+        '<span class="result-snip">'+esc(e.s)+'</span>'+
+        '<span class="result-go">Open \u2192</span>'+
+      '</a>';
+    }).join("");
+  }
+
+  document.getElementById("helpBtn").addEventListener("click",openO);
+  document.getElementById("searchClose").addEventListener("click",closeO);
+  document.getElementById("searchBackdrop").addEventListener("click",closeO);
+  document.addEventListener("keydown",function(ev){ if(ev.key==="Escape"&&!overlay.hidden) closeO(); });
+  input.addEventListener("input",function(){ render(input.value); });
+  input.addEventListener("keydown",function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); render(input.value); } });
+  document.getElementById("searchGo").addEventListener("click",function(){ render(input.value); input.focus(); });
+  filters.addEventListener("click",function(ev){
+    var b=ev.target.closest(".chip"); if(!b)return;
+    activeCat=b.getAttribute("data-cat");
+    Array.prototype.forEach.call(filters.querySelectorAll(".chip"),function(c){ c.classList.toggle("active",c===b); });
+    render(input.value);
+  });
+  suggest.addEventListener("click",function(ev){
+    var b=ev.target.closest(".pill"); if(!b)return;
+    input.value=b.getAttribute("data-q");
+    render(input.value); input.focus();
   });
 })();
 </script>

@@ -20,11 +20,11 @@
          -webkit-font-smoothing: antialiased; padding: 0 0 72px; }
   .wrap { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
 
-  header { position: sticky; top: 0; z-index: 40; background: var(--bg); margin-bottom: 22px; }
-  .hbar { max-width: 1400px; margin: 0 auto; padding: 18px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header { position: sticky; top: 0; z-index: 40; background: var(--bg); margin-bottom: 24px; }
+  .hbar { max-width: 1400px; margin: 0 auto; padding: 20px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
-  .sub { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 52ch; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 8px; max-width: 52ch; }
 
   a.back { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px;
            text-decoration: none; font-size: 14px; line-height: 1.5; font-weight: 500; color: #d4d4d8;
@@ -33,17 +33,17 @@
   a.back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 28px; }
-  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
-  .stat .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .stat .v { font-size: 28px; font-weight: 700; margin-top: 6px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px; }
+  .stat .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .stat .v { font-size: 28px; font-weight: 700; margin-top: 8px; }
   .stat .v.zero { color: var(--faint); }
 
   section { margin-bottom: 28px; }
   h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 12px; }
 
-  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
   button, .filelabel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-    font-size: 13.5px; font-family: var(--font); padding: 11px 16px; border-radius: 10px; border: 1px solid var(--line);
+    font-size: 13.5px; font-family: var(--font); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line);
     background: transparent; color: var(--text); transition: border-color 140ms ease, background 140ms ease; }
   button:hover, .filelabel:hover { border-color: var(--line2); }
   button:focus-visible, .filelabel:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -58,13 +58,13 @@
   .req .meta { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .req .id { font-family: var(--mono); color: var(--faint); }
   .pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent);
-          background: var(--accent-dim); padding: 3px 8px; border-radius: 6px; }
-  .empty { color: var(--faint); font-size: 13.5px; font-style: italic; padding: 18px 16px; text-align: center; }
+          background: var(--accent-dim); padding: 4px 8px; border-radius: 6px; }
+  .empty { color: var(--faint); font-size: 13.5px; font-style: italic; padding: 20px 16px; text-align: center; }
 
-  #status { min-height: 18px; margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  #status { min-height: 18px; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
   #status.ok { color: var(--accent); }
   #status.err { color: var(--error); }
-  .note { font-size: 12px; color: var(--faint); margin-top: 10px; line-height: 1.5; }
+  .note { font-size: 12px; color: var(--faint); margin-top: 12px; line-height: 1.5; }
   svg { flex-shrink: 0; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
@@ -72,12 +72,12 @@
   .titlerow { display:flex; align-items:center; gap:12px; min-width:0; flex-wrap:wrap; }
   .titlerow .eyebrow { margin-bottom:0; }
   .navwrap { position:relative; flex-shrink:0; }
-  .hamb { display:flex; align-items:center; justify-content:center; padding:9px; border-radius:10px; cursor:pointer; background:var(--panel); border:1px solid var(--line); color:var(--muted); transition:border-color .14s ease, color .14s ease; }
+  .hamb { display:flex; align-items:center; justify-content:center; padding:8px; border-radius:10px; cursor:pointer; background:var(--panel); border:1px solid var(--line); color:var(--muted); transition:border-color .14s ease, color .14s ease; }
   .hamb:hover { border-color:var(--line2); color:var(--text); }
   .navmenu { position:absolute; left:0; top:calc(100% + 8px); width:240px; background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.5); overflow:hidden; z-index:60; }
   .navmenu[hidden] { display:none; }
-  .navhdr { padding:9px 13px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--line); }
-  .navitem { display:flex; align-items:center; gap:10px; padding:11px 13px; text-decoration:none; color:var(--text); transition:background .14s; font-size:13.5px; }
+  .navhdr { padding:8px 12px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); border-bottom:1px solid var(--line); }
+  .navitem { display:flex; align-items:center; gap:12px; padding:12px 12px; text-decoration:none; color:var(--text); transition:background .14s; font-size:13.5px; }
   .navitem:hover { background:var(--surface); }
   .navitem .ni-txt { min-width:0; flex:1; display:flex; flex-direction:column; }
   .navitem .ni-lbl { font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -119,15 +119,15 @@
     border-radius: 16px; padding: 28px 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); text-align: left; }
   #pwgate .pwbrand { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px;
     letter-spacing: 0.14em; color: #a1a1aa; margin-bottom: 12px; }
-  #pwgate .pwtitle { font-size: 19px; font-weight: 700; color: #f4f4f5; margin: 0 0 6px; letter-spacing: -0.01em; }
-  #pwgate .pwsub { font-size: 13px; color: #a1a1aa; margin: 0 0 18px; }
+  #pwgate .pwtitle { font-size: 19px; font-weight: 700; color: #f4f4f5; margin: 0 0 8px; letter-spacing: -0.01em; }
+  #pwgate .pwsub { font-size: 13px; color: #a1a1aa; margin: 0 0 20px; }
   #pwgate input { width: 100%; box-sizing: border-box; background: #09090b; border: 1px solid #27272a;
-    border-radius: 10px; padding: 11px 13px; color: #f4f4f5; font-size: 14px; outline: none; transition: border-color 140ms ease; }
+    border-radius: 10px; padding: 12px 12px; color: #f4f4f5; font-size: 14px; outline: none; transition: border-color 140ms ease; }
   #pwgate input:focus { border-color: #22c55e; }
-  #pwgate button { width: 100%; margin-top: 10px; background: #22c55e; color: #0a0a0a; border: none;
-    border-radius: 10px; padding: 11px 13px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 140ms ease; }
+  #pwgate button { width: 100%; margin-top: 12px; background: #22c55e; color: #0a0a0a; border: none;
+    border-radius: 10px; padding: 12px 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 140ms ease; }
   #pwgate button:hover { background: #4ade80; }
-  #pwgate .pwerr { min-height: 18px; margin-top: 10px; font-size: 12.5px; color: #fb7185; }
+  #pwgate .pwerr { min-height: 18px; margin-top: 12px; font-size: 12.5px; color: #fb7185; }
   @media (prefers-reduced-motion: reduce) { #pwgate * { transition: none !important; } }
 </style>
 <script>

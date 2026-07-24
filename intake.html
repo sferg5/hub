@@ -25,14 +25,14 @@
 
 
   header{position:sticky;top:0;z-index:60;background:#09090b}
-  .hbar{max-width:1400px;margin:0 auto;padding:18px 16px;display:flex;align-items:center;gap:12px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .hbar{max-width:1400px;margin:0 auto;padding:20px 16px;display:flex;align-items:center;gap:12px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   .navwrap{position:relative;display:flex;align-items:center}
-  .hamb{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:#18181b;border:1px solid #27272a;color:#a1a1aa;transition:border-color .14s,color .14s}
+  .hamb{display:flex;align-items:center;justify-content:center;padding:8px;border-radius:10px;cursor:pointer;background:#18181b;border:1px solid #27272a;color:#a1a1aa;transition:border-color .14s,color .14s}
   .hamb:hover{border-color:#3f3f46;color:#f4f4f5}
   .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:#18181b;border:1px solid #27272a;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden}
   .navmenu[hidden]{display:none}
-  .navhdr{padding:9px 13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;border-bottom:1px solid #27272a}
-  .navitem{display:flex;align-items:center;gap:10px;padding:11px 13px;text-decoration:none;color:#f4f4f5;transition:background .14s;font-size:13.5px}
+  .navhdr{padding:8px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;border-bottom:1px solid #27272a}
+  .navitem{display:flex;align-items:center;gap:12px;padding:12px 12px;text-decoration:none;color:#f4f4f5;transition:background .14s;font-size:13.5px}
   .navitem:hover{background:#0d0d0f}
   .navitem .ni-txt{min-width:0;flex:1;display:flex;flex-direction:column}
   .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -53,6 +53,43 @@
   .nav-title{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.02em;color:#f4f4f5;margin:0;line-height:1;white-space:nowrap}
 
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid #22c55e;outline-offset:2px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.5;font-weight:500;cursor:pointer;border:1px solid #27272a;background:#18181b;color:#d4d4d8;transition:border-color .14s ease,color .14s ease}
+  .btn:hover{border-color:#3f3f46;color:#f4f4f5}
+  .btn.primary{background:#22c55e;color:#052e16;border-color:#22c55e;font-weight:500;padding:8px 16px}
+  .btn.primary:hover{background:#4ade80;border-color:#4ade80}
+/* help + search */
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .search-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px 16px}
+  .search-overlay[hidden]{display:none}
+  .search-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+  .search-panel{position:relative;width:100%;max-width:640px;background:#18181b;border:1px solid #27272a;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:24px;max-height:84vh;overflow:auto}
+  .search-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid #27272a;background:#0d0d0f;color:#a1a1aa;font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .search-close:hover{color:#f4f4f5;border-color:#3f3f46}
+  .search-greeting{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 4px;padding-right:36px}
+  .search-sub{color:#8a8a92;font-size:13px;margin:0 0 16px}
+  .search-composer{display:flex;align-items:center;gap:12px;background:#0d0d0f;border:1px solid #27272a;border-radius:12px;padding:8px 8px 8px 16px;transition:border-color .14s}
+  .search-composer:focus-within{border-color:#22c55e}
+  .search-composer .s-ico{color:#8a8a92;flex-shrink:0}
+  .search-composer input{flex:1;min-width:0;background:none;border:0;outline:none;color:#f4f4f5;font-size:15px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:8px 0;line-height:1.5}
+  .search-composer input::placeholder{color:#8a8a92}
+  .search-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{border:1px solid #27272a;background:#0d0d0f;color:#a1a1aa;border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transition:border-color .14s,color .14s,background .14s}
+  .chip:hover{color:#f4f4f5;border-color:#3f3f46}
+  .chip.active{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.5);color:#22c55e}
+  .search-suggest{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
+  .search-suggest .s-label{color:#8a8a92;font-size:12.5px;margin-right:2px}
+  .pill{border:1px solid #27272a;background:#18181b;color:#d4d4d8;border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .pill:hover{border-color:#3f3f46;color:#f4f4f5}
+  .search-results{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+  .search-lead{color:#a1a1aa;font-size:13.5px;margin:2px 0 2px}
+  .result{display:block;text-decoration:none;background:#0d0d0f;border:1px solid #27272a;border-radius:12px;padding:16px 16px}
+  .result:hover{border-color:#3f3f46}
+  .result-cat{display:block;font-family:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#22c55e;margin-bottom:8px}
+  .result-title{display:block;color:#f4f4f5;font-size:14.5px;font-weight:600;margin-bottom:4px}
+  .result-snip{display:block;color:#a1a1aa;font-size:12.5px;line-height:1.5}
+  .result-go{display:inline-block;margin-top:8px;color:#22c55e;font-size:12.5px;font-weight:600}
+  .search-empty{color:#a1a1aa;font-size:13.5px;margin:2px 0}
+  @media (prefers-reduced-motion: no-preference){ .result{transition:border-color .16s ease,transform .16s ease} .result:hover{transform:translateY(-1px)} }
 </style>
 </head>
 <body>
@@ -109,6 +146,10 @@
       </div>
       <svg class="brand" width="26" height="26" viewBox="0 0 216 216" fill="#ffffff" role="img" aria-label="lululemon"><path fill-rule="nonzero" d="M 148.414062 174.613281 C 129.636719 174.613281 114.414062 159.34375 114.414062 140.507812 C 114.414062 133.796875 116.84375 127.855469 119.144531 121.6875 C 120.773438 117.316406 122.402344 112.945312 124.019531 108.566406 C 127.824219 98.242188 131.480469 87.660156 133.164062 76.742188 C 134.503906 68.082031 134.351562 57.539062 127.777344 50.902344 C 122.75 45.828125 114.964844 44.699219 108 44.660156 C 101.03125 44.699219 93.25 45.828125 88.21875 50.902344 C 81.648438 57.539062 81.492188 68.082031 82.832031 76.742188 C 84.519531 87.660156 88.171875 98.242188 91.980469 108.566406 C 93.59375 112.945312 95.222656 117.316406 96.851562 121.6875 C 99.152344 127.855469 101.585938 133.796875 101.585938 140.507812 C 101.585938 159.34375 86.363281 174.613281 67.582031 174.613281 C 53.277344 174.613281 41.058594 165.738281 36.039062 153.191406 C 39.996094 156.816406 45.246094 159.042969 51.03125 159.042969 C 57.800781 159.042969 64.3125 155.871094 68.511719 150.542969 C 73.273438 144.5 74.292969 136.261719 72.257812 128.9375 C 70.03125 120.929688 65.195312 114.433594 61.316406 106.996094 C 48.710938 85.457031 49.222656 69.355469 49.222656 69.355469 C 49.222656 68.351562 49.25 67.351562 49.3125 66.355469 C 49.394531 65.027344 49.535156 63.703125 49.746094 62.386719 C 49.941406 61.152344 50.195312 59.925781 50.519531 58.714844 C 50.832031 57.566406 51.195312 56.433594 51.628906 55.324219 C 52.046875 54.257812 52.523438 53.21875 53.058594 52.207031 C 53.582031 51.222656 54.160156 50.269531 54.792969 49.355469 C 55.421875 48.449219 56.101562 47.582031 56.828125 46.753906 C 57.554688 45.925781 58.328125 45.140625 59.140625 44.398438 C 59.964844 43.648438 60.832031 42.945312 61.726562 42.28125 C 62.644531 41.605469 63.597656 40.972656 64.570312 40.386719 C 65.578125 39.78125 66.609375 39.222656 67.664062 38.707031 C 68.753906 38.175781 69.863281 37.6875 70.988281 37.238281 C 72.15625 36.773438 73.339844 36.347656 74.539062 35.964844 C 75.777344 35.566406 77.03125 35.203125 78.292969 34.878906 C 79.605469 34.542969 80.921875 34.242188 82.25 33.972656 C 83.621094 33.695312 85.003906 33.453125 86.386719 33.234375 C 87.820312 33.011719 89.261719 32.820312 90.703125 32.65625 C 92.191406 32.488281 93.683594 32.34375 95.175781 32.226562 C 96.714844 32.109375 98.257812 32.011719 99.796875 31.941406 C 101.386719 31.867188 102.972656 31.816406 104.558594 31.785156 C 106.449219 31.75 108.34375 31.742188 110.238281 31.765625 C 111.832031 31.785156 113.429688 31.828125 115.019531 31.890625 C 116.574219 31.953125 118.121094 32.035156 119.671875 32.144531 C 121.175781 32.25 122.675781 32.378906 124.175781 32.535156 C 125.628906 32.6875 127.078125 32.863281 128.523438 33.070312 C 129.917969 33.273438 131.3125 33.503906 132.699219 33.765625 C 134.039062 34.019531 135.371094 34.304688 136.695312 34.625 C 137.972656 34.9375 139.242188 35.28125 140.5 35.664062 C 141.710938 36.03125 142.914062 36.4375 144.097656 36.882812 C 145.238281 37.316406 146.371094 37.785156 147.476562 38.300781 C 148.546875 38.796875 149.601562 39.332031 150.625 39.917969 C 151.621094 40.484375 152.59375 41.09375 153.53125 41.75 C 154.449219 42.390625 155.335938 43.074219 156.183594 43.804688 C 157.019531 44.523438 157.816406 45.285156 158.566406 46.089844 C 159.320312 46.890625 160.023438 47.734375 160.675781 48.617188 C 161.332031 49.507812 161.941406 50.433594 162.488281 51.394531 C 163.054688 52.375 163.558594 53.390625 164.003906 54.433594 C 164.464844 55.511719 164.863281 56.617188 165.203125 57.742188 C 165.554688 58.917969 165.84375 60.117188 166.070312 61.324219 C 166.308594 62.609375 166.484375 63.902344 166.597656 65.203125 C 166.722656 66.585938 166.734375 67.964844 166.777344 69.355469 C 166.777344 69.355469 167.289062 85.457031 154.683594 106.996094 C 150.800781 114.433594 145.964844 120.929688 143.738281 128.9375 C 141.707031 136.261719 142.726562 144.5 147.488281 150.542969 C 151.683594 155.871094 158.195312 159.042969 164.96875 159.042969 C 170.753906 159.042969 176.003906 156.816406 179.960938 153.191406 C 174.9375 165.738281 162.71875 174.613281 148.414062 174.613281 M 108 4.636719 C 50.914062 4.636719 4.636719 50.914062 4.636719 108 C 4.636719 165.085938 50.914062 211.363281 108 211.363281 C 165.085938 211.363281 211.363281 165.085938 211.363281 108 C 211.363281 50.914062 165.085938 4.636719 108 4.636719 "/></svg>
       <span class="nav-title">Motion Intake Form</span>
+      <div class="btnrow" style="margin-left:auto"><button class="btn" id="helpBtn" aria-haspopup="dialog" aria-label="Open help and site search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Help
+        </button></div>
     </div>
   </header>
   <div id="root" role="main"></div>
@@ -365,7 +406,7 @@ new Y(a,3,!1,a.toLowerCase(),null,!1,!1)});["checked","multiple","muted","select
 a.replace(Zf,$f);R[b]=new Y(b,1,!1,a,null,!1,!1)});"xlink:actuate xlink:arcrole xlink:role xlink:show xlink:title xlink:type".split(" ").forEach(function(a){var b=a.replace(Zf,$f);R[b]=new Y(b,1,!1,a,"http://www.w3.org/1999/xlink",!1,!1)});["xml:base","xml:lang","xml:space"].forEach(function(a){var b=a.replace(Zf,$f);R[b]=new Y(b,1,!1,a,"http://www.w3.org/XML/1998/namespace",!1,!1)});["tabIndex","crossOrigin"].forEach(function(a){R[a]=new Y(a,1,!1,a.toLowerCase(),null,!1,!1)});R.xlinkHref=new Y("xlinkHref",
 1,!1,"xlink:href","http://www.w3.org/1999/xlink",!0,!1);["src","href","action","formAction"].forEach(function(a){R[a]=new Y(a,1,!1,a.toLowerCase(),null,!0,!0)});var Sa=zb.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,sd=Symbol.for("react.element"),Cb=Symbol.for("react.portal"),Bb=Symbol.for("react.fragment"),fe=Symbol.for("react.strict_mode"),ee=Symbol.for("react.profiler"),hg=Symbol.for("react.provider"),gg=Symbol.for("react.context"),ie=Symbol.for("react.forward_ref"),ge=Symbol.for("react.suspense"),
 he=Symbol.for("react.suspense_list"),je=Symbol.for("react.memo"),Ta=Symbol.for("react.lazy");Symbol.for("react.scope");Symbol.for("react.debug_trace_mode");var Ui=Symbol.for("react.offscreen");Symbol.for("react.legacy_hidden");Symbol.for("react.cache");Symbol.for("react.tracing_marker");var fg=Symbol.iterator,E=Object.assign,ae,ce=!1,cc=Array.isArray,Xd,yi=function(a){return"undefined"!==typeof MSApp&&MSApp.execUnsafeLocalFunction?function(b,c,d,e){MSApp.execUnsafeLocalFunction(function(){return a(b,
-c,d,e)})}:a}(function(a,b){if("http://www.w3.org/2000/svg"!==a.namespaceURI||"innerHTML"in a)a.innerHTML=b;else{Xd=Xd||document.createElement("div");Xd.innerHTML="<svg aria-hidden="true" focusable="false">"+b.valueOf().toString()+"</svg>";for(b=Xd.firstChild;a.firstChild;)a.removeChild(a.firstChild);for(;b.firstChild;)a.appendChild(b.firstChild)}}),Fc=function(a,b){if(b){var c=a.firstChild;if(c&&c===a.lastChild&&3===c.nodeType){c.nodeValue=b;return}}a.textContent=b},dc={animationIterationCount:!0,aspectRatio:!0,borderImageOutset:!0,
+c,d,e)})}:a}(function(a,b){if("http://www.w3.org/2000/svg"!==a.namespaceURI||"innerHTML"in a)a.innerHTML=b;else{Xd=Xd||document.createElement("div");Xd.innerHTML="<svg>"+b.valueOf().toString()+"</svg>";for(b=Xd.firstChild;a.firstChild;)a.removeChild(a.firstChild);for(;b.firstChild;)a.appendChild(b.firstChild)}}),Fc=function(a,b){if(b){var c=a.firstChild;if(c&&c===a.lastChild&&3===c.nodeType){c.nodeValue=b;return}}a.textContent=b},dc={animationIterationCount:!0,aspectRatio:!0,borderImageOutset:!0,
 borderImageSlice:!0,borderImageWidth:!0,boxFlex:!0,boxFlexGroup:!0,boxOrdinalGroup:!0,columnCount:!0,columns:!0,flex:!0,flexGrow:!0,flexPositive:!0,flexShrink:!0,flexNegative:!0,flexOrder:!0,gridArea:!0,gridRow:!0,gridRowEnd:!0,gridRowSpan:!0,gridRowStart:!0,gridColumn:!0,gridColumnEnd:!0,gridColumnSpan:!0,gridColumnStart:!0,fontWeight:!0,lineClamp:!0,lineHeight:!0,opacity:!0,order:!0,orphans:!0,tabSize:!0,widows:!0,zIndex:!0,zoom:!0,fillOpacity:!0,floodOpacity:!0,stopOpacity:!0,strokeDasharray:!0,
 strokeDashoffset:!0,strokeMiterlimit:!0,strokeOpacity:!0,strokeWidth:!0},$k=["Webkit","ms","Moz","O"];Object.keys(dc).forEach(function(a){$k.forEach(function(b){b=b+a.charAt(0).toUpperCase()+a.substring(1);dc[b]=dc[a]})});var ij=E({menuitem:!0},{area:!0,base:!0,br:!0,col:!0,embed:!0,hr:!0,img:!0,input:!0,keygen:!0,link:!0,meta:!0,param:!0,source:!0,track:!0,wbr:!0}),ze=null,se=null,Eb=null,Fb=null,xg=function(a,b){return a(b)},yg=function(){},te=!1,Oe=!1;if(Ia)try{var Lc={};Object.defineProperty(Lc,
 "passive",{get:function(){Oe=!0}});window.addEventListener("test",Lc,Lc);window.removeEventListener("test",Lc,Lc)}catch(a){Oe=!1}var kj=function(a,b,c,d,e,f,g,h,k){var l=Array.prototype.slice.call(arguments,3);try{b.apply(c,l)}catch(q){this.onError(q)}},gc=!1,Sc=null,Tc=!1,ue=null,lj={onError:function(a){gc=!0;Sc=a}},Ba=zb.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.Scheduler,Jg=Ba.unstable_scheduleCallback,Kg=Ba.unstable_NormalPriority,xh=Jg,Ki=Ba.unstable_cancelCallback,Pk=Ba.unstable_shouldYield,
@@ -2738,6 +2779,143 @@ function IntakePage() {
   btn.addEventListener("click",function(e){e.stopPropagation();setOpen(menu.hidden);});
   document.addEventListener("click",function(e){if(!menu.hidden&&!wrap.contains(e.target))setOpen(false);});
   document.addEventListener("keydown",function(e){if(e.key==="Escape")setOpen(false);});
+})();
+</script>
+<div class="search-overlay" id="searchOverlay" hidden role="dialog" aria-modal="true" aria-label="Help and site search">
+    <div class="search-backdrop" id="searchBackdrop"></div>
+    <div class="search-panel">
+      <button class="search-close" id="searchClose" aria-label="Close help">&times;</button>
+      <p class="search-greeting">Hi! What can I help you find?</p>
+      <p class="search-sub">Ask in your own words and I'll point you to the right page.</p>
+      <div class="search-composer">
+        <svg class="s-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="e.g. how do I request motion work?" autocomplete="off" aria-label="Search the hub" />
+        <button class="btn primary" id="searchGo">Search</button>
+      </div>
+      <div class="search-filters" id="searchFilters" role="group" aria-label="Filter results by category">
+        <button class="chip active" data-cat="all" type="button">All</button>
+        <button class="chip" data-cat="start" type="button">Get started</button>
+        <button class="chip" data-cat="learn" type="button">Learn motion</button>
+        <button class="chip" data-cat="work" type="button">See work</button>
+        <button class="chip" data-cat="tools" type="button">Tools</button>
+        <button class="chip" data-cat="status" type="button">Status</button>
+      </div>
+      <div class="search-suggest" id="searchSuggest">
+        <span class="s-label">Try:</span>
+        <button class="pill" data-q="how do I request motion work" type="button">Request work</button>
+        <button class="pill" data-q="what is easing" type="button">What is easing?</button>
+        <button class="pill" data-q="see past motion work" type="button">Past work</button>
+        <button class="pill" data-q="ask a motion question" type="button">Ask a question</button>
+      </div>
+      <div class="search-results" id="searchResults" aria-live="polite"></div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var INDEX = [
+    {t:"Request motion work", cat:"start", url:"intake.html", s:"Fill out the Intake Form to request a motion project \u2014 signature moments, icons, transitions, video and more.", kw:["request","intake","form","new project","brief","submit","need motion","ask for work","get started","commission"]},
+    {t:"Types of motion work", cat:"start", url:"intake.html", s:"Project types include Signature Moment, Strategic Moment, Motion System, Icon, Effect, Transition, Video and Experience.", kw:["project types","signature moment","strategic moment","motion system","icon","effect","transition","video","experience","kinds"]},
+    {t:"How to work with Sean", cat:"start", url:"about.html", s:"About Motion Hub explains how to request work, follow status, browse past work, and learn the basics.", kw:["about","how to work","collaborate","overview","start here","welcome","help","getting started"]},
+    {t:"Check current status", cat:"status", url:"manager.html", s:"Specialist Status shows what Sean is working on, what has shipped recently, and upcoming time off.", kw:["status","what is sean working on","in progress","delivered","shipped","upcoming","time off","pto","check in","update","progress"]},
+    {t:"See past and completed motion work", cat:"work", url:"library.html", s:"The Motion Library is a visual showcase of delivered work \u2014 handy for references, inspiration, or aligning on a direction.", kw:["library","past work","completed","showcase","examples","references","gallery","previous","inspiration","see work","portfolio"]},
+    {t:"Motion tools", cat:"tools", url:"tools.html", s:"Motion Tools collects the interactive things Sean has built for motion and UX work.", kw:["tools","interactive","try","utilities","widgets","apps","builder"]},
+    {t:"User flow template", cat:"tools", url:"flows.html", s:"A storyboard tool for mapping flows step by step.", kw:["flow","user flow","storyboard","template","map","journey"]},
+    {t:"Learn motion \u2014 the basics", cat:"learn", url:"learn.html", s:"A short, plain-language primer on how motion design works.", kw:["learn","basics","primer","intro","how motion works","education"]},
+    {t:"Keyframes & keyframing", cat:"learn", url:"learn.html#vocabulary", s:"A keyframe stores a value at a moment in time; the software fills in the frames in between.", kw:["keyframe","keyframes","keyframing","key frame"]},
+    {t:"Timelines", cat:"learn", url:"learn.html#vocabulary", s:"The timeline is where time runs left to right and you arrange layers, keyframes and the playhead.", kw:["timeline","playhead","track","tracks","sequence","layers"]},
+    {t:"Easing (ease-in / ease-out)", cat:"learn", url:"learn.html#vocabulary", s:"Easing controls how motion speeds up or slows down so it feels natural instead of robotic.", kw:["easing","ease","ease in","ease out","ease-in","ease-out","acceleration","deceleration","curve feel"]},
+    {t:"Tweening & interpolation", cat:"learn", url:"learn.html#vocabulary", s:"Tweens are the in-between frames the software generates from one keyframe to the next.", kw:["tween","tweening","interpolation","interpolate","in between","inbetween"]},
+    {t:"Bezier curves", cat:"learn", url:"learn.html#vocabulary", s:"A bezier curve is the editable curve behind an ease; its handles shape how a value changes over time.", kw:["bezier","curve","curves","handles","graph editor"]},
+    {t:"Frame rate (fps)", cat:"learn", url:"learn.html#vocabulary", s:"Frame rate is how many frames play each second \u2014 higher fps looks smoother.", kw:["fps","frame rate","framerate","frames per second"]},
+    {t:"Duration & delay", cat:"learn", url:"learn.html#vocabulary", s:"Duration is how long a move takes; delay is a pause before it starts.", kw:["duration","delay","timing","milliseconds","length"]},
+    {t:"Stagger", cat:"learn", url:"learn.html#vocabulary", s:"Staggering offsets the start of several elements so they cascade instead of moving all at once.", kw:["stagger","cascade","offset","sequence"]},
+    {t:"Anticipation & follow-through", cat:"learn", url:"learn.html#vocabulary", s:"Anticipation is a small opposite move before an action; follow-through carries slightly past the target.", kw:["anticipation","follow through","follow-through","overshoot","wind up","settle","principles"]},
+    {t:"Core concepts: keyframing, timelines, easing", cat:"learn", url:"learn.html#concepts", s:"Three core ideas that do most of the work in motion design.", kw:["concepts","core concepts","how it works","fundamentals"]},
+    {t:"Ask a motion question (office hours)", cat:"learn", url:"learn.html#office-hours", s:"Post a question on Learn Motion and Sean answers it during office hours and the community of practice.", kw:["ask","question","office hours","community of practice","cop","help","q and a","qa","support"]}
+  ];
+  var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
+
+  var overlay=document.getElementById("searchOverlay");
+  var input=document.getElementById("searchInput");
+  var results=document.getElementById("searchResults");
+  var suggest=document.getElementById("searchSuggest");
+  var filters=document.getElementById("searchFilters");
+  var activeCat="all", lastFocus=null;
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function toks(s){return (s||"").toLowerCase().match(/[a-z0-9]+/g)||[];}
+
+  function openO(){
+    lastFocus=document.activeElement;
+    overlay.hidden=false;
+    document.body.style.overflow="hidden";
+    render("");
+    setTimeout(function(){input.focus();},30);
+  }
+  function closeO(){
+    overlay.hidden=true;
+    document.body.style.overflow="";
+    if(lastFocus&&lastFocus.focus)lastFocus.focus();
+  }
+
+  function scoreEntry(e,q){
+    var title=e.t.toLowerCase(), kw=e.kw.join(" | ").toLowerCase(), snip=e.s.toLowerCase();
+    var qt=toks(q); if(!qt.length) return 0;
+    var sc=0, ql=q.toLowerCase().trim();
+    if(ql && (kw.indexOf(ql)>=0 || title.indexOf(ql)>=0)) sc+=6;
+    qt.forEach(function(t){
+      if(title.indexOf(t)>=0) sc+=3;
+      else if(kw.indexOf(t)>=0) sc+=2;
+      else if(snip.indexOf(t)>=0) sc+=1;
+    });
+    return sc;
+  }
+
+  function render(q){
+    var qt=toks(q);
+    if(!qt.length){ results.innerHTML=""; suggest.style.display=""; return; }
+    suggest.style.display="none";
+    var scored=INDEX
+      .filter(function(e){return activeCat==="all"||e.cat===activeCat;})
+      .map(function(e){return {e:e,s:scoreEntry(e,q)};})
+      .filter(function(x){return x.s>0;})
+      .sort(function(a,b){return b.s-a.s;})
+      .slice(0,8);
+    if(!scored.length){
+      results.innerHTML='<p class="search-empty">Hmm, I couldn\u2019t find anything for \u201c'+esc(q)+'.\u201d Try rephrasing, or pick a different filter above.</p>';
+      return;
+    }
+    var lead='<p class="search-lead">Here\u2019s what I found for \u201c'+esc(q)+'\u201d:</p>';
+    results.innerHTML=lead+scored.map(function(x){
+      var e=x.e;
+      return '<a class="result" href="'+esc(e.url)+'">'+
+        '<span class="result-cat">'+esc(CATLABEL[e.cat]||"")+'</span>'+
+        '<span class="result-title">'+esc(e.t)+'</span>'+
+        '<span class="result-snip">'+esc(e.s)+'</span>'+
+        '<span class="result-go">Open \u2192</span>'+
+      '</a>';
+    }).join("");
+  }
+
+  document.getElementById("helpBtn").addEventListener("click",openO);
+  document.getElementById("searchClose").addEventListener("click",closeO);
+  document.getElementById("searchBackdrop").addEventListener("click",closeO);
+  document.addEventListener("keydown",function(ev){ if(ev.key==="Escape"&&!overlay.hidden) closeO(); });
+  input.addEventListener("input",function(){ render(input.value); });
+  input.addEventListener("keydown",function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); render(input.value); } });
+  document.getElementById("searchGo").addEventListener("click",function(){ render(input.value); input.focus(); });
+  filters.addEventListener("click",function(ev){
+    var b=ev.target.closest(".chip"); if(!b)return;
+    activeCat=b.getAttribute("data-cat");
+    Array.prototype.forEach.call(filters.querySelectorAll(".chip"),function(c){ c.classList.toggle("active",c===b); });
+    render(input.value);
+  });
+  suggest.addEventListener("click",function(ev){
+    var b=ev.target.closest(".pill"); if(!b)return;
+    input.value=b.getAttribute("data-q");
+    render(input.value); input.focus();
+  });
 })();
 </script>
 </body>
