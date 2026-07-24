@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>Learn Motion · Motion Specialist Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><circle cx='50' cy='50' r='24' fill='none' stroke='%2322c55e' stroke-width='8'/></svg>" />
+<style>
+  :root{
+    --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#22c55e;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:22px 16px 72px}
+  .wrap{max-width:1400px;margin:0 auto}
+
+  header{position:sticky;top:0;z-index:40;background:var(--bg);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  header::after{content:"";position:absolute;left:0;right:0;top:100%;height:24px;background:linear-gradient(to bottom, var(--bg), transparent);pointer-events:none}
+  .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
+  .sub{font-size:13px;color:var(--faint)}
+  .brand{height:26px;width:26px;flex-shrink:0;display:block}
+
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.5;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:#d4d4d8;transition:border-color .14s ease,color .14s ease}
+  .btn:hover{border-color:var(--line2);color:var(--text)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500;padding:8px 16px}
+  .btn.primary:hover{background:#4ade80;border-color:#4ade80}
+  .btn:disabled{opacity:.5;cursor:default}
+
+  .navwrap{position:relative;flex-shrink:0}
+  .hamb{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
+  .hamb:hover{border-color:var(--line2);color:var(--text)}
+  .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden;z-index:60}
+  .navmenu[hidden]{display:none}
+  .navitem{display:flex;align-items:center;gap:10px;padding:11px 13px;text-decoration:none;color:var(--text);transition:background .14s;font-size:13.5px}
+  .navitem:hover{background:var(--surface)}
+  .navitem .ni-txt{min-width:0;flex:1;display:flex;flex-direction:column}
+  .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navitem .ni-ext{color:var(--faint);flex-shrink:0}
+
+  .hero{margin-top:24px;padding:30px;background:linear-gradient(155deg, rgba(34,197,94,.10), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:18px}
+  .hero h2{margin:0 0 10px;font-size:28px;font-weight:700;letter-spacing:-.02em}
+  .hero .lead{color:var(--muted);font-size:15px;line-height:1.65;max-width:74ch;margin:0}
+
+  .section{margin-top:34px}
+  .section-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+  .section h3{margin:0 0 4px;font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .section .section-sub{color:var(--faint);font-size:13px;margin:0}
+
+  .gloss{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  @media (max-width:1040px){.gloss{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:640px){.gloss{grid-template-columns:1fr}}
+  .term{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .term h4{margin:0 0 6px;font-size:14px;font-weight:600;color:var(--text)}
+  .term p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+  .term .kw{color:var(--accent);font-weight:600}
+
+  .concepts{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+  .concept{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .concept h4{margin:0 0 10px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .concept h4 .ic{width:30px;height:30px;border-radius:8px;background:rgba(34,197,94,.15);display:grid;place-items:center;flex-shrink:0}
+  .concept p{margin:0 0 10px;color:var(--muted);font-size:13.5px;line-height:1.65}
+  .concept p:last-child{margin-bottom:0}
+  .concept b{color:var(--text);font-weight:600}
+
+  /* Q&A */
+  .qa{margin-top:16px}
+  .qa-form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .qa-form label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .qa-form input,.qa-form textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .14s}
+  .qa-form input:focus,.qa-form textarea:focus{border-color:var(--accent)}
+  .qa-form textarea{min-height:84px;resize:vertical;margin-bottom:12px}
+  .qa-row{display:flex;gap:12px;flex-wrap:wrap}
+  .qa-row .fld{flex:1;min-width:180px;margin-bottom:12px}
+  .qa-actions{display:flex;align-items:center;gap:12px}
+  .qa-note{color:var(--faint);font-size:12px}
+  .qa-list{margin-top:18px;display:flex;flex-direction:column;gap:12px}
+  .q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 17px}
+  .q .qtext{font-size:14.5px;color:var(--text);line-height:1.5;white-space:pre-wrap}
+  .q .qmeta{margin-top:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .q .qtag{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:10px;letter-spacing:.06em}
+  .qtag.wait{background:rgba(251,191,36,.13);color:#fbbf24}
+  .qtag.done{background:rgba(34,197,94,.14);color:var(--accent)}
+  .answer{margin-top:12px;padding:12px 14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.22);border-radius:10px}
+  .answer .albl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .answer .atext{font-size:13.5px;color:var(--text);line-height:1.55;white-space:pre-wrap}
+  .q-tools{margin-top:10px;display:flex;gap:8px}
+  .lnk{background:none;border:0;color:var(--faint);font-size:12px;cursor:pointer;padding:2px 0;font-family:var(--font)}
+  .lnk:hover{color:var(--text)}
+  .ansedit textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;min-height:70px;resize:vertical}
+  .ansedit textarea:focus{border-color:var(--accent)}
+  .ansedit .row{display:flex;gap:8px;margin-top:8px}
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;color:var(--muted);font-size:14px}
+  .loading .ldr-ring{width:32px;height:32px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:ldrspin .9s linear infinite;margin:0 auto 12px}
+  @keyframes ldrspin{to{transform:rotate(360deg)}}
+  .empty{color:var(--faint);font-size:13.5px;font-style:italic;padding:22px 0;text-align:center}
+
+  /* motion */
+  @media (prefers-reduced-motion: no-preference){
+    .btn,.hamb,.lnk{transition:transform .12s ease,background-color .14s ease,border-color .14s ease,color .14s ease,box-shadow .14s ease}
+    .btn:active,.hamb:active{transform:translateY(1px)}
+    .navmenu:not([hidden]){animation:navPop .16s cubic-bezier(.2,.7,.2,1);transform-origin:top left}
+    @keyframes navPop{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
+    .navitem .ni-ext{transition:transform .16s ease}
+    .navitem:hover .ni-ext{transform:translate(2px,-2px)}
+    .term,.concept,.q{transition:transform .18s ease,border-color .18s ease}
+    .term:hover,.concept:hover{transform:translateY(-2px);border-color:var(--line2)}
+    .loading .ldr-ring{animation-duration:.9s}
+  }
+  @media (prefers-reduced-motion: reduce){ .loading .ldr-ring{animation-duration:2.4s} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="hleft">
+        <div class="titlerow">
+          <svg class="brand" width="26" height="26" viewBox="0 0 216 216" fill="#ffffff" role="img" aria-label="lululemon"><path fill-rule="nonzero" d="M 148.414062 174.613281 C 129.636719 174.613281 114.414062 159.34375 114.414062 140.507812 C 114.414062 133.796875 116.84375 127.855469 119.144531 121.6875 C 120.773438 117.316406 122.402344 112.945312 124.019531 108.566406 C 127.824219 98.242188 131.480469 87.660156 133.164062 76.742188 C 134.503906 68.082031 134.351562 57.539062 127.777344 50.902344 C 122.75 45.828125 114.964844 44.699219 108 44.660156 C 101.03125 44.699219 93.25 45.828125 88.21875 50.902344 C 81.648438 57.539062 81.492188 68.082031 82.832031 76.742188 C 84.519531 87.660156 88.171875 98.242188 91.980469 108.566406 C 93.59375 112.945312 95.222656 117.316406 96.851562 121.6875 C 99.152344 127.855469 101.585938 133.796875 101.585938 140.507812 C 101.585938 159.34375 86.363281 174.613281 67.582031 174.613281 C 53.277344 174.613281 41.058594 165.738281 36.039062 153.191406 C 39.996094 156.816406 45.246094 159.042969 51.03125 159.042969 C 57.800781 159.042969 64.3125 155.871094 68.511719 150.542969 C 73.273438 144.5 74.292969 136.261719 72.257812 128.9375 C 70.03125 120.929688 65.195312 114.433594 61.316406 106.996094 C 48.710938 85.457031 49.222656 69.355469 49.222656 69.355469 C 49.222656 68.351562 49.25 67.351562 49.3125 66.355469 C 49.394531 65.027344 49.535156 63.703125 49.746094 62.386719 C 49.941406 61.152344 50.195312 59.925781 50.519531 58.714844 C 50.832031 57.566406 51.195312 56.433594 51.628906 55.324219 C 52.046875 54.257812 52.523438 53.21875 53.058594 52.207031 C 53.582031 51.222656 54.160156 50.269531 54.792969 49.355469 C 55.421875 48.449219 56.101562 47.582031 56.828125 46.753906 C 57.554688 45.925781 58.328125 45.140625 59.140625 44.398438 C 59.964844 43.648438 60.832031 42.945312 61.726562 42.28125 C 62.644531 41.605469 63.597656 40.972656 64.570312 40.386719 C 65.578125 39.78125 66.609375 39.222656 67.664062 38.707031 C 68.753906 38.175781 69.863281 37.6875 70.988281 37.238281 C 72.15625 36.773438 73.339844 36.347656 74.539062 35.964844 C 75.777344 35.566406 77.03125 35.203125 78.292969 34.878906 C 79.605469 34.542969 80.921875 34.242188 82.25 33.972656 C 83.621094 33.695312 85.003906 33.453125 86.386719 33.234375 C 87.820312 33.011719 89.261719 32.820312 90.703125 32.65625 C 92.191406 32.488281 93.683594 32.34375 95.175781 32.226562 C 96.714844 32.109375 98.257812 32.011719 99.796875 31.941406 C 101.386719 31.867188 102.972656 31.816406 104.558594 31.785156 C 106.449219 31.75 108.34375 31.742188 110.238281 31.765625 C 111.832031 31.785156 113.429688 31.828125 115.019531 31.890625 C 116.574219 31.953125 118.121094 32.035156 119.671875 32.144531 C 121.175781 32.25 122.675781 32.378906 124.175781 32.535156 C 125.628906 32.6875 127.078125 32.863281 128.523438 33.070312 C 129.917969 33.273438 131.3125 33.503906 132.699219 33.765625 C 134.039062 34.019531 135.371094 34.304688 136.695312 34.625 C 137.972656 34.9375 139.242188 35.28125 140.5 35.664062 C 141.710938 36.03125 142.914062 36.4375 144.097656 36.882812 C 145.238281 37.316406 146.371094 37.785156 147.476562 38.300781 C 148.546875 38.796875 149.601562 39.332031 150.625 39.917969 C 151.621094 40.484375 152.59375 41.09375 153.53125 41.75 C 154.449219 42.390625 155.335938 43.074219 156.183594 43.804688 C 157.019531 44.523438 157.816406 45.285156 158.566406 46.089844 C 159.320312 46.890625 160.023438 47.734375 160.675781 48.617188 C 161.332031 49.507812 161.941406 50.433594 162.488281 51.394531 C 163.054688 52.375 163.558594 53.390625 164.003906 54.433594 C 164.464844 55.511719 164.863281 56.617188 165.203125 57.742188 C 165.554688 58.917969 165.84375 60.117188 166.070312 61.324219 C 166.308594 62.609375 166.484375 63.902344 166.597656 65.203125 C 166.722656 66.585938 166.734375 67.964844 166.777344 69.355469 C 166.777344 69.355469 167.289062 85.457031 154.683594 106.996094 C 150.800781 114.433594 145.964844 120.929688 143.738281 128.9375 C 141.707031 136.261719 142.726562 144.5 147.488281 150.542969 C 151.683594 155.871094 158.195312 159.042969 164.96875 159.042969 C 170.753906 159.042969 176.003906 156.816406 179.960938 153.191406 C 174.9375 165.738281 162.71875 174.613281 148.414062 174.613281 M 108 4.636719 C 50.914062 4.636719 4.636719 50.914062 4.636719 108 C 4.636719 165.085938 50.914062 211.363281 108 211.363281 C 165.085938 211.363281 211.363281 165.085938 211.363281 108 C 211.363281 50.914062 165.085938 4.636719 108 4.636719 "/></svg>
+          <div class="navwrap" id="navwrap">
+            <button class="hamb" id="navBtn" aria-label="Menu" aria-expanded="false" aria-haspopup="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div class="navmenu" id="navMenu" role="menu" hidden>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">About</span><span class="ni-desc">How to work with Sean</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Intake Form</span><span class="ni-desc">Public request form</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Motion Library</span><span class="ni-desc">Showcase of completed work</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/tools.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Motion Tools</span><span class="ni-desc">Tools I've built</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/learn.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V16c1.8 1.4 4 2 6 2s4.2-.6 6-2v-4.5"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Learn Motion</span><span class="ni-desc">Basics + ask a question</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Quick View</span><span class="ni-desc">See what Sean is up to</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Sean's private workspace</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Data Manager</span><span class="ni-desc">Export / import / sync</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+          <h1>Learn Motion</h1>
+        </div>
+        <p class="sub">Animation basics, plus a place to ask questions for office hours</p>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h2>Motion, from the ground up.</h2>
+      <p class="lead">A short, plain-language primer on how motion design works — the vocabulary you'll hear in reviews and handoffs, and the core ideas behind good movement. Read through the essentials below, then drop any question in the box at the bottom. I gather these and answer them live during office hours and our community of practice.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-eyebrow">Vocabulary</div>
+      <h3>Terms you'll hear</h3>
+      <p class="section-sub">The building blocks — enough to follow along in any motion conversation.</p>
+      <div class="gloss">
+        <div class="term"><h4>Keyframe</h4><p>A marked point in time that stores a specific value — position, scale, rotation, opacity. You set the value you want at a moment, and the software fills in everything between two keyframes.</p></div>
+        <div class="term"><h4>Timeline</h4><p>The track where time runs left to right. You arrange layers and place keyframes along it, and a <span class="kw">playhead</span> shows the exact moment you're viewing.</p></div>
+        <div class="term"><h4>Tween &amp; interpolation</h4><p>The in-between frames the software generates automatically from one keyframe to the next. "Interpolation" is just the math that decides those in-between values.</p></div>
+        <div class="term"><h4>Easing</h4><p>How a value speeds up or slows down between keyframes. Easing is what makes motion feel alive instead of mechanical.</p></div>
+        <div class="term"><h4>Ease-in / ease-out</h4><p><span class="kw">Ease-out</span> starts fast and settles softly — great for things entering. <span class="kw">Ease-in</span> starts slow and accelerates — good for things leaving. Ease-in-out does both.</p></div>
+        <div class="term"><h4>Bezier curve</h4><p>The editable curve behind an ease. Dragging its handles reshapes how a value changes over time — the difference between "snappy" and "gentle."</p></div>
+        <div class="term"><h4>Duration &amp; delay</h4><p><span class="kw">Duration</span> is how long a move takes; <span class="kw">delay</span> is a pause before it starts. Most UI motion lives between roughly 150 and 500&nbsp;ms.</p></div>
+        <div class="term"><h4>Frame rate (fps)</h4><p>How many frames play each second — 24, 30, 60. Higher frame rates look smoother; screens and export targets often dictate the number.</p></div>
+        <div class="term"><h4>Timing &amp; spacing</h4><p><span class="kw">Timing</span> is how long a move takes; <span class="kw">spacing</span> is how far it travels between frames. Together they define the weight and feel of the motion.</p></div>
+        <div class="term"><h4>Stagger</h4><p>Offsetting the start of several elements' animations so they cascade in sequence rather than all moving at once — think a list settling in row by row.</p></div>
+        <div class="term"><h4>Anticipation</h4><p>A small opposite move before the main action — a slight wind-up that prepares the eye for what's about to happen.</p></div>
+        <div class="term"><h4>Follow-through &amp; overshoot</h4><p>Motion that carries slightly past its target before settling back. A touch of it adds life; too much feels bouncy.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-eyebrow">Core concepts</div>
+      <h3>Three ideas that do most of the work</h3>
+      <div class="concepts">
+        <div class="concept">
+          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 4-4 4 4 6-6"/><circle cx="7" cy="8" r="1.4" fill="#22c55e"/><circle cx="11" cy="12" r="1.4" fill="#22c55e"/><circle cx="17" cy="6" r="1.4" fill="#22c55e"/></svg></span>Keyframing</h4>
+          <p><b>The idea:</b> instead of drawing every frame, you define a handful of key moments and let the tool interpolate the rest. Set an element's opacity to 0 at 0&nbsp;ms and 100 at 300&nbsp;ms, and it fades in over that span automatically.</p>
+          <p><b>In practice:</b> fewer, well-placed keyframes almost always read cleaner than many. Start with the two that matter — where the motion begins and ends — then add keyframes only where you need to shape what happens in between.</p>
+        </div>
+        <div class="concept">
+          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg></span>Timelines</h4>
+          <p><b>The idea:</b> every element sits on its own track, and time flows left to right. Where you place each keyframe — and how tracks overlap — is what creates rhythm and sequence.</p>
+          <p><b>In practice:</b> overlapping and staggering are your friends. Letting one element begin just before another finishes keeps a sequence feeling connected, while a small stagger across a group turns a flat "everything at once" into a graceful cascade.</p>
+        </div>
+        <div class="concept">
+          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
+          <p><b>The idea:</b> nothing in the real world starts or stops instantly — it accelerates and decelerates. Linear motion (constant speed) is the tell-tale sign of something that feels robotic.</p>
+          <p><b>In practice:</b> reach for ease-out when things enter or expand (fast then settling), and ease-in when things exit or collapse. Save big overshoots and bounces for playful, expressive moments — they draw a lot of attention.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-eyebrow">Office hours &amp; community of practice</div>
+      <h3>Ask a motion question</h3>
+      <p class="section-sub">Post anything — a term you keep hearing, a "how would you animate this?", or a review question. I collect these and answer them live.</p>
+      <div class="qa">
+        <div class="qa-form">
+          <div class="qa-row">
+            <div class="fld">
+              <label for="qName">Your name (optional)</label>
+              <input id="qName" type="text" maxlength="60" placeholder="So I know who to follow up with" />
+            </div>
+          </div>
+          <label for="qText">Your question</label>
+          <textarea id="qText" maxlength="1000" placeholder="e.g. When should I use a spring vs. an ease-out curve?"></textarea>
+          <div class="qa-actions">
+            <button class="btn primary" id="postBtn">Post question</button>
+            <span class="qa-note" id="postNote"></span>
+          </div>
+        </div>
+        <div class="qa-list" id="qList"><div class="loading"><div class="ldr-ring"></div>Loading questions…</div></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(function(){
+  var wrap=document.getElementById("navwrap"),btn=document.getElementById("navBtn"),menu=document.getElementById("navMenu");
+  if(wrap&&btn&&menu){
+    var setOpen=function(o){menu.hidden=!o;btn.setAttribute("aria-expanded",o?"true":"false");};
+    btn.addEventListener("click",function(e){e.stopPropagation();setOpen(menu.hidden);});
+    document.addEventListener("click",function(e){if(!menu.hidden&&!wrap.contains(e.target))setOpen(false);});
+    document.addEventListener("keydown",function(e){if(e.key==="Escape")setOpen(false);});
+  }
+})();
+
+(function(){
+  "use strict";
+  var SYNC_URL="/api/data", PREFIX="motion-tracker:", QKEY=PREFIX+"learnQuestions", POLL_MS=60000;
+  var questions=[];
+  var editAnsId=null;
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+  function arr(v){ return Array.isArray(v)?v:[]; }
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function fmtDate(ms){ var d=new Date(ms); return isNaN(d.getTime())?"":d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}); }
+
+  async function getSnapshot(){
+    var r=await fetch(SYNC_URL,{method:"GET",cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    var j=await r.json();
+    if(!j||j.error||typeof j.data!=="object") throw new Error(j&&j.error?j.error:"bad-data");
+    return j;
+  }
+  // Safe read-modify-write: only ever touches the learnQuestions key.
+  async function saveQuestions(next){
+    var snap;
+    try{ snap=await getSnapshot(); }catch(e){ return false; }
+    if(!snap||typeof snap.data!=="object") return false;
+    snap.data[QKEY]=next;
+    snap.updatedAt=Date.now();
+    try{ var res=await fetch(SYNC_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)}); return res.ok; }
+    catch(e){ return false; }
+  }
+
+  function render(){
+    var host=document.getElementById("qList");
+    if(!questions.length){ host.innerHTML='<div class="empty">No questions yet — be the first to ask.</div>'; return; }
+    var sorted=questions.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+    host.innerHTML=sorted.map(function(q){
+      var answered=q.answer&&q.answer.trim();
+      var tag=answered?'<span class="qtag done">Answered</span>':'<span class="qtag wait">Queued for office hours</span>';
+      var meta='<div class="qmeta">'+esc(q.name?q.name:"Anonymous")+(q.createdAt?' &middot; '+esc(fmtDate(q.createdAt)):'')+' '+tag+'</div>';
+      var ansBlock="";
+      if(editAnsId===q.id){
+        ansBlock='<div class="ansedit"><textarea id="ans-'+esc(q.id)+'" placeholder="Answer for office hours…">'+esc(answered?q.answer:"")+'</textarea>'+
+          '<div class="row"><button class="btn primary" data-save="'+esc(q.id)+'">Save answer</button><button class="btn" data-cancel="1">Cancel</button></div></div>';
+      } else if(answered){
+        ansBlock='<div class="answer"><div class="albl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sean\u2019s answer</div><div class="atext">'+esc(q.answer)+'</div></div>';
+      }
+      var tools='<div class="q-tools">'+(editAnsId===q.id?'':'<button class="lnk" data-ans="'+esc(q.id)+'">'+(answered?'Edit answer':'Answer')+'</button>')+'</div>';
+      return '<div class="q"><div class="qtext">'+esc(q.question)+'</div>'+meta+ansBlock+tools+'</div>';
+    }).join("");
+  }
+
+  async function load(silent){
+    if(!silent) document.getElementById("qList").innerHTML='<div class="loading"><div class="ldr-ring"></div>Loading questions…</div>';
+    try{ var snap=await getSnapshot(); questions=arr((snap.data||{})[QKEY]); render(); }
+    catch(e){ if(!silent) document.getElementById("qList").innerHTML='<div class="empty">Couldn\u2019t load questions right now. Try refreshing in a moment.</div>'; }
+  }
+
+  document.getElementById("postBtn").addEventListener("click", async function(){
+    var t=document.getElementById("qText"), n=document.getElementById("qName"), note=document.getElementById("postNote"), b=this;
+    var text=(t.value||"").trim();
+    if(!text){ note.textContent="Please write a question first."; return; }
+    b.disabled=true; note.textContent="Posting…";
+    var next=questions.concat([{ id:uid(), name:(n.value||"").trim(), question:text, answer:"", createdAt:Date.now() }]);
+    var ok=await saveQuestions(next);
+    b.disabled=false;
+    if(ok){ t.value=""; n.value=""; note.textContent="Thanks — added to the office-hours queue."; questions=next; render(); setTimeout(function(){note.textContent="";},4000); }
+    else { note.textContent="Couldn\u2019t save right now. Please try again."; }
+  });
+
+  document.getElementById("qList").addEventListener("click", async function(e){
+    var a=e.target.closest("[data-ans]"); if(a){ editAnsId=a.getAttribute("data-ans"); render(); var ta=document.getElementById("ans-"+editAnsId); if(ta) ta.focus(); return; }
+    if(e.target.closest("[data-cancel]")){ editAnsId=null; render(); return; }
+    var s=e.target.closest("[data-save]");
+    if(s){
+      var id=s.getAttribute("data-save"); var ta=document.getElementById("ans-"+id); if(!ta) return;
+      var val=(ta.value||"").trim();
+      s.disabled=true; s.textContent="Saving…";
+      var next=questions.map(function(q){ return q.id===id?Object.assign({},q,{answer:val,answeredAt:Date.now()}):q; });
+      var ok=await saveQuestions(next);
+      if(ok){ questions=next; editAnsId=null; render(); } else { s.disabled=false; s.textContent="Save answer"; }
+    }
+  });
+
+  load(false);
+  setInterval(function(){ if(editAnsId===null) load(true); }, POLL_MS);
+  window.addEventListener("focus", function(){ if(editAnsId===null) load(true); });
+})();
+</script>
+</body>
+</html>

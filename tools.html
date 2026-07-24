@@ -20,7 +20,8 @@
   body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:22px 16px 72px}
   .wrap{max-width:1400px;margin:0 auto}
   a{color:inherit}
-  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  header{position:sticky;top:0;z-index:40;background:var(--bg);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  header::after{content:"";position:absolute;left:0;right:0;top:100%;height:24px;background:linear-gradient(to bottom, var(--bg), transparent);pointer-events:none}
   .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
   .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
   h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
@@ -69,7 +70,7 @@
   .cbtn:hover{border-color:var(--line2);color:var(--text)}
   .cbtn.del:hover{border-color:var(--rose);color:var(--rose)}
   .empty{grid-column:1/-1;text-align:center;color:var(--faint);font-size:14px;padding:60px 0;border:1px dashed var(--line);border-radius:14px}
-  .loading{text-align:center;color:var(--muted);padding:80px 0;font-size:14px}
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;text-align:center;color:var(--muted);font-size:14px}
   /* modal */
   .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
   .backdrop[hidden]{display:none}
@@ -134,14 +135,14 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div class="navmenu" id="navMenu" role="menu" hidden>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">About</span><span class="ni-desc">How to work with Sean</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Intake Form</span><span class="ni-desc">Public request form</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              </a>
-              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">Quick View</span><span class="ni-desc">Read-only quick view</span></span>
                 <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html">
@@ -154,19 +155,24 @@
                 <span class="ni-txt"><span class="ni-lbl">Motion Tools</span><span class="ni-desc">Tools I've built</span></span>
                 <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/learn.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V16c1.8 1.4 4 2 6 2s4.2-.6 6-2v-4.5"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Learn Motion</span><span class="ni-desc">Basics + ask a question</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span class="ni-txt"><span class="ni-lbl">Quick View</span><span class="ni-desc">See what Sean is up to</span></span>
+                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Full motion dashboard</span></span>
+                <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Sean's private workspace</span></span>
                 <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Data Manager</span><span class="ni-desc">Export / import / sync</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              </a>
-              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">About</span><span class="ni-desc">How this hub works</span></span>
                 <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
             </div>
