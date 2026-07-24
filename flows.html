@@ -25,18 +25,19 @@
   body{font-family:var(--font); color:var(--ink); background:var(--bg); display:flex; flex-direction:column; overflow:hidden; -webkit-font-smoothing:antialiased;}
 
   header{flex:0 0 auto; display:flex; align-items:center; gap:16px; padding:22px 30px 16px; border-bottom:1px solid var(--line);}
-  .app-title{font-size:21px; font-weight:600; letter-spacing:-.015em; background:transparent; color:var(--ink); padding:4px 6px; border-radius:8px; outline:none; max-width:60vw; word-break:break-word;}
+  .app-title{font-size:26px; font-weight:700; letter-spacing:-.02em; background:transparent; color:var(--ink); padding:4px 6px; border-radius:8px; outline:none; max-width:60vw; word-break:break-word;}
   .app-title:empty::before{content:"Untitled"; color:var(--faint);}
   .app-title:hover{background:rgba(255,255,255,.05);}
   .app-title:focus{background:rgba(255,255,255,.07);}
   .head-text{display:flex; flex-direction:column;}
   .sub{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); padding-left:6px; margin-top:3px;}
   .spacer{flex:1 1 auto;}
-  .add-btn{font-family:var(--font); font-size:13.5px; font-weight:600; color:#052e16; background:var(--accent); border:0; padding:9px 15px; border-radius:8px; cursor:pointer; transition:filter .15s, transform .1s;}
-  .add-btn:hover{filter:brightness(1.08);} .add-btn:active{transform:scale(.97);}
-  .btn-secondary{font-family:var(--font); font-size:13.5px; font-weight:500; color:var(--ink); background:var(--surface); border:1px solid var(--line-2); padding:8px 15px; border-radius:8px; cursor:pointer; transition:background .15s, border-color .15s, transform .1s;}
-  .btn-secondary:hover{background:var(--surface-2); border-color:#52525b;} .btn-secondary:active{transform:scale(.97);}
+  .add-btn{font-family:var(--font); font-size:14px; line-height:1.5; font-weight:500; color:#fff; background:var(--accent); border:0; padding:8px 16px; border-radius:8px; cursor:pointer; transition:background .15s, transform .1s;}
+  .add-btn:hover{background:#4ade80;} .add-btn:active{transform:scale(.97);}
+  .btn-secondary{font-family:var(--font); font-size:14px; line-height:1.5; font-weight:500; color:#d4d4d8; background:var(--surface); border:1px solid var(--line); padding:8px 12px; border-radius:8px; cursor:pointer; transition:color .15s, border-color .15s, transform .1s;}
+  .btn-secondary:hover{border-color:var(--line-2); color:var(--ink);} .btn-secondary:active{transform:scale(.97);}
   .btn-secondary:disabled{opacity:.5; cursor:default;}
+  .btnrow{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 
   /* shared site nav */
   .navwrap{position:relative; flex:0 0 auto;}
@@ -197,7 +198,7 @@
       </a>
       <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span class="ni-txt"><span class="ni-lbl">Manager view</span><span class="ni-desc">Read-only quick view</span></span>
+        <span class="ni-txt"><span class="ni-lbl">Overview</span><span class="ni-desc">Read-only quick view</span></span>
         <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
       </a>
       <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
@@ -212,12 +213,14 @@
     <span class="sub" id="sub"></span>
   </div>
   <div class="spacer"></div>
-  <button class="btn-secondary" id="histBtn">History</button>
-  <button class="btn-secondary" id="saveBtn">Save</button>
-  <button class="btn-secondary" id="importPdf">Import</button>
-  <button class="btn-secondary" id="exportPdf">Download PDF</button>
-  <button class="add-btn" id="addFlowTop">Add flow</button>
-  <input type="file" id="pdfInput" accept="application/pdf,.pdf" class="hidden">
+  <div class="btnrow">
+    <button class="btn-secondary" id="histBtn">History</button>
+    <button class="btn-secondary" id="saveBtn">Save</button>
+    <button class="btn-secondary" id="importPdf">Import</button>
+    <button class="btn-secondary" id="exportPdf">Download PDF</button>
+    <button class="add-btn" id="addFlowTop">Add flow</button>
+    <input type="file" id="pdfInput" accept="application/pdf,.pdf" class="hidden">
+  </div>
 </header>
 
 <div class="page" id="page"></div>

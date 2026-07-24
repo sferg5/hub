@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark" />
-<title>Motion Work · Manager View</title>
+<title>Motion Specialist Overview</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><circle cx='50' cy='50' r='26' fill='none' stroke='%2322c55e' stroke-width='7'/><circle cx='50' cy='50' r='6' fill='%2322c55e'/></svg>" />
 <style>
   :root {
@@ -16,27 +16,28 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:22px 16px 64px}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:22px 16px 72px}
   .wrap{max-width:1400px;margin:0 auto}
   a{color:inherit}
-  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  h1{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
   .roflag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);margin-top:6px}
-  .btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:border-color .14s ease}
-  .btn:hover{border-color:var(--line2)}
-  .iconbtn{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
-  .iconbtn:hover{border-color:var(--line2);color:var(--text)}
-  .iconbtn.active{border-color:var(--accent);color:var(--accent)}
-  .searchwrap{display:flex;align-items:center;gap:8px}
-  .searchinput{width:190px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.5;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:#d4d4d8;transition:border-color .14s ease,color .14s ease}
+  .btn:hover{border-color:var(--line2);color:var(--text)}
+  .searchbox{position:relative;display:flex;align-items:center}
+  .search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+  .searchinput{width:200px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 30px 8px 32px;color:var(--text);font-size:14px;line-height:1.5;outline:none;font-family:var(--font)}
   .searchinput:focus{border-color:var(--accent)}
-  .searchinput[hidden]{display:none}
+  .searchinput::placeholder{color:var(--faint)}
+  .search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--faint);cursor:pointer;padding:3px;border-radius:6px}
+  .search-clear:hover{color:var(--text)}
+  .search-clear[hidden]{display:none}
   .btn.active{border-color:var(--accent);color:var(--accent)}
   .cnt{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
   .btn.active .cnt{border-color:var(--accent);color:var(--accent)}
-  .btn.primary{background:var(--accent);color:#0a0a0a;border-color:var(--accent);font-weight:600}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500;padding:8px 16px}
   .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
   .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
   .titlerow .eyebrow{margin-bottom:0}
@@ -52,7 +53,7 @@
   .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-ext{color:var(--faint);flex-shrink:0}
-  .btn.primary:hover{background:#4ade80}
+  .btn.primary:hover{background:#4ade80;border-color:#4ade80}
   .updated{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
   section{margin-top:26px}
   h2{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
@@ -156,7 +157,7 @@
             </a>
           </div>
         </div>
-          <h1>Manager view</h1>
+          <h1>Motion Specialist Overview</h1>
           <div class="eyebrow">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="#22c55e"/></svg>
             Motion Design · UX
@@ -168,11 +169,12 @@
         </div>
       </div>
       <div class="btnrow">
-        <div class="searchwrap">
-          <button class="iconbtn" id="searchBtn" aria-label="Search projects" title="Search">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <div class="searchbox">
+          <svg class="search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="searchInput" class="searchinput" type="text" placeholder="Search projects…" />
+          <button class="search-clear" id="searchClear" aria-label="Clear search" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
-          <input id="searchInput" class="searchinput" type="text" placeholder="Search projects…" hidden />
         </div>
         <a class="btn" href="https://hub-mospec.vercel.app/intake.html">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
@@ -602,19 +604,13 @@
   }
 
   function setupControls(){
-    var sBtn = document.getElementById("searchBtn");
     var sInput = document.getElementById("searchInput");
-    if(sBtn && sInput){
-      sBtn.addEventListener("click", function(){
-        var open = sInput.hidden;
-        sInput.hidden = !open;
-        sBtn.classList.toggle("active", open);
-        if(open){ sInput.focus(); }
-        else { sInput.value = ""; searchQuery = ""; rerender(); }
-      });
-      sInput.addEventListener("input", function(){ searchQuery = sInput.value; rerender(); });
-      sInput.addEventListener("keydown", function(e){ if(e.key==="Escape"){ sInput.value=""; searchQuery=""; sInput.hidden=true; sBtn.classList.remove("active"); rerender(); } });
+    var sClear = document.getElementById("searchClear");
+    if(sInput){
+      sInput.addEventListener("input", function(){ searchQuery = sInput.value; if(sClear) sClear.hidden = !sInput.value; rerender(); });
+      sInput.addEventListener("keydown", function(e){ if(e.key==="Escape"){ sInput.value=""; searchQuery=""; if(sClear) sClear.hidden=true; rerender(); } });
     }
+    if(sClear){ sClear.addEventListener("click", function(){ sInput.value=""; searchQuery=""; sClear.hidden=true; rerender(); sInput.focus(); }); }
   }
 
   document.addEventListener("DOMContentLoaded", function(){
