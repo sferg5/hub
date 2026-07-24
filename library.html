@@ -132,9 +132,18 @@
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
   }
+
+  #loadbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:200;overflow:hidden;pointer-events:none;background:transparent}
+  #loadbar::before{content:"";position:absolute;top:0;height:100%;width:35%;border-radius:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:loadslide 1.05s ease-in-out infinite}
+  #loadbar[hidden]{display:none}
+  @keyframes loadslide{0%{left:-35%}100%{left:100%}}
+  .loading .ldr-ring{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:ldrspin .9s linear infinite;margin:0 auto 14px}
+  @keyframes ldrspin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){#loadbar::before{animation-duration:3s}.loading .ldr-ring{animation-duration:2.4s}}
 </style>
 </head>
 <body>
+  <div id="loadbar"></div>
   <div class="wrap">
     <header>
       <div class="hleft">
@@ -152,7 +161,7 @@
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">Overview</span><span class="ni-desc">Read-only quick view</span></span>
+                <span class="ni-txt"><span class="ni-lbl">Quick View</span><span class="ni-desc">Read-only quick view</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html">
@@ -194,7 +203,7 @@
       </div>
     </header>
 
-    <div id="content"><div class="loading">Loading…</div></div>
+    <div id="content"><div class="loading"><div class="ldr-ring"></div>Loading…</div></div>
   </div>
 
   <div class="backdrop" id="backdrop" hidden>
@@ -544,9 +553,10 @@
   }
 
   async function load(silent){
-    if(!silent) document.getElementById("content").innerHTML = '<div class="loading">Loading…</div>';
+    if(!silent){ var _lb=document.getElementById("loadbar"); if(_lb)_lb.hidden=false; document.getElementById("content").innerHTML = '<div class="loading"><div class="ldr-ring"></div>Loading…</div>'; }
     try { var snap = await getSnapshot(); setState(snap.data || {}); render(); }
     catch(e){ document.getElementById("content").innerHTML = '<div class="loading">Couldn\u2019t load data. If this persists, the data endpoint may be unreachable.</div>'; }
+    finally { var _lb2=document.getElementById("loadbar"); if(_lb2)_lb2.hidden=true; }
   }
 
   document.addEventListener("DOMContentLoaded", function(){
