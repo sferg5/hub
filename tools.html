@@ -6,11 +6,11 @@
 <meta name="color-scheme" content="dark" />
 <title>Motion Tools</title>
 <meta name="description" content="Tools built for motion + UX work." />
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322d3ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='24' height='24' rx='5' fill='%2318181b' stroke='none'/><path d='M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z'/></svg>" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='24' height='24' rx='5' fill='%2318181b' stroke='none'/><path d='M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z'/></svg>" />
 <style>
   :root {
     --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
-    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#06b6d4; --accent-dim:rgba(6,182,212,0.14);
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#22c55e; --accent-dim:rgba(34,197,94,0.14);
     --rose:#fb7185; --amber:#fbbf24;
     --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
@@ -28,8 +28,8 @@
   .btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border-radius:10px;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);transition:border-color .14s ease}
   .btn:hover{border-color:var(--line2)}
-  .btn.primary{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:600}
-  .btn.primary:hover{background:#22d3ee}
+  .btn.primary{background:var(--accent);color:#052e16;border-color:var(--accent);font-weight:600}
+  .btn.primary:hover{background:#4ade80}
   .updated{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
   /* hamburger */
   .navwrap{position:relative;flex-shrink:0}
@@ -56,13 +56,13 @@
   .cbody{padding:14px 15px 16px;display:flex;flex-direction:column;gap:9px;flex:1}
   .ctop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
   .cname{font-size:16px;font-weight:600;letter-spacing:-.01em;min-width:0}
-  .ctype{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--accent-dim);color:#67e8f9;white-space:nowrap;flex-shrink:0}
+  .ctype{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--accent-dim);color:#86efac;white-space:nowrap;flex-shrink:0}
   .cnotes{font-size:13px;color:var(--muted);white-space:pre-wrap}
-  .open{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:2px;padding:9px 13px;border-radius:10px;background:var(--accent);color:#04222a;font-size:13px;font-weight:600;text-decoration:none;transition:background .14s}
-  .open:hover{background:#22d3ee}
+  .open{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:2px;padding:9px 13px;border-radius:10px;background:var(--accent);color:#052e16;font-size:13px;font-weight:600;text-decoration:none;transition:background .14s}
+  .open:hover{background:#4ade80}
   .clinks{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
   .clink{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 9px;text-decoration:none;transition:border-color .14s,color .14s;max-width:100%}
-  .clink:hover{border-color:var(--accent);color:#67e8f9}
+  .clink:hover{border-color:var(--accent);color:#86efac}
   .clink span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px}
   .cactions{display:flex;gap:6px;margin-top:auto;padding-top:6px}
   .cbtn{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;transition:border-color .14s,color .14s}
@@ -89,7 +89,7 @@
   .row2 input,.row2 select{flex:1;min-width:0}
   .rowdel{width:32px;height:34px;flex-shrink:0;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--faint);cursor:pointer;display:grid;place-items:center}
   .rowdel:hover{color:var(--rose);border-color:var(--rose)}
-  .addrow{align-self:flex-start;font-size:12px;color:#67e8f9;background:none;border:none;cursor:pointer;padding:2px 0;display:inline-flex;align-items:center;gap:5px}
+  .addrow{align-self:flex-start;font-size:12px;color:#86efac;background:none;border:none;cursor:pointer;padding:2px 0;display:inline-flex;align-items:center;gap:5px}
   .mfoot{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:0 0 16px 16px}
   #mmsg{font-size:12px;font-family:var(--mono);color:var(--muted);min-height:14px}
   #mmsg.err{color:var(--rose)}
@@ -110,22 +110,22 @@
             <div class="navmenu" id="navMenu" role="menu" hidden>
               <div class="navhdr">Links</div>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Dashboard</span><span class="ni-desc">Full motion dashboard</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Motion library</span><span class="ni-desc">Showcase of completed work</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Manager view</span><span class="ni-desc">Read-only quick view</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html" target="_blank" rel="noopener noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Intake form</span><span class="ni-desc">Public request form</span></span>
                 <svg class="ni-ext" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
               </a>
@@ -220,13 +220,23 @@
   }
 
   // ---------- rendering ----------
+  function pinnedFlowsCard(){
+    return '<div class="card">'+
+      '<div class="media"><div class="media-none" style="aspect-ratio:16/7;background:linear-gradient(135deg,rgba(34,197,94,.16),#0d0d10)">'+
+        '<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'+
+      '</div></div>'+
+      '<div class="cbody">'+
+        '<div class="ctop"><div class="cname">UX Flows</div><span class="ctype">Storyboarding</span></div>'+
+        '<div class="cnotes">Interactive storyboards mapping the shopper \u00d7 AI agent experience \u2014 labeled flows of steps across every experience category, with version history and PDF export.</div>'+
+        '<a class="open" href="https://hub-mospec.vercel.app/flows.html" target="_blank" rel="noopener noreferrer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Open tool \u00b7 hub-mospec.vercel.app</a>'+
+      '</div>'+
+    '</div>';
+  }
+
   function render(){
     var html = '<div class="grid">';
-    if(!tools.length){
-      html += '<div class="empty">No tools yet.<br/>Click <b>Add tool</b> to link something you\u2019ve built — a prototype, plugin, generator or utility.</div>';
-    } else {
-      tools.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){ html += card(e); });
-    }
+    html += pinnedFlowsCard();
+    tools.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){ html += card(e); });
     html += '</div>';
     document.getElementById("content").innerHTML = html;
     document.getElementById("updated").textContent = "updated " + new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
