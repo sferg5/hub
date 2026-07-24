@@ -24,7 +24,7 @@
   #boot.hide { opacity: 0; pointer-events: none; }
 
 
-  header{position:fixed;top:0;left:0;right:0;z-index:60;background:#09090b}
+  header{position:sticky;top:0;z-index:60;background:#09090b}
   .hbar{max-width:1400px;margin:0 auto;padding:18px 16px;display:flex;align-items:center;gap:12px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
   .navwrap{position:relative;display:flex;align-items:center}
   .hamb{display:flex;align-items:center;justify-content:center;padding:9px;border-radius:10px;cursor:pointer;background:#18181b;border:1px solid #27272a;color:#a1a1aa;transition:border-color .14s,color .14s}
@@ -1919,10 +1919,10 @@ function IntakePage() {
   }));
   return React.createElement("div", {
     style: {
-      minHeight: "100vh",
+      minHeight: "calc(100vh - 72px)",
       boxSizing: "border-box",
       background: IC.surface2,
-      padding: "84px 16px 40px",
+      padding: "24px 16px 40px",
       display: "flex",
       flexDirection: "column",
       alignItems: "center"
