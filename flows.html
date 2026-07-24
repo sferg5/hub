@@ -345,7 +345,7 @@
     page.classList.toggle("hidden",empty);
     const at=document.getElementById("appTitle");
     if(document.activeElement!==at) at.textContent=state.title;
-    document.getElementById("sub").textContent=empty?"":state.flows.length+" flows";
+    document.getElementById("sub").textContent="";
     page.innerHTML="";
     if(empty) return;
     state.flows.forEach((fl,fi)=>page.appendChild(buildFlow(fl,fi)));
