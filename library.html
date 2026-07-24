@@ -155,27 +155,27 @@
   .search-sub{color:var(--faint);font-size:13px;margin:0 0 16px}
   .search-composer{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 16px;transition:border-color .14s}
   .search-composer:focus-within{border-color:var(--accent)}
-  .search-composer .s-ico{color:var(--faint);flex-shrink:0}
+  .search-composer .hs-ico{color:var(--faint);flex-shrink:0}
   .search-composer input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font-size:15px;font-family:var(--font);padding:8px 0;line-height:1.5}
   .search-composer input::placeholder{color:var(--faint)}
   .search-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-  .chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font);transition:border-color .14s,color .14s,background .14s}
-  .chip:hover{color:var(--text);border-color:var(--line2)}
-  .chip.active{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.5);color:var(--accent)}
+  .hs-chip{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font);transition:border-color .14s,color .14s,background .14s}
+  .hs-chip:hover{color:var(--text);border-color:var(--line2)}
+  .hs-chip.active{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.5);color:var(--accent)}
   .search-suggest{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
-  .search-suggest .s-label{color:var(--faint);font-size:12.5px;margin-right:2px}
-  .pill{border:1px solid var(--line);background:var(--panel);color:#d4d4d8;border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font)}
-  .pill:hover{border-color:var(--line2);color:var(--text)}
+  .search-suggest .hs-label{color:var(--faint);font-size:12.5px;margin-right:2px}
+  .hs-pill{border:1px solid var(--line);background:var(--panel);color:#d4d4d8;border-radius:999px;padding:8px 12px;font-size:12.5px;cursor:pointer;font-family:var(--font)}
+  .hs-pill:hover{border-color:var(--line2);color:var(--text)}
   .search-results{margin-top:20px;display:flex;flex-direction:column;gap:12px}
   .search-lead{color:var(--muted);font-size:13.5px;margin:2px 0 2px}
-  .result{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px}
-  .result:hover{border-color:var(--line2)}
-  .result-cat{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
-  .result-title{display:block;color:var(--text);font-size:14.5px;font-weight:600;margin-bottom:4px}
-  .result-snip{display:block;color:var(--muted);font-size:12.5px;line-height:1.5}
-  .result-go{display:inline-block;margin-top:8px;color:var(--accent);font-size:12.5px;font-weight:600}
+  .hs-result{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px}
+  .hs-result:hover{border-color:var(--line2)}
+  .hs-result-cat{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .hs-result-title{display:block;color:var(--text);font-size:14.5px;font-weight:600;margin-bottom:4px}
+  .hs-result-snip{display:block;color:var(--muted);font-size:12.5px;line-height:1.5}
+  .hs-result-go{display:inline-block;margin-top:8px;color:var(--accent);font-size:12.5px;font-weight:600}
   .search-empty{color:var(--muted);font-size:13.5px;margin:2px 0}
-  @media (prefers-reduced-motion: no-preference){ .result{transition:border-color .16s ease,transform .16s ease} .result:hover{transform:translateY(-1px)} }
+  @media (prefers-reduced-motion: no-preference){ .hs-result{transition:border-color .16s ease,transform .16s ease} .hs-result:hover{transform:translateY(-1px)} }
 </style>
 </head>
 <body>
@@ -191,7 +191,7 @@
             <div class="navmenu" id="navMenu" role="menu" hidden>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html">
                 <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-                <span class="ni-txt"><span class="ni-lbl">About Motion Hub</span></span>
+                <span class="ni-txt"><span class="ni-lbl">Motion Hub</span></span>
                 <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
@@ -633,24 +633,24 @@
       <p class="search-greeting">Hi! What can I help you find?</p>
       <p class="search-sub">Ask in your own words and I'll point you to the right page.</p>
       <div class="search-composer">
-        <svg class="s-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <svg class="hs-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="searchInput" type="text" placeholder="e.g. how do I request motion work?" autocomplete="off" aria-label="Search the hub" />
         <button class="btn primary" id="searchGo">Search</button>
       </div>
       <div class="search-filters" id="searchFilters" role="group" aria-label="Filter results by category">
-        <button class="chip active" data-cat="all" type="button">All</button>
-        <button class="chip" data-cat="start" type="button">Get started</button>
-        <button class="chip" data-cat="learn" type="button">Learn motion</button>
-        <button class="chip" data-cat="work" type="button">See work</button>
-        <button class="chip" data-cat="tools" type="button">Tools</button>
-        <button class="chip" data-cat="status" type="button">Status</button>
+        <button class="hs-chip active" data-cat="all" type="button">All</button>
+        <button class="hs-chip" data-cat="start" type="button">Get started</button>
+        <button class="hs-chip" data-cat="learn" type="button">Learn motion</button>
+        <button class="hs-chip" data-cat="work" type="button">See work</button>
+        <button class="hs-chip" data-cat="tools" type="button">Tools</button>
+        <button class="hs-chip" data-cat="status" type="button">Status</button>
       </div>
       <div class="search-suggest" id="searchSuggest">
-        <span class="s-label">Try:</span>
-        <button class="pill" data-q="how do I request motion work" type="button">Request work</button>
-        <button class="pill" data-q="what is easing" type="button">What is easing?</button>
-        <button class="pill" data-q="see past motion work" type="button">Past work</button>
-        <button class="pill" data-q="ask a motion question" type="button">Ask a question</button>
+        <span class="hs-label">Try:</span>
+        <button class="hs-pill" data-q="how do I request motion work" type="button">Request work</button>
+        <button class="hs-pill" data-q="what is easing" type="button">What is easing?</button>
+        <button class="hs-pill" data-q="see past motion work" type="button">Past work</button>
+        <button class="hs-pill" data-q="ask a motion question" type="button">Ask a question</button>
       </div>
       <div class="search-results" id="searchResults" aria-live="polite"></div>
     </div>
@@ -661,7 +661,7 @@
   var INDEX = [
     {t:"Request motion work", cat:"start", url:"intake.html", s:"Fill out the Intake Form to request a motion project \u2014 signature moments, icons, transitions, video and more.", kw:["request","intake","form","new project","brief","submit","need motion","ask for work","get started","commission"]},
     {t:"Types of motion work", cat:"start", url:"intake.html", s:"Project types include Signature Moment, Strategic Moment, Motion System, Icon, Effect, Transition, Video and Experience.", kw:["project types","signature moment","strategic moment","motion system","icon","effect","transition","video","experience","kinds"]},
-    {t:"How to work with Sean", cat:"start", url:"about.html", s:"About Motion Hub explains how to request work, follow status, browse past work, and learn the basics.", kw:["about","how to work","collaborate","overview","start here","welcome","help","getting started"]},
+    {t:"How to work with Sean", cat:"start", url:"about.html", s:"Motion Hub explains how to request work, follow status, browse past work, and learn the basics.", kw:["about","how to work","collaborate","overview","start here","welcome","help","getting started"]},
     {t:"Check current status", cat:"status", url:"manager.html", s:"Specialist Status shows what Sean is working on, what has shipped recently, and upcoming time off.", kw:["status","what is sean working on","in progress","delivered","shipped","upcoming","time off","pto","check in","update","progress"]},
     {t:"See past and completed motion work", cat:"work", url:"library.html", s:"The Motion Library is a visual showcase of delivered work \u2014 handy for references, inspiration, or aligning on a direction.", kw:["library","past work","completed","showcase","examples","references","gallery","previous","inspiration","see work","portfolio"]},
     {t:"Motion tools", cat:"tools", url:"tools.html", s:"Motion Tools collects the interactive things Sean has built for motion and UX work.", kw:["tools","interactive","try","utilities","widgets","apps","builder"]},
@@ -734,11 +734,11 @@
     var lead='<p class="search-lead">Here\u2019s what I found for \u201c'+esc(q)+'\u201d:</p>';
     results.innerHTML=lead+scored.map(function(x){
       var e=x.e;
-      return '<a class="result" href="'+esc(e.url)+'">'+
-        '<span class="result-cat">'+esc(CATLABEL[e.cat]||"")+'</span>'+
-        '<span class="result-title">'+esc(e.t)+'</span>'+
-        '<span class="result-snip">'+esc(e.s)+'</span>'+
-        '<span class="result-go">Open \u2192</span>'+
+      return '<a class="hs-result" href="'+esc(e.url)+'">'+
+        '<span class="hs-result-cat">'+esc(CATLABEL[e.cat]||"")+'</span>'+
+        '<span class="hs-result-title">'+esc(e.t)+'</span>'+
+        '<span class="hs-result-snip">'+esc(e.s)+'</span>'+
+        '<span class="hs-result-go">Open \u2192</span>'+
       '</a>';
     }).join("");
   }
@@ -751,13 +751,13 @@
   input.addEventListener("keydown",function(ev){ if(ev.key==="Enter"){ ev.preventDefault(); render(input.value); } });
   document.getElementById("searchGo").addEventListener("click",function(){ render(input.value); input.focus(); });
   filters.addEventListener("click",function(ev){
-    var b=ev.target.closest(".chip"); if(!b)return;
+    var b=ev.target.closest(".hs-chip"); if(!b)return;
     activeCat=b.getAttribute("data-cat");
-    Array.prototype.forEach.call(filters.querySelectorAll(".chip"),function(c){ c.classList.toggle("active",c===b); });
+    Array.prototype.forEach.call(filters.querySelectorAll(".hs-chip"),function(c){ c.classList.toggle("active",c===b); });
     render(input.value);
   });
   suggest.addEventListener("click",function(ev){
-    var b=ev.target.closest(".pill"); if(!b)return;
+    var b=ev.target.closest(".hs-pill"); if(!b)return;
     input.value=b.getAttribute("data-q");
     render(input.value); input.focus();
   });
