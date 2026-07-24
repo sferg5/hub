@@ -9,7 +9,7 @@
 <style>
   :root{
     --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
-    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#22c55e;
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#8a8a92; --accent:#22c55e;
     --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
   }
@@ -115,6 +115,8 @@
     .loading .ldr-ring{animation-duration:.9s}
   }
   @media (prefers-reduced-motion: reduce){ .loading .ldr-ring{animation-duration:2.4s} }
+
+  a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -125,50 +127,50 @@
           
           <div class="navwrap" id="navwrap">
             <button class="hamb" id="navBtn" aria-label="Menu" aria-expanded="false" aria-haspopup="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div class="navmenu" id="navMenu" role="menu" hidden>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">About Motion Hub</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Intake Form</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Motion Library</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/tools.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Motion Tools</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/learn.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V16c1.8 1.4 4 2 6 2s4.2-.6 6-2v-4.5"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V16c1.8 1.4 4 2 6 2s4.2-.6 6-2v-4.5"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Learn Motion</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Specialist Status</span></span>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Dashboard</span></span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-label="Password protected"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
               <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+                <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
                 <span class="ni-txt"><span class="ni-lbl">Data Manager</span></span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-label="Password protected"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <svg class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                <svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
               </a>
             </div>
           </div>
@@ -179,7 +181,7 @@
       <div class="btnrow"><button class="btn primary" id="askBtn">Ask A Question</button></div>
     </div>
   </header>
-  <div class="wrap">
+  <div class="wrap" role="main">
 
     <section class="hero">
       <h2>Motion, from the ground up.</h2>
@@ -211,17 +213,17 @@
       <h3>Three ideas that do most of the work</h3>
       <div class="concepts">
         <div class="concept">
-          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 4-4 4 4 6-6"/><circle cx="7" cy="8" r="1.4" fill="#22c55e"/><circle cx="11" cy="12" r="1.4" fill="#22c55e"/><circle cx="17" cy="6" r="1.4" fill="#22c55e"/></svg></span>Keyframing</h4>
+          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 4-4 4 4 6-6"/><circle cx="7" cy="8" r="1.4" fill="#22c55e"/><circle cx="11" cy="12" r="1.4" fill="#22c55e"/><circle cx="17" cy="6" r="1.4" fill="#22c55e"/></svg></span>Keyframing</h4>
           <p><b>The idea:</b> instead of drawing every frame, you define a handful of key moments and let the tool interpolate the rest. Set an element's opacity to 0 at 0&nbsp;ms and 100 at 300&nbsp;ms, and it fades in over that span automatically.</p>
           <p><b>In practice:</b> fewer, well-placed keyframes almost always read cleaner than many. Start with the two that matter — where the motion begins and ends — then add keyframes only where you need to shape what happens in between.</p>
         </div>
         <div class="concept">
-          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg></span>Timelines</h4>
+          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg></span>Timelines</h4>
           <p><b>The idea:</b> every element sits on its own track, and time flows left to right. Where you place each keyframe — and how tracks overlap — is what creates rhythm and sequence.</p>
           <p><b>In practice:</b> overlapping and staggering are your friends. Letting one element begin just before another finishes keeps a sequence feeling connected, while a small stagger across a group turns a flat "everything at once" into a graceful cascade.</p>
         </div>
         <div class="concept">
-          <h4><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
+          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
           <p><b>The idea:</b> nothing in the real world starts or stops instantly — it accelerates and decelerates. Linear motion (constant speed) is the tell-tale sign of something that feels robotic.</p>
           <p><b>In practice:</b> reach for ease-out when things enter or expand (fast then settling), and ease-in when things exit or collapse. Save big overshoots and bounces for playful, expressive moments — they draw a lot of attention.</p>
         </div>
@@ -305,7 +307,7 @@
         ansBlock='<div class="ansedit"><textarea id="ans-'+esc(q.id)+'" placeholder="Answer for office hours…">'+esc(answered?q.answer:"")+'</textarea>'+
           '<div class="row"><button class="btn primary" data-save="'+esc(q.id)+'">Save answer</button><button class="btn" data-cancel="1">Cancel</button></div></div>';
       } else if(answered){
-        ansBlock='<div class="answer"><div class="albl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sean\u2019s answer</div><div class="atext">'+esc(q.answer)+'</div></div>';
+        ansBlock='<div class="answer"><div class="albl"><svg aria-hidden="true" focusable="false" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sean\u2019s answer</div><div class="atext">'+esc(q.answer)+'</div></div>';
       }
       var tools='<div class="q-tools">'+(editAnsId===q.id?'':'<button class="lnk" data-ans="'+esc(q.id)+'">'+(answered?'Edit answer':'Answer')+'</button>')+'</div>';
       return '<div class="q"><div class="qtext">'+esc(q.question)+'</div>'+meta+ansBlock+tools+'</div>';
