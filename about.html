@@ -153,6 +153,11 @@
   .rs-shipped{background:rgba(34,197,94,.15);color:#86efac}
   .rs-declined{background:rgba(239,68,68,.15);color:#fca5a5}
   .rs-hint{font-size:13px;color:var(--faint)}
+  .rm-discovery{background:rgba(100,116,139,.2);color:#cbd5e1}
+  .rm-wip{background:rgba(139,92,246,.2);color:#c4b5fd}
+  .rm-review{background:rgba(245,158,11,.2);color:#fcd34d}
+  .rm-revisions{background:rgba(249,115,22,.2);color:#fdba74}
+  .rm-delivered{background:rgba(16,185,129,.2);color:#6ee7b7}
 </style>
 </head>
 <body>
@@ -232,7 +237,7 @@
         </div>
         <div class="hero-text">
           <h2>Hi — I'm Sean, your motion specialist.</h2>
-          <p class="lead">I create motion for our products and brand — animated moments, transitions, icons, and prototypes. This is where we work together. Here are the six things most people come here to do.</p>
+          <p class="lead">I create motion for our products and brand — animated moments, transitions, icons, and prototypes. Welcome to the Motion Hub: your home base for everything motion, where you can request new work, track where projects stand, browse the library of past work, learn the craft, and grab time with me. Here are the six things most people come here to do.</p>
         </div>
       </div>
     </section>
@@ -434,6 +439,7 @@
   }
   function render(list){
     var STAGE_LABEL={discovery:"Discovery",wip:"In progress",review:"In review",revisions:"In revisions"};
+    var STAGE_CLS={discovery:"rm-discovery",wip:"rm-wip",review:"rm-review",revisions:"rm-revisions"};
     var inProg=list.filter(function(x){var s=x&&x.status; return s==="discovery"||s==="wip"||s==="review"||s==="revisions";});
     var shipped=list.filter(function(x){return x&&x.status==="delivered";})
       .sort(function(a,b){return (((b&&(b.statusAt||b.createdAt))||0))-(((a&&(a.statusAt||a.createdAt))||0));})
@@ -443,8 +449,8 @@
       return;
     }
     var html="";
-    if(inProg.length){ html+='<div class="rm-group"><div class="rm-group-label">In progress</div><div class="rm-items">'+inProg.map(function(x){return item(x,"rm-progress",STAGE_LABEL[x.status]||"In progress");}).join("")+'</div></div>'; }
-    if(shipped.length){ html+='<div class="rm-group"><div class="rm-group-label">Recently shipped</div><div class="rm-items">'+shipped.map(function(x){return item(x,"rm-shipped","Delivered");}).join("")+'</div></div>'; }
+    if(inProg.length){ html+='<div class="rm-group"><div class="rm-group-label">In progress</div><div class="rm-items">'+inProg.map(function(x){return item(x,STAGE_CLS[x.status]||"rm-wip",STAGE_LABEL[x.status]||"In progress");}).join("")+'</div></div>'; }
+    if(shipped.length){ html+='<div class="rm-group"><div class="rm-group-label">Recently shipped</div><div class="rm-items">'+shipped.map(function(x){return item(x,"rm-delivered","Delivered");}).join("")+'</div></div>'; }
     el.innerHTML=html;
   }
   function asArr(v){ if(Array.isArray(v)) return v; if(typeof v==="string"){ try{ var pp=JSON.parse(v); return Array.isArray(pp)?pp:[]; }catch(e){} } return []; }
@@ -452,7 +458,7 @@
     try{
       var r=await fetch(SYNC,{cache:"no-store"}); var j=await r.json();
       var d=(j&&j.data)||{};
-      var all=asArr(d["motion-tracker:projects"]).concat(asArr(d["motion-tracker:intakeRequests"]));
+      var all=asArr(d["motion-tracker:projects"]);
       render(all);
     }
     catch(e){ el.innerHTML='<div class="rm-hint">Couldn\u2019t load the roadmap right now.</div>'; }

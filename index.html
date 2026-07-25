@@ -857,9 +857,8 @@ function reqToProject(r) {
   };
   var pr = PMAP[String(r.priority || "medium").toLowerCase()] || "medium";
   return {
-    id: "req:" + r.id,
-    _req: true,
-    reqId: r.id,
+    id: "req-" + r.id,
+    fromRequest: r.id,
     name: r.title || "Untitled request",
     type: r.type || "Brand Team Enablement",
     status: st,
@@ -1351,33 +1350,46 @@ function MotionTracker() {
       try {
         const r = await window.storage.get(STORAGE_KEY);
         if (r && r.value) {
-          const loaded = JSON.parse(r.value);
-          _manual = loaded.map((p, idx) => migrateProject(p, idx));
+          _manual = JSON.parse(r.value).map((p, idx) => migrateProject(p, idx));
         }
       } catch (e) {}
-      let _pseudo = [];
+      let _trash = [];
+      try {
+        const t = await window.storage.get(TRASH_KEY);
+        if (t && t.value) {
+          _trash = JSON.parse(t.value).map((p, idx) => migrateProject(p, idx));
+        }
+      } catch (e) {}
+      let _completed = [];
+      try {
+        const c = await window.storage.get(COMPLETED_KEY);
+        if (c && c.value) {
+          _completed = JSON.parse(c.value).map((p, idx) => migrateProject(p, idx));
+        }
+      } catch (e) {}
+      let _imports = [];
       try {
         const ir = await window.storage.get("motion-tracker:intakeRequests");
         if (ir && ir.value) {
           const reqs = JSON.parse(ir.value);
-          if (Array.isArray(reqs)) _pseudo = reqs.map(reqToProject);
+          if (Array.isArray(reqs)) {
+            const seen = {};
+            [..._manual, ..._trash, ..._completed].forEach(pp => {
+              if (pp && pp.fromRequest) seen[pp.fromRequest] = true;
+            });
+            _imports = reqs.filter(rq => rq && rq.id && !seen[rq.id]).map(reqToProject);
+          }
         }
       } catch (e) {}
-      setProjects([..._manual, ..._pseudo]);
-      try {
-        const t = await window.storage.get(TRASH_KEY);
-        if (t && t.value) {
-          const loaded = JSON.parse(t.value);
-          setTrash(loaded.map((p, idx) => migrateProject(p, idx)));
-        }
-      } catch (e) {}
-      try {
-        const c = await window.storage.get(COMPLETED_KEY);
-        if (c && c.value) {
-          const loaded = JSON.parse(c.value);
-          setCompleted(loaded.map((p, idx) => migrateProject(p, idx)));
-        }
-      } catch (e) {}
+      const _allProjects = [..._manual, ..._imports];
+      setProjects(_allProjects);
+      setTrash(_trash);
+      setCompleted(_completed);
+      if (_imports.length) {
+        try {
+          await window.storage.set(STORAGE_KEY, JSON.stringify(_allProjects));
+        } catch (e) {}
+      }
       try {
         const lk = await window.storage.get(LINKS_KEY);
         if (lk && lk.value) {
@@ -1419,38 +1431,28 @@ function MotionTracker() {
   }, []);
   async function save(next) {
     setProjects(next);
-    const manual = next.filter(p => !(p && p.id && String(p.id).indexOf("req:") === 0));
-    const reqCards = next.filter(p => p && p.id && String(p.id).indexOf("req:") === 0);
     try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(manual));
+      await window.storage.set(STORAGE_KEY, JSON.stringify(next));
     } catch (e) {
       console.error("Save failed", e);
     }
-    if (reqCards.length) {
+    const fromReq = next.filter(p => p && p.fromRequest);
+    if (fromReq.length) {
       try {
         const ir = await window.storage.get("motion-tracker:intakeRequests");
         const list = ir && ir.value ? JSON.parse(ir.value) : [];
-        const byId = {};
-        reqCards.forEach(rc => {
-          byId[rc.reqId] = rc;
+        const byReq = {};
+        fromReq.forEach(p => {
+          byReq[p.fromRequest] = p;
         });
         const nextList = (Array.isArray(list) ? list : []).map(rr => {
-          if (rr && rr.id in byId) {
-            const rc = byId[rr.id];
-            const sh = rc.stakeholders && rc.stakeholders[0] || {};
+          if (rr && rr.id in byReq) {
+            const pj = byReq[rr.id];
             return {
               ...rr,
-              title: rc.name,
-              type: rc.type,
-              priority: rc.priority,
-              goal: rc.notes,
-              status: rc.status,
-              team: sh.team || "",
-              name: sh.name || "",
-              startDate: rc.startDate || "",
-              deadline: rc.deadline || "",
-              estimatedHours: typeof rc.estimatedHours === "number" ? rc.estimatedHours : null,
-              deliveredAt: rc.deliveredAt || null,
+              title: pj.name,
+              type: pj.type,
+              status: pj.status,
               statusAt: Date.now()
             };
           }
@@ -1766,23 +1768,9 @@ function MotionTracker() {
     }
     setShowForm(false);
   }
-  async function deleteRequest(reqId) {
-    if (!window.confirm("Delete this intake request? This can\u2019t be undone.")) return;
-    setProjects(prev => prev.filter(p => !(p._req && p.reqId === reqId)));
-    try {
-      const ir = await window.storage.get("motion-tracker:intakeRequests");
-      const list = ir && ir.value ? JSON.parse(ir.value) : [];
-      const nextList = (Array.isArray(list) ? list : []).filter(rr => !(rr && rr.id === reqId));
-      await window.storage.set("motion-tracker:intakeRequests", JSON.stringify(nextList));
-    } catch (e) {}
-  }
   function moveToTrash(id) {
     const project = projects.find(p => p.id === id);
     if (!project) return;
-    if (project._req) {
-      deleteRequest(project.reqId);
-      return;
-    }
     save(projects.filter(p => p.id !== id));
     saveTrash([{
       ...project,
@@ -5031,7 +5019,7 @@ function ProjectCard({
     project: p,
     links: links,
     linkHandlers: linkHandlers
-  })), isDelivered && onComplete && !p._req && React.createElement("button", {
+  })), isDelivered && onComplete && React.createElement("button", {
     onClick: e => {
       e.stopPropagation();
       onComplete(p.id);
