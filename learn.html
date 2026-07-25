@@ -316,7 +316,7 @@
     
       <div class="booktime">
         <h3>Or grab some time with me</h3>
-        <p class="section-sub">Rather talk it through? I run weekly office hours for quick 1:1s, plus a bi-weekly community of practice for the whole crew — come to whatever’s useful. Times are in your local timezone.</p>
+        <p class="section-sub">Rather talk it through? I run weekly office hours for quick 1:1s, plus a bi-weekly community of practice for the whole crew — come to whatever’s useful. Times are Eastern (EST).</p>
         <div class="bt-block">
           <div class="bt-label">Weekly office hours <span class="bt-hint">· 15 or 30 min, just the two of us</span></div>
           <div id="ohList"><div class="loading"><div class="ldr-ring"></div>Loading times…</div></div>
@@ -579,15 +579,15 @@
   var SYNC="/api/data";
   var OH_KEY="motion-tracker:officeHours", COP_KEY="motion-tracker:copSignups";
   /* --- SCHEDULE (Sean: edit these) --- */
-  var OH_DAY=4;            /* weekly office hours: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat */
+  var OH_DAY=3;            /* weekly office hours: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat */
   var OH_WEEKS=3;
   var OH_SLOTS=[
-    {start:"2:00 PM",mins:15},
-    {start:"2:15 PM",mins:15},
-    {start:"2:30 PM",mins:30}
+    {start:"2:05 PM EST",mins:15},
+    {start:"2:20 PM EST",mins:15},
+    {start:"2:35 PM EST",mins:30}
   ];
-  var COP_ANCHOR="2026-01-16"; /* any real community-of-practice date; repeats every 14 days */
-  var COP_TIME="3:00\u20134:00 PM";
+  var COP_ANCHOR="2026-08-13"; /* any real community-of-practice date; repeats every 14 days */
+  var COP_TIME="4:00 PM EST";
   var COP_WEEKS=2;
   /* ----------------------------------- */
 
