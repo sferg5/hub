@@ -1262,7 +1262,7 @@ function MotionTracker() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [orderMode, setOrderMode] = useState("custom");
-  const [trackerCollapsed, setTrackerCollapsed] = useState(false);
+  const [trackerCollapsed, setTrackerCollapsed] = useState(true);
   const [search, setSearch] = useState("");
   const [searchSort, setSearchSort] = useState("project");
   const [form, setForm] = useState(emptyForm());
@@ -6716,7 +6716,7 @@ const intakeGhostBtn = {
   fontFamily: IC.body
 };
 function CeremoniesCard() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [oh, setOh] = useState({});
   const [cop, setCop] = useState({});
   const [loaded, setLoaded] = useState(false);
