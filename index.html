@@ -849,6 +849,13 @@ function reqToProject(r) {
   var st = r.status;
   if (OLD[st]) st = OLD[st];
   if (VALID.indexOf(st) < 0) st = "intake";
+  var PMAP = {
+    low: "low",
+    medium: "medium",
+    high: "high",
+    critical: "high"
+  };
+  var pr = PMAP[String(r.priority || "medium").toLowerCase()] || "medium";
   return {
     id: "req:" + r.id,
     _req: true,
@@ -856,7 +863,7 @@ function reqToProject(r) {
     name: r.title || "Untitled request",
     type: r.type || "Brand Team Enablement",
     status: st,
-    priority: r.priority || "medium",
+    priority: pr,
     createdAt: r.createdAt || Date.now(),
     order: -(r.createdAt || 0),
     stakeholders: [{
@@ -4830,7 +4837,7 @@ function ProjectCard({
   const [showTime, setShowTime] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
-  const priority = PRIORITIES.find(pr => pr.id === p.priority);
+  const priority = PRIORITIES.find(pr => pr.id === p.priority) || PRIORITIES[1];
   const isDelivered = p.status === "delivered";
   const dl = isDelivered ? null : deadlineLabel(p.deadline);
   const delivery = deliveryLabel(p);
