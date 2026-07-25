@@ -1105,7 +1105,8 @@ const NAV_LINKS = [{
   label: "Specialist Status",
   desc: "See what Sean is up to",
   href: "https://hub-mospec.vercel.app/manager.html",
-  icon: "overview"
+  icon: "overview",
+  locked: true
 }, {
   label: "Dashboard",
   desc: "Sean's private workspace",
@@ -8981,21 +8982,5 @@ function IntakeModal({
   }
 })();
   </script>
-<style>@media (prefers-reduced-motion: no-preference){.dash-inner > *:not(header){animation:pageFade .3s ease both}body.leaving .dash-inner > *:not(header){animation:none;opacity:0;transition:opacity .16s ease}}@keyframes pageFade{from{opacity:0}to{opacity:1}}</style><script>
-(function(){
-  document.addEventListener("click",function(e){
-    var a=e.target && e.target.closest ? e.target.closest("a[href]") : null;
-    if(!a) return;
-    if(a.target==="_blank"||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
-    if(a.host!==location.host) return;
-    if(!/\.html$/.test(a.pathname)) return;
-    if(a.pathname===location.pathname) return;
-    e.preventDefault();
-    document.body.classList.add("leaving");
-    setTimeout(function(){ location.href=a.href; }, 170);
-  });
-  window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
-})();
-</script>
 </body>
 </html>
