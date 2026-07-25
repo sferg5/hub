@@ -186,6 +186,11 @@
   .btn.sending{opacity:.92;cursor:default}
   .sendnote.sending{color:var(--accent);font-weight:600}
   .sendnote.error{color:#fca5a5;font-weight:500}
+  @media (prefers-reduced-motion: no-preference){
+    body{animation:pageFade .3s ease both}
+    body.leaving{animation:none;opacity:0;transition:opacity .18s ease}
+  }
+  @keyframes pageFade{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -753,6 +758,22 @@
   go.addEventListener("click",lookup);
   input.addEventListener("keydown",function(e){ if(e.key==="Enter") lookup(); });
   if(location.hash==="#status"){ openM(); }
+})();
+</script>
+<script>
+(function(){
+  document.addEventListener("click",function(e){
+    var a=e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if(!a) return;
+    if(a.target==="_blank"||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
+    if(a.host!==location.host) return;
+    if(!/\.html$/.test(a.pathname)) return;
+    if(a.pathname===location.pathname) return;
+    e.preventDefault();
+    document.body.classList.add("leaving");
+    setTimeout(function(){ location.href=a.href; }, 170);
+  });
+  window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
 })();
 </script>
 </body>

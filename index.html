@@ -1967,7 +1967,13 @@ function MotionTracker() {
     sort: searchSort,
     onChangeSort: setSearchSort,
     onEdit: openEdit
-  }), showingMainTracker && !loading && React.createElement(ActivitySummary, null), showingMainTracker && !loading && React.createElement(DailyBriefing, {
+  }), showingMainTracker && loading && React.createElement("div", {
+    className: "flex flex-col items-center justify-center min-h-[50vh] gap-3 text-zinc-400"
+  }, React.createElement("div", {
+    className: "w-8 h-8 rounded-full border-2 border-zinc-700 border-t-green-400 animate-spin"
+  }), React.createElement("span", {
+    className: "text-sm"
+  }, "Loading your dashboard\u2026")), showingMainTracker && !loading && React.createElement(ActivitySummary, null), showingMainTracker && !loading && React.createElement(DailyBriefing, {
     projects: projects,
     timeHandlers: timeHandlers,
     ptoDates: ptoDates,
@@ -1981,7 +1987,7 @@ function MotionTracker() {
     completed: completed,
     onRestore: restoreFromCompleted,
     onBack: () => setShowCompleted(false)
-  }), showingMainTracker && React.createElement(React.Fragment, null, React.createElement("div", {
+  }), showingMainTracker && !loading && React.createElement(React.Fragment, null, React.createElement("div", {
     className: "bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-xl mb-6 overflow-hidden"
   }, React.createElement("button", {
     onClick: () => setTrackerCollapsed(!trackerCollapsed),
@@ -8975,5 +8981,21 @@ function IntakeModal({
   }
 })();
   </script>
+<style>@media (prefers-reduced-motion: no-preference){body{animation:pageFade .3s ease both}body.leaving{animation:none;opacity:0;transition:opacity .18s ease}}@keyframes pageFade{from{opacity:0}to{opacity:1}}</style><script>
+(function(){
+  document.addEventListener("click",function(e){
+    var a=e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if(!a) return;
+    if(a.target==="_blank"||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
+    if(a.host!==location.host) return;
+    if(!/\.html$/.test(a.pathname)) return;
+    if(a.pathname===location.pathname) return;
+    e.preventDefault();
+    document.body.classList.add("leaving");
+    setTimeout(function(){ location.href=a.href; }, 170);
+  });
+  window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
+})();
+</script>
 </body>
 </html>
