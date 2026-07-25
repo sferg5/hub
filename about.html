@@ -131,6 +131,28 @@
   .rm-hint,.rm-empty{font-size:14px;color:var(--faint)}
   .rm-empty a{color:var(--accent);text-decoration:none}
   .rm-empty a:hover{text-decoration:underline}
+  .rs-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px}
+  .rs-overlay[hidden]{display:none}
+  .rs-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+  .rs-panel{position:relative;width:100%;max-width:460px;max-height:84vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:24px}
+  .rs-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
+  .rs-close:hover{color:var(--text)}
+  .rs-title{margin:0 0 4px;font-size:18px;font-weight:600;color:var(--text);padding-right:32px}
+  .rs-sub{margin:0 0 16px;font-size:13px;color:var(--faint)}
+  .rs-composer{display:flex;gap:8px}
+  .rs-composer input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
+  .rs-composer input:focus{border-color:var(--accent)}
+  .rs-results{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .rs-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+  .rs-item-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .rs-item-title{font-size:14px;font-weight:600;color:var(--text)}
+  .rs-item-meta{font-size:12px;color:var(--faint);margin-top:4px}
+  .rs-badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;flex-shrink:0}
+  .rs-received{background:rgba(113,113,122,.25);color:#d4d4d8}
+  .rs-progress{background:rgba(245,158,11,.15);color:#fcd34d}
+  .rs-shipped{background:rgba(34,197,94,.15);color:#86efac}
+  .rs-declined{background:rgba(239,68,68,.15);color:#fca5a5}
+  .rs-hint{font-size:13px;color:var(--faint)}
 </style>
 </head>
 <body>
@@ -226,7 +248,7 @@
         <p>Two ways to see where things stand: <strong>Specialist Status</strong> gives the big picture of what I’m working on and what’s shipped, while <strong>Check project status</strong> lets you look up exactly where your own request sits in the pipeline.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
           <a class="btn" href="https://hub-mospec.vercel.app/manager.html">Open Specialist Status</a>
-          <a class="btn" href="https://hub-mospec.vercel.app/intake.html#status">Check project status</a>
+          <button class="btn" type="button" id="checkStatusBtn">Check project status</button>
         </div>
       </div>
       <div class="card">
@@ -431,6 +453,56 @@
   load();
   setInterval(load, 60000);
   window.addEventListener("focus", load);
+})();
+</script>
+  <div class="rs-overlay" id="rsOverlay" hidden role="dialog" aria-modal="true" aria-label="Check project status">
+    <div class="rs-backdrop" id="rsBackdrop"></div>
+    <div class="rs-panel">
+      <button class="rs-close" id="rsClose" aria-label="Close">&times;</button>
+      <h2 class="rs-title">Check a project's status</h2>
+      <p class="rs-sub">Enter the name it was submitted under, or the ref code.</p>
+      <div class="rs-composer">
+        <input id="rsInput" type="text" placeholder="e.g. your name" autocomplete="off" aria-label="Name or ref code" />
+        <button class="btn" id="rsGo">Check</button>
+      </div>
+      <div id="rsResults" class="rs-results" aria-live="polite"></div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var SYNC="/api/data", RKEY="motion-tracker:intakeRequests";
+  var btn=document.getElementById("checkStatusBtn"), overlay=document.getElementById("rsOverlay");
+  if(!btn||!overlay) return;
+  var input=document.getElementById("rsInput"), results=document.getElementById("rsResults"), go=document.getElementById("rsGo");
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function openM(){ overlay.hidden=false; results.innerHTML='<div class="rs-hint">Type a name (or ref code) to look up a project.</div>'; setTimeout(function(){ if(input) input.focus(); },30); }
+  function closeM(){ overlay.hidden=true; }
+  btn.addEventListener("click",function(e){ e.preventDefault(); openM(); });
+  document.getElementById("rsClose").addEventListener("click",closeM);
+  document.getElementById("rsBackdrop").addEventListener("click",closeM);
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!overlay.hidden) closeM(); });
+  function badge(status){ var M={"intake":["In the queue","rs-received"],"backlog":["In the backlog","rs-received"],"discovery":["In discovery","rs-received"],"wip":["In progress","rs-progress"],"review":["In review","rs-progress"],"revisions":["In revisions","rs-progress"],"delivered":["Delivered","rs-shipped"],"declined":["Declined","rs-declined"]}; var m=M[status]||M["intake"]; return '<span class="rs-badge '+m[1]+'">'+esc(m[0])+'</span>'; }
+  function fmt(ts){ return ts? new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""; }
+  async function lookup(){
+    var q=(input.value||"").trim();
+    if(!q){ results.innerHTML='<div class="rs-hint">Type a name (or ref code) to look up a project.</div>'; return; }
+    results.innerHTML='<div class="rs-hint">Checking\u2026</div>';
+    var list=[];
+    try{ var r=await fetch(SYNC,{cache:"no-store"}); var j=await r.json(); list=(j&&j.data&&Array.isArray(j.data[RKEY]))?j.data[RKEY]:[]; }
+    catch(e){ results.innerHTML='<div class="rs-hint">Couldn\u2019t reach the server \u2014 try again in a moment.</div>'; return; }
+    var ql=q.toLowerCase();
+    var matches=list.filter(function(x){ if(!x) return false; var nm=(x.name||"").toLowerCase().indexOf(ql)>=0; var idm=String(x.id||"").toLowerCase().indexOf(ql)===0; return nm||idm; });
+    matches.sort(function(a,b){ return ((b&&b.createdAt)||0)-((a&&a.createdAt)||0); });
+    if(!matches.length){ results.innerHTML='<div class="rs-hint">No projects found for \u201c'+esc(q)+'\u201d. Double-check the spelling.</div>'; return; }
+    results.innerHTML=matches.map(function(x){
+      var status=x.status||"intake";
+      var meta=[x.type, x.createdAt?("submitted "+fmt(x.createdAt)):""].filter(Boolean).join(" \u00b7 ");
+      return '<div class="rs-item"><div class="rs-item-top"><span class="rs-item-title">'+esc(x.title||"Untitled request")+'</span>'+badge(status)+'</div>'+(meta?'<div class="rs-item-meta">'+esc(meta)+'</div>':'')+'</div>';
+    }).join("");
+  }
+  go.addEventListener("click",lookup);
+  input.addEventListener("keydown",function(e){ if(e.key==="Enter") lookup(); });
 })();
 </script>
 </body>

@@ -837,13 +837,25 @@ const STATUSES = [{
 const KANBAN_STATUSES = STATUSES.filter(s => s.id !== "backlog" && s.id !== "intake");
 function reqToProject(r) {
   r = r || {};
+  var OLD = {
+    "Received": "intake",
+    "In progress": "wip",
+    "Shipped": "delivered",
+    "Declined": "backlog",
+    "declined": "backlog",
+    "Backlog": "backlog"
+  };
+  var VALID = ["intake", "backlog", "discovery", "wip", "review", "revisions", "delivered", "onhold"];
+  var st = r.status;
+  if (OLD[st]) st = OLD[st];
+  if (VALID.indexOf(st) < 0) st = "intake";
   return {
     id: "req:" + r.id,
     _req: true,
     reqId: r.id,
     name: r.title || "Untitled request",
     type: r.type || "Brand Team Enablement",
-    status: r.status || "intake",
+    status: st,
     priority: r.priority || "medium",
     createdAt: r.createdAt || Date.now(),
     order: -(r.createdAt || 0),
@@ -2192,7 +2204,7 @@ function SearchResultCard({
   onEdit
 }) {
   const editable = !p.completedAt;
-  const status = STATUSES.find(s => s.id === p.status);
+  const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
   const stakeholderSummary = formatStakeholdersCompact(p.stakeholders);
   return React.createElement("div", {
     onClick: editable ? () => onEdit(p) : undefined,
@@ -2846,7 +2858,7 @@ function PriorityItem({
   project: p,
   today
 }) {
-  const status = STATUSES.find(s => s.id === p.status);
+  const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
   let dueText = "";
   let dueColor = "text-zinc-400";
   if (p.deadline) {
@@ -3063,7 +3075,7 @@ function DayBlock({
     className: "space-y-1 mb-2"
   }, items.map((item, idx) => {
     const p = item.project;
-    const status = STATUSES.find(s => s.id === p.status);
+    const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
     const sub = item.kind === "ritual" ? "Recurring" : null;
     if (item.isPick) {
       return React.createElement("li", {
@@ -3186,7 +3198,7 @@ function DayBlock({
   }, hasItems ? "Spare capacity" : "Suggested · pick one"), React.createElement("div", {
     className: "space-y-1"
   }, suggestions.map(p => {
-    const status = STATUSES.find(s => s.id === p.status);
+    const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
     return React.createElement("button", {
       key: p.id,
       onClick: () => onPick && onPick(dayIndex, p.id),
@@ -4716,7 +4728,7 @@ function TrashCard({
   onRestore,
   formatDeletedAt
 }) {
-  const status = STATUSES.find(s => s.id === p.status);
+  const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
   const stakeholderSummary = formatStakeholdersCompact(p.stakeholders);
   return React.createElement("div", {
     className: "bg-zinc-900/60 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition"
@@ -4817,7 +4829,7 @@ function ProjectCard({
 }) {
   const [showTime, setShowTime] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
-  const status = STATUSES.find(s => s.id === p.status);
+  const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
   const priority = PRIORITIES.find(pr => pr.id === p.priority);
   const isDelivered = p.status === "delivered";
   const dl = isDelivered ? null : deadlineLabel(p.deadline);
@@ -5374,7 +5386,7 @@ function TimelineView({
   }), React.createElement("div", {
     className: "space-y-2"
   }, sorted.map(p => {
-    const status = STATUSES.find(s => s.id === p.status);
+    const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
     const stakeholderSummary = formatStakeholdersCompact(p.stakeholders);
     return React.createElement("div", {
       key: p.id,
@@ -5415,7 +5427,7 @@ function TimelineView({
   }, "Today")), React.createElement("div", {
     className: "space-y-2"
   }, sorted.map(p => {
-    const status = STATUSES.find(s => s.id === p.status);
+    const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
     const startOffset = Math.max(0, pct(startAnchor(p)));
     const endOffset = pct(p.deadline);
     const barWidthPct = Math.max(0.5, endOffset - startOffset);
@@ -5569,7 +5581,7 @@ function CalendarView({
     }, d.getDate()), React.createElement("div", {
       className: "space-y-1 overflow-hidden"
     }, dayProjects.slice(0, 2).map(p => {
-      const status = STATUSES.find(s => s.id === p.status);
+      const status = STATUSES.find(s => s.id === p.status) || STATUSES[0];
       const overdue = mode === "deadlines" && d < today && p.status !== "delivered";
       return React.createElement("button", {
         key: p.id,
