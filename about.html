@@ -223,8 +223,11 @@
       </div>
       <div class="card">
         <div class="card-head"><div class="ic"><svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></div><h3>Want to check in?</h3></div>
-        <p>Specialist Status shows what I'm working on and what's recently shipped — a safe link to glance at anytime.</p>
-        <a class="btn" href="https://hub-mospec.vercel.app/manager.html">Open Specialist Status</a>
+        <p>Two ways to see where things stand: <strong>Specialist Status</strong> gives the big picture of what I’m working on and what’s shipped, while <strong>Check project status</strong> lets you look up exactly where your own request sits in the pipeline.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:auto">
+          <a class="btn" href="https://hub-mospec.vercel.app/manager.html">Open Specialist Status</a>
+          <a class="btn" href="https://hub-mospec.vercel.app/intake.html#status">Check project status</a>
+        </div>
       </div>
       <div class="card">
         <div class="card-head"><div class="ic"><svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><h3>See existing motion work?</h3></div>
@@ -407,8 +410,9 @@
       '<span class="rm-badge '+cls+'">'+label+'</span></div>';
   }
   function render(list){
-    var inProg=list.filter(function(x){return x&&x.status==="In progress";});
-    var shipped=list.filter(function(x){return x&&x.status==="Shipped";})
+    var STAGE_LABEL={discovery:"Discovery",wip:"In progress",review:"In review",revisions:"In revisions"};
+    var inProg=list.filter(function(x){var s=x&&x.status; return s==="discovery"||s==="wip"||s==="review"||s==="revisions";});
+    var shipped=list.filter(function(x){return x&&x.status==="delivered";})
       .sort(function(a,b){return (((b&&(b.statusAt||b.createdAt))||0))-(((a&&(a.statusAt||a.createdAt))||0));})
       .slice(0,6);
     if(!inProg.length && !shipped.length){
@@ -416,8 +420,8 @@
       return;
     }
     var html="";
-    if(inProg.length){ html+='<div class="rm-group"><div class="rm-group-label">In progress</div><div class="rm-items">'+inProg.map(function(x){return item(x,"rm-progress","In progress");}).join("")+'</div></div>'; }
-    if(shipped.length){ html+='<div class="rm-group"><div class="rm-group-label">Recently shipped</div><div class="rm-items">'+shipped.map(function(x){return item(x,"rm-shipped","Shipped");}).join("")+'</div></div>'; }
+    if(inProg.length){ html+='<div class="rm-group"><div class="rm-group-label">In progress</div><div class="rm-items">'+inProg.map(function(x){return item(x,"rm-progress",STAGE_LABEL[x.status]||"In progress");}).join("")+'</div></div>'; }
+    if(shipped.length){ html+='<div class="rm-group"><div class="rm-group-label">Recently shipped</div><div class="rm-items">'+shipped.map(function(x){return item(x,"rm-shipped","Delivered");}).join("")+'</div></div>'; }
     el.innerHTML=html;
   }
   async function load(){

@@ -724,7 +724,7 @@
   document.getElementById("rsClose").addEventListener("click",closeM);
   document.getElementById("rsBackdrop").addEventListener("click",closeM);
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!overlay.hidden) closeM(); });
-  function badge(status){ var m={"Received":"rs-received","In progress":"rs-progress","Shipped":"rs-shipped","Declined":"rs-declined"}; return '<span class="rs-badge '+(m[status]||"rs-received")+'">'+esc(status)+'</span>'; }
+  function badge(status){ var M={"backlog":["In the backlog","rs-received"],"discovery":["In discovery","rs-received"],"wip":["In progress","rs-progress"],"review":["In review","rs-progress"],"revisions":["In revisions","rs-progress"],"delivered":["Delivered","rs-shipped"],"declined":["Declined","rs-declined"]}; var m=M[status]||M["backlog"]; return '<span class="rs-badge '+m[1]+'">'+esc(m[0])+'</span>'; }
   function fmt(ts){ return ts? new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""; }
   async function lookup(){
     var q=(input.value||"").trim();
@@ -738,13 +738,14 @@
     matches.sort(function(a,b){ return ((b&&b.createdAt)||0)-((a&&a.createdAt)||0); });
     if(!matches.length){ results.innerHTML='<div class="rs-hint">No requests found for \u201c'+esc(q)+'\u201d. Double-check the spelling, or submit a new request.</div>'; return; }
     results.innerHTML=matches.map(function(x){
-      var status=x.status||"Received";
+      var status=x.status||"backlog";
       var meta=[x.type, x.createdAt?("submitted "+fmt(x.createdAt)):""].filter(Boolean).join(" \u00b7 ");
       return '<div class="rs-item"><div class="rs-item-top"><span class="rs-item-title">'+esc(x.title||"Untitled request")+'</span>'+badge(status)+'</div>'+(meta?'<div class="rs-item-meta">'+esc(meta)+'</div>':'')+'</div>';
     }).join("");
   }
   go.addEventListener("click",lookup);
   input.addEventListener("keydown",function(e){ if(e.key==="Enter") lookup(); });
+  if(location.hash==="#status"){ openM(); }
 })();
 </script>
 </body>
