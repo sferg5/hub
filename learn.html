@@ -150,6 +150,31 @@
   .hs-result-go{display:inline-block;margin-top:8px;color:var(--accent);font-size:12.5px;font-weight:600}
   .search-empty{color:var(--muted);font-size:13.5px;margin:2px 0}
   @media (prefers-reduced-motion: no-preference){ .hs-result{transition:border-color .16s ease,transform .16s ease} .hs-result:hover{transform:translateY(-1px)} }
+
+  /* office hours + CoP sign-up */
+  .booktime{margin-top:36px;padding-top:28px;border-top:1px solid var(--line)}
+  .bt-block{margin-top:20px}
+  .bt-label{font-size:14px;font-weight:600;color:var(--text)}
+  .bt-hint{font-weight:400;color:var(--faint);font-size:12.5px}
+  .oh-day{font-size:12.5px;color:var(--muted);margin:12px 0 8px}
+  .oh-slots{display:flex;flex-wrap:wrap;gap:8px}
+  .slotpill{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 16px;font-size:12.5px;font-family:var(--font);cursor:pointer;transition:border-color .14s,color .14s}
+  .slotpill:hover{border-color:var(--accent);color:var(--accent)}
+  .slotpill.taken{cursor:default;color:var(--faint);border-style:dashed}
+  .slotpill.taken:hover{border-color:var(--line);color:var(--faint)}
+  .cop-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+  .cop-line:first-of-type{border-top:0}
+  .cop-when{font-size:13px;color:var(--text)}
+  .cop-meta{font-size:12px;color:var(--faint);margin-top:2px}
+  .cop-names{font-size:12px;color:var(--muted);margin-top:4px}
+  .rsvp-btn{padding:4px 16px;font-size:12.5px;flex-shrink:0}
+  .su-form{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+  .su-form[hidden]{display:none}
+  .su-form-head{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .su-form .field{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
+  .su-form .field:focus{border-color:var(--accent)}
+  .su-form-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .su-note{font-size:12.5px;color:var(--faint)}
 </style>
 </head>
 <body>
@@ -269,7 +294,7 @@
 
     <section class="section" id="office-hours">
       <div class="section-eyebrow">Office hours &amp; community of practice</div>
-      <h3>Ask a motion question</h3>
+<h3>Ask a motion question</h3>
       <p class="section-sub">Post anything — a term you keep hearing, a "how would you animate this?", or a review question. I collect these and answer them live.</p>
       <div class="qa">
         <div class="qa-form">
@@ -287,6 +312,20 @@
           </div>
         </div>
         <div class="qa-list" id="qList"><div class="loading"><div class="ldr-ring"></div>Loading questions…</div></div>
+      </div>
+    
+      <div class="booktime">
+        <h3>Or grab some time with me</h3>
+        <p class="section-sub">Rather talk it through? I run weekly office hours for quick 1:1s, plus a bi-weekly community of practice for the whole crew — come to whatever’s useful. Times are in your local timezone.</p>
+        <div class="bt-block">
+          <div class="bt-label">Weekly office hours <span class="bt-hint">· 15 or 30 min, just the two of us</span></div>
+          <div id="ohList"><div class="loading"><div class="ldr-ring"></div>Loading times…</div></div>
+        </div>
+        <div class="bt-block">
+          <div class="bt-label">Community of practice <span class="bt-hint">· bi-weekly, the whole team</span></div>
+          <div id="copList"><div class="loading"><div class="ldr-ring"></div>Loading sessions…</div></div>
+        </div>
+        <div class="su-form" id="suForm" hidden></div>
       </div>
     </section>
   </div>
@@ -532,6 +571,142 @@
     input.value=b.getAttribute("data-q");
     render(input.value); input.focus();
   });
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  var SYNC="/api/data";
+  var OH_KEY="motion-tracker:officeHours", COP_KEY="motion-tracker:copSignups";
+  /* --- SCHEDULE (Sean: edit these) --- */
+  var OH_DAY=4;            /* weekly office hours: 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat */
+  var OH_WEEKS=3;
+  var OH_SLOTS=[
+    {start:"2:00 PM",mins:15},
+    {start:"2:15 PM",mins:15},
+    {start:"2:30 PM",mins:30}
+  ];
+  var COP_ANCHOR="2026-01-16"; /* any real community-of-practice date; repeats every 14 days */
+  var COP_TIME="3:00\u20134:00 PM";
+  var COP_WEEKS=2;
+  /* ----------------------------------- */
+
+  var STATE={oh:{},cop:{}};
+  var ohList=document.getElementById("ohList");
+  var copList=document.getElementById("copList");
+  var suForm=document.getElementById("suForm");
+  if(!ohList||!copList||!suForm) return;
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function pad2(n){return (n<10?"0":"")+n;}
+  function ymd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+  function fmtDate(d){return d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});}
+  function upcomingWeekly(day,count){
+    var t=new Date(); t.setHours(0,0,0,0);
+    var d=new Date(t); d.setDate(d.getDate()+((day-d.getDay()+7)%7));
+    var out=[]; for(var i=0;i<count;i++){ out.push(new Date(d)); d.setDate(d.getDate()+7); } return out;
+  }
+  function upcomingBiweekly(anchorISO,count){
+    var a=new Date(anchorISO+"T00:00:00"); var t=new Date(); t.setHours(0,0,0,0);
+    var d=new Date(a); while(d<t){ d.setDate(d.getDate()+14); }
+    var out=[]; for(var i=0;i<count;i++){ out.push(new Date(d)); d.setDate(d.getDate()+14); } return out;
+  }
+  function asObj(v){return (v&&typeof v==="object"&&!Array.isArray(v))?v:{};}
+  function asArr(v){return Array.isArray(v)?v:[];}
+  async function getSnap(){var r=await fetch(SYNC,{method:"GET",cache:"no-store"});if(!r.ok)throw new Error("http");var j=await r.json();if(!j||j.error||typeof j.data!=="object")throw new Error("data");return j;}
+  async function post(snap){try{var r=await fetch(SYNC,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)});return r.ok;}catch(e){return false;}}
+
+  async function load(){
+    var snap=null; try{ snap=await getSnap(); }catch(e){ snap=null; }
+    STATE.oh = snap ? asObj(snap.data[OH_KEY]) : {};
+    STATE.cop = snap ? asObj(snap.data[COP_KEY]) : {};
+    renderOH(); renderCoP();
+  }
+  async function book(id,name,topic){
+    var snap; try{ snap=await getSnap(); }catch(e){ return "error"; }
+    var m=asObj(snap.data[OH_KEY]); if(m[id]) return "taken";
+    m[id]={name:name,topic:topic,at:Date.now()}; snap.data[OH_KEY]=m; snap.updatedAt=Date.now();
+    return (await post(snap)) ? "ok" : "error";
+  }
+  async function rsvp(iso,name,topic){
+    var snap; try{ snap=await getSnap(); }catch(e){ return "error"; }
+    var m=asObj(snap.data[COP_KEY]); var list=asArr(m[iso]);
+    list.push({name:name,topic:topic,at:Date.now()}); m[iso]=list; snap.data[COP_KEY]=m; snap.updatedAt=Date.now();
+    return (await post(snap)) ? "ok" : "error";
+  }
+
+  function renderOH(){
+    var dates=upcomingWeekly(OH_DAY,OH_WEEKS);
+    ohList.innerHTML=dates.map(function(d){
+      var iso=ymd(d);
+      var pills=OH_SLOTS.map(function(s){
+        var id="oh:"+iso+":"+s.start; var b=STATE.oh[id];
+        var time=esc(s.start)+" \u00b7 "+s.mins+" min";
+        if(b) return '<span class="slotpill taken">'+time+' \u2014 booked</span>';
+        return '<button type="button" class="slotpill" data-id="'+esc(id)+'" data-t="'+time+'" data-d="'+esc(fmtDate(d))+'">'+time+'</button>';
+      }).join("");
+      return '<div class="oh-day">'+esc(fmtDate(d))+'</div><div class="oh-slots">'+pills+'</div>';
+    }).join("");
+    Array.prototype.forEach.call(ohList.querySelectorAll(".slotpill[data-id]"),function(b){
+      b.onclick=function(){ openBook(b.getAttribute("data-id"),b.getAttribute("data-t"),b.getAttribute("data-d")); };
+    });
+  }
+  function renderCoP(){
+    var dates=upcomingBiweekly(COP_ANCHOR,COP_WEEKS);
+    copList.innerHTML=dates.map(function(d){
+      var iso=ymd(d); var list=asArr(STATE.cop[iso]);
+      var meta=list.length?(list.length+(list.length===1?" person":" people")+" going"):"No one yet \u2014 be the first";
+      var names=list.length?'<div class="cop-names">'+list.map(function(x){return esc(x.name);}).join(", ")+'</div>':'';
+      return '<div class="cop-line"><div><div class="cop-when">'+esc(fmtDate(d))+' \u00b7 '+esc(COP_TIME)+'</div><div class="cop-meta">'+meta+'</div>'+names+'</div>'+
+        '<button type="button" class="btn rsvp-btn" data-iso="'+esc(iso)+'" data-d="'+esc(fmtDate(d))+'">RSVP</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(copList.querySelectorAll(".rsvp-btn"),function(b){
+      b.onclick=function(){ openRSVP(b.getAttribute("data-iso"),b.getAttribute("data-d")); };
+    });
+  }
+
+  function openForm(headHtml,fields,onConfirm){
+    suForm.hidden=false;
+    suForm.innerHTML='<div class="su-form-head">'+headHtml+'</div>'+fields+
+      '<div class="su-form-actions"><button class="btn primary" id="suConfirm">Confirm</button><button class="btn" id="suCancel">Cancel</button><span class="su-note" id="suNote"></span></div>';
+    suForm.scrollIntoView({behavior:"smooth",block:"nearest"});
+    var first=suForm.querySelector(".field"); if(first) first.focus();
+    document.getElementById("suCancel").onclick=function(){ suForm.hidden=true; suForm.innerHTML=""; };
+    document.getElementById("suConfirm").onclick=onConfirm;
+  }
+  function openBook(id,timeLabel,dateLabel){
+    openForm("Book office hours \u2014 "+esc(dateLabel)+", "+esc(timeLabel),
+      '<input class="field" id="suName" type="text" maxlength="60" placeholder="Your name" />'+
+      '<input class="field" id="suTopic" type="text" maxlength="140" placeholder="What do you want to cover? (optional)" />',
+      async function(){
+        var name=(document.getElementById("suName").value||"").trim();
+        var topic=(document.getElementById("suTopic").value||"").trim();
+        var note=document.getElementById("suNote");
+        if(!name){ document.getElementById("suName").focus(); return; }
+        note.textContent="Booking\u2026";
+        var r=await book(id,name,topic);
+        if(r==="ok"){ await load(); suForm.hidden=true; suForm.innerHTML=""; }
+        else if(r==="taken"){ note.textContent="That slot was just taken \u2014 pick another."; await load(); }
+        else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
+      });
+  }
+  function openRSVP(iso,dateLabel){
+    openForm("RSVP \u2014 Community of Practice, "+esc(dateLabel),
+      '<input class="field" id="suName" type="text" maxlength="60" placeholder="Your name" />'+
+      '<input class="field" id="suTopic" type="text" maxlength="140" placeholder="Something you could share? (optional)" />',
+      async function(){
+        var name=(document.getElementById("suName").value||"").trim();
+        var topic=(document.getElementById("suTopic").value||"").trim();
+        var note=document.getElementById("suNote");
+        if(!name){ document.getElementById("suName").focus(); return; }
+        note.textContent="Saving\u2026";
+        var r=await rsvp(iso,name,topic);
+        if(r==="ok"){ await load(); suForm.hidden=true; suForm.innerHTML=""; }
+        else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
+      });
+  }
+
+  load();
 })();
 </script>
 </body>
