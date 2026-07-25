@@ -181,6 +181,11 @@
   .rs-shipped{background:rgba(34,197,94,.15);color:#86efac}
   .rs-declined{background:rgba(239,68,68,.15);color:#fca5a5}
   .rs-hint{font-size:13px;color:var(--faint)}
+  .btn-spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(5,46,22,.35);border-top-color:#052e16;border-radius:50%;animation:btnspin .6s linear infinite;margin-right:8px;vertical-align:-2px}
+  @keyframes btnspin{to{transform:rotate(360deg)}}
+  .btn.sending{opacity:.92;cursor:default}
+  .sendnote.sending{color:var(--accent);font-weight:600}
+  .sendnote.error{color:#fca5a5;font-weight:500}
 </style>
 </head>
 <body>
@@ -554,7 +559,7 @@
   function summaryText(){return STEPS.map(function(st){return (st.label||st.key)+": "+plain(st);}).join("\n");}
   async function doSend(){
     var btn=document.getElementById("sendBtn"),note=document.getElementById("sendNote");
-    btn.disabled=true; note.textContent="Sending\u2026";
+    if(btn.disabled) return; var eb=document.getElementById("editBtn"); btn.disabled=true; btn.classList.add("sending"); btn.innerHTML='<span class="btn-spinner" aria-hidden="true"></span>Sending\u2026'; if(eb) eb.style.display="none"; note.className="sendnote sending"; note.textContent="Please wait \u2014 sending your request, this can take a few seconds\u2026";
     var req={id:uid(),createdAt:Date.now(),typeKey:(TYPE_KEY[state.ans.type]||"")}; STEPS.forEach(function(st){req[st.key]=state.ans[st.key];});
     var ok=await saveRequest(req);
     if(ok){
@@ -564,7 +569,9 @@
         document.getElementById("againBtn").onclick=start;
       });
     } else {
-      btn.disabled=false;
+      btn.disabled=false; btn.classList.remove("sending"); btn.textContent="Send request";
+      var eb2=document.getElementById("editBtn"); if(eb2) eb2.style.display="";
+      note.className="sendnote error";
       note.textContent="Couldn\u2019t reach the server \u2014 copy your request and send it to Sean directly.";
       if(!document.getElementById("copyBtn")){
         var row=document.createElement("div"); row.className="compose-actions"; row.innerHTML='<button class="btn" id="copyBtn">Copy request</button>';
