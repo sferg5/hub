@@ -45,9 +45,6 @@
   .navitem .ni-desc{font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .navitem .ni-ext{color:var(--faint);flex-shrink:0}
 
-  .hero{margin-top:24px;padding:32px;background:linear-gradient(155deg, rgba(34,197,94,.10), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:18px}
-  .hero h2{margin:0 0 12px;font-size:28px;font-weight:700;letter-spacing:-.02em}
-  .hero .lead{color:var(--muted);font-size:15px;line-height:1.65;max-width:74ch;margin:0}
 
   .section{margin-top:36px;scroll-margin-top:92px}
   .section-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
@@ -153,28 +150,69 @@
 
   /* office hours + CoP sign-up */
   .booktime{margin-top:36px;padding-top:28px;border-top:1px solid var(--line);scroll-margin-top:90px}
-  .bt-block{margin-top:20px}
-  .bt-label{font-size:14px;font-weight:600;color:var(--text)}
-  .bt-hint{font-weight:400;color:var(--faint);font-size:12.5px}
-  .oh-day{font-size:12.5px;color:var(--muted);margin:12px 0 8px}
+  .bt-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  @media (max-width:720px){.bt-grid{grid-template-columns:1fr}}
+  .bt-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .bt-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .bt-card-title{font-size:15px;font-weight:600;color:var(--text)}
+  .bt-card-tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:rgba(34,197,94,.12);padding:4px 8px;border-radius:999px}
+  .bt-card-desc{font-size:12.5px;color:var(--faint);margin:8px 0 16px;line-height:1.5}
+  .oh-date{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}
+  .oh-date:first-child{border-top:0;padding-top:0;margin-top:0}
+  .oh-day{font-size:12.5px;color:var(--muted);margin:0 0 8px;font-weight:500}
   .oh-slots{display:flex;flex-wrap:wrap;gap:8px}
-  .slotpill{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:8px 16px;font-size:12.5px;font-family:var(--font);cursor:pointer;transition:border-color .14s,color .14s}
+  .slotpill{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:8px 12px;font-size:12.5px;font-family:var(--font);cursor:pointer;transition:border-color .14s,color .14s}
   .slotpill:hover{border-color:var(--accent);color:var(--accent)}
-  .slotpill.taken{cursor:default;color:var(--faint);border-style:dashed}
+  .slotpill.taken{cursor:default;color:var(--faint);border-style:dashed;background:none}
   .slotpill.taken:hover{border-color:var(--line);color:var(--faint)}
-  .cop-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
-  .cop-line:first-of-type{border-top:0}
-  .cop-when{font-size:13px;color:var(--text)}
+  .cop-line{padding:12px 0;border-top:1px solid var(--line)}
+  .cop-line:first-child{border-top:0;padding-top:0}
+  .cop-when{font-size:13px;color:var(--text);font-weight:500}
   .cop-meta{font-size:12px;color:var(--faint);margin-top:2px}
   .cop-names{font-size:12px;color:var(--muted);margin-top:4px}
-  .rsvp-btn{padding:4px 16px;font-size:12.5px;flex-shrink:0}
-  .su-form{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
-  .su-form[hidden]{display:none}
-  .su-form-head{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
-  .su-form .field{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
-  .su-form .field:focus{border-color:var(--accent)}
+  .rsvp-btn{margin-top:8px;padding:4px 16px;font-size:12.5px}
+  .su-modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px}
+  .su-modal[hidden]{display:none}
+  .su-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+  .su-modal-panel{position:relative;width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:24px;display:flex;flex-direction:column;gap:12px}
+  .su-modal-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .su-modal-close:hover{color:var(--text);border-color:var(--line2)}
+  .su-modal #suFields{display:flex;flex-direction:column;gap:8px}
+  .su-form-head{font-size:15px;font-weight:600;color:var(--text);padding-right:32px}
+  .su-modal .field{width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
+  .su-modal .field:focus{border-color:var(--accent)}
   .su-form-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
   .su-note{font-size:12.5px;color:var(--faint)}
+
+  /* curriculum classes */
+  .curriculum{margin-top:8px}
+  .klass{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:16px;overflow:hidden;scroll-margin-top:90px}
+  .klass-head{width:100%;display:flex;align-items:center;gap:16px;padding:16px 20px;background:none;border:0;cursor:pointer;text-align:left;font-family:var(--font);color:var(--text)}
+  .klass-head:hover{background:rgba(255,255,255,.02)}
+  .klass-badge{flex-shrink:0;width:44px;height:44px;border-radius:10px;background:rgba(34,197,94,.15);color:var(--accent);font-family:var(--mono);font-size:15px;font-weight:700;display:grid;place-items:center}
+  .klass-title{flex:1;min-width:0}
+  .klass-name{display:block;font-size:16px;font-weight:600;color:var(--text)}
+  .klass-sub{display:block;font-size:12.5px;color:var(--faint);margin-top:2px}
+  .klass-chev{flex-shrink:0;color:var(--muted);transition:transform .18s ease}
+  .klass[data-open="true"] .klass-chev{transform:rotate(180deg)}
+  .klass-body{padding:0 20px 20px;border-top:1px solid var(--line)}
+  .klass-body[hidden]{display:none}
+  .klass-section-label{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:20px 0 12px}
+  .klass-next{margin-top:20px;background:none;border:1px solid var(--line);color:var(--accent);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:border-color .14s,color .14s}
+  .klass-next:hover{border-color:var(--accent)}
+  .anchor{display:block;height:0;scroll-margin-top:90px}
+  .ts-box{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:16px;transition:border-color .14s}
+  .ts-box:focus-within{border-color:var(--accent)}
+  .ts-box .ts-ico{color:var(--faint);flex-shrink:0}
+  .ts-box input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font-size:15px;font-family:var(--font);padding:4px 0}
+  .ts-box input::placeholder{color:var(--faint)}
+  .ts-results{margin-top:16px;display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;overscroll-behavior:contain}
+  .ts-results:not(:empty){padding-right:4px}
+  .ts-hint{color:var(--faint);font-size:13px}
+  .ts-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+  .ts-term{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .ts-def{font-size:13px;color:var(--muted);line-height:1.55}
+  .ts-term mark,.ts-def mark{background:rgba(34,197,94,.22);color:var(--text);border-radius:3px;padding:0 2px}
 </style>
 </head>
 <body>
@@ -245,49 +283,107 @@
   </header>
   <div class="wrap" role="main">
 
-    <section class="hero">
-      <h2>Motion, from the ground up.</h2>
-      <p class="lead">A short, plain-language primer on how motion design works — the vocabulary you'll hear in reviews and handoffs, and the core ideas behind good movement. Read through the essentials below, then drop any question in the box at the bottom. I gather these and answer them live during office hours and our community of practice.</p>
+
+        <section class="section" id="terms">
+      <div class="section-eyebrow">Motion dictionary</div>
+      <h3>Look up any motion term</h3>
+      <p class="section-sub">Not sure what a word means? Search the glossary — type a term or part of its meaning.</p>
+      <div class="ts-box">
+        <svg class="ts-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="tsInput" type="text" placeholder="e.g. easing, spring, mask, parallax…" autocomplete="off" aria-label="Search motion terms" />
+      </div>
+      <div id="tsResults" class="ts-results" aria-live="polite"></div>
     </section>
 
     <section class="section" id="vocabulary">
-      <div class="section-eyebrow">Vocabulary</div>
-      <h3>Terms you'll hear</h3>
-      <p class="section-sub">The building blocks — enough to follow along in any motion conversation.</p>
-      <div class="gloss">
-        <div class="term"><h4>Keyframe</h4><p>A marked point in time that stores a specific value — position, scale, rotation, opacity. You set the value you want at a moment, and the software fills in everything between two keyframes.</p></div>
-        <div class="term"><h4>Timeline</h4><p>The track where time runs left to right. You arrange layers and place keyframes along it, and a <span class="kw">playhead</span> shows the exact moment you're viewing.</p></div>
-        <div class="term"><h4>Tween &amp; interpolation</h4><p>The in-between frames the software generates automatically from one keyframe to the next. "Interpolation" is just the math that decides those in-between values.</p></div>
-        <div class="term"><h4>Easing</h4><p>How a value speeds up or slows down between keyframes. Easing is what makes motion feel alive instead of mechanical.</p></div>
-        <div class="term"><h4>Ease-in / ease-out</h4><p><span class="kw">Ease-out</span> starts fast and settles softly — great for things entering. <span class="kw">Ease-in</span> starts slow and accelerates — good for things leaving. Ease-in-out does both.</p></div>
-        <div class="term"><h4>Bezier curve</h4><p>The editable curve behind an ease. Dragging its handles reshapes how a value changes over time — the difference between "snappy" and "gentle."</p></div>
-        <div class="term"><h4>Duration &amp; delay</h4><p><span class="kw">Duration</span> is how long a move takes; <span class="kw">delay</span> is a pause before it starts. Most UI motion lives between roughly 150 and 500&nbsp;ms.</p></div>
-        <div class="term"><h4>Frame rate (fps)</h4><p>How many frames play each second — 24, 30, 60. Higher frame rates look smoother; screens and export targets often dictate the number.</p></div>
-        <div class="term"><h4>Timing &amp; spacing</h4><p><span class="kw">Timing</span> is how long a move takes; <span class="kw">spacing</span> is how far it travels between frames. Together they define the weight and feel of the motion.</p></div>
-        <div class="term"><h4>Stagger</h4><p>Offsetting the start of several elements' animations so they cascade in sequence rather than all moving at once — think a list settling in row by row.</p></div>
-        <div class="term"><h4>Anticipation</h4><p>A small opposite move before the main action — a slight wind-up that prepares the eye for what's about to happen.</p></div>
-        <div class="term"><h4>Follow-through &amp; overshoot</h4><p>Motion that carries slightly past its target before settling back. A touch of it adds life; too much feels bouncy.</p></div>
-      </div>
-    </section>
-
-    <section class="section" id="concepts">
-      <div class="section-eyebrow">Core concepts</div>
-      <h3>Three ideas that do most of the work</h3>
-      <div class="concepts">
-        <div class="concept">
+      <span id="concepts" class="anchor"></span>
+      <div class="section-eyebrow">The curriculum</div>
+      <h3>Learn motion, one class at a time</h3>
+      <p class="section-sub">A plain-language primer, split into three short classes that build on each other — start at Motion 101 and work up. Expand a class to dig in.</p>
+      <div class="curriculum">
+        <div class="klass" id="m101" data-open="true">
+          <button class="klass-head" type="button" aria-expanded="true">
+            <span class="klass-badge">101</span>
+            <span class="klass-title">
+              <span class="klass-name">Motion 101 · The Foundations</span>
+              <span class="klass-sub">The building blocks — what motion is actually made of.</span>
+            </span>
+            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="klass-body">
+            <div class="klass-section-label">Terms you'll hear</div>
+            <div class="gloss">
+          <div class="term"><h4>Keyframe</h4><p>A marked point in time that stores a specific value — position, scale, rotation, opacity. You set the value you want at a moment, and the software fills in everything between two keyframes.</p></div>
+          <div class="term"><h4>Timeline</h4><p>The track where time runs left to right. You arrange layers and place keyframes along it, and a <span class="kw">playhead</span> shows the exact moment you're viewing.</p></div>
+          <div class="term"><h4>Tween &amp; interpolation</h4><p>The in-between frames the software generates automatically from one keyframe to the next. "Interpolation" is just the math that decides those in-between values.</p></div>
+          <div class="term"><h4>Frame rate (fps)</h4><p>How many frames play each second — 24, 30, 60. Higher frame rates look smoother; screens and export targets often dictate the number.</p></div>
+          <div class="term"><h4>Duration &amp; delay</h4><p><span class="kw">Duration</span> is how long a move takes; <span class="kw">delay</span> is a pause before it starts. Most UI motion lives between roughly 150 and 500&nbsp;ms.</p></div>
+            </div>
+            <div class="klass-section-label">Key idea</div>
+            <div class="concepts">
+              <div class="concept">
           <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 4-4 4 4 6-6"/><circle cx="7" cy="8" r="1.4" fill="#22c55e"/><circle cx="11" cy="12" r="1.4" fill="#22c55e"/><circle cx="17" cy="6" r="1.4" fill="#22c55e"/></svg></span>Keyframing</h4>
           <p><b>The idea:</b> instead of drawing every frame, you define a handful of key moments and let the tool interpolate the rest. Set an element's opacity to 0 at 0&nbsp;ms and 100 at 300&nbsp;ms, and it fades in over that span automatically.</p>
           <p><b>In practice:</b> fewer, well-placed keyframes almost always read cleaner than many. Start with the two that matter — where the motion begins and ends — then add keyframes only where you need to shape what happens in between.</p>
         </div>
-        <div class="concept">
+            </div>
+            <button class="klass-next" type="button" data-next="m102">Next: Motion 102 — Shaping the Feel →</button>
+          </div>
+        </div>
+        <div class="klass" id="m102" data-open="false">
+          <button class="klass-head" type="button" aria-expanded="false">
+            <span class="klass-badge">102</span>
+            <span class="klass-title">
+              <span class="klass-name">Motion 102 · Shaping the Feel</span>
+              <span class="klass-sub">How motion moves — turning mechanical into natural.</span>
+            </span>
+            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="klass-body" hidden>
+            <div class="klass-section-label">Terms you'll hear</div>
+            <div class="gloss">
+          <div class="term"><h4>Easing</h4><p>How a value speeds up or slows down between keyframes. Easing is what makes motion feel alive instead of mechanical.</p></div>
+          <div class="term"><h4>Ease-in / ease-out</h4><p><span class="kw">Ease-out</span> starts fast and settles softly — great for things entering. <span class="kw">Ease-in</span> starts slow and accelerates — good for things leaving. Ease-in-out does both.</p></div>
+          <div class="term"><h4>Bezier curve</h4><p>The editable curve behind an ease. Dragging its handles reshapes how a value changes over time — the difference between "snappy" and "gentle."</p></div>
+          <div class="term"><h4>Timing &amp; spacing</h4><p><span class="kw">Timing</span> is how long a move takes; <span class="kw">spacing</span> is how far it travels between frames. Together they define the weight and feel of the motion.</p></div>
+            </div>
+            <div class="klass-section-label">Key idea</div>
+            <div class="concepts">
+              <div class="concept">
+          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
+          <p><b>The idea:</b> nothing in the real world starts or stops instantly — it accelerates and decelerates. Linear motion (constant speed) is the tell-tale sign of something that feels robotic.</p>
+          <p><b>In practice:</b> reach for ease-out when things enter or expand (fast then settling), and ease-in when things exit or collapse. Save big overshoots and bounces for playful, expressive moments — they draw a lot of attention.</p>
+        </div>
+            </div>
+            <button class="klass-next" type="button" data-next="m103">Next: Motion 103 — Motion with Character →</button>
+          </div>
+        </div>
+        <div class="klass" id="m103" data-open="false">
+          <button class="klass-head" type="button" aria-expanded="false">
+            <span class="klass-badge">103</span>
+            <span class="klass-title">
+              <span class="klass-name">Motion 103 · Motion with Character</span>
+              <span class="klass-sub">The expressive touches that make motion feel alive.</span>
+            </span>
+            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="klass-body" hidden>
+            <div class="klass-section-label">Terms you'll hear</div>
+            <div class="gloss">
+          <div class="term"><h4>Stagger</h4><p>Offsetting the start of several elements' animations so they cascade in sequence rather than all moving at once — think a list settling in row by row.</p></div>
+          <div class="term"><h4>Anticipation</h4><p>A small opposite move before the main action — a slight wind-up that prepares the eye for what's about to happen.</p></div>
+          <div class="term"><h4>Follow-through &amp; overshoot</h4><p>Motion that carries slightly past its target before settling back. A touch of it adds life; too much feels bouncy.</p></div>
+            </div>
+            <div class="klass-section-label">Key idea</div>
+            <div class="concepts">
+              <div class="concept">
           <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg></span>Timelines</h4>
           <p><b>The idea:</b> every element sits on its own track, and time flows left to right. Where you place each keyframe — and how tracks overlap — is what creates rhythm and sequence.</p>
           <p><b>In practice:</b> overlapping and staggering are your friends. Letting one element begin just before another finishes keeps a sequence feeling connected, while a small stagger across a group turns a flat "everything at once" into a graceful cascade.</p>
         </div>
-        <div class="concept">
-          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
-          <p><b>The idea:</b> nothing in the real world starts or stops instantly — it accelerates and decelerates. Linear motion (constant speed) is the tell-tale sign of something that feels robotic.</p>
-          <p><b>In practice:</b> reach for ease-out when things enter or expand (fast then settling), and ease-in when things exit or collapse. Save big overshoots and bounces for playful, expressive moments — they draw a lot of attention.</p>
+            </div>
+            <button class="klass-next" type="button" data-next="office-hours">Bring your questions to office hours ↓</button>
+          </div>
         </div>
       </div>
     </section>
@@ -316,17 +412,29 @@
       </div>
     
       <div class="booktime" id="booktime">
-        <h3>Or grab some time with me</h3>
-        <p class="section-sub">Rather talk it through? I run weekly office hours for quick 1:1s, plus a bi-weekly community of practice for the whole crew — come to whatever’s useful. Times are Eastern (EST).</p>
-        <div class="bt-block">
-          <div class="bt-label">Weekly office hours <span class="bt-hint">· 15 or 30 min, just the two of us</span></div>
-          <div id="ohList"><div class="loading"><div class="ldr-ring"></div>Loading times…</div></div>
+        <h3>Grab some time with me</h3>
+        <p class="section-sub">Two easy ways to talk motion. Times are Eastern (EST).</p>
+        <div class="bt-grid">
+          <div class="bt-card">
+            <div class="bt-card-head"><span class="bt-card-title">Office hours</span><span class="bt-card-tag">Weekly · 1:1</span></div>
+            <p class="bt-card-desc">Book a 15- or 30-minute slot for whatever you're working on — tap a time to grab it.</p>
+            <div id="ohList"><div class="loading"><div class="ldr-ring"></div>Loading times…</div></div>
+          </div>
+          <div class="bt-card">
+            <div class="bt-card-head"><span class="bt-card-title">Community of practice</span><span class="bt-card-tag">Bi-weekly · group</span></div>
+            <p class="bt-card-desc">A standing session for the whole team — RSVP to join.</p>
+            <div id="copList"><div class="loading"><div class="ldr-ring"></div>Loading sessions…</div></div>
+          </div>
         </div>
-        <div class="bt-block">
-          <div class="bt-label">Community of practice <span class="bt-hint">· bi-weekly, the whole team</span></div>
-          <div id="copList"><div class="loading"><div class="ldr-ring"></div>Loading sessions…</div></div>
+        <div class="su-modal" id="suModal" hidden role="dialog" aria-modal="true" aria-label="Sign up">
+          <div class="su-modal-backdrop" id="suBackdrop"></div>
+          <div class="su-modal-panel">
+            <button class="su-modal-close" id="suClose" aria-label="Close">&times;</button>
+            <div class="su-form-head" id="suHead"></div>
+            <div id="suFields"></div>
+            <div class="su-form-actions"><button class="btn primary" id="suConfirm">Confirm</button><button class="btn" id="suCancel">Cancel</button><span class="su-note" id="suNote"></span></div>
+          </div>
         </div>
-        <div class="su-form" id="suForm" hidden></div>
       </div>
     </section>
   </div>
@@ -490,7 +598,8 @@
     {t:"Core concepts: keyframing, timelines, easing", cat:"learn", url:"learn.html#concepts", s:"Three core ideas that do most of the work in motion design.", kw:["concepts","core concepts","how it works","fundamentals"]},
     {t:"Ask a motion question (office hours)", cat:"learn", url:"learn.html#office-hours", s:"Post a question on Learn Motion and Sean answers it during office hours and the community of practice.", kw:["ask","question","office hours","community of practice","cop","help","q and a","qa","support"]},
     {t:"Book office hours (1:1)", cat:"learn", url:"learn.html#booktime", s:"Grab a weekly office-hours slot for a 1:1 \u2014 15 or 30 minutes on Wednesdays.", kw:["book","office hours","book time","1:1","one on one","slot","meeting","appointment","schedule","sign up","signup","time with sean","calendar"]},
-    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]}
+    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]},
+    {t:"Motion dictionary (look up a term)", cat:"learn", url:"learn.html#terms", s:"Search a glossary of 40+ motion terms and their plain-language definitions.", kw:["dictionary","glossary","define","definition","term","terms","look up","lookup","what is","meaning","vocabulary"]}
   ];
   var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
 
@@ -597,8 +706,8 @@
   var STATE={oh:{},cop:{}};
   var ohList=document.getElementById("ohList");
   var copList=document.getElementById("copList");
-  var suForm=document.getElementById("suForm");
-  if(!ohList||!copList||!suForm) return;
+  var suModal=document.getElementById("suModal");
+  if(!ohList||!copList||!suModal) return;
   var _bt=document.getElementById("bookTimeBtn"); if(_bt) _bt.addEventListener("click",function(){var el=document.getElementById("booktime"); if(el) el.scrollIntoView({behavior:"smooth",block:"start"});});
 
   function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
@@ -649,7 +758,7 @@
         if(b) return '<span class="slotpill taken">'+time+' \u2014 booked</span>';
         return '<button type="button" class="slotpill" data-id="'+esc(id)+'" data-t="'+time+'" data-d="'+esc(fmtDate(d))+'">'+time+'</button>';
       }).join("");
-      return '<div class="oh-day">'+esc(fmtDate(d))+'</div><div class="oh-slots">'+pills+'</div>';
+      return '<div class="oh-date"><div class="oh-day">'+esc(fmtDate(d))+'</div><div class="oh-slots">'+pills+'</div></div>';
     }).join("");
     Array.prototype.forEach.call(ohList.querySelectorAll(".slotpill[data-id]"),function(b){
       b.onclick=function(){ openBook(b.getAttribute("data-id"),b.getAttribute("data-t"),b.getAttribute("data-d")); };
@@ -669,15 +778,19 @@
     });
   }
 
+  function closeForm(){ if(suModal) suModal.hidden=true; }
   function openForm(headHtml,fields,onConfirm){
-    suForm.hidden=false;
-    suForm.innerHTML='<div class="su-form-head">'+headHtml+'</div>'+fields+
-      '<div class="su-form-actions"><button class="btn primary" id="suConfirm">Confirm</button><button class="btn" id="suCancel">Cancel</button><span class="su-note" id="suNote"></span></div>';
-    suForm.scrollIntoView({behavior:"smooth",block:"nearest"});
-    var first=suForm.querySelector(".field"); if(first) first.focus();
-    document.getElementById("suCancel").onclick=function(){ suForm.hidden=true; suForm.innerHTML=""; };
+    document.getElementById("suHead").innerHTML=headHtml;
+    document.getElementById("suFields").innerHTML=fields;
+    document.getElementById("suNote").textContent="";
+    suModal.hidden=false;
+    var first=suModal.querySelector(".field"); if(first) first.focus();
     document.getElementById("suConfirm").onclick=onConfirm;
   }
+  document.getElementById("suClose").addEventListener("click",closeForm);
+  document.getElementById("suCancel").addEventListener("click",closeForm);
+  document.getElementById("suBackdrop").addEventListener("click",closeForm);
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!suModal.hidden) closeForm(); });
   function openBook(id,timeLabel,dateLabel){
     openForm("Book office hours \u2014 "+esc(dateLabel)+", "+esc(timeLabel),
       '<input class="field" id="suName" type="text" maxlength="60" placeholder="Your name" />'+
@@ -689,7 +802,7 @@
         if(!name){ document.getElementById("suName").focus(); return; }
         note.textContent="Booking\u2026";
         var r=await book(id,name,topic);
-        if(r==="ok"){ await load(); suForm.hidden=true; suForm.innerHTML=""; }
+        if(r==="ok"){ await load(); closeForm(); }
         else if(r==="taken"){ note.textContent="That slot was just taken \u2014 pick another."; await load(); }
         else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
       });
@@ -705,12 +818,114 @@
         if(!name){ document.getElementById("suName").focus(); return; }
         note.textContent="Saving\u2026";
         var r=await rsvp(iso,name,topic);
-        if(r==="ok"){ await load(); suForm.hidden=true; suForm.innerHTML=""; }
+        if(r==="ok"){ await load(); closeForm(); }
         else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
       });
   }
 
   load();
+})();
+</script>
+<script>
+(function(){
+  var classes=document.querySelectorAll(".klass");
+  if(!classes.length) return;
+  function setOpen(k,open){
+    k.setAttribute("data-open",open?"true":"false");
+    var body=k.querySelector(".klass-body"); if(body) body.hidden=!open;
+    var head=k.querySelector(".klass-head"); if(head) head.setAttribute("aria-expanded",open?"true":"false");
+  }
+  Array.prototype.forEach.call(classes,function(k){
+    var head=k.querySelector(".klass-head");
+    if(head) head.addEventListener("click",function(){ setOpen(k, k.getAttribute("data-open")!=="true"); });
+    var next=k.querySelector(".klass-next");
+    if(next) next.addEventListener("click",function(){
+      var id=next.getAttribute("data-next"); var target=document.getElementById(id);
+      if(!target) return;
+      if(target.classList.contains("klass")) setOpen(target,true);
+      target.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  });
+  if(location.hash==="#vocabulary"||location.hash==="#concepts"){
+    Array.prototype.forEach.call(classes,function(k){ setOpen(k,true); });
+  }
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  var TERMS=[
+    {t:"Keyframe", d:"A marked point in time that stores a value like position, scale, rotation, or opacity. The software fills in the frames between two keyframes.", a:["key frame","keyframing"]},
+    {t:"Timeline", d:"The track where time runs left to right. You arrange layers and place keyframes along it.", a:["track"]},
+    {t:"Playhead", d:"The marker that shows the exact moment you are currently viewing on the timeline.", a:["scrubbing","scrub"]},
+    {t:"Tween / Interpolation", d:"The in-between frames the software generates automatically between two keyframes. Interpolation is the math that decides those values.", a:["tween","tweening","inbetween","in-between","interpolate"]},
+    {t:"Easing", d:"How a value speeds up or slows down between keyframes. Easing is what makes motion feel alive instead of mechanical.", a:["ease"]},
+    {t:"Ease-out", d:"Motion that starts fast and settles softly. Great for things entering or expanding.", a:["ease out"]},
+    {t:"Ease-in", d:"Motion that starts slow and accelerates. Good for things leaving or collapsing.", a:["ease in"]},
+    {t:"Ease-in-out", d:"Easing on both ends: slow, then fast, then slow. A safe default for most UI motion.", a:["ease in out"]},
+    {t:"Linear", d:"Constant speed with no easing. Usually reads as robotic, but fine for continuous loops like spinners."},
+    {t:"Bezier curve", d:"The editable curve behind an ease. Dragging its handles reshapes how a value changes over time.", a:["bezier","handles"]},
+    {t:"Cubic-bezier", d:"The four-number definition of an easing curve used in CSS and code, set by two control-point handles.", a:["cubic bezier","css easing"]},
+    {t:"Graph editor", d:"The view where you edit easing curves directly, shaping velocity over time rather than just start and end values.", a:["value graph","speed graph"]},
+    {t:"Duration", d:"How long a move takes. Most UI motion lives between roughly 150 and 500 milliseconds.", a:["length"]},
+    {t:"Delay", d:"A pause before an animation starts."},
+    {t:"Stagger / Offset", d:"Delaying the start of several elements so they cascade in sequence instead of all moving at once, like a list settling in row by row.", a:["stagger","offset","cascade"]},
+    {t:"Frame rate (fps)", d:"How many frames play each second, such as 24, 30, or 60. Higher frame rates look smoother.", a:["fps","framerate","frames per second"]},
+    {t:"Timing & spacing", d:"Timing is how long a move takes; spacing is how far it travels between frames. Together they define the weight and feel of motion.", a:["timing","spacing"]},
+    {t:"Velocity", d:"The speed of motion at a given instant. Easing is really about shaping velocity over time.", a:["speed","acceleration"]},
+    {t:"Spring", d:"A physics-based animation defined by stiffness, mass, and damping instead of a fixed duration. It settles naturally, often with a little bounce.", a:["spring physics","physics"]},
+    {t:"Damping", d:"How quickly a spring's bounce dies down. More damping means less oscillation.", a:["damper","friction"]},
+    {t:"Stiffness / Tension", d:"How strongly a spring pulls toward its target. More stiffness makes motion faster and snappier.", a:["tension","stiffness"]},
+    {t:"Overshoot", d:"Motion that passes its target before settling back. A little adds life; too much feels bouncy."},
+    {t:"Anticipation", d:"A small opposite move before the main action, a wind-up that prepares the eye for what is about to happen."},
+    {t:"Follow-through", d:"Motion that carries slightly past a stopping point before settling, borrowed from real-world momentum.", a:["follow through"]},
+    {t:"Squash & stretch", d:"Deforming an object as it moves or impacts to convey weight, energy, and flexibility.", a:["squash and stretch"]},
+    {t:"Arc", d:"Natural motion tends to travel along curved paths rather than straight lines."},
+    {t:"Secondary action", d:"Supporting motion that reinforces the main action without competing with it."},
+    {t:"Path animation", d:"Moving an element along a defined path or trajectory instead of a straight line.", a:["motion path","trim path"]},
+    {t:"Motion blur", d:"Blur added to fast-moving elements so quick motion reads smoothly and feels real."},
+    {t:"Parallax", d:"Layers moving at different speeds to create a sense of depth."},
+    {t:"Morph", d:"Smoothly transforming one shape into another.", a:["shape morph","morphing"]},
+    {t:"Mask / Matte", d:"A shape that hides or reveals part of a layer. A matte does the same thing using another layer's alpha.", a:["mask","matte","alpha matte"]},
+    {t:"Null object", d:"An invisible control layer you parent others to, so you can move or animate a whole group together.", a:["null","controller","parenting"]},
+    {t:"Expression / Driver", d:"A small piece of code that drives a property automatically, like a wiggle or a link to another value.", a:["expression","driver","wiggle"]},
+    {t:"Loop", d:"An animation that repeats seamlessly. A ping-pong loop plays forward, then reverses.", a:["ping pong","seamless loop"]},
+    {t:"Onion skinning", d:"Ghosted views of nearby frames shown while animating, so you can check spacing and arcs.", a:["onion skin"]},
+    {t:"Lottie", d:"A lightweight JSON format for shipping vector animations to web and apps, often exported from After Effects.", a:["bodymovin","json animation"]},
+    {t:"Transition", d:"Motion that moves the interface between two states or screens."},
+    {t:"Choreography", d:"How multiple animated elements are timed and sequenced so a scene feels coordinated rather than chaotic."},
+    {t:"Dope sheet", d:"A compact timeline view focused on keyframe timing rather than value curves.", a:["dopesheet","exposure sheet"]}
+  ];
+  var input=document.getElementById("tsInput");
+  var results=document.getElementById("tsResults");
+  if(!input||!results) return;
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function hi(text,q){
+    var e=esc(text);
+    if(!q) return e;
+    var rx=new RegExp("("+q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+")","ig");
+    return e.replace(rx,"<mark>$1</mark>");
+  }
+  function render(raw){
+    var q=(raw||"").trim().toLowerCase();
+    if(!q){ results.innerHTML='<div class="ts-hint">'+TERMS.length+' terms in the glossary \u2014 start typing to search.</div>'; return; }
+    var matches=TERMS.filter(function(t){
+      var hay=(t.t+" "+t.d+" "+(t.a?t.a.join(" "):"")).toLowerCase();
+      return hay.indexOf(q)>=0;
+    });
+    matches.sort(function(a,b){
+      var ai=a.t.toLowerCase().indexOf(q), bi=b.t.toLowerCase().indexOf(q);
+      var ar=ai===0?0:(ai>=0?1:2), br=bi===0?0:(bi>=0?1:2);
+      if(ar!==br) return ar-br;
+      return a.t.localeCompare(b.t);
+    });
+    if(!matches.length){ results.innerHTML='<div class="ts-hint">No terms match \u201c'+esc(raw.trim())+'\u201d. Try a simpler word, or ask your question below.</div>'; return; }
+    results.innerHTML=matches.map(function(t){
+      return '<div class="ts-item"><div class="ts-term">'+hi(t.t,q)+'</div><div class="ts-def">'+hi(t.d,q)+'</div></div>';
+    }).join("");
+  }
+  input.addEventListener("input",function(){ render(input.value); });
+  render("");
 })();
 </script>
 </body>

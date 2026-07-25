@@ -159,6 +159,28 @@
   .bubble.thinking span:nth-child(3){animation-delay:.36s}
   @keyframes think{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
   @media (prefers-reduced-motion: reduce){ .msg.in{animation:none} .bubble.thinking span{animation:none;opacity:.5} }
+  .rs-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px}
+  .rs-overlay[hidden]{display:none}
+  .rs-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px)}
+  .rs-panel{position:relative;width:100%;max-width:460px;max-height:84vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:24px}
+  .rs-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:18px;line-height:1;cursor:pointer}
+  .rs-close:hover{color:var(--text)}
+  .rs-title{margin:0 0 4px;font-size:18px;font-weight:600;color:var(--text);padding-right:32px}
+  .rs-sub{margin:0 0 16px;font-size:13px;color:var(--faint)}
+  .rs-composer{display:flex;gap:8px}
+  .rs-composer input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:14px;font-family:var(--font);outline:none}
+  .rs-composer input:focus{border-color:var(--accent)}
+  .rs-results{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .rs-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+  .rs-item-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .rs-item-title{font-size:14px;font-weight:600;color:var(--text)}
+  .rs-item-meta{font-size:12px;color:var(--faint);margin-top:4px}
+  .rs-badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:999px;flex-shrink:0}
+  .rs-received{background:rgba(113,113,122,.25);color:#d4d4d8}
+  .rs-progress{background:rgba(245,158,11,.15);color:#fcd34d}
+  .rs-shipped{background:rgba(34,197,94,.15);color:#86efac}
+  .rs-declined{background:rgba(239,68,68,.15);color:#fca5a5}
+  .rs-hint{font-size:13px;color:var(--faint)}
 </style>
 </head>
 <body>
@@ -220,6 +242,10 @@
         </div>
       </div>
       <div class="btnrow">
+        <button class="btn" id="statusBtn" aria-haspopup="dialog" aria-label="Check a request's status">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Status
+        </button>
         <button class="btn" id="resetBtn" aria-label="Start the intake over">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
           Reset
@@ -327,7 +353,7 @@
     "Before we dive in \u2014 what\u2019s your name?",
     "First, let\u2019s introduce ourselves \u2014 what\u2019s your name?",
     "To start \u2014 who do I have the pleasure of working with?",
-    "Let\u2019s start with you \u2014 what should I call you?"
+    "Let\u2019s start with you \u2014 what\u2019s your name?"
   ]};
   var TEAM_STEP={key:"team",label:"Team",kind:"chips",options:["Brand","UX Delivery","UX Design","Other"],qs:[
     "Which team are you on?",
@@ -533,7 +559,7 @@
     var ok=await saveRequest(req);
     if(ok){
       compose.innerHTML="";
-      botSay("Thank you \u2014 your request is in, and Sean will follow up soon.", function(){
+      botSay("Thank you \u2014 your request is in (ref "+req.id.slice(0,8)+"), and Sean will follow up soon. You can check its status anytime with the Status button up top.", function(){
         compose.innerHTML='<div class="compose-actions"><button class="btn" id="againBtn">Start another request</button></div>';
         document.getElementById("againBtn").onclick=start;
       });
@@ -584,7 +610,8 @@
     {t:"Core concepts: keyframing, timelines, easing", cat:"learn", url:"learn.html#concepts", s:"Three core ideas that do most of the work in motion design.", kw:["concepts","core concepts","how it works","fundamentals"]},
     {t:"Ask a motion question (office hours)", cat:"learn", url:"learn.html#office-hours", s:"Post a question on Learn Motion and Sean answers it during office hours and the community of practice.", kw:["ask","question","office hours","community of practice","cop","help","q and a","qa","support"]},
     {t:"Book office hours (1:1)", cat:"learn", url:"learn.html#booktime", s:"Grab a weekly office-hours slot for a 1:1 \u2014 15 or 30 minutes on Wednesdays.", kw:["book","office hours","book time","1:1","one on one","slot","meeting","appointment","schedule","sign up","signup","time with sean","calendar"]},
-    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]}
+    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]},
+    {t:"Motion dictionary (look up a term)", cat:"learn", url:"learn.html#terms", s:"Search a glossary of 40+ motion terms and their plain-language definitions.", kw:["dictionary","glossary","define","definition","term","terms","look up","lookup","what is","meaning","vocabulary"]}
   ];
   var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
 
@@ -668,6 +695,56 @@
     input.value=b.getAttribute("data-q");
     render(input.value); input.focus();
   });
+})();
+</script>
+  <div class="rs-overlay" id="rsOverlay" hidden role="dialog" aria-modal="true" aria-label="Check request status">
+    <div class="rs-backdrop" id="rsBackdrop"></div>
+    <div class="rs-panel">
+      <button class="rs-close" id="rsClose" aria-label="Close">&times;</button>
+      <h2 class="rs-title">Check a request's status</h2>
+      <p class="rs-sub">Enter the name you submitted under, or your ref code.</p>
+      <div class="rs-composer">
+        <input id="rsInput" type="text" placeholder="e.g. your name" autocomplete="off" aria-label="Name or ref code" />
+        <button class="btn primary" id="rsGo">Check</button>
+      </div>
+      <div id="rsResults" class="rs-results" aria-live="polite"></div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var SYNC="/api/data", RKEY="motion-tracker:intakeRequests";
+  var btn=document.getElementById("statusBtn"), overlay=document.getElementById("rsOverlay");
+  if(!btn||!overlay) return;
+  var input=document.getElementById("rsInput"), results=document.getElementById("rsResults"), go=document.getElementById("rsGo");
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function openM(){ overlay.hidden=false; results.innerHTML='<div class="rs-hint">Type your name (or ref code) to look up your request.</div>'; setTimeout(function(){ if(input) input.focus(); },30); }
+  function closeM(){ overlay.hidden=true; }
+  btn.addEventListener("click",openM);
+  document.getElementById("rsClose").addEventListener("click",closeM);
+  document.getElementById("rsBackdrop").addEventListener("click",closeM);
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!overlay.hidden) closeM(); });
+  function badge(status){ var m={"Received":"rs-received","In progress":"rs-progress","Shipped":"rs-shipped","Declined":"rs-declined"}; return '<span class="rs-badge '+(m[status]||"rs-received")+'">'+esc(status)+'</span>'; }
+  function fmt(ts){ return ts? new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""; }
+  async function lookup(){
+    var q=(input.value||"").trim();
+    if(!q){ results.innerHTML='<div class="rs-hint">Type your name (or ref code) to look up your request.</div>'; return; }
+    results.innerHTML='<div class="rs-hint">Checking\u2026</div>';
+    var list=[];
+    try{ var r=await fetch(SYNC,{cache:"no-store"}); var j=await r.json(); list=(j&&j.data&&Array.isArray(j.data[RKEY]))?j.data[RKEY]:[]; }
+    catch(e){ results.innerHTML='<div class="rs-hint">Couldn\u2019t reach the server \u2014 try again in a moment.</div>'; return; }
+    var ql=q.toLowerCase();
+    var matches=list.filter(function(x){ if(!x) return false; var nm=(x.name||"").toLowerCase().indexOf(ql)>=0; var idm=String(x.id||"").toLowerCase().indexOf(ql)===0; return nm||idm; });
+    matches.sort(function(a,b){ return ((b&&b.createdAt)||0)-((a&&a.createdAt)||0); });
+    if(!matches.length){ results.innerHTML='<div class="rs-hint">No requests found for \u201c'+esc(q)+'\u201d. Double-check the spelling, or submit a new request.</div>'; return; }
+    results.innerHTML=matches.map(function(x){
+      var status=x.status||"Received";
+      var meta=[x.type, x.createdAt?("submitted "+fmt(x.createdAt)):""].filter(Boolean).join(" \u00b7 ");
+      return '<div class="rs-item"><div class="rs-item-top"><span class="rs-item-title">'+esc(x.title||"Untitled request")+'</span>'+badge(status)+'</div>'+(meta?'<div class="rs-item-meta">'+esc(meta)+'</div>':'')+'</div>';
+    }).join("");
+  }
+  go.addEventListener("click",lookup);
+  input.addEventListener("keydown",function(e){ if(e.key==="Enter") lookup(); });
 })();
 </script>
 </body>

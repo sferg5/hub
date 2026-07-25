@@ -115,6 +115,22 @@
   .hub-help{margin-top:36px;padding:28px;background:linear-gradient(155deg, rgba(34,197,94,.06), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:18px}
   .hub-help-title{margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-.01em}
   .hub-help-sub{margin:0 0 16px;color:var(--faint);font-size:13.5px}
+  .roadmap{margin:40px 0}
+  .rm-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .rm-title{margin:0 0 4px;font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+  .rm-sub{margin:0 0 20px;font-size:14px;color:var(--muted)}
+  .rm-group{margin-top:20px}
+  .rm-group-label{font-size:12px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+  .rm-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .rm-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column}
+  .rm-item-title{font-size:14px;font-weight:600;color:var(--text)}
+  .rm-item-type{font-size:12px;color:var(--faint);margin-top:4px}
+  .rm-badge{align-self:flex-start;margin-top:12px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+  .rm-progress{background:rgba(245,158,11,.15);color:#fcd34d}
+  .rm-shipped{background:rgba(34,197,94,.15);color:#86efac}
+  .rm-hint,.rm-empty{font-size:14px;color:var(--faint)}
+  .rm-empty a{color:var(--accent);text-decoration:none}
+  .rm-empty a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
@@ -232,6 +248,13 @@
       </div>
     </div>
 
+        <section class="roadmap" id="roadmap">
+      <div class="rm-eyebrow">In the works</div>
+      <h2 class="rm-title">What's moving right now</h2>
+      <p class="rm-sub">A live look at motion work in progress and recently shipped.</p>
+      <div id="rmContent"><div class="rm-hint">Loading…</div></div>
+    </section>
+
     <section class="hub-help" id="hub-help">
       <h3 class="hub-help-title">Looking for something? Ask the hub.</h3>
       <p class="hub-help-sub">Search across the hub in your own words — I'll point you to the right page.</p>
@@ -297,7 +320,8 @@
     {t:"Core concepts: keyframing, timelines, easing", cat:"learn", url:"learn.html#concepts", s:"Three core ideas that do most of the work in motion design.", kw:["concepts","core concepts","how it works","fundamentals"]},
     {t:"Ask a motion question (office hours)", cat:"learn", url:"learn.html#office-hours", s:"Post a question on Learn Motion and Sean answers it during office hours and the community of practice.", kw:["ask","question","office hours","community of practice","cop","help","q and a","qa","support"]},
     {t:"Book office hours (1:1)", cat:"learn", url:"learn.html#booktime", s:"Grab a weekly office-hours slot for a 1:1 \u2014 15 or 30 minutes on Wednesdays.", kw:["book","office hours","book time","1:1","one on one","slot","meeting","appointment","schedule","sign up","signup","time with sean","calendar"]},
-    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]}
+    {t:"Community of Practice (RSVP)", cat:"learn", url:"learn.html#booktime", s:"RSVP for the bi-weekly community of practice \u2014 a group session for the whole team.", kw:["community of practice","cop","rsvp","group session","book time","meeting","sign up","signup","team session","learn together"]},
+    {t:"Motion dictionary (look up a term)", cat:"learn", url:"learn.html#terms", s:"Search a glossary of 40+ motion terms and their plain-language definitions.", kw:["dictionary","glossary","define","definition","term","terms","look up","lookup","what is","meaning","vocabulary"]}
   ];
   var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
 
@@ -370,5 +394,40 @@
 })();
 </script>
 
+<script>
+(function(){
+  "use strict";
+  var SYNC="/api/data", RKEY="motion-tracker:intakeRequests";
+  var el=document.getElementById("rmContent");
+  if(!el) return;
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function item(x,cls,label){
+    return '<div class="rm-item"><div class="rm-item-title">'+esc(x.title||"Motion work")+'</div>'+
+      (x.type?'<div class="rm-item-type">'+esc(x.type)+'</div>':'')+
+      '<span class="rm-badge '+cls+'">'+label+'</span></div>';
+  }
+  function render(list){
+    var inProg=list.filter(function(x){return x&&x.status==="In progress";});
+    var shipped=list.filter(function(x){return x&&x.status==="Shipped";})
+      .sort(function(a,b){return (((b&&(b.statusAt||b.createdAt))||0))-(((a&&(a.statusAt||a.createdAt))||0));})
+      .slice(0,6);
+    if(!inProg.length && !shipped.length){
+      el.innerHTML='<div class="rm-empty">Nothing in flight at the moment. <a href="intake.html">Submit a request</a> to get something moving.</div>';
+      return;
+    }
+    var html="";
+    if(inProg.length){ html+='<div class="rm-group"><div class="rm-group-label">In progress</div><div class="rm-items">'+inProg.map(function(x){return item(x,"rm-progress","In progress");}).join("")+'</div></div>'; }
+    if(shipped.length){ html+='<div class="rm-group"><div class="rm-group-label">Recently shipped</div><div class="rm-items">'+shipped.map(function(x){return item(x,"rm-shipped","Shipped");}).join("")+'</div></div>'; }
+    el.innerHTML=html;
+  }
+  async function load(){
+    try{ var r=await fetch(SYNC,{cache:"no-store"}); var j=await r.json(); render((j&&j.data&&Array.isArray(j.data[RKEY]))?j.data[RKEY]:[]); }
+    catch(e){ el.innerHTML='<div class="rm-hint">Couldn\u2019t load the roadmap right now.</div>'; }
+  }
+  load();
+  setInterval(load, 60000);
+  window.addEventListener("focus", load);
+})();
+</script>
 </body>
 </html>
