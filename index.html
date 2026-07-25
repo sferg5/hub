@@ -1903,7 +1903,7 @@ function MotionTracker() {
   return React.createElement("div", {
     className: "min-h-screen bg-zinc-950 text-zinc-100 px-4 pb-16 max-w-[1400px] mx-auto"
   }, React.createElement("div", {
-    className: "w-full max-w-[1400px] mx-auto"
+    className: "dash-inner w-full max-w-[1400px] mx-auto"
   }, React.createElement("header", {
     className: "sticky top-0 z-30 bg-zinc-950 -mx-4 px-4 pt-5 pb-4 mb-5"
   }, React.createElement("div", {
@@ -8981,7 +8981,7 @@ function IntakeModal({
   }
 })();
   </script>
-<style>@media (prefers-reduced-motion: no-preference){body{animation:pageFade .3s ease both}body.leaving{animation:none;opacity:0;transition:opacity .18s ease}}@keyframes pageFade{from{opacity:0}to{opacity:1}}</style><script>
+<style>@media (prefers-reduced-motion: no-preference){.dash-inner > *:not(header){animation:pageFade .3s ease both}body.leaving .dash-inner > *:not(header){animation:none;opacity:0;transition:opacity .16s ease}}@keyframes pageFade{from{opacity:0}to{opacity:1}}</style><script>
 (function(){
   document.addEventListener("click",function(e){
     var a=e.target && e.target.closest ? e.target.closest("a[href]") : null;

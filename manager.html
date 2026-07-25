@@ -170,8 +170,8 @@
   .search-empty{color:var(--muted);font-size:13.5px;margin:2px 0}
   @media (prefers-reduced-motion: no-preference){ .hs-result{transition:border-color .16s ease,transform .16s ease} .hs-result:hover{transform:translateY(-1px)} }
   @media (prefers-reduced-motion: no-preference){
-    body{animation:pageFade .3s ease both}
-    body.leaving{animation:none;opacity:0;transition:opacity .18s ease}
+    [role="main"]{animation:pageFade .3s ease both}
+    body.leaving [role="main"]{animation:none;opacity:0;transition:opacity .16s ease}
   }
   @keyframes pageFade{from{opacity:0}to{opacity:1}}
 </style>
