@@ -109,6 +109,24 @@
     body.leaving [role="main"]{animation:none;opacity:0;transition:opacity .16s ease}
   }
   @keyframes pageFade{from{opacity:0}to{opacity:1}}
+  #trafficSection h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:20px 0 8px;font-weight:600}
+  #trafficSection .thint{font-size:12.5px;color:var(--faint);margin:0 0 14px}
+  .ttotal{display:inline-flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin-bottom:4px}
+  .ttotal .tk{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .ttotal .tv{font-size:30px;font-weight:700;color:var(--accent);line-height:1}
+  .tbars{display:flex;flex-direction:column;gap:7px}
+  .tbar{display:flex;align-items:center;gap:10px}
+  .tlbl{width:150px;flex-shrink:0;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ttrack{flex:1;height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .tfill{height:100%;background:var(--accent)}
+  .tn{width:40px;text-align:right;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
+  .tcols{display:flex;align-items:flex-end;gap:5px;height:92px;margin-top:4px}
+  .tcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+  .tcb{width:100%;background:var(--accent);border-radius:3px 3px 0 0}
+  .tcn{font-size:10px;color:var(--muted);height:12px}
+  .tcd{font-size:9px;color:var(--faint)}
+  .tbtn{margin-top:16px;background:var(--surface);border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
+  .tbtn:hover{border-color:var(--line2);color:var(--text)}
 </style>
 </head>
 <body>
@@ -246,6 +264,13 @@
   <div class="wrap" role="main">
 
     <div class="grid" id="stats"></div>
+
+    <section id="trafficSection">
+      <h2>Site traffic</h2>
+      <p class="thint">Page views across the public pages, counted once per visitor session per page. A lightweight tally — not unique visitors.</p>
+      <div id="trafficBody"><div class="empty">Loading…</div></div>
+    </section>
+
 
     <section>
       <h2>Backup</h2>
@@ -461,6 +486,45 @@
     setTimeout(function(){ location.href=a.href; }, 170);
   });
   window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
+})();
+</script>
+<script>
+(function(){
+  var el=document.getElementById("trafficBody"); if(!el) return;
+  var LABELS={ "about.html":"Motion Hub", "intake.html":"Motion Intake", "library.html":"Motion Library", "tools.html":"Motion Tools", "learn.html":"Learn Motion", "flows.html":"User Flow Template", "accessibility.html":"Motion Accessibility", "formats.html":"Formats & Frameworks", "index.html":"Dashboard" };
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function dayKey(d){ return d.toISOString().slice(0,10); }
+  function fmtDay(iso){ var p=iso.split("-"); return (+p[1])+"/"+(+p[2]); }
+  function render(t){
+    if(!t || !t.total){ el.innerHTML='<div class="empty">No visits recorded yet.</div>'; return; }
+    var pages=Object.keys(t.pages||{}).map(function(k){return {k:k,n:t.pages[k]||0};}).sort(function(a,b){return b.n-a.n;});
+    var maxP=Math.max.apply(null,[1].concat(pages.map(function(x){return x.n;})));
+    var days=[]; var today=new Date();
+    for(var i=13;i>=0;i--){ var d=new Date(today); d.setDate(today.getDate()-i); var iso=dayKey(d); days.push({iso:iso,n:(t.days&&t.days[iso])||0}); }
+    var maxD=Math.max.apply(null,[1].concat(days.map(function(x){return x.n;})));
+    var html='<div class="ttotal"><span class="tk">Total page views</span><span class="tv">'+t.total+'</span></div>';
+    html+='<h3>By page</h3><div class="tbars">'+pages.map(function(x){var pct=Math.round(x.n/maxP*100); return '<div class="tbar"><span class="tlbl">'+esc(LABELS[x.k]||x.k)+'</span><span class="ttrack"><span class="tfill" style="display:block;width:'+pct+'%"></span></span><span class="tn">'+x.n+'</span></div>';}).join("")+'</div>';
+    html+='<h3>Last 14 days</h3><div class="tcols">'+days.map(function(x){var hgt=x.n?Math.round(x.n/maxD*62)+4:2; return '<div class="tcol"><span class="tcn">'+(x.n||"")+'</span><span class="tcb" style="display:block;height:'+hgt+'px;opacity:'+(x.n?1:.3)+'"></span><span class="tcd">'+fmtDay(x.iso)+'</span></div>';}).join("")+'</div>';
+    if(t.updatedAt){ html+='<p class="thint" style="margin-top:14px">Most recent view: '+new Date(t.updatedAt).toLocaleString()+'</p>'; }
+    html+='<button class="tbtn" type="button" id="trafficReset">Reset traffic counts</button>';
+    el.innerHTML=html;
+    var rb=document.getElementById("trafficReset"); if(rb) rb.addEventListener("click",resetTraffic);
+  }
+  async function load(){
+    try{ var r=await fetch("/api/data",{cache:"no-store"}); var s=await r.json(); render((s&&s.data&&s.data["motion-tracker:traffic"])||null); }
+    catch(e){ el.innerHTML='<div class="empty">Couldn\u2019t load traffic right now.</div>'; }
+  }
+  async function resetTraffic(){
+    if(!window.confirm("Reset all traffic counts to zero? This can\u2019t be undone.")) return;
+    try{
+      var r=await fetch("/api/data",{cache:"no-store"}); var s=await r.json();
+      if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
+      s.data["motion-tracker:traffic"]={total:0,pages:{},days:{},updatedAt:Date.now()}; s.updatedAt=Date.now();
+      await fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
+      load();
+    }catch(e){}
+  }
+  load();
 })();
 </script>
 </body>

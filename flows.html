@@ -1018,5 +1018,27 @@
   window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
 })();
 </script>
+<script>
+(function(){
+  try{
+    var page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
+    if(!/\.html$/.test(page)) page="index.html";
+    var sk="mh-traffic-seen:"+page;
+    if(sessionStorage.getItem(sk)) return;
+    sessionStorage.setItem(sk,"1");
+    var day=new Date().toISOString().slice(0,10);
+    fetch("/api/data",{cache:"no-store"}).then(function(r){return r.json();}).then(function(s){
+      if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
+      var t=s.data["motion-tracker:traffic"]; if(!t||typeof t!=="object")t={};
+      if(typeof t.total!=="number")t.total=0;
+      if(!t.pages||typeof t.pages!=="object")t.pages={};
+      if(!t.days||typeof t.days!=="object")t.days={};
+      t.total++; t.pages[page]=(t.pages[page]||0)+1; t.days[day]=(t.days[day]||0)+1; t.updatedAt=Date.now();
+      s.data["motion-tracker:traffic"]=t; s.updatedAt=Date.now();
+      fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

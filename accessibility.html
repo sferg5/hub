@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>Motion Accessibility</title>
+<meta name="description" content="An interactive checklist for auditing motion against WCAG and Apple Human Interface Guidelines." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Motion Specialist Hub" />
+<meta property="og:title" content="Motion Accessibility" />
+<meta property="og:description" content="Audit an animation against WCAG and Apple HIG accessibility guidelines, then export a report." />
+<meta property="og:url" content="https://hub-mospec.vercel.app/accessibility.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Motion Accessibility" />
+<meta name="twitter:description" content="Audit an animation against WCAG and Apple HIG accessibility guidelines, then export a report." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><circle cx='50' cy='50' r='24' fill='none' stroke='%2322c55e' stroke-width='8'/></svg>" />
+<style>
+  :root{
+    --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#8a8a92; --accent:#22c55e; --accent-dim:rgba(34,197,94,0.14);
+    --rose:#fb7185; --amber:#fbbf24;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 72px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0}
+  a{color:inherit}
+
+  /* header */
+  header{position:sticky;top:0;z-index:40;background:var(--bg);margin-bottom:24px}
+  .hbar{max-width:1100px;margin:0 auto;padding:20px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .hleft{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .titlerow{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
+  .brand{height:26px;width:26px;flex-shrink:0;display:block}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.5;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:#d4d4d8;transition:border-color .14s ease,color .14s ease}
+  .btn:hover{border-color:var(--line2);color:var(--text)}
+  .btn.primary{background:var(--accent);color:#052e16;border-color:var(--accent);padding:8px 16px}
+  .btn.primary:hover{background:#4ade80;border-color:#4ade80}
+  .savebar{font-size:12px;color:var(--faint);min-width:60px}
+  .savebar.ok{color:var(--accent)}
+  .savebar.err{color:var(--rose)}
+
+  /* nav */
+  .navwrap{position:relative;flex-shrink:0}
+  .hamb{display:flex;align-items:center;justify-content:center;padding:8px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s,color .14s}
+  .hamb:hover{border-color:var(--line2);color:var(--text)}
+  .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden;z-index:60}
+  .navmenu[hidden]{display:none}
+  .navmenu:not([hidden]){animation:navPop .16s cubic-bezier(.2,.7,.2,1);transform-origin:top left}
+  @keyframes navPop{from{opacity:0;transform:scale(.98) translateY(-4px)}to{opacity:1;transform:none}}
+  .navitem{display:flex;align-items:center;gap:12px;padding:12px 12px;text-decoration:none;color:var(--text);transition:background .14s;font-size:13.5px}
+  .navitem:hover{background:var(--surface)}
+  .navitem .ni-txt{min-width:0;flex:1;display:flex;flex-direction:column}
+  .navitem .ni-lbl{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navitem .ni-ext{color:var(--faint);flex-shrink:0;transition:transform .16s ease}
+  .navitem:hover .ni-ext{transform:translate(2px,-2px)}
+
+  /* tool */
+  .intro{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:70ch}
+  .meta{background:linear-gradient(155deg, rgba(34,197,94,.06), transparent 55%), var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:24px}
+  .meta label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .meta input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font-size:15px;font-family:var(--font);outline:none}
+  .meta input:focus{border-color:var(--accent)}
+  .score{display:flex;align-items:center;gap:16px;margin-top:16px;flex-wrap:wrap}
+  .progwrap{flex:1;min-width:180px}
+  .progbar{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .progfill{height:100%;background:var(--accent);width:0%;transition:width .3s ease}
+  .scorepills{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+  .scorepill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+  .scorepill b{color:var(--text)}
+  .dotp{width:8px;height:8px;border-radius:50%}
+  .sec-title{display:flex;align-items:baseline;gap:10px;margin:32px 0 12px}
+  .sec-title h2{font-size:15px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .sec-title span{font-size:12px;color:var(--faint)}
+  .glist{display:grid;gap:8px}
+  .gcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px}
+  .gcard.done{border-color:rgba(34,197,94,.35)}
+  .gcard.warn{border-color:rgba(251,191,36,.35)}
+  .gcard.na{opacity:.62}
+  .ghead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-bottom:0}
+  .ghead-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+  .gtitle{font-size:15px;font-weight:600}
+  .lvl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:2px 7px;border-radius:6px;border:1px solid var(--line2);color:var(--muted)}
+  .lvl.a{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#86efac}
+  .lvl.aaa{background:rgba(96,165,250,.14);border-color:rgba(96,165,250,.4);color:#93c5fd}
+  .cite{font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .gdesc{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.45}
+  .status-row{display:flex;gap:6px;flex-wrap:wrap}
+  .schip{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;transition:border-color .14s,color .14s,background .14s;font-family:var(--font)}
+  .noterow{margin-top:8px}
+  .notetoggle{background:none;border:none;color:var(--faint);font-size:12px;cursor:pointer;padding:0;font-family:var(--font)}
+  .notetoggle:hover{color:var(--accent)}
+  .note.hidden{display:none}
+  .note{margin-top:6px}
+  .schip:hover{border-color:var(--line2);color:var(--text)}
+  .schip.on[data-v="pass"]{background:rgba(34,197,94,.16);border-color:var(--accent);color:#86efac}
+  .schip.on[data-v="warn"]{background:rgba(251,191,36,.16);border-color:var(--amber);color:#fcd34d}
+  .schip.on[data-v="na"]{background:var(--panel);border-color:var(--line2);color:var(--text)}
+  .note{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:var(--font);resize:vertical;min-height:38px;outline:none}
+  .note:focus{border-color:var(--accent)}
+
+  .rmdemo{background:var(--surface);border:1px dashed var(--line2);border-radius:14px;padding:16px 18px;margin:24px 0 8px}
+  .rmdemo h3{font-size:13px;margin:0 0 8px;font-weight:600}
+  .rmtrack{position:relative;height:34px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:8px}
+  .rmdot{position:absolute;top:50%;left:8px;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--accent);animation:rmmove 2s ease-in-out infinite alternate}
+  @keyframes rmmove{from{left:8px}to{left:calc(100% - 22px)}}
+  .rmnote{font-size:12.5px;color:var(--muted);margin:0}
+  .rmstate{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted)}
+  @media (prefers-reduced-motion: reduce){
+    .rmdot{animation:none}
+    .navmenu:not([hidden]){animation:none}
+  }
+
+  /* page transition (content only) */
+  @media (prefers-reduced-motion: no-preference){
+    [role="main"]{animation:pageFade .3s ease both}
+    body.leaving [role="main"]{animation:none;opacity:0;transition:opacity .16s ease}
+  }
+  @keyframes pageFade{from{opacity:0}to{opacity:1}}
+
+  /* print */
+  @media print{
+    header,.btnrow,.hamb,.navmenu,.rmdemo,.intro{display:none !important}
+    body{padding:0}
+    .schip{display:none}
+    .schip.on{display:inline-flex}
+    .gcard{break-inside:avoid;border-color:#999}
+    .note{border:none;padding:0}
+    .meta{border:none;background:none;padding:0}
+    *{color:#000 !important}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="hbar">
+      <div class="hleft">
+        <div class="titlerow">
+          <div class="navwrap" id="navwrap">
+            <button class="hamb" id="navBtn" aria-label="Menu" aria-expanded="false" aria-haspopup="true">
+              <svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div class="navmenu" id="navMenu" role="menu" hidden>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/about.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span class="ni-txt"><span class="ni-lbl">Motion Hub</span></span><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/intake.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="ni-txt"><span class="ni-lbl">Motion Intake</span></span><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/library.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="ni-txt"><span class="ni-lbl">Motion Library</span></span><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/tools.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg><span class="ni-txt"><span class="ni-lbl">Motion Tools</span></span><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/learn.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V16c1.8 1.4 4 2 6 2s4.2-.6 6-2v-4.5"/></svg><span class="ni-txt"><span class="ni-lbl">Learn Motion</span></span><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/manager.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><span class="ni-txt"><span class="ni-lbl">Specialist Status</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-label="Password protected"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/index.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="ni-txt"><span class="ni-lbl">Dashboard</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-label="Password protected"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+              <a class="navitem" role="menuitem" href="https://hub-mospec.vercel.app/data.html"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg><span class="ni-txt"><span class="ni-lbl">Data Manager</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-label="Password protected"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><svg aria-hidden="true" focusable="false" class="ni-ext" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+            </div>
+          </div>
+          <svg class="brand" width="26" height="26" viewBox="0 0 216 216" fill="#ffffff" role="img" aria-label="lululemon"><path fill-rule="nonzero" d="M 148.414062 174.613281 C 129.636719 174.613281 114.414062 159.34375 114.414062 140.507812 C 114.414062 133.796875 116.84375 127.855469 119.144531 121.6875 C 120.773438 117.316406 122.402344 112.945312 124.019531 108.566406 C 127.824219 98.242188 131.480469 87.660156 133.164062 76.742188 C 134.503906 68.082031 134.351562 57.539062 127.777344 50.902344 C 122.75 45.828125 114.964844 44.699219 108 44.660156 C 101.03125 44.699219 93.25 45.828125 88.21875 50.902344 C 81.648438 57.539062 81.492188 68.082031 82.832031 76.742188 C 84.519531 87.660156 88.171875 98.242188 91.980469 108.566406 C 93.59375 112.945312 95.222656 117.316406 96.851562 121.6875 C 99.152344 127.855469 101.585938 133.796875 101.585938 140.507812 C 101.585938 159.34375 86.363281 174.613281 67.582031 174.613281 C 53.277344 174.613281 41.058594 165.738281 36.039062 153.191406 C 39.996094 156.816406 45.246094 159.042969 51.03125 159.042969 C 57.800781 159.042969 64.3125 155.871094 68.511719 150.542969 C 73.273438 144.5 74.292969 136.261719 72.257812 128.9375 C 70.03125 120.929688 65.195312 114.433594 61.316406 106.996094 C 48.710938 85.457031 49.222656 69.355469 49.222656 69.355469 C 49.222656 68.351562 49.25 67.351562 49.3125 66.355469 C 49.394531 65.027344 49.535156 63.703125 49.746094 62.386719 C 49.941406 61.152344 50.195312 59.925781 50.519531 58.714844 C 50.832031 57.566406 51.195312 56.433594 51.628906 55.324219 C 52.046875 54.257812 52.523438 53.21875 53.058594 52.207031 C 53.582031 51.222656 54.160156 50.269531 54.792969 49.355469 C 55.421875 48.449219 56.101562 47.582031 56.828125 46.753906 C 57.554688 45.925781 58.328125 45.140625 59.140625 44.398438 C 59.964844 43.648438 60.832031 42.945312 61.726562 42.28125 C 62.644531 41.605469 63.597656 40.972656 64.570312 40.386719 C 65.578125 39.78125 66.609375 39.222656 67.664062 38.707031 C 68.753906 38.175781 69.863281 37.6875 70.988281 37.238281 C 72.15625 36.773438 73.339844 36.347656 74.539062 35.964844 C 75.777344 35.566406 77.03125 35.203125 78.292969 34.878906 C 79.605469 34.542969 80.921875 34.242188 82.25 33.972656 C 83.621094 33.695312 85.003906 33.453125 86.386719 33.234375 C 87.820312 33.011719 89.261719 32.820312 90.703125 32.65625 C 92.191406 32.488281 93.683594 32.34375 95.175781 32.226562 C 96.714844 32.109375 98.257812 32.011719 99.796875 31.941406 C 101.386719 31.867188 102.972656 31.816406 104.558594 31.785156 C 106.449219 31.75 108.34375 31.742188 110.238281 31.765625 C 111.832031 31.785156 113.429688 31.828125 115.019531 31.890625 C 116.574219 31.953125 118.121094 32.035156 119.671875 32.144531 C 121.175781 32.25 122.675781 32.378906 124.175781 32.535156 C 125.628906 32.6875 127.078125 32.863281 128.523438 33.070312 C 129.917969 33.273438 131.3125 33.503906 132.699219 33.765625 C 134.039062 34.019531 135.371094 34.304688 136.695312 34.625 C 137.972656 34.9375 139.242188 35.28125 140.5 35.664062 C 141.710938 36.03125 142.914062 36.4375 144.097656 36.882812 C 145.238281 37.316406 146.371094 37.785156 147.476562 38.300781 C 148.546875 38.796875 149.601562 39.332031 150.625 39.917969 C 151.621094 40.484375 152.59375 41.09375 153.53125 41.75 C 154.449219 42.390625 155.335938 43.074219 156.183594 43.804688 C 157.019531 44.523438 157.816406 45.285156 158.566406 46.089844 C 159.320312 46.890625 160.023438 47.734375 160.675781 48.617188 C 161.332031 49.507812 161.941406 50.433594 162.488281 51.394531 C 163.054688 52.375 163.558594 53.390625 164.003906 54.433594 C 164.464844 55.511719 164.863281 56.617188 165.203125 57.742188 C 165.554688 58.917969 165.84375 60.117188 166.070312 61.324219 C 166.308594 62.609375 166.484375 63.902344 166.597656 65.203125 C 166.722656 66.585938 166.734375 67.964844 166.777344 69.355469 C 166.777344 69.355469 167.289062 85.457031 154.683594 106.996094 C 150.800781 114.433594 145.964844 120.929688 143.738281 128.9375 C 141.707031 136.261719 142.726562 144.5 147.488281 150.542969 C 151.683594 155.871094 158.195312 159.042969 164.96875 159.042969 C 170.753906 159.042969 176.003906 156.816406 179.960938 153.191406 C 174.9375 165.738281 162.71875 174.613281 148.414062 174.613281 M 108 4.636719 C 50.914062 4.636719 4.636719 50.914062 4.636719 108 C 4.636719 165.085938 50.914062 211.363281 108 211.363281 C 165.085938 211.363281 211.363281 165.085938 211.363281 108 C 211.363281 50.914062 165.085938 4.636719 108 4.636719 "/></svg>
+          <h1>Motion Accessibility</h1>
+        </div>
+      </div>
+      <div class="btnrow">
+        <span class="savebar" id="saveBar"></span>
+        <button class="btn" type="button" id="resetBtn">Reset</button>
+        <button class="btn primary" type="button" id="printBtn">Print report</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap" role="main">
+    <p class="intro">Audit an animation against the essentials from WCAG and Apple’s HIG. Tap a status on each guideline — it saves as you go. Print a clean report when you’re done.</p>
+
+    <div class="meta">
+      <label for="animName">Animation / project being reviewed</label>
+      <input id="animName" type="text" placeholder="e.g. Home hero loop, Add-to-bag confirmation, onboarding transition" autocomplete="off" />
+      <div class="score">
+        <div class="progwrap">
+          <div class="progbar"><div class="progfill" id="progFill"></div></div>
+        </div>
+        <div class="scorepills" id="scorePills"></div>
+      </div>
+    </div>
+
+    <div class="rmdemo">
+      <h3>Reduced-motion, live</h3>
+      <div class="rmtrack"><span class="rmdot"></span></div>
+      <p class="rmnote">This dot animates only when motion is allowed. Your device currently reports: <span class="rmstate" id="rmState">checking…</span>. Building with <code>prefers-reduced-motion</code> means this kind of motion pauses for people who ask for less of it.</p>
+    </div>
+
+    <div id="sections"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var SYNC="/api/data", KEY="motion-tracker:a11yAudit";
+
+  var GUIDELINES=[
+    { group:"WCAG", note:"Web Content Accessibility Guidelines", items:[
+      { id:"pause", title:"Pause, Stop, Hide", lvl:"A", cite:"WCAG 2.2.2", desc:"If motion starts on its own, lasts longer than five seconds, or plays next to other content, give people a clear way to pause, stop, or hide it." },
+      { id:"flash", title:"Three Flashes or Below Threshold", lvl:"A", cite:"WCAG 2.3.1", desc:"Nothing should flash more than three times in a single second \u2014 it can trigger seizures. If flashing is truly unavoidable, warn people first." },
+      { id:"interact", title:"Animation from Interactions", lvl:"AAA", cite:"WCAG 2.3.3", desc:"Let people switch off non-essential motion triggered by their actions (parallax, animated dropdowns) unless the motion is essential to the function or the information." },
+      { id:"alt", title:"Alternative Text for Animated Images", lvl:"A", cite:"WCAG 1.1.1", desc:"When an animation carries meaning (a loading state, a status change), give it descriptive alt text; for complex informative motion, add a longer text description too." },
+      { id:"independent", title:"Content Not Dependent on Animation", lvl:"A", cite:"WCAG 1.1.1", desc:"Every essential piece of information and function must still come across with animations turned off. Never rely on motion alone to communicate something important." },
+      { id:"reduced", title:"Reduced-Motion Preference", lvl:"", cite:"prefers-reduced-motion", desc:"Detect the reduced-motion setting (the prefers-reduced-motion media query on web, or the platform API) and scale motion back accordingly." },
+      { id:"nesting", title:"Avoid Nesting Content in Animation", lvl:"", cite:"WCAG Principle 1 & 2", desc:"Don't bury important content inside an animation where people get only a moment to read and understand it." },
+      { id:"control", title:"User Control", lvl:"", cite:"WCAG 2.2", desc:"Give people control over motion where you can \u2014 play/pause on longer animations, and a way to turn off non-essential movement." },
+      { id:"consistency", title:"Consistency", lvl:"", cite:"WCAG (predictability)", desc:"Use motion consistently across the experience so people can build a reliable mental model of how the interface behaves." }
+    ]},
+    { group:"Apple HIG", note:"Human Interface Guidelines \u00b7 Motion", items:[
+      { id:"purpose", title:"Purposefulness", lvl:"", cite:"HIG", desc:"Every animation should earn its place \u2014 feedback, guidance, or a transition. Skip motion that only decorates." },
+      { id:"optional", title:"Optionality", lvl:"", cite:"HIG", desc:"Automatic, long, or ambient animations should be pausable, stoppable, or hideable, mirroring the WCAG requirement." },
+      { id:"realism", title:"Realism & Expectations", lvl:"", cite:"HIG", desc:"Feedback motion should follow the user's gesture and match expectations. Avoid unexpected or illogical movement that disorients." },
+      { id:"brevity", title:"Brevity & Precision", lvl:"", cite:"HIG", desc:"Keep feedback quick and precise. Short, subtle motion feels lightweight and usually works best." },
+      { id:"performance", title:"Performance", lvl:"", cite:"HIG", desc:"Make sure motion runs smoothly and holds a steady frame rate on the devices people actually use." },
+      { id:"frequency", title:"Frequency", lvl:"", cite:"HIG", desc:"Go easy on motion for frequent, routine interactions \u2014 the system already animates standard elements, and piling on more grows tiring." },
+      { id:"cancel", title:"Cancellability", lvl:"", cite:"HIG", desc:"Let people interrupt or cancel an animation, especially if it's long or happens over and over." },
+      { id:"peripheral", title:"Peripheral Vision", lvl:"", cite:"HIG", desc:"Avoid large or busy motion at the edges of the screen, where it's most likely to distract." },
+      { id:"symbols", title:"Animated Symbols", lvl:"", cite:"HIG", desc:"Where it fits, reach for built-in animated SF Symbols (iOS 17 and later) rather than rebuilding common motion by hand." }
+    ]}
+  ];
+  var ALL_IDS=[]; GUIDELINES.forEach(function(g){ g.items.forEach(function(it){ ALL_IDS.push(it.id); }); });
+
+  var STATE={ name:"", items:{} };
+  ALL_IDS.forEach(function(id){ STATE.items[id]={status:"",note:""}; });
+
+  var nameEl=document.getElementById("animName");
+  var sectionsEl=document.getElementById("sections");
+  var saveBar=document.getElementById("saveBar");
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  function statusChips(id){
+    var opts=[["pass","Pass"],["warn","Needs work"],["na","N/A"]];
+    var cur=(STATE.items[id]||{}).status||"";
+    return opts.map(function(o){
+      return '<button type="button" class="schip'+(cur===o[0]?" on":"")+'" data-id="'+id+'" data-v="'+o[0]+'">'+o[1]+'</button>';
+    }).join("");
+  }
+
+  function render(){
+    sectionsEl.innerHTML=GUIDELINES.map(function(g){
+      var cards=g.items.map(function(it){
+        var st=(STATE.items[it.id]||{});
+        var cls=st.status==="pass"?"done":st.status==="warn"?"warn":st.status==="na"?"na":"";
+        var lvl=it.lvl?'<span class="lvl '+it.lvl.toLowerCase()+'">Level '+it.lvl+'</span>':"";
+        return '<div class="gcard '+cls+'" data-card="'+it.id+'">'+
+          '<div class="ghead">'+
+            '<div class="ghead-left"><span class="gtitle">'+esc(it.title)+'</span>'+lvl+'<span class="cite">'+esc(it.cite)+'</span></div>'+
+            '<div class="status-row">'+statusChips(it.id)+'</div>'+
+          '</div>'+
+          '<p class="gdesc">'+esc(it.desc)+'</p>'+
+          '<div class="noterow">'+
+            '<button type="button" class="notetoggle" data-id="'+it.id+'">'+(st.note?"Edit note":"+ Add note")+'</button>'+
+            '<textarea class="note'+(st.note?"":" hidden")+'" data-id="'+it.id+'" placeholder="Notes on this animation\u2026">'+esc(st.note||"")+'</textarea>'+
+          '</div>'+
+          '</div>';
+      }).join("");
+      return '<div class="sec-title"><h2>'+esc(g.group)+'</h2><span>'+esc(g.note)+'</span></div><div class="glist">'+cards+'</div>';
+    }).join("");
+    wire();
+    updateScore();
+  }
+
+  function wire(){
+    Array.prototype.forEach.call(sectionsEl.querySelectorAll(".schip"),function(b){
+      b.addEventListener("click",function(){
+        var id=b.getAttribute("data-id"), v=b.getAttribute("data-v");
+        var cur=(STATE.items[id]||{}).status||"";
+        STATE.items[id]=STATE.items[id]||{status:"",note:""};
+        STATE.items[id].status = (cur===v)?"":v;   // toggle off if same
+        // update chips in this card
+        var card=sectionsEl.querySelector('[data-card="'+id+'"]');
+        Array.prototype.forEach.call(card.querySelectorAll(".schip"),function(c){ c.classList.toggle("on", c.getAttribute("data-v")===STATE.items[id].status); });
+        card.className="gcard "+(STATE.items[id].status==="pass"?"done":STATE.items[id].status==="warn"?"warn":STATE.items[id].status==="na"?"na":"");
+        card.setAttribute("data-card",id);
+        updateScore(); scheduleSave();
+      });
+    });
+    Array.prototype.forEach.call(sectionsEl.querySelectorAll(".notetoggle"),function(b){
+      b.addEventListener("click",function(){
+        var id=b.getAttribute("data-id");
+        var card=sectionsEl.querySelector('[data-card="'+id+'"]');
+        var ta=card.querySelector(".note");
+        ta.classList.toggle("hidden");
+        if(!ta.classList.contains("hidden")){ ta.focus(); b.textContent="Hide note"; }
+        else { b.textContent = ta.value ? "Edit note" : "+ Add note"; }
+      });
+    });
+    Array.prototype.forEach.call(sectionsEl.querySelectorAll(".note"),function(t){
+      t.addEventListener("input",function(){
+        var id=t.getAttribute("data-id");
+        STATE.items[id]=STATE.items[id]||{status:"",note:""};
+        STATE.items[id].note=t.value;
+        scheduleSave();
+      });
+    });
+  }
+
+  function updateScore(){
+    var pass=0,warn=0,na=0,todo=0;
+    ALL_IDS.forEach(function(id){
+      var s=(STATE.items[id]||{}).status||"";
+      if(s==="pass")pass++; else if(s==="warn")warn++; else if(s==="na")na++; else todo++;
+    });
+    var scored=ALL_IDS.length-na;
+    var pct=scored>0?Math.round((pass/scored)*100):0;
+    document.getElementById("progFill").style.width=pct+"%";
+    var pills=[
+      ['<span class="dotp" style="background:var(--accent)"></span>','<b>'+pass+'</b> pass'],
+      ['<span class="dotp" style="background:var(--amber)"></span>','<b>'+warn+'</b> need work'],
+      ['<span class="dotp" style="background:var(--line2)"></span>','<b>'+na+'</b> n/a'],
+      ['<span class="dotp" style="background:var(--faint)"></span>','<b>'+todo+'</b> unreviewed']
+    ];
+    document.getElementById("scorePills").innerHTML=pills.map(function(p){return '<span class="scorepill">'+p[0]+p[1]+'</span>';}).join("")+
+      '<span class="scorepill" style="border-color:var(--accent);color:#86efac">'+pct+'% compliant</span>';
+  }
+
+  // ---- persistence (shared store, read-modify-write one key) ----
+  var saveTimer=null, saving=false;
+  function setBar(txt,cls){ saveBar.textContent=txt; saveBar.className="savebar"+(cls?" "+cls:""); }
+  function scheduleSave(){ if(saveTimer) clearTimeout(saveTimer); setBar("Saving\u2026"); saveTimer=setTimeout(save,700); }
+  async function save(){
+    if(saving){ scheduleSave(); return; }
+    saving=true;
+    try{
+      var r=await fetch(SYNC,{cache:"no-store"}); var snap=await r.json();
+      if(!snap||typeof snap!=="object") snap={};
+      if(!snap.data||typeof snap.data!=="object") snap.data={};
+      STATE.name=nameEl.value||"";
+      snap.data[KEY]={ name:STATE.name, items:STATE.items, updatedAt:Date.now() };
+      snap.updatedAt=Date.now();
+      var res=await fetch(SYNC,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      setBar("Saved","ok");
+    }catch(e){ setBar("Save failed","err"); }
+    saving=false;
+  }
+  async function load(){
+    try{
+      var r=await fetch(SYNC,{cache:"no-store"}); var snap=await r.json();
+      var d=(snap&&snap.data)||{}; var a=d[KEY];
+      if(a&&typeof a==="object"){
+        STATE.name=a.name||"";
+        if(a.items&&typeof a.items==="object"){ ALL_IDS.forEach(function(id){ var it=a.items[id]; STATE.items[id]={ status:(it&&it.status)||"", note:(it&&it.note)||"" }; }); }
+        nameEl.value=STATE.name;
+      }
+    }catch(e){}
+    render();
+  }
+
+  nameEl.addEventListener("input",scheduleSave);
+  document.getElementById("printBtn").addEventListener("click",function(){ window.print(); });
+  document.getElementById("resetBtn").addEventListener("click",function(){
+    if(!window.confirm("Clear this audit and start fresh? This can\u2019t be undone.")) return;
+    STATE.name=""; nameEl.value="";
+    ALL_IDS.forEach(function(id){ STATE.items[id]={status:"",note:""}; });
+    render(); scheduleSave();
+  });
+
+  // reduced-motion live indicator
+  try{
+    var mq=window.matchMedia("(prefers-reduced-motion: reduce)");
+    var rmState=document.getElementById("rmState");
+    function upd(){ rmState.textContent = mq.matches ? "reduced motion ON" : "reduced motion off"; }
+    upd(); if(mq.addEventListener) mq.addEventListener("change",upd);
+  }catch(e){}
+
+  load();
+})();
+</script>
+<script>
+(function(){
+  // nav dropdown
+  var wrap=document.getElementById("navwrap"), btn=document.getElementById("navBtn"), menu=document.getElementById("navMenu");
+  if(btn&&menu&&wrap){
+    function setOpen(o){ menu.hidden=!o; btn.setAttribute("aria-expanded",o?"true":"false"); }
+    btn.addEventListener("click",function(e){ e.stopPropagation(); setOpen(menu.hidden); });
+    document.addEventListener("click",function(e){ if(!menu.hidden && !wrap.contains(e.target)) setOpen(false); });
+    document.addEventListener("keydown",function(e){ if(e.key==="Escape") setOpen(false); });
+  }
+  // page transition (fade content on internal nav)
+  document.addEventListener("click",function(e){
+    var a=e.target && e.target.closest ? e.target.closest("a[href]") : null;
+    if(!a) return;
+    if(a.target==="_blank"||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0) return;
+    if(a.host!==location.host) return;
+    if(!/\.html$/.test(a.pathname)) return;
+    if(a.pathname===location.pathname) return;
+    e.preventDefault();
+    document.body.classList.add("leaving");
+    setTimeout(function(){ location.href=a.href; }, 170);
+  });
+  window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
+})();
+</script>
+<script>
+(function(){
+  try{
+    var page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
+    if(!/\.html$/.test(page)) page="index.html";
+    var sk="mh-traffic-seen:"+page;
+    if(sessionStorage.getItem(sk)) return;
+    sessionStorage.setItem(sk,"1");
+    var day=new Date().toISOString().slice(0,10);
+    fetch("/api/data",{cache:"no-store"}).then(function(r){return r.json();}).then(function(s){
+      if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
+      var t=s.data["motion-tracker:traffic"]; if(!t||typeof t!=="object")t={};
+      if(typeof t.total!=="number")t.total=0;
+      if(!t.pages||typeof t.pages!=="object")t.pages={};
+      if(!t.days||typeof t.days!=="object")t.days={};
+      t.total++; t.pages[page]=(t.pages[page]||0)+1; t.days[day]=(t.days[day]||0)+1; t.updatedAt=Date.now();
+      s.data["motion-tracker:traffic"]=t; s.updatedAt=Date.now();
+      fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

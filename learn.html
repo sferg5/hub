@@ -882,14 +882,20 @@
   function pad2(n){return (n<10?"0":"")+n;}
   function ymd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
   function fmtDate(d){return d.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});}
-  function upcomingWeekly(day,count){
+  function _tmins(s){ var m=String(s).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i); if(!m) return null; var hh=parseInt(m[1],10)%12; if(/pm/i.test(m[3])) hh+=12; return hh*60+parseInt(m[2],10); }
+  var OH_END_MINS=(function(){ var last=OH_SLOTS[OH_SLOTS.length-1]; var s=_tmins(last.start); return s==null?null:s+(last.mins||0); })();
+  var COP_END_MINS=(function(){ var s=_tmins(COP_TIME); return s==null?null:s+60; })();
+  function _nowMins(){ var n=new Date(); return n.getHours()*60+n.getMinutes(); }
+  function upcomingWeekly(day,count,endMins){
     var t=new Date(); t.setHours(0,0,0,0);
     var d=new Date(t); d.setDate(d.getDate()+((day-d.getDay()+7)%7));
+    if(d.getTime()===t.getTime() && endMins!=null && _nowMins()>=endMins) d.setDate(d.getDate()+7);
     var out=[]; for(var i=0;i<count;i++){ out.push(new Date(d)); d.setDate(d.getDate()+7); } return out;
   }
-  function upcomingBiweekly(anchorISO,count){
+  function upcomingBiweekly(anchorISO,count,endMins){
     var a=new Date(anchorISO+"T00:00:00"); var t=new Date(); t.setHours(0,0,0,0);
     var d=new Date(a); while(d<t){ d.setDate(d.getDate()+14); }
+    if(d.getTime()===t.getTime() && endMins!=null && _nowMins()>=endMins) d.setDate(d.getDate()+14);
     var out=[]; for(var i=0;i<count;i++){ out.push(new Date(d)); d.setDate(d.getDate()+14); } return out;
   }
   function asObj(v){return (v&&typeof v==="object"&&!Array.isArray(v))?v:{};}
@@ -917,7 +923,7 @@
   }
 
   function renderOH(){
-    var dates=upcomingWeekly(OH_DAY,OH_WEEKS);
+    var dates=upcomingWeekly(OH_DAY,OH_WEEKS,OH_END_MINS);
     ohList.innerHTML=dates.map(function(d){
       var iso=ymd(d);
       var pills=OH_SLOTS.map(function(s){
@@ -933,7 +939,7 @@
     });
   }
   function renderCoP(){
-    var dates=upcomingBiweekly(COP_ANCHOR,COP_WEEKS);
+    var dates=upcomingBiweekly(COP_ANCHOR,COP_WEEKS,COP_END_MINS);
     copList.innerHTML=dates.map(function(d){
       var iso=ymd(d); var list=asArr(STATE.cop[iso]);
       var meta=list.length?(list.length+(list.length===1?" person":" people")+" going"):"No one yet \u2014 be the first";
@@ -1176,6 +1182,28 @@
     setTimeout(function(){ location.href=a.href; }, 170);
   });
   window.addEventListener("pageshow",function(ev){ if(ev.persisted) document.body.classList.remove("leaving"); });
+})();
+</script>
+<script>
+(function(){
+  try{
+    var page=(location.pathname.split("/").pop()||"index.html").toLowerCase();
+    if(!/\.html$/.test(page)) page="index.html";
+    var sk="mh-traffic-seen:"+page;
+    if(sessionStorage.getItem(sk)) return;
+    sessionStorage.setItem(sk,"1");
+    var day=new Date().toISOString().slice(0,10);
+    fetch("/api/data",{cache:"no-store"}).then(function(r){return r.json();}).then(function(s){
+      if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
+      var t=s.data["motion-tracker:traffic"]; if(!t||typeof t!=="object")t={};
+      if(typeof t.total!=="number")t.total=0;
+      if(!t.pages||typeof t.pages!=="object")t.pages={};
+      if(!t.days||typeof t.days!=="object")t.days={};
+      t.total++; t.pages[page]=(t.pages[page]||0)+1; t.days[day]=(t.days[day]||0)+1; t.updatedAt=Date.now();
+      s.data["motion-tracker:traffic"]=t; s.updatedAt=Date.now();
+      fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
+    }).catch(function(){});
+  }catch(e){}
 })();
 </script>
 </body>
