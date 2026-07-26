@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kaleidoscope · Hands + Face</title>
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: #04050a; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #stage { position: fixed; inset: 0; }
+  canvas#gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; z-index: 1; }
+
+  #camWrap {
+    position: fixed; right: 16px; bottom: 16px; width: 220px; height: 165px;
+    border-radius: 12px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.12); background: #000; z-index: 5; transition: opacity .3s;
+  }
+  #camWrap.hidden { opacity: 0; pointer-events: none; }
+  #cam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  #overlay { position: absolute; inset: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+
+  #hud {
+    position: fixed; left: 16px; top: 16px; z-index: 6;
+    background: rgba(10,12,20,.55); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 12px;
+    padding: 14px 16px; color: #e8ecf4; font-size: 12px; width: 236px; transition: opacity .3s;
+  }
+  #hud.hidden { opacity: 0; pointer-events: none; }
+  #hud h1 { font-size: 13px; font-weight: 600; letter-spacing: .3px; margin-bottom: 10px; color: #fff; }
+  .grp { margin-bottom: 12px; }
+  .grp .lbl { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing:.4px; text-transform: uppercase; color:#aeb8cc; margin-bottom: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.fg { background: #55ddff; box-shadow: 0 0 8px #55ddff; }
+  .dot.bg { background: #ff6ad5; box-shadow: 0 0 8px #ff6ad5; }
+  .dot.fc { background: #ffe066; box-shadow: 0 0 8px #ffe066; }
+  .off { opacity: .4; }
+  .row { display: flex; align-items: center; justify-content: space-between; margin: 5px 0 2px; }
+  .row span:first-child { color: #9aa4b8; }
+  .row span:last-child { font-variant-numeric: tabular-nums; color: #dfe6f2; font-weight: 600; }
+  .bar { height: 4px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; }
+  .fg .bar > i { background: linear-gradient(90deg,#37b6ff,#8ef); }
+  .bg .bar > i { background: linear-gradient(90deg,#ff6ad5,#ffb36a); }
+  .fc .bar > i { background: linear-gradient(90deg,#ffe066,#ff9e3d); }
+  .hint { margin-top: 4px; color: #7f8aa0; font-size: 11px; line-height: 1.5; }
+  kbd { background: rgba(255,255,255,.12); border-radius: 4px; padding: 1px 5px; font-size: 10px; }
+
+  #gate {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; gap: 18px;
+    background: radial-gradient(circle at 50% 40%, #12162a, #05060a 70%); color: #e8ecf4; padding: 24px;
+  }
+  #gate.hidden { display: none; }
+  #gate h2 { font-size: 26px; font-weight: 700; }
+  #gate p { max-width: 480px; color: #9aa4b8; line-height: 1.6; font-size: 14px; }
+  #gate .keys { color:#c4ccdb; }
+  #start {
+    margin-top: 6px; padding: 13px 30px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer;
+    border: none; border-radius: 999px; background: linear-gradient(135deg,#5b8cff,#a35bff);
+    box-shadow: 0 6px 22px rgba(120,90,255,.4);
+  }
+  #start:active { transform: translateY(1px); }
+  #status { font-size: 13px; color: #7f8aa0; min-height: 18px; }
+  .err { color: #ff8a8a !important; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="gl"></canvas>
+
+  <div id="hud">
+    <h1>🌀 Kaleidoscope</h1>
+
+    <div class="grp fg" id="grp-fg">
+      <div class="lbl"><span class="dot fg"></span> Right hand · pattern</div>
+      <div class="row"><span>Rotation → spin</span><span id="v-rot">—</span></div>
+      <div class="bar"><i id="b-rot"></i></div>
+      <div class="row"><span>Closeness → zoom</span><span id="v-scale">—</span></div>
+      <div class="bar"><i id="b-scale"></i></div>
+      <div class="row"><span>Open→opacity · pinch→pulse</span><span id="v-open">—</span></div>
+      <div class="bar"><i id="b-open"></i></div>
+      <div class="row"><span>Spread → symmetry</span><span id="v-spread">—</span></div>
+      <div class="bar"><i id="b-spread"></i></div>
+      <div class="row"><span>Pinch → line width</span><span id="v-pinch">—</span></div>
+      <div class="bar"><i id="b-pinch"></i></div>
+    </div>
+
+    <div class="grp fc" id="grp-fc">
+      <div class="lbl"><span class="dot fc"></span> Head · shape &amp; color</div>
+      <div class="row"><span>Turn L/R → shape</span><span id="v-morph">—</span></div>
+      <div class="bar"><i id="b-morph"></i></div>
+      <div class="row"><span>Tilt up/down → color</span><span id="v-hue">—</span></div>
+      <div class="bar"><i id="b-hue"></i></div>
+    </div>
+
+    <div class="grp bg" id="grp-bg">
+      <div class="lbl"><span class="dot bg"></span> Left hand · background</div>
+      <div class="row"><span>Color (complementary)</span><span id="v-bhue">—</span></div>
+      <div class="bar"><i id="b-bhue"></i></div>
+      <div class="row"><span>Closeness → glow</span><span id="v-bscale">—</span></div>
+      <div class="bar"><i id="b-bscale"></i></div>
+      <div class="row"><span>Open→opacity · pinch→pulse</span><span id="v-bopen">—</span></div>
+      <div class="bar"><i id="b-bopen"></i></div>
+      <div class="row"><span>Spread → ripple</span><span id="v-bspread">—</span></div>
+      <div class="bar"><i id="b-bspread"></i></div>
+    </div>
+
+    <div class="hint">
+      Bump fists → 💥 · touch index tips → ✨ · pinch one hand → pulse (rotate = speed) · pinch both (tips meet) → ⚡<br>
+      Tap head: right hand → fg pattern <span id="v-pat">1</span>/8 · left hand → bg pattern <span id="v-bpat">1</span>/8<br>
+      <kbd>H</kbd> hide UI · <kbd>C</kbd> hide camera · <kbd>Space</kbd> pause motion
+    </div>
+  </div>
+
+  <div id="camWrap">
+    <video id="cam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div id="gate">
+    <h2>Kaleidoscope Visualizer</h2>
+    <p>Full-frame neon kaleidoscope driven by your hands and face, tracked in your browser. <b>Right hand</b> shapes the pattern (spin, zoom, symmetry, line width). <b>Head</b> turn morphs the shape and tilt sets its color. <b>Left hand</b> paints the smooth pastel background.</p>
+    <p class="keys">Right hand drives the pattern, left the background; open a hand for full opacity, close it to fade that layer. Gestures: <b>bump fists</b> → explosion · <b>touch index fingertips</b> → flare · <b>tap your head</b> (right hand = foreground pattern, left hand = background pattern) · <b>pinch one hand</b> → that layer pulses; rotate the hand like a knob to speed it up · <b>bring both hands' index tips and thumb tips together, then pull apart</b> → a lightning string that pulses to the room's music 🎵. Head tilt sets both layers' colors as a complementary pair.</p>
+    <button id="start">Enable camera &amp; start</button>
+    <div id="status">Best in Chrome. You'll be asked for camera permission.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+
+<script id="frag" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2  u_res;
+uniform float u_time;
+// foreground (right hand + face)
+uniform float u_fgVis, u_rot, u_scale, u_open, u_sym, u_hue, u_morph, u_pinch;
+uniform vec2  u_fgC;
+// background (left hand)
+uniform float u_bgVis, u_bgHue, u_bgScale, u_bgSpread;
+uniform vec2  u_bgC;
+// gesture effects
+uniform float u_pattern;              // kaleidoscope variant (tap in top-right)
+uniform float u_burst;  uniform vec2 u_burstC;   // fist bump explosion (1 -> 0)
+uniform float u_flare;  uniform vec2 u_flareC;   // E.T. index touch flare (1 -> 0)
+uniform float u_tap;                  // brief pulse on pattern change
+uniform float u_bolt;   uniform vec2 u_boltA, u_boltB;   // two-hand pinch lightning
+uniform float u_audio;                // room audio level (0..1) -> lightning pulse
+uniform float u_bgPattern;            // background variant (left-hand head tap)
+
+const float TAU = 6.2831853;
+
+vec3 hsl2rgb(vec3 c){
+  vec3 rgb = clamp(abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0);
+  return c.z + c.y*(rgb-0.5)*(1.0-abs(2.0*c.z-1.0));
+}
+
+// mirror kaleidoscope -> vec2(angleInWedge, radius)
+vec2 kaleido(vec2 uv, float sym, float rot){
+  float a = atan(uv.y, uv.x) + rot;
+  float seg = TAU / sym;
+  a = mod(a, seg);
+  a = abs(a - 0.5*seg);      // reflection within the wedge
+  return vec2(a, length(uv));
+}
+
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5*u_res) / min(u_res.x, u_res.y);
+
+  // ---------------- background: smooth pastel symmetry ----------------
+  vec2  buv = uv - u_bgC*0.25;
+  float bt  = u_time*0.22;   // calm, constant background flow (decoupled from opacity)
+  vec2  bk  = kaleido(buv, 6.0, bt*0.3);
+  float ba = bk.x, br = bk.y;
+  float sp = u_bgSpread;
+  float bwave;
+  if      (u_bgPattern < 0.5) bwave = sin(br*(4.0 + sp*7.0) - bt*2.0 + sin(ba*3.0)*2.0);        // flowing petals
+  else if (u_bgPattern < 1.5) bwave = cos(br*(5.0 + sp*4.0) - bt*1.5) * sin(ba*5.0 + bt);        // woven mesh
+  else if (u_bgPattern < 2.5) bwave = sin(ba*4.0) * cos(br*(4.0 + sp*4.0) - bt);                 // rosette
+  else if (u_bgPattern < 3.5) bwave = sin(br*(6.0 + sp*5.0) - ba*4.0 - bt*1.5);                  // swirl
+  else if (u_bgPattern < 4.5) bwave = sin(buv.x*(5.0 + sp*4.0) + sin(buv.y*6.0 + bt)*2.0 - bt);  // silk
+  else if (u_bgPattern < 5.5) bwave = sin((buv.x + buv.y)*5.0 + sin((buv.x - buv.y)*4.0 + bt)*2.0); // aurora bands
+  else if (u_bgPattern < 6.5) bwave = sin(ba*8.0 + bt) * cos(br*(3.5 + sp*4.0));                 // 8-fold bloom
+  else                        bwave = sin(br*3.0 - bt) + 0.6*sin(ba*6.0 - bt*0.5);               // soft ribbons
+  float bhue  = u_bgHue + 0.15*bwave + br*0.10 + bt*0.02;
+  float bl    = 0.52 + 0.22*bwave + u_bgScale*0.12;
+  vec3  bg    = hsl2rgb(vec3(fract(bhue), 0.55, clamp(bl, 0.12, 0.82)));
+  bg *= u_bgVis;
+
+  // ---------------- foreground: neon kaleidoscope ----------------
+  vec2  fuv  = uv - u_fgC*0.25;
+  float zoom = 0.55 + (1.0 - u_scale)*2.3;   // closer hand -> zoom in
+  fuv *= zoom;
+  float ft   = u_time*(0.3 + u_open*1.3);
+  vec2  fk   = kaleido(fuv, u_sym, u_rot + ft*0.15);
+  float fa = fk.x, fr = fk.y;
+  float petals = u_sym;
+  float flower = cos(fa*petals + u_morph*3.14159);
+  float freq   = 8.0 + u_morph*36.0;                 // head turn -> stripe frequency
+  float field;
+  if      (u_pattern < 0.5) field = sin(fr*freq - ft*2.0 + flower*3.5);                   // radial stripes + flower
+  else if (u_pattern < 1.5) field = sin(fr*freq*0.7 - ft*1.5) * cos(fa*petals*2.0 + ft);  // rings x petals
+  else if (u_pattern < 2.5) field = sin(fr*freq - fa*petals*1.5 - ft*2.0);                // spiral
+  else if (u_pattern < 3.5) { vec2 g = fuv*(freq*0.28); field = sin(g.x*3.0 - ft)*sin(g.y*3.0 + ft) + 0.5*flower; } // diamond lattice
+  else if (u_pattern < 4.5) field = sin(fa*petals*2.0) * sin(fr*freq*0.5 - ft);           // star burst
+  else if (u_pattern < 5.5) field = cos(fr*freq - ft*3.0) + 0.6*cos(fa*petals*3.0);       // concentric petals
+  else if (u_pattern < 6.5) field = sin(fr*freq - fa*petals*3.0 + ft*1.5);                // pinwheel
+  else                      { vec2 g2 = fuv*(freq*0.22); field = sin((g2.x+g2.y)*2.5 - ft)*sin((g2.x-g2.y)*2.5 + ft); } // diagonal web
+  float d = abs(field);
+  float lw     = 0.09 + u_pinch*0.12;                 // pinch -> line thickness
+  float line   = smoothstep(lw, 0.0, d) + smoothstep(lw*0.35, 0.0, d)*0.8;
+  float fhue   = u_hue + fr*0.08 + 0.03*flower;
+  vec3  neon   = hsl2rgb(vec3(fract(fhue), 1.0, 0.55));
+  float radFall = smoothstep(2.4, 0.15, fr);          // keep the central flower strong
+  vec3  fg     = neon * line * (0.7 + u_open*0.6) * radFall;
+  fg *= u_fgVis;
+
+  vec3 col = bg + fg;                                  // neon additively over pastel
+
+  // ---------------- fist-bump explosion ----------------
+  if (u_burst > 0.001) {
+    vec2 pd = uv - u_burstC;
+    float rr = length(pd);
+    float age = 1.0 - u_burst;                          // 0 -> 1 over the effect
+    float ringR = age * 1.7;
+    float ring = smoothstep(0.14, 0.0, abs(rr - ringR));
+    float flash = smoothstep(0.7, 0.0, rr) * u_burst;
+    float spark = ring * (0.55 + 0.45*sin(atan(pd.y, pd.x)*40.0));
+    vec3 ec = hsl2rgb(vec3(fract(0.06 + age*0.10), 1.0, 0.6)); // fire orange->red
+    col += (ring*1.6 + spark*0.9 + flash*1.3) * ec * u_burst;
+  }
+
+  // ---------------- E.T. index-touch flare ----------------
+  if (u_flare > 0.001) {
+    vec2 pd = uv - u_flareC;
+    float rr = length(pd);
+    float ang = atan(pd.y, pd.x);
+    float core = smoothstep(0.22, 0.0, rr);
+    float halo = smoothstep(0.55, 0.0, rr);
+    float streak = pow(max(0.0, cos(ang*2.0)), 8.0) + pow(max(0.0, cos((ang-1.5708)*2.0)), 8.0);
+    vec3 fc = vec3(1.0, 0.96, 0.86);
+    col += (core*2.2 + streak*halo*1.6 + halo*0.35) * fc * u_flare;
+  }
+
+  // ---------------- two-hand pinch: lightning string ----------------
+  if (u_bolt > 0.001) {
+    vec2 A = u_boltA, B = u_boltB;
+    vec2 AB = B - A;
+    float L = max(length(AB), 1e-3);
+    vec2 dir = AB / L, nor = vec2(-dir.y, dir.x);
+    vec2 rel = uv - A;
+    float tt = dot(rel, dir) / L;             // 0..1 along the string
+    float perp = dot(rel, nor);
+    float ph = tt * L;
+    // layered pseudo-noise jaggedness, animated
+    float n = sin(ph*17.0 + u_time*33.0)*0.5
+            + sin(ph*7.3 - u_time*19.0)*0.32
+            + sin(ph*41.0 + u_time*61.0)*0.16;
+    float taut = 1.0 - clamp(L/1.8, 0.0, 1.0); // shorter span = more slack/wobble
+    float aud = u_audio;                        // 0..1 room-audio pulse
+    float amp = (0.025 + 0.06*taut) * (0.55 + aud*1.7) * sin(clamp(tt,0.0,1.0)*3.14159);
+    float dd = abs(perp - n*amp);
+    float seg = step(0.0, tt) * step(tt, 1.0);
+    float thick = 0.012 * (1.0 + aud*1.8);      // louder -> fatter core
+    float core = smoothstep(thick, 0.0, dd);
+    float glow = (0.02 + aud*0.03) / (dd + 0.02);
+    float flick = 0.75 + 0.25*sin(u_time*57.0);
+    float bright = (0.65 + aud*1.6);            // pulse brightness to the beat
+    vec3 ec = mix(vec3(0.35,0.65,1.0), vec3(1.0), core); // blue glow -> white core
+    col += (core*1.7 + glow*0.45) * ec * u_bolt * seg * flick * bright;
+    // bright arcs anchored at the pinched fingertips, also pulsing
+    float node = (0.7 + aud*1.2) * u_bolt;
+    col += smoothstep(0.05 + aud*0.03, 0.0, length(uv - A)) * vec3(0.7,0.85,1.0) * node;
+    col += smoothstep(0.05 + aud*0.03, 0.0, length(uv - B)) * vec3(0.7,0.85,1.0) * node;
+  }
+
+  // ---------------- tap pulse ----------------
+  col += u_tap * 0.12;
+
+  float vig = smoothstep(1.5, 0.2, length(uv));
+  col *= 0.30 + 0.70*vig;
+  col  = pow(clamp(col, 0.0, 1.0), vec3(0.85));        // gentle gamma lift
+  gl_FragColor = vec4(col, 1.0);
+}
+</script>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- DOM ----------
+  const glc = document.getElementById('gl');
+  const cam = document.getElementById('cam');
+  const overlay = document.getElementById('overlay');
+  const octx = overlay.getContext('2d');
+  const gate = document.getElementById('gate');
+  const startBtn = document.getElementById('start');
+  const statusEl = document.getElementById('status');
+  const hud = document.getElementById('hud');
+  const camWrap = document.getElementById('camWrap');
+  const grpFg = document.getElementById('grp-fg');
+  const grpBg = document.getElementById('grp-bg');
+  const grpFc = document.getElementById('grp-fc');
+
+  // ---------- WebGL ----------
+  const gl = glc.getContext('webgl') || glc.getContext('experimental-webgl');
+  let program = null, U = {};
+  let DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+  let W = 0, H = 0;
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    glc.width = Math.floor(W * DPR); glc.height = Math.floor(H * DPR);
+    overlay.width = 220; overlay.height = 165;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const VERT = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
+  function compile(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+      throw new Error('Shader error: ' + gl.getShaderInfoLog(sh));
+    return sh;
+  }
+  function initGL() {
+    if (!gl) throw new Error('WebGL is not available in this browser.');
+    const frag = document.getElementById('frag').textContent;
+    program = gl.createProgram();
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, frag));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS))
+      throw new Error('Link error: ' + gl.getProgramInfoLog(program));
+    gl.useProgram(program);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(program, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    for (const n of ['u_res','u_time','u_fgVis','u_rot','u_scale','u_open','u_sym','u_hue',
+      'u_morph','u_pinch','u_fgC','u_bgVis','u_bgHue','u_bgScale','u_bgSpread','u_bgC',
+      'u_pattern','u_burst','u_burstC','u_flare','u_flareC','u_tap',
+      'u_bolt','u_boltA','u_boltB','u_audio','u_bgPattern'])
+      U[n] = gl.getUniformLocation(program, n);
+  }
+
+  // ---------- helpers ----------
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  function smoothAngle(cur, target, k) {
+    let d = target - cur;
+    while (d > Math.PI) d -= 2 * Math.PI;
+    while (d < -Math.PI) d += 2 * Math.PI;
+    return cur + d * k;
+  }
+  function newParams(scale) {
+    return {
+      rot:{t:0,s:0}, scale:{t:scale,s:scale}, open:{t:.5,s:.5}, openM:{t:.5,s:.5}, spread:{t:.5,s:.5},
+      pinch:{t:.5,s:.5}, px:{t:0,s:0}, py:{t:0,s:0}, morph:{t:.5,s:.5}, hue:{t:.5,s:.5},
+      present:0, facePresent:0, lastSeen:-1e9, vis:0,
+      // pinch-to-pulse "knob": pinched toggles pulse, rotation sets its speed
+      pinched:false, wasPinched:false, knob:0, phase:0, pulseAmt:0, lastAngle:0
+    };
+  }
+  const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= 2*Math.PI; while (d < -Math.PI) d += 2*Math.PI; return d; };
+  function updatePulse(o) {
+    if (o.pinched && !o.wasPinched) { o.knob = 0; o.lastAngle = o.rot.s; }  // start knob at pinch
+    if (o.pinched) {
+      o.knob = clamp(o.knob + angDiff(o.rot.s, o.lastAngle), -12.6, 12.6);   // accumulate turns
+      o.pulseAmt = lerp(o.pulseAmt, 1, 0.15);
+    } else {
+      o.pulseAmt = lerp(o.pulseAmt, 0, 0.1);
+    }
+    o.lastAngle = o.rot.s;
+    o.wasPinched = o.pinched;
+    const freq = 0.5 + (Math.abs(o.knob) / (2*Math.PI)) * 2.6;               // turns -> Hz
+    o.phase += freq * 2*Math.PI * 0.016;
+  }
+  // Open/close is the MASTER opacity and overrides everything: fully closed -> layer hidden.
+  // The pinch "pulse" only modulates underneath that master level.
+  const layerFactor = (o) => {
+    const master = clamp((o.openM.s - 0.08) / 0.72, 0, 1);             // open/close opacity (index-independent)
+    const pulse = lerp(1.0, 0.22 + 0.78*(0.5 + 0.5*Math.sin(o.phase)), o.pulseAmt);
+    return master * pulse;
+  };
+  const HOLD_MS = 500;
+  function smoothParams(o) {
+    o.rot.s    = smoothAngle(o.rot.s, o.rot.t, 0.18);
+    o.scale.s  = lerp(o.scale.s,  o.scale.t,  0.12);
+    o.open.s   = lerp(o.open.s,   o.open.t,   0.12);
+    o.openM.s  = lerp(o.openM.s,  o.openM.t,  0.14);
+    o.spread.s = lerp(o.spread.s, o.spread.t, 0.08);
+    o.pinch.s  = lerp(o.pinch.s,  o.pinch.t,  0.10);
+    o.px.s     = lerp(o.px.s,     o.px.t,     0.12);
+    o.py.s     = lerp(o.py.s,     o.py.t,     0.12);
+    o.morph.s  = lerp(o.morph.s,  o.morph.t,  0.10);
+    o.hue.s    = lerp(o.hue.s,    o.hue.t,    0.08);
+  }
+  const P  = newParams(0.4);
+  const Bp = newParams(0.35);
+
+  // ---------- feature extraction ----------
+  function extract(lm) {
+    const wrist=lm[0], thumbTip=lm[4], indexTip=lm[8], middleTip=lm[12],
+          ringTip=lm[16], pinkyTip=lm[20], middleMCP=lm[9];
+    const palm = Math.max(dist(wrist, middleMCP), 1e-4);
+    const rot = Math.atan2(middleMCP.y - wrist.y, -(middleMCP.x - wrist.x));
+    const scale = clamp((palm - 0.10) / (0.34 - 0.10), 0, 1);
+    const ext = (tip) => clamp((dist(tip, wrist) / palm - 1.1) / 1.2, 0, 1);
+    const fingers = [ext(indexTip), ext(middleTip), ext(ringTip), ext(pinkyTip)];
+    const open = fingers.reduce((a, b) => a + b, 0) / fingers.length;
+    // opacity master excludes the index so a pinch doesn't dim the layer; a fist still does
+    const openM = (ext(middleTip) + ext(ringTip) + ext(pinkyTip)) / 3;
+    const spread = clamp((dist(indexTip, pinkyTip) / palm - 0.2) / 1.0, 0, 1);
+    const pinch = clamp((dist(thumbTip, indexTip) / palm) / 1.3, 0, 1);
+    const px = (0.5 - middleMCP.x) * 2, py = (middleMCP.y - 0.5) * 2;
+    return { rot, scale, open, openM, spread, pinch, px, py };
+  }
+  function applyHand(target, lm) {
+    if (lm) {
+      const f = extract(lm);
+      target.rot.t=f.rot; target.scale.t=f.scale; target.open.t=f.open; target.openM.t=f.openM;
+      target.spread.t=f.spread; target.pinch.t=f.pinch; target.px.t=f.px; target.py.t=f.py;
+      target.present = 1; target.lastSeen = performance.now();
+    } else {
+      target.present = Math.max(0, target.present - 0.03);
+    }
+  }
+
+  // ---------- gesture helpers ----------
+  function fingerExt(lm, tip) {
+    const wrist = lm[0], mcp = lm[9];
+    const palm = Math.max(Math.hypot(wrist.x - mcp.x, wrist.y - mcp.y), 1e-4);
+    return clamp((Math.hypot(lm[tip].x - wrist.x, lm[tip].y - wrist.y) / palm - 1.1) / 1.2, 0, 1);
+  }
+  function handOpen(lm) {
+    return ([8, 12, 16, 20].reduce((s, t) => s + fingerExt(lm, t), 0)) / 4;
+  }
+  function indexOnly(lm) {
+    const idx = fingerExt(lm, 8);
+    const others = ([12, 16, 20].reduce((s, t) => s + fingerExt(lm, t), 0)) / 3;
+    return idx > 0.6 && others < 0.55;
+  }
+  const palmLen = (lm) => Math.max(Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y), 1e-4);
+  function pinchAmt(lm) {           // small value = pinched (thumb tip near index tip)
+    return Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) / palmLen(lm);
+  }
+
+  // effect envelopes (1 -> 0), centers stored in screen-normalized coords (0..1)
+  const fx = { burst: 0, bx: 0.5, by: 0.5, flare: 0, fx_: 0.5, fy: 0.5, tap: 0, bolt: 0 };
+  let pattern = 0, bgPattern = 0;
+  let wasFist = false, wasET = false, lastBurst = 0, lastFlare = 0;
+  let wasHeadFg = false, wasHeadBg = false, lastHeadTapFg = 0, lastHeadTapBg = 0;
+  // lightning string: latches when index tips AND thumb tips all meet, held while both pinched
+  let boltActive = false, beamLatched = false;
+  const bolt = { ax: 0.5, ay: 0.5, bx: 0.5, by: 0.5 };
+  const boltS = { ax: 0.5, ay: 0.5, bx: 0.5, by: 0.5 };
+
+  // ---------- room audio (lightning pulses to music) ----------
+  let audioCtx = null, analyser = null, freqData = null, audioReady = false, audioLevel = 0;
+  async function initAudio() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+      const src = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 1024; analyser.smoothingTimeConstant = 0.6;
+      src.connect(analyser);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      audioReady = true;
+    } catch (e) { console.warn('Microphone unavailable — lightning will pulse on its own.', e); audioReady = false; }
+  }
+  function sampleAudio() {
+    if (!audioReady) return;
+    analyser.getByteFrequencyData(freqData);
+    const n = freqData.length;
+    let bass = 0, bn = Math.max(1, Math.floor(n * 0.12));
+    for (let i = 0; i < bn; i++) bass += freqData[i];
+    bass = (bass / bn) / 255;
+    let all = 0; for (let i = 0; i < n; i++) all += freqData[i];
+    all = (all / n) / 255;
+    const target = clamp((Math.max(bass * 1.25, all) - 0.14) / 0.6, 0, 1);
+    // fast attack, slower release -> beat-like pulse
+    audioLevel = lerp(audioLevel, target, target > audioLevel ? 0.6 : 0.12);
+  }
+
+  function detectGestures(list, fg, bgH) {
+    const now = performance.now();
+
+    if (list.length >= 2) {
+      const A = list[0], B = list[1];
+      const ac = A[9], bc = B[9];
+      const palmDist = Math.hypot(ac.x - bc.x, ac.y - bc.y);
+
+      // fist bump: both closed + palms close
+      const fistClose = handOpen(A) < 0.28 && handOpen(B) < 0.28 && palmDist < 0.20;
+      if (fistClose && !wasFist && now - lastBurst > 600) {
+        fx.burst = 1; fx.bx = 1 - (ac.x + bc.x) / 2; fx.by = (ac.y + bc.y) / 2; lastBurst = now;
+      }
+      wasFist = fistClose;
+
+      // E.T. touch: index fingertips meet, both index extended
+      const ia = A[8], ib = B[8];
+      const etClose = Math.hypot(ia.x - ib.x, ia.y - ib.y) < 0.06 && indexOnly(A) && indexOnly(B);
+      if (etClose && !wasET && now - lastFlare > 500) {
+        fx.flare = 1; fx.fx_ = 1 - (ia.x + ib.x) / 2; fx.fy = (ia.y + ib.y) / 2; lastFlare = now;
+      }
+      wasET = etClose;
+
+      // ELECTROBEAM: latches only when BOTH index tips AND BOTH thumb tips meet.
+      const avgPalm = (palmLen(A) + palmLen(B)) / 2;
+      const idxMeet = Math.hypot(A[8].x - B[8].x, A[8].y - B[8].y) / avgPalm < 0.75;
+      const thbMeet = Math.hypot(A[4].x - B[4].x, A[4].y - B[4].y) / avgPalm < 0.75;
+      if (idxMeet && thbMeet) beamLatched = true;                    // connect
+      if (!(pinchAmt(A) < 0.55 && pinchAmt(B) < 0.55)) beamLatched = false; // released a hand
+    } else { wasFist = false; wasET = false; beamLatched = false; }
+
+    // beam endpoints track each hand's pinch point while latched
+    if (beamLatched && list.length >= 2) {
+      const A = list[0], B = list[1];
+      boltActive = true;
+      bolt.ax = 1 - (A[4].x + A[8].x) / 2; bolt.ay = (A[4].y + A[8].y) / 2;
+      bolt.bx = 1 - (B[4].x + B[8].x) / 2; bolt.by = (B[4].y + B[8].y) / 2;
+    } else boltActive = false;
+
+    // PINCH-TO-PULSE: a pinched hand makes its layer pulse (rotation = knob speed).
+    // Not while forming the beam (that needs both hands pinched together).
+    P.pinched  = !!(fg  && pinchAmt(fg)  < 0.5 && !beamLatched);
+    Bp.pinched = !!(bgH && pinchAmt(bgH) < 0.5 && !beamLatched);
+
+    // HEAD TAP: right hand -> foreground pattern, left hand -> background pattern
+    if (lastFace) {
+      const earL = lastFace[234], earR = lastFace[454];
+      const faceW = Math.max(Math.hypot(earR.x - earL.x, earR.y - earL.y), 1e-4);
+      const thr = faceW * 0.42;
+      const nearHead = (lm) => {
+        if (!lm) return false;
+        for (const pt of [lm[8], lm[12], lm[9]])
+          if (Math.hypot(pt.x - earL.x, pt.y - earL.y) < thr ||
+              Math.hypot(pt.x - earR.x, pt.y - earR.y) < thr) return true;
+        return false;
+      };
+      const fgNear = nearHead(fg), bgNear = nearHead(bgH);
+      if (fgNear && !wasHeadFg && now - lastHeadTapFg > 450) { pattern = (pattern + 1) % 8; fx.tap = 1; lastHeadTapFg = now; }
+      if (bgNear && !wasHeadBg && now - lastHeadTapBg > 450) { bgPattern = (bgPattern + 1) % 8; fx.tap = 1; lastHeadTapBg = now; }
+      wasHeadFg = fgNear; wasHeadBg = bgNear;
+    } else { wasHeadFg = false; wasHeadBg = false; }
+  }
+
+  // ---------- hand results (by true handedness) ----------
+  let lastFg = null, lastBg = null;
+  function onResults(res) {
+    const list = res.multiHandLandmarks || [];
+    const handed = res.multiHandedness || [];
+    let fg = null, bgH = null;
+    for (let i = 0; i < list.length; i++) {
+      const label = (handed[i] && handed[i].label) || 'Left';
+      const userRight = (label === 'Left');   // unmirrored feed -> swap
+      if (userRight) { if (!fg) fg = list[i]; else if (!bgH) bgH = list[i]; }
+      else           { if (!bgH) bgH = list[i]; else if (!fg) fg = list[i]; }
+    }
+    applyHand(P, fg); applyHand(Bp, bgH);
+    detectGestures(list, fg, bgH);
+    lastFg = fg; lastBg = bgH; drawOverlay();
+  }
+
+  // ---------- face results ----------
+  let lastFace = null;
+  function onFaceResults(res) {
+    const faces = res.multiFaceLandmarks;
+    if (faces && faces.length) {
+      const lm = faces[0]; lastFace = lm;
+      const left=lm[234], right=lm[454], top=lm[10], chin=lm[152], nose=lm[1];
+      const faceW = Math.max(Math.abs(right.x-left.x), 1e-4);
+      const faceH = Math.max(Math.abs(chin.y-top.y), 1e-4);
+      const cX=(left.x+right.x)/2, cY=(top.y+chin.y)/2;
+      const yaw = clamp(((nose.x-cX)/faceW)/0.18, -1, 1);
+      const pitch = clamp((((nose.y-cY)/faceH)+0.06)/0.22, -1, 1);
+      P.morph.t = yaw*0.5+0.5;
+      P.hue.t   = pitch*0.5+0.5;
+      P.facePresent = 1;
+    } else {
+      lastFace = null; P.facePresent = Math.max(0, P.facePresent - 0.03);
+    }
+  }
+
+  // ---------- preview overlay ----------
+  const CONNECTIONS = [
+    [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],
+    [9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]
+  ];
+  const FACE_PTS = [1,33,263,61,291,10,152,234,454,168,159,386,199];
+  function drawHand(lm, color) {
+    const w=overlay.width, h=overlay.height;
+    octx.lineWidth=2; octx.strokeStyle=color; octx.beginPath();
+    for (const [a,b] of CONNECTIONS){ octx.moveTo(lm[a].x*w,lm[a].y*h); octx.lineTo(lm[b].x*w,lm[b].y*h); }
+    octx.stroke(); octx.fillStyle='rgba(255,255,255,.9)';
+    for (const p of lm){ octx.beginPath(); octx.arc(p.x*w,p.y*h,2.2,0,7); octx.fill(); }
+  }
+  function drawOverlay() {
+    octx.clearRect(0,0,overlay.width,overlay.height);
+    if (lastFace){ octx.fillStyle='rgba(255,224,102,.95)';
+      for (const i of FACE_PTS){ const p=lastFace[i]; octx.beginPath(); octx.arc(p.x*overlay.width,p.y*overlay.height,1.8,0,7); octx.fill(); } }
+    if (lastBg) drawHand(lastBg, 'rgba(255,106,213,.9)');
+    if (lastFg) drawHand(lastFg, 'rgba(85,221,255,.9)');
+  }
+
+  // ---------- loop ----------
+  let freeze = false, t = 0;
+  function step() {
+    smoothParams(P); smoothParams(Bp);
+    const now = performance.now();
+    for (const o of [P, Bp]) {
+      const target = (now - o.lastSeen) < HOLD_MS ? 1 : 0;
+      o.vis = lerp(o.vis, target, 0.09);
+    }
+    if (!freeze) t += 0.016;
+    fx.burst = Math.max(0, fx.burst - 0.016 / 0.7);   // ~0.7s explosion
+    fx.flare = Math.max(0, fx.flare - 0.016 / 0.9);   // ~0.9s flare
+    fx.tap   = Math.max(0, fx.tap   - 0.016 / 0.25);  // quick pulse
+    fx.bolt  = boltActive ? Math.min(1, fx.bolt + 0.016 / 0.1)   // snap on
+                          : Math.max(0, fx.bolt - 0.016 / 0.25); // fade off
+    boltS.ax = lerp(boltS.ax, bolt.ax, 0.4); boltS.ay = lerp(boltS.ay, bolt.ay, 0.4);
+    boltS.bx = lerp(boltS.bx, bolt.bx, 0.4); boltS.by = lerp(boltS.by, bolt.by, 0.4);
+    updatePulse(P); updatePulse(Bp);
+    sampleAudio();
+    renderGL();
+    updateHUD();
+    requestAnimationFrame(step);
+  }
+
+  const sym = () => 3 + Math.round(P.spread.s * 9);
+  // open hand -> opaque, closed fist -> transparent
+  const opacity = (o) => clamp((o - 0.08) / 0.72, 0, 1);
+  function renderGL() {
+    const mn = Math.min(glc.width, glc.height);
+    const ax = glc.width / mn, ay = glc.height / mn;
+    gl.viewport(0, 0, glc.width, glc.height);
+    gl.uniform2f(U.u_res, glc.width, glc.height);
+    gl.uniform1f(U.u_time, t);
+    gl.uniform1f(U.u_fgVis, P.vis * layerFactor(P));   // open/close -> opacity, or pinch -> pulse
+    gl.uniform1f(U.u_rot, P.rot.s);
+    gl.uniform1f(U.u_scale, P.scale.s);
+    gl.uniform1f(U.u_open, P.open.s);
+    gl.uniform1f(U.u_sym, sym());
+    gl.uniform1f(U.u_hue, P.hue.s);
+    gl.uniform1f(U.u_morph, P.morph.s);
+    gl.uniform1f(U.u_pinch, P.pinch.s);
+    gl.uniform2f(U.u_fgC, 0.0, 0.0);   // pattern always centered
+    gl.uniform1f(U.u_bgVis, Bp.vis * layerFactor(Bp)); // open/close -> opacity, or pinch -> pulse
+    gl.uniform1f(U.u_bgHue, (P.hue.s + 0.5) % 1.0);    // head-driven, complementary to foreground
+    gl.uniform1f(U.u_bgScale, Bp.scale.s);
+    gl.uniform1f(U.u_bgSpread, Bp.spread.s);
+    gl.uniform2f(U.u_bgC, 0.0, 0.0);   // background always centered
+    gl.uniform1f(U.u_pattern, pattern);
+    gl.uniform1f(U.u_burst, fx.burst);
+    gl.uniform2f(U.u_burstC, (fx.bx - 0.5) * ax, (0.5 - fx.by) * ay);
+    gl.uniform1f(U.u_flare, fx.flare);
+    gl.uniform2f(U.u_flareC, (fx.fx_ - 0.5) * ax, (0.5 - fx.fy) * ay);
+    gl.uniform1f(U.u_tap, fx.tap);
+    gl.uniform1f(U.u_bolt, fx.bolt);
+    gl.uniform2f(U.u_boltA, (boltS.ax - 0.5) * ax, (0.5 - boltS.ay) * ay);
+    gl.uniform2f(U.u_boltB, (boltS.bx - 0.5) * ax, (0.5 - boltS.by) * ay);
+    const aud = audioReady ? audioLevel : (0.35 + 0.22 * Math.sin(t * 6.0)); // self-pulse if no mic
+    gl.uniform1f(U.u_audio, aud);
+    gl.uniform1f(U.u_bgPattern, bgPattern);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  // ---------- HUD ----------
+  const set = (id, txt) => (document.getElementById(id).textContent = txt);
+  const bar = (id, v) => (document.getElementById(id).style.width = clamp(v, 0, 1) * 100 + '%');
+  function updateHUD() {
+    grpFg.classList.toggle('off', P.present < 0.3);
+    grpBg.classList.toggle('off', Bp.present < 0.3);
+    grpFc.classList.toggle('off', P.facePresent < 0.3);
+    const deg = ((P.rot.s * 180 / Math.PI) % 360 + 360) % 360;
+    set('v-rot', deg.toFixed(0) + '°'); bar('b-rot', deg / 360);
+    set('v-scale', (P.scale.s*100).toFixed(0)+'%'); bar('b-scale', P.scale.s);
+    set('v-open', (P.openM.s*100).toFixed(0)+'%'); bar('b-open', P.openM.s);
+    set('v-spread', sym()+'-fold'); bar('b-spread', P.spread.s);
+    set('v-pinch', ((1-P.pinch.s)*100).toFixed(0)+'%'); bar('b-pinch', 1-P.pinch.s);
+    set('v-morph', P.morph.s<0.4?'round':P.morph.s>0.6?'spiky':'mixed'); bar('b-morph', P.morph.s);
+    set('v-hue', (P.hue.s*340).toFixed(0)+'°'); bar('b-hue', P.hue.s);
+    const bh = (P.hue.s + 0.5) % 1.0;
+    set('v-bhue', (bh*340).toFixed(0)+'°'); bar('b-bhue', bh);
+    set('v-bscale', (Bp.scale.s*100).toFixed(0)+'%'); bar('b-bscale', Bp.scale.s);
+    set('v-bopen', (Bp.openM.s*100).toFixed(0)+'%'); bar('b-bopen', Bp.openM.s);
+    set('v-bspread', (Bp.spread.s*100).toFixed(0)+'%'); bar('b-bspread', Bp.spread.s);
+    set('v-pat', (pattern + 1).toString());
+    set('v-bpat', (bgPattern + 1).toString());
+  }
+
+  // ---------- keyboard ----------
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 'h') hud.classList.toggle('hidden');
+    if (k === 'c') camWrap.classList.toggle('hidden');
+    if (e.code === 'Space') { e.preventDefault(); freeze = !freeze; }
+  });
+
+  // ---------- start ----------
+  let hands = null, faceMesh = null, camera = null;
+  async function start() {
+    startBtn.disabled = true; statusEl.classList.remove('err');
+    statusEl.textContent = 'Starting renderer…';
+    try {
+      initGL();
+      if (typeof Hands === 'undefined' || typeof FaceMesh === 'undefined')
+        throw new Error('MediaPipe failed to load (check your connection).');
+      statusEl.textContent = 'Loading tracking models…';
+
+      hands = new Hands({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${f}` });
+      hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+      hands.onResults(onResults);
+
+      faceMesh = new FaceMesh({ locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${f}` });
+      faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+      faceMesh.onResults(onFaceResults);
+
+      statusEl.textContent = 'Requesting camera…';
+      camera = new Camera(cam, {
+        onFrame: async () => { await hands.send({ image: cam }); await faceMesh.send({ image: cam }); },
+        width: 640, height: 480
+      });
+      await camera.start();
+
+      statusEl.textContent = 'Enabling microphone (optional)…';
+      await initAudio();   // for the audio-reactive lightning; fine if denied
+
+      statusEl.textContent = 'Running.';
+      gate.classList.add('hidden');
+      requestAnimationFrame(step);
+    } catch (err) {
+      console.error(err);
+      startBtn.disabled = false; statusEl.classList.add('err');
+      statusEl.textContent = 'Error: ' + (err && err.message ? err.message : err) +
+        ' — allow camera access and open this file in Chrome.';
+    }
+  }
+  startBtn.addEventListener('click', start);
+})();
+</script>
+</body>
+</html>
