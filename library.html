@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark" />
 <title>Motion Library</title>
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Motion Specialist Hub" />
+<meta property="og:title" content="Motion Library" />
+<meta property="og:description" content="A showcase of motion design work." />
+<meta property="og:url" content="https://hub-mospec.vercel.app/library.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Motion Library" />
+<meta name="twitter:description" content="A showcase of motion design work." />
 <meta name="description" content="A showcase of motion design work." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><path d='M40 32 L70 50 L40 68 Z' fill='%2322c55e'/></svg>" />
 <style>
@@ -181,6 +189,12 @@
     body.leaving [role="main"]{animation:none;opacity:0;transition:opacity .16s ease}
   }
   @keyframes pageFade{from{opacity:0}to{opacity:1}}
+  .libfilter{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .flbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-right:4px}
+  .fchip{background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:12.5px;font-family:var(--font);cursor:pointer;transition:border-color .14s,color .14s}
+  .fchip:hover{border-color:var(--line2);color:var(--text)}
+  .fchip.on{background:rgba(34,197,94,.15);border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -358,6 +372,8 @@
   }
 
   // ---------- rendering ----------
+  var libFilters = { type: "", team: "" };
+
   function render(){
     var html = "";
     // From-completed bar (completed projects not yet in the library)
@@ -371,12 +387,34 @@
       html += '</div></div>';
     }
 
+    // Filter bar (by type / team)
+    var _types = [], _teams = [];
+    library.forEach(function(e){
+      if(e.type && _types.indexOf(e.type)<0) _types.push(e.type);
+      arr(e.stakeholders).forEach(function(s){ if(s && s.team && _teams.indexOf(s.team)<0) _teams.push(s.team); });
+    });
+    _types.sort(); _teams.sort();
+    function _fchip(fk, fv, label){ var on = libFilters[fk]===fv; return '<button class="fchip'+(on?' on':'')+'" data-fk="'+esc(fk)+'" data-fv="'+esc(fv)+'">'+esc(label)+'</button>'; }
+    if(library.length && (_types.length>1 || _teams.length>1)){
+      html += '<div class="libfilter">';
+      if(_types.length>1){ html += '<div class="frow"><span class="flbl">Type</span>'+_fchip("type","","All")+_types.map(function(t){return _fchip("type",t,t);}).join('')+'</div>'; }
+      if(_teams.length>1){ html += '<div class="frow"><span class="flbl">Team</span>'+_fchip("team","","All")+_teams.map(function(t){return _fchip("team",t,t);}).join('')+'</div>'; }
+      html += '</div>';
+    }
+    var filtered = library.filter(function(e){
+      if(libFilters.type && e.type!==libFilters.type) return false;
+      if(libFilters.team && !arr(e.stakeholders).some(function(s){ return s && s.team===libFilters.team; })) return false;
+      return true;
+    });
+
     // Grid of library entries
     html += '<div class="grid">';
     if(!library.length){
       html += '<div class="empty">No projects in the library yet.<br/>Click <b>Add project</b> to feature your completed work — pick a completed project to pull in its details, then attach imagery or video.</div>';
+    } else if(!filtered.length){
+      html += '<div class="empty">Nothing matches that filter. <b>Clear</b> a filter to see everything.</div>';
     } else {
-      library.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){
+      filtered.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.createdAt||0)-(a.createdAt||0); }).forEach(function(e){
         html += card(e);
       });
     }
@@ -385,6 +423,13 @@
     document.getElementById("content").innerHTML = html;
     document.getElementById("updated").textContent = "updated " + new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
     wireCards();
+    Array.prototype.forEach.call(document.querySelectorAll(".fchip"), function(b){
+      b.addEventListener("click", function(){
+        var fk=b.getAttribute("data-fk"), fv=b.getAttribute("data-fv");
+        libFilters[fk] = (libFilters[fk]===fv) ? "" : fv;
+        render();
+      });
+    });
   }
 
   function card(e){

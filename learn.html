@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="color-scheme" content="dark" />
 <title>Learn Motion · Motion Specialist Hub</title>
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Motion Specialist Hub" />
+<meta property="og:title" content="Learn Motion · Motion Specialist Hub" />
+<meta property="og:description" content="Learn Motion · Motion Specialist Hub" />
+<meta property="og:url" content="https://hub-mospec.vercel.app/learn.html" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Learn Motion · Motion Specialist Hub" />
+<meta name="twitter:description" content="Learn Motion · Motion Specialist Hub" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><circle cx='50' cy='50' r='24' fill='none' stroke='%2322c55e' stroke-width='8'/></svg>" />
 <style>
   :root{
@@ -221,6 +229,47 @@
     body.leaving [role="main"]{animation:none;opacity:0;transition:opacity .16s ease}
   }
   @keyframes pageFade{from{opacity:0}to{opacity:1}}
+  .ts-demo{position:relative;height:38px;margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .ts-demo .dm{position:absolute;top:50%;left:8px;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--accent)}
+  @keyframes ts-slide{0%{left:8px}12%{left:8px}58%{left:calc(100% - 22px)}100%{left:calc(100% - 22px)}}
+  .d-linear .dm{animation:ts-slide 2.4s infinite linear}
+  .d-easeout .dm{animation:ts-slide 2.4s infinite cubic-bezier(.16,1,.3,1)}
+  .d-easein .dm{animation:ts-slide 2.4s infinite cubic-bezier(.7,0,.84,0)}
+  .d-easeinout .dm{animation:ts-slide 2.4s infinite cubic-bezier(.65,0,.35,1)}
+  .d-spring .dm{animation:ts-slide 2.4s infinite cubic-bezier(.34,1.56,.64,1)}
+  .d-overshoot .dm{animation:ts-slide 2.4s infinite cubic-bezier(.34,1.8,.64,1)}
+  @keyframes ts-anticip{0%{left:8px}15%{left:8px}26%{left:2px}62%{left:calc(100% - 22px)}100%{left:calc(100% - 22px)}}
+  .d-anticip .dm{animation:ts-anticip 2.6s infinite cubic-bezier(.5,0,.2,1)}
+  @keyframes ts-loop{0%{left:8px}100%{left:calc(100% - 22px)}}
+  .d-loop .dm{animation:ts-loop 1.6s linear infinite}
+  .d-bounce .dm{left:calc(50% - 7px);top:4px;margin-top:0;animation:ts-bounce 1.5s infinite}
+  @keyframes ts-bounce{0%{top:4px}25%{top:20px}40%{top:9px}55%{top:20px}68%{top:14px}80%{top:20px}100%{top:20px}}
+  .d-scale .dm{left:calc(50% - 7px);animation:ts-scale 1.6s infinite ease-in-out}
+  @keyframes ts-scale{0%,100%{transform:scale(.55)}50%{transform:scale(1.5)}}
+  .d-rotation .dm{left:calc(50% - 8px);width:16px;height:16px;margin-top:-8px;border-radius:3px;animation:ts-rot 2s linear infinite}
+  @keyframes ts-rot{to{transform:rotate(360deg)}}
+  .d-opacity .dm{left:calc(50% - 7px);animation:ts-op 1.8s infinite ease-in-out}
+  @keyframes ts-op{0%,100%{opacity:.12}50%{opacity:1}}
+  .d-morph .dm{left:calc(50% - 10px);width:20px;height:20px;margin-top:-10px;animation:ts-morph 2.6s infinite ease-in-out}
+  @keyframes ts-morph{0%,100%{border-radius:50%}33%{border-radius:4px}66%{border-radius:50% 6px}}
+  .d-wiggle .dm{left:calc(50% - 7px);animation:ts-wig 1s infinite ease-in-out}
+  @keyframes ts-wig{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-4px) rotate(-12deg)}75%{transform:translateX(4px) rotate(12deg)}}
+  .d-squash .dm{left:calc(50% - 9px);width:18px;height:18px;margin-top:0;transform-origin:center bottom;animation:ts-squash 1.4s infinite}
+  @keyframes ts-squash{0%{top:2px;transform:scaleY(1) scaleX(1)}40%{top:18px;transform:scaleY(1) scaleX(1)}50%{top:20px;transform:scaleY(.6) scaleX(1.4)}62%{top:16px;transform:scaleY(1.15) scaleX(.9)}100%{top:2px;transform:scaleY(1) scaleX(1)}}
+  @keyframes ts-arcx{0%{left:8px}100%{left:calc(100% - 22px)}}
+  @keyframes ts-arcy{0%,100%{margin-top:8px}50%{margin-top:-14px}}
+  .d-arc .dm{animation:ts-arcx 2.2s infinite alternate ease-in-out,ts-arcy 2.2s infinite alternate ease-in-out}
+  .d-stagger{display:flex;align-items:center;justify-content:center;gap:8px}
+  .d-stagger .dm{position:static;margin:0;animation:ts-pop 1.4s infinite ease-in-out}
+  .d-stagger .dm:nth-child(2){animation-delay:.15s}
+  .d-stagger .dm:nth-child(3){animation-delay:.3s}
+  @keyframes ts-pop{0%,60%,100%{transform:translateY(6px);opacity:.3}25%{transform:translateY(-6px);opacity:1}}
+  .d-follow .dm{animation:ts-slide 2.4s infinite cubic-bezier(.5,0,.2,1)}
+  .d-follow .dm2{background:var(--muted);animation-delay:.12s}
+  .d-parallax .pl{position:absolute;top:50%;height:8px;border-radius:4px;margin-top:-4px}
+  .d-parallax .pl1{background:var(--accent);width:24px;animation:ts-loop 2.2s linear infinite}
+  .d-parallax .pl2{background:var(--muted);width:16px;top:72%;animation:ts-loop 3.6s linear infinite}
+  @media (prefers-reduced-motion: reduce){.ts-demo *{animation:none !important}}
 </style>
 </head>
 <body>
@@ -395,6 +444,34 @@
           <p><b>The idea:</b> every element sits on its own track, and time flows left to right. Where you place each keyframe — and how tracks overlap — is what creates rhythm and sequence.</p>
           <p><b>In practice:</b> overlapping and staggering are your friends. Letting one element begin just before another finishes keeps a sequence feeling connected, while a small stagger across a group turns a flat "everything at once" into a graceful cascade.</p>
         </div>
+            </div>
+            <button class="klass-next" type="button" data-next="m104">Next up: handoff &amp; delivery ↓</button>
+          </div>
+        </div>
+        <div class="klass" id="m104" data-open="false">
+          <button class="klass-head" type="button" aria-expanded="false">
+            <span class="klass-badge">104</span>
+            <span class="klass-title">
+              <span class="klass-name">Motion 104 · Handoff &amp; Delivery</span>
+              <span class="klass-sub">Getting motion out of the tool and cleanly into the product.</span>
+            </span>
+            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="klass-body" hidden>
+            <div class="klass-section-label">Terms you'll hear</div>
+            <div class="gloss">
+          <div class="term"><h4>Handoff</h4><p>The moment motion leaves the design tool and gets specified for engineering — the durations, easings, and triggers written down so it can be built faithfully.</p></div>
+          <div class="term"><h4>Spec</h4><p>The precise recipe for a motion: what animates, from which value to which, over how long, with what easing curve, and what kicks it off.</p></div>
+          <div class="term"><h4>Lottie</h4><p>A lightweight format that plays vector animations natively in apps and on the web — often the cleanest way to ship complex motion without heavy video.</p></div>
+          <div class="term"><h4>Motion tokens</h4><p>Reusable, named values for duration and easing (like “fast” or “standard ease”) so motion stays consistent across a product and is easy to tune in one place.</p></div>
+            </div>
+            <div class="klass-section-label">Key idea</div>
+            <div class="concepts">
+              <div class="concept">
+          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>Design the handoff, not just the motion</h4>
+          <p><b>The idea:</b> a beautiful animation only ships well if whoever builds it knows exactly what you intended. The spec — durations, curves, and triggers — is part of the craft, not an afterthought.</p>
+          <p><b>In practice:</b> name your easings and durations and keep them consistent, then hand over values a developer can drop straight in. When motion lives in tokens, tuning the whole product later is a one-line change instead of a hunt.</p>
+              </div>
             </div>
             <button class="klass-next" type="button" data-next="office-hours">Bring your questions to office hours ↓</button>
           </div>
@@ -876,12 +953,33 @@
     document.getElementById("suNote").textContent="";
     suModal.hidden=false;
     var first=suModal.querySelector(".field"); if(first) first.focus();
-    document.getElementById("suConfirm").onclick=onConfirm;
+    var _cf=document.getElementById("suConfirm"); _cf.textContent="Confirm"; _cf.onclick=onConfirm;
+    var _cc=document.getElementById("suCancel"); if(_cc) _cc.textContent="Cancel";
   }
   document.getElementById("suClose").addEventListener("click",closeForm);
   document.getElementById("suCancel").addEventListener("click",closeForm);
   document.getElementById("suBackdrop").addEventListener("click",closeForm);
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!suModal.hidden) closeForm(); });
+  function icsPad(n){return (n<10?"0":"")+n;}
+  function parseTime(label){ var m=String(label).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i); if(!m) return null; var hh=parseInt(m[1],10)%12; if(/pm/i.test(m[3])) hh+=12; return {h:hh,m:parseInt(m[2],10)}; }
+  function makeIcs(title, iso, start, mins, desc){
+    var t=parseTime(start); if(!t||!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    var endTotal=t.h*60+t.m+(mins||30); var eh=Math.floor(endTotal/60)%24, em=endTotal%60;
+    function dt(a,b){ return iso.replace(/-/g,"")+"T"+icsPad(a)+icsPad(b)+"00"; }
+    var d=new Date(); function z(n){return (n<10?"0":"")+n;}
+    var stamp=d.getUTCFullYear()+z(d.getUTCMonth()+1)+z(d.getUTCDate())+"T"+z(d.getUTCHours())+z(d.getUTCMinutes())+z(d.getUTCSeconds())+"Z";
+    var uid="moho-"+iso+"-"+t.h+t.m+"-"+Math.floor(Math.random()*1e6)+"@hub-mospec";
+    return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Motion Hub//EN","CALSCALE:GREGORIAN","BEGIN:VEVENT","UID:"+uid,"DTSTAMP:"+stamp,"DTSTART;TZID=America/New_York:"+dt(t.h,t.m),"DTEND;TZID=America/New_York:"+dt(eh,em),"SUMMARY:"+title,"DESCRIPTION:"+(desc||""),"END:VEVENT","END:VCALENDAR"].join("\r\n");
+  }
+  function downloadIcs(filename, content){ try{ var blob=new Blob([content],{type:"text/calendar;charset=utf-8"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },200); }catch(e){} }
+  function bookedSuccess(icsTitle, iso, start, mins, filename, desc){
+    document.getElementById("suHead").innerHTML="You\u2019re all set \u2713";
+    document.getElementById("suFields").innerHTML='<p style="margin:0 0 4px;font-size:13px;color:var(--muted)">Booked. Add it to your calendar so it\u2019s on your radar.</p>';
+    document.getElementById("suNote").textContent="";
+    var cf=document.getElementById("suConfirm"); cf.textContent="Add to calendar"; cf.onclick=function(){ var ics=makeIcs(icsTitle, iso, start, mins, desc); if(ics) downloadIcs(filename, ics); closeForm(); };
+    var cc=document.getElementById("suCancel"); if(cc) cc.textContent="Done";
+  }
+
   function openBook(id,timeLabel,dateLabel){
     openForm("Book office hours \u2014 "+esc(dateLabel)+", "+esc(timeLabel),
       '<input class="field" id="suName" type="text" maxlength="60" placeholder="Your name" />'+
@@ -893,7 +991,7 @@
         if(!name){ document.getElementById("suName").focus(); return; }
         note.textContent="Booking\u2026";
         var r=await book(id,name,topic);
-        if(r==="ok"){ await load(); closeForm(); }
+        if(r==="ok"){ await load(); var mm=String(timeLabel).match(/(\d+)\s*min/); bookedSuccess("Office hours with Sean", id.slice(3,13), id.slice(14), mm?parseInt(mm[1],10):15, "office-hours.ics", "Motion office hours, booked via the Motion Hub."); }
         else if(r==="taken"){ note.textContent="That slot was just taken \u2014 pick another."; await load(); }
         else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
       });
@@ -909,7 +1007,7 @@
         if(!name){ document.getElementById("suName").focus(); return; }
         note.textContent="Saving\u2026";
         var r=await rsvp(iso,name,topic);
-        if(r==="ok"){ await load(); closeForm(); }
+        if(r==="ok"){ await load(); bookedSuccess("Community of Practice", iso, COP_TIME, 60, "community-of-practice.ics", "Motion community of practice, RSVP via the Motion Hub."); }
         else { note.textContent="Couldn\u2019t save \u2014 please try again."; }
       });
   }
@@ -1048,8 +1146,16 @@
       return a.t.localeCompare(b.t);
     });
     if(!matches.length){ results.innerHTML='<div class="ts-hint">No terms match \u201c'+esc(raw.trim())+'\u201d. Try a simpler word, or ask your question below.</div>'; return; }
+    var DEMOS={"Ease-out":"d-easeout","Ease-in":"d-easein","Ease-in-out":"d-easeinout","Linear":"d-linear","Spring":"d-spring","Overshoot":"d-overshoot","Bounce":"d-bounce","Anticipation":"d-anticip","Loop":"d-loop","Scale":"d-scale","Rotation":"d-rotation","Opacity / Alpha":"d-opacity","Morph":"d-morph","Wiggle":"d-wiggle","Stagger / Offset":"d-stagger","Parallax":"d-parallax","Squash & stretch":"d-squash","Arc":"d-arc","Follow-through":"d-follow"};
+    function demoInner(cls){
+      if(cls==="d-stagger") return '<span class="dm"></span><span class="dm"></span><span class="dm"></span>';
+      if(cls==="d-parallax") return '<span class="pl pl1"></span><span class="pl pl2"></span>';
+      if(cls==="d-follow") return '<span class="dm"></span><span class="dm dm2"></span>';
+      return '<span class="dm"></span>';
+    }
     results.innerHTML=matches.map(function(t){
-      return '<div class="ts-item"><div class="ts-term">'+hi(t.t,q)+'</div><div class="ts-def">'+hi(t.d,q)+'</div></div>';
+      var demo = DEMOS[t.t] ? '<div class="ts-demo '+DEMOS[t.t]+'" aria-hidden="true">'+demoInner(DEMOS[t.t])+'</div>' : '';
+      return '<div class="ts-item"><div class="ts-term">'+hi(t.t,q)+'</div><div class="ts-def">'+hi(t.d,q)+'</div>'+demo+'</div>';
     }).join("");
   }
   input.addEventListener("input",function(){ render(input.value); });
