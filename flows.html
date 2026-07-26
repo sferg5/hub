@@ -957,7 +957,10 @@
     {t:"Marker", cat:"learn", url:"learn.html#terms", s:"A labeled point on the timeline used to sync or cue events.", kw:["marker","cue","label","marker"]},
     {t:"Work area / In & out points", cat:"learn", url:"learn.html#terms", s:"The trimmed section of the timeline set for preview or export.", kw:["work area","in point","out point","trim range","work area / in & out points"]},
     {t:"Bounce", cat:"learn", url:"learn.html#terms", s:"An ease that overshoots its target and settles with a springy rebound.", kw:["bounce","bouncy","rebound","bounce"]},
-    {t:"Jitter", cat:"learn", url:"learn.html#terms", s:"Unwanted shakiness or stepping in motion, usually something to smooth out.", kw:["jitter","stutter","judder","shake","jitter"]}
+    {t:"Jitter", cat:"learn", url:"learn.html#terms", s:"Unwanted shakiness or stepping in motion, usually something to smooth out.", kw:["jitter","stutter","judder","shake","jitter"]},
+    {t:"Motion accessibility checker", cat:"tools", url:"accessibility.html", s:"Audit an animation against WCAG and Apple's motion guidelines, then print a report.", kw:["accessibility","a11y","wcag","apple hig","reduce motion","audit","checklist","pause stop hide","flashing","seizure","motion sensitivity","alt text"]},
+    {t:"Formats & Frameworks", cat:"tools", url:"formats.html", s:"Reference of motion file types (Lottie, GIF, MP4, SVG, Rive) and code frameworks by platform.", kw:["formats","file types","file format","lottie","gif","mp4","webm","apng","svg","rive","gltf","sprite","frameworks","gsap","framer motion","css animation","codec","export","platform","ios","android","web"]},
+    {t:"Settings — appearance, motion, report a bug", cat:"tools", url:"#open-settings", s:"Use the Settings button in the top-right to switch light or dark mode, reduce motion, or report a bug.", kw:["settings","dark mode","light mode","appearance","theme","reduce motion","report a bug","bug","feedback","gear","preferences"]}
   ];
   var CATLABEL = {start:"Get started", learn:"Learn motion", work:"See work", tools:"Tools", status:"Status"};
 
@@ -1101,6 +1104,7 @@
   document.getElementById("setClose").addEventListener("click",closeS);
   document.getElementById("setBackdrop").addEventListener("click",closeS);
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!ov.hidden) closeS(); });
+  document.addEventListener("click",function(e){ var a=e.target&&e.target.closest?e.target.closest('a[href="#open-settings"]'):null; if(a){ e.preventDefault(); openS(); } });
   function mm(q){ try{ return window.matchMedia(q); }catch(e){ return {matches:false,addEventListener:function(){}}; } }
   function applyTheme(v){ var lm=(v==="light")||(v==="system"&&mm("(prefers-color-scheme: light)").matches); document.documentElement.classList.toggle("theme-light",lm); }
   function applyMotion(v){ var rm=(v==="reduce")||(v==="system"&&mm("(prefers-reduced-motion: reduce)").matches); document.documentElement.classList.toggle("reduce-motion",rm); }

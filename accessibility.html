@@ -478,6 +478,7 @@
   document.getElementById("setClose").addEventListener("click",closeS);
   document.getElementById("setBackdrop").addEventListener("click",closeS);
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!ov.hidden) closeS(); });
+  document.addEventListener("click",function(e){ var a=e.target&&e.target.closest?e.target.closest('a[href="#open-settings"]'):null; if(a){ e.preventDefault(); openS(); } });
   function mm(q){ try{ return window.matchMedia(q); }catch(e){ return {matches:false,addEventListener:function(){}}; } }
   function applyTheme(v){ var lm=(v==="light")||(v==="system"&&mm("(prefers-color-scheme: light)").matches); document.documentElement.classList.toggle("theme-light",lm); }
   function applyMotion(v){ var rm=(v==="reduce")||(v==="system"&&mm("(prefers-reduced-motion: reduce)").matches); document.documentElement.classList.toggle("reduce-motion",rm); }

@@ -110,7 +110,7 @@
   }
   @keyframes pageFade{from{opacity:0}to{opacity:1}}
   #trafficSection h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin:20px 0 8px;font-weight:600}
-  #trafficSection .thint{font-size:12.5px;color:var(--faint);margin:0 0 14px}
+  .thint{font-size:12.5px;color:var(--faint);margin:0 0 14px}
   .ttotal{display:inline-flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 18px;margin-bottom:4px}
   .ttotal .tk{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
   .ttotal .tv{font-size:30px;font-weight:700;color:var(--accent);line-height:1}
@@ -602,6 +602,7 @@
   document.getElementById("setClose").addEventListener("click",closeS);
   document.getElementById("setBackdrop").addEventListener("click",closeS);
   document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!ov.hidden) closeS(); });
+  document.addEventListener("click",function(e){ var a=e.target&&e.target.closest?e.target.closest('a[href="#open-settings"]'):null; if(a){ e.preventDefault(); openS(); } });
   function mm(q){ try{ return window.matchMedia(q); }catch(e){ return {matches:false,addEventListener:function(){}}; } }
   function applyTheme(v){ var lm=(v==="light")||(v==="system"&&mm("(prefers-color-scheme: light)").matches); document.documentElement.classList.toggle("theme-light",lm); }
   function applyMotion(v){ var rm=(v==="reduce")||(v==="system"&&mm("(prefers-reduced-motion: reduce)").matches); document.documentElement.classList.toggle("reduce-motion",rm); }
