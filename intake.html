@@ -238,6 +238,7 @@
   html.theme-light .rs-shipped{background:rgba(34,197,94,.16);color:#15803d}
   html.theme-light .rs-declined{background:rgba(239,68,68,.14);color:#b91c1c}
   #settingsGear{order:999;align-self:stretch;padding-left:10px;padding-right:10px}
+  .hs-filter-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);align-self:center;margin-right:2px;flex-shrink:0}
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
 </head>
@@ -334,7 +335,7 @@
         <input id="searchInput" type="text" placeholder="e.g. how do I request motion work?" autocomplete="off" aria-label="Search the hub" />
         <button class="btn primary" id="searchGo">Search</button>
       </div>
-      <div class="search-filters" id="searchFilters" role="group" aria-label="Filter results by category">
+      <div class="search-filters" id="searchFilters" role="group" aria-label="Filter results by category"><span class="hs-filter-lbl">Filter</span>
         <button class="hs-chip active" data-cat="all" type="button">All</button>
         <button class="hs-chip" data-cat="start" type="button">Get started</button>
         <button class="hs-chip" data-cat="learn" type="button">Learn motion</button>
