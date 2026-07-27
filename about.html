@@ -579,7 +579,9 @@
   function render(list){
     var STAGE_LABEL={discovery:"Discovery",wip:"In progress",review:"In review",revisions:"In revisions"};
     var STAGE_CLS={discovery:"rm-discovery",wip:"rm-wip",review:"rm-review",revisions:"rm-revisions"};
-    var inProg=list.filter(function(x){var s=x&&x.status; return s==="discovery"||s==="wip"||s==="review"||s==="revisions";});
+    var STAGE_RANK={discovery:0,wip:1,review:2,revisions:3};
+    var inProg=list.filter(function(x){var s=x&&x.status; return s==="discovery"||s==="wip"||s==="review"||s==="revisions";})
+      .sort(function(a,b){var ra=STAGE_RANK[a.status]||0,rb=STAGE_RANK[b.status]||0; return ra!==rb ? ra-rb : (((b&&(b.statusAt||b.createdAt))||0))-(((a&&(a.statusAt||a.createdAt))||0));});
     var shipped=list.filter(function(x){return x&&x.status==="delivered";})
       .sort(function(a,b){return (((b&&(b.statusAt||b.createdAt))||0))-(((a&&(a.statusAt||a.createdAt))||0));})
       .slice(0,6);
