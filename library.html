@@ -69,7 +69,7 @@
   .media-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:10px}
   .media-embed{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:10px;overflow:hidden}
   .media-embed iframe,.media-embed video{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .media-embed img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border:0;display:block}
+  .media-embed img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;display:block}
   .cdetails .media-more{display:flex;flex-direction:column;gap:8px;padding:0;background:transparent;margin-top:2px}
   .media-none{aspect-ratio:4/3;display:grid;place-items:center;background:linear-gradient(135deg,#1a1a1f,#0d0d10);color:var(--faint);font-size:12px;gap:8px;border-radius:10px;margin:16px 16px 8px}
   .media-thumb{aspect-ratio:4/3;overflow:hidden;border-radius:10px;margin:16px 16px 8px;background:#0d0d10}
@@ -259,6 +259,21 @@
   .exp-addlink{align-self:flex-start}
   .cbtn.primary{background:var(--accent);color:#052e16;border-color:transparent;font-weight:600}
   .exp-edit{display:flex;flex-direction:column;gap:8px}
+  .exp-thumb-link{display:block;text-decoration:none}
+  .exp-thumb-link:hover .media-embed{filter:brightness(1.08)}
+  .exp-head{cursor:pointer}
+  a.cbtn{text-decoration:none}
+  .exp-modal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px}
+  .exp-modal[hidden]{display:none}
+  .exp-modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+  .exp-modal-box{position:relative;width:100%;max-width:520px;max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+  .exp-modal-x{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;font-size:16px;line-height:1;z-index:1}
+  .exp-m-head{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+  .exp-m-head .media{padding:0}
+  .exp-m-title{display:flex;align-items:center;gap:10px}
+  .exp-m-title .cname{font-size:20px;font-weight:600}
+  .exp-modal-box .exp-view,.exp-modal-box .exp-edit{display:flex;flex-direction:column;gap:12px}
+
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
 </head>
@@ -737,10 +752,10 @@
     { id:"holodeck", name:"Holodeck", url:"holodeck.html", thumb:"holodeck-thumb.jpg",
       desc:"A Star Trek-style 3D product-projection playground for viewing fabric swatches in cinematic environments \u2014 tilt, zoom, weather, wind, and material controls." }
   ];
-  var expMeta = {}, expOpen = {}, expEditing = {};
+  var expMeta = {}, expEditing = {}, expModalId = null;
   var EXP_LINK_ICO = '<svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
-  var EXP_CHEV = '<svg aria-hidden="true" focusable="false" class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
   var EXP_EDIT_ICO = '<svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  var EXP_EXPAND_ICO = '<svg aria-hidden="true" focusable="false" class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
   function expDef(id){ for(var i=0;i<EXP_DEFS.length;i++){ if(EXP_DEFS[i].id===id) return EXP_DEFS[i]; } return {}; }
   function expData(id){ var d=(expMeta&&expMeta[id])||{}; var def=expDef(id); return { desc:(d.desc!=null?d.desc:def.desc)||"", links:arr(d.links) }; }
   function expLinkRow(label,url){ return '<div class="exp-linkrow"><input class="exp-f exp-llabel" placeholder="Label" value="'+esc(label)+'" /><input class="exp-f exp-lurl" placeholder="https://\u2026" value="'+esc(url)+'" /><button type="button" class="exp-lrm" title="Remove link" aria-label="Remove link">\u2715</button></div>'; }
@@ -754,33 +769,53 @@
     var grid=document.getElementById("expGrid"); if(!grid) return;
     if(lastData && typeof lastData[EXP_KEY]==="object" && lastData[EXP_KEY]) expMeta=lastData[EXP_KEY];
     grid.innerHTML = EXP_DEFS.map(function(def){
-      var d=expData(def.id), editing=!!expEditing[def.id], open=!!expOpen[def.id]||editing;
-      var links='<a class="clink" href="'+esc(def.url)+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>Open '+esc(def.name)+'</span></a>'+
-        d.links.filter(function(l){return l&&l.url;}).map(function(l){ return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>'+esc(l.label||l.url)+'</span></a>'; }).join('');
-      var view='<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+'<div class="clinks">'+links+'</div><div class="cactions"><button type="button" class="cbtn" data-exp-edit="'+def.id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
-      var rows=d.links.map(function(l){ return expLinkRow(l.label||"",l.url||""); }).join('');
-      var edit='<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="4">'+esc(d.desc)+'</textarea><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+def.id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+def.id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+def.id+'">Cancel</button></div></div>';
-      return '<div class="card exp-card'+(open?' open':'')+'" data-exp="'+def.id+'"><div class="media"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div></div><button type="button" class="chead" data-exp-toggle="'+def.id+'" aria-expanded="'+(open?'true':'false')+'"><div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+EXP_CHEV+'</button><div class="cdetails">'+(editing?edit:view)+'</div></div>';
+      return '<div class="card exp-card" data-exp="'+def.id+'">'+
+        '<a class="media exp-thumb-link" href="'+esc(def.url)+'" aria-label="Open '+esc(def.name)+'"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div></a>'+
+        '<button type="button" class="chead exp-head" data-exp-open="'+def.id+'" title="View details">'+
+          '<div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+
+          EXP_EXPAND_ICO+
+        '</button>'+
+      '</div>';
     }).join('');
   }
+  function renderExpModalBody(id){
+    var body=document.getElementById("expModalBody"); if(!body) return;
+    var def=expDef(id), d=expData(id), editing=!!expEditing[id];
+    var head='<div class="exp-m-head"><a class="media exp-thumb-link" href="'+esc(def.url)+'"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" /></div></a><div class="exp-m-title"><div class="cname">'+esc(def.name)+'</div><span class="ctype">Experiment</span></div></div>';
+    if(editing){
+      var rows=d.links.map(function(l){ return expLinkRow(l.label||"",l.url||""); }).join('');
+      body.innerHTML = head + '<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="5">'+esc(d.desc)+'</textarea><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+id+'">Cancel</button></div></div>';
+    } else {
+      var links='<a class="clink" href="'+esc(def.url)+'">'+EXP_LINK_ICO+'<span>Open '+esc(def.name)+'</span></a>'+
+        d.links.filter(function(l){return l&&l.url;}).map(function(l){ return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>'+esc(l.label||l.url)+'</span></a>'; }).join('');
+      body.innerHTML = head + '<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+'<div class="clinks">'+links+'</div><div class="cactions"><a class="cbtn primary" href="'+esc(def.url)+'">Open '+esc(def.name)+'</a><button type="button" class="cbtn" data-exp-edit="'+id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
+    }
+  }
+  function openExpModal(id){ expModalId=id; expEditing[id]=false; renderExpModalBody(id); var m=document.getElementById("expModal"); if(m){ m.hidden=false; document.documentElement.style.overflow="hidden"; } }
+  function closeExpModal(){ var m=document.getElementById("expModal"); if(m) m.hidden=true; document.documentElement.style.overflow=""; expModalId=null; }
   function initExperiments(){
-    var grid=document.getElementById("expGrid"); if(!grid) return;
-    grid.addEventListener("click", async function(e){
+    var grid=document.getElementById("expGrid");
+    if(grid){ grid.addEventListener("click", function(e){ var el=e.target.closest("[data-exp-open]"); if(el){ e.preventDefault(); openExpModal(el.getAttribute("data-exp-open")); } }); }
+    var modal=document.getElementById("expModal"); if(!modal) return;
+    document.getElementById("expModalX").addEventListener("click", closeExpModal);
+    document.getElementById("expModalBd").addEventListener("click", closeExpModal);
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !modal.hidden) closeExpModal(); });
+    var body=document.getElementById("expModalBody");
+    body.addEventListener("click", async function(e){
       var el;
-      if((el=e.target.closest("[data-exp-toggle]"))){ var id=el.getAttribute("data-exp-toggle"); if(expEditing[id]) return; expOpen[id]=!expOpen[id]; var c=el.closest(".card"); if(c){ c.classList.toggle("open",!!expOpen[id]); el.setAttribute("aria-expanded",expOpen[id]?"true":"false"); } return; }
-      if((el=e.target.closest("[data-exp-edit]"))){ if(!(await requirePw())) return; var id=el.getAttribute("data-exp-edit"); expEditing[id]=true; expOpen[id]=true; renderExperiments(); return; }
-      if((el=e.target.closest("[data-exp-cancel]"))){ expEditing[el.getAttribute("data-exp-cancel")]=false; renderExperiments(); return; }
-      if((el=e.target.closest("[data-exp-add]"))){ var card=el.closest(".card"); var rows=card&&card.querySelector(".exp-linkrows"); if(rows){ rows.insertAdjacentHTML("beforeend", expLinkRow("","")); } return; }
+      if((el=e.target.closest("[data-exp-edit]"))){ if(!(await requirePw())) return; var id=el.getAttribute("data-exp-edit"); expEditing[id]=true; renderExpModalBody(id); return; }
+      if((el=e.target.closest("[data-exp-cancel]"))){ var id=el.getAttribute("data-exp-cancel"); expEditing[id]=false; renderExpModalBody(id); return; }
+      if((el=e.target.closest("[data-exp-add]"))){ var rows=body.querySelector(".exp-linkrows"); if(rows) rows.insertAdjacentHTML("beforeend", expLinkRow("","")); return; }
       if((el=e.target.closest(".exp-lrm"))){ var row=el.closest(".exp-linkrow"); if(row) row.remove(); return; }
       if((el=e.target.closest("[data-exp-save]"))){
-        var id=el.getAttribute("data-exp-save"), card=el.closest(".card"); if(!card) return;
-        var desc=((card.querySelector(".exp-desc")||{}).value||"").trim();
-        var links=[]; Array.prototype.forEach.call(card.querySelectorAll(".exp-linkrow"),function(r){ var lab=((r.querySelector(".exp-llabel")||{}).value||"").trim(); var u=((r.querySelector(".exp-lurl")||{}).value||"").trim(); if(u) links.push({label:lab,url:u}); });
+        var id=el.getAttribute("data-exp-save");
+        var desc=((body.querySelector(".exp-desc")||{}).value||"").trim();
+        var links=[]; Array.prototype.forEach.call(body.querySelectorAll(".exp-linkrow"),function(r){ var lab=((r.querySelector(".exp-llabel")||{}).value||"").trim(); var u=((r.querySelector(".exp-lurl")||{}).value||"").trim(); if(u) links.push({label:lab,url:u}); });
         if(!expMeta||typeof expMeta!=="object") expMeta={};
         expMeta[id]={ desc:desc, links:links };
         el.disabled=true; el.textContent="Saving\u2026";
         var ok=await saveExperiments();
-        expEditing[id]=false; renderExperiments();
+        expEditing[id]=false; renderExpModalBody(id); renderExperiments();
         if(!ok) window.alert("Couldn\u2019t save \u2014 please try again.");
         return;
       }
@@ -1175,5 +1210,12 @@ window.mhConfirm=function(opts){
 };
 </script>
 
+  <div class="exp-modal" id="expModal" hidden role="dialog" aria-modal="true" aria-label="Experiment details">
+    <div class="exp-modal-bd" id="expModalBd"></div>
+    <div class="exp-modal-box">
+      <button class="exp-modal-x" id="expModalX" aria-label="Close">&times;</button>
+      <div id="expModalBody"></div>
+    </div>
+  </div>
 </body>
 </html>
