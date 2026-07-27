@@ -107,7 +107,7 @@
     </div>
 
     <div class="hint">
-      Bump fists → 💥 · touch index tips → ✨ · pinch one hand → pulse (rotate = speed) · pinch both (tips meet) → ⚡<br>
+      Bump fists → 💥 · touch index tips → ✨ · pinch one hand → pulse (rotate = speed) · pinch both hands, move apart/together → scrub kaleidoscopeyness 🌀<br>
       Tap head: right hand → fg pattern <span id="v-pat">1</span>/8 · left hand → bg pattern <span id="v-bpat">1</span>/8<br>
       <kbd>H</kbd> hide UI · <kbd>C</kbd> hide camera · <kbd>Space</kbd> pause motion
     </div>
@@ -121,7 +121,7 @@
   <div id="gate">
     <h2>Kaleidoscope Visualizer</h2>
     <p>Full-frame neon kaleidoscope driven by your hands and face, tracked in your browser. <b>Right hand</b> shapes the pattern (spin, zoom, symmetry, line width). <b>Head</b> turn morphs the shape and tilt sets its color. <b>Left hand</b> paints the smooth pastel background.</p>
-    <p class="keys">Right hand drives the pattern, left the background; open a hand for full opacity, close it to fade that layer. Gestures: <b>bump fists</b> → explosion · <b>touch index fingertips</b> → flare · <b>tap your head</b> (right hand = foreground pattern, left hand = background pattern) · <b>pinch one hand</b> → that layer pulses; rotate the hand like a knob to speed it up · <b>bring both hands' index tips and thumb tips together, then pull apart</b> → a lightning string that pulses to the room's music 🎵. Head tilt sets both layers' colors as a complementary pair.</p>
+    <p class="keys">Right hand drives the pattern, left the background; open a hand for full opacity, close it to fade that layer. Gestures: <b>bump fists</b> → explosion · <b>touch index fingertips</b> → flare · <b>tap your head</b> (right hand = foreground pattern, left hand = background pattern) · <b>pinch one hand</b> → that layer pulses; rotate the hand like a knob to speed it up · <b>pinch both hands and move them apart or together</b> → scrub how kaleidoscopey the pattern is; let go to leave it there 🌀. Head tilt sets both layers' colors as a complementary pair.</p>
     <button id="start">Enable camera &amp; start</button>
     <div id="status">Best in Chrome. You'll be asked for camera permission.</div>
   </div>
@@ -136,7 +136,7 @@ precision highp float;
 uniform vec2  u_res;
 uniform float u_time;
 // foreground (right hand + face)
-uniform float u_fgVis, u_rot, u_scale, u_open, u_sym, u_hue, u_morph, u_pinch;
+uniform float u_fgVis, u_rot, u_scale, u_open, u_sym, u_hue, u_morph, u_pinch, u_kaleido;
 uniform vec2  u_fgC;
 // background (left hand)
 uniform float u_bgVis, u_bgHue, u_bgScale, u_bgSpread;
@@ -195,7 +195,8 @@ void main(){
   fuv *= zoom;
   float ft   = u_time*(0.3 + u_open*1.3);
   vec2  fk   = kaleido(fuv, u_sym, u_rot + ft*0.15);
-  float fa = fk.x, fr = fk.y;
+  float rawA = mod(atan(fuv.y, fuv.x) + (u_rot + ft*0.15), TAU);
+  float fa = mix(rawA, fk.x, u_kaleido), fr = fk.y;
   float petals = u_sym;
   float flower = cos(fa*petals + u_morph*3.14159);
   float freq   = 8.0 + u_morph*36.0;                 // head turn -> stripe frequency
@@ -347,7 +348,7 @@ void main(){
     for (const n of ['u_res','u_time','u_fgVis','u_rot','u_scale','u_open','u_sym','u_hue',
       'u_morph','u_pinch','u_fgC','u_bgVis','u_bgHue','u_bgScale','u_bgSpread','u_bgC',
       'u_pattern','u_burst','u_burstC','u_flare','u_flareC','u_tap',
-      'u_bolt','u_boltA','u_boltB','u_audio','u_bgPattern'])
+      'u_bolt','u_boltA','u_boltB','u_audio','u_bgPattern','u_kaleido'])
       U[n] = gl.getUniformLocation(program, n);
   }
 
@@ -461,6 +462,8 @@ void main(){
   let wasHeadFg = false, wasHeadBg = false, lastHeadTapFg = 0, lastHeadTapBg = 0;
   // lightning string: latches when index tips AND thumb tips all meet, held while both pinched
   let boltActive = false, beamLatched = false;
+  // two-hand pinch scrubs kaleidoscopeyness; value persists after release
+  let kaleidoVal = 1.0, kaleidoS = 1.0, scrubLatched = false, scrubStartDist = 0, scrubStartVal = 1.0;
   const bolt = { ax: 0.5, ay: 0.5, bx: 0.5, by: 0.5 };
   const boltS = { ax: 0.5, ay: 0.5, bx: 0.5, by: 0.5 };
 
@@ -518,26 +521,23 @@ void main(){
       }
       wasET = etClose;
 
-      // ELECTROBEAM: latches only when BOTH index tips AND BOTH thumb tips meet.
-      const avgPalm = (palmLen(A) + palmLen(B)) / 2;
-      const idxMeet = Math.hypot(A[8].x - B[8].x, A[8].y - B[8].y) / avgPalm < 0.75;
-      const thbMeet = Math.hypot(A[4].x - B[4].x, A[4].y - B[4].y) / avgPalm < 0.75;
-      if (idxMeet && thbMeet) beamLatched = true;                    // connect
-      if (!(pinchAmt(A) < 0.55 && pinchAmt(B) < 0.55)) beamLatched = false; // released a hand
-    } else { wasFist = false; wasET = false; beamLatched = false; }
+      // TWO-HAND KALEIDO KNOB: pinch both hands, then move them apart (more) or
+      // together (less) to scrub "kaleidoscopeyness". Release either pinch to keep it.
+      const bothPinched = pinchAmt(A) < 0.5 && pinchAmt(B) < 0.5;
+      if (bothPinched) {
+        if (!scrubLatched) { scrubLatched = true; scrubStartDist = palmDist; scrubStartVal = kaleidoVal; }
+        kaleidoVal = clamp(scrubStartVal + (palmDist - scrubStartDist) * 2.6, 0, 1);
+      } else {
+        scrubLatched = false;
+      }
+    } else { wasFist = false; wasET = false; scrubLatched = false; }
 
-    // beam endpoints track each hand's pinch point while latched
-    if (beamLatched && list.length >= 2) {
-      const A = list[0], B = list[1];
-      boltActive = true;
-      bolt.ax = 1 - (A[4].x + A[8].x) / 2; bolt.ay = (A[4].y + A[8].y) / 2;
-      bolt.bx = 1 - (B[4].x + B[8].x) / 2; bolt.by = (B[4].y + B[8].y) / 2;
-    } else boltActive = false;
+    boltActive = false;   // lightning retired: two-hand pinch now scrubs kaleidoscopeyness
 
     // PINCH-TO-PULSE: a pinched hand makes its layer pulse (rotation = knob speed).
     // Not while forming the beam (that needs both hands pinched together).
-    P.pinched  = !!(fg  && pinchAmt(fg)  < 0.5 && !beamLatched);
-    Bp.pinched = !!(bgH && pinchAmt(bgH) < 0.5 && !beamLatched);
+    P.pinched  = !!(fg  && pinchAmt(fg)  < 0.5 && !scrubLatched);
+    Bp.pinched = !!(bgH && pinchAmt(bgH) < 0.5 && !scrubLatched);
 
     // HEAD TAP: right hand -> foreground pattern, left hand -> background pattern
     if (lastFace) {
@@ -631,6 +631,7 @@ void main(){
     fx.tap   = Math.max(0, fx.tap   - 0.016 / 0.25);  // quick pulse
     fx.bolt  = boltActive ? Math.min(1, fx.bolt + 0.016 / 0.1)   // snap on
                           : Math.max(0, fx.bolt - 0.016 / 0.25); // fade off
+    kaleidoS = lerp(kaleidoS, kaleidoVal, 0.2);
     boltS.ax = lerp(boltS.ax, bolt.ax, 0.4); boltS.ay = lerp(boltS.ay, bolt.ay, 0.4);
     boltS.bx = lerp(boltS.bx, bolt.bx, 0.4); boltS.by = lerp(boltS.by, bolt.by, 0.4);
     updatePulse(P); updatePulse(Bp);
@@ -657,6 +658,7 @@ void main(){
     gl.uniform1f(U.u_hue, P.hue.s);
     gl.uniform1f(U.u_morph, P.morph.s);
     gl.uniform1f(U.u_pinch, P.pinch.s);
+    gl.uniform1f(U.u_kaleido, kaleidoS);
     gl.uniform2f(U.u_fgC, 0.0, 0.0);   // pattern always centered
     gl.uniform1f(U.u_bgVis, Bp.vis * layerFactor(Bp)); // open/close -> opacity, or pinch -> pulse
     gl.uniform1f(U.u_bgHue, (P.hue.s + 0.5) % 1.0);    // head-driven, complementary to foreground
