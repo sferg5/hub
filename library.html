@@ -273,6 +273,11 @@
   .exp-m-title{display:flex;align-items:center;gap:10px}
   .exp-m-title .cname{font-size:20px;font-weight:600}
   .exp-modal-box .exp-view,.exp-modal-box .exp-edit{display:flex;flex-direction:column;gap:12px}
+  .exp-modal-box .media-more{display:flex;flex-direction:column;gap:8px}
+  .lib-projects-title{margin-top:4px}
+  .card-details-modal{display:flex;flex-direction:column;gap:12px}
+  .card-details-modal .media-more{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+
 
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
@@ -363,6 +368,7 @@
       <div class="grid" id="expGrid"></div>
     </div>
 
+    <div class="lx-title lib-projects-title">Projects</div>
     <div id="content"><div class="loading"><div class="ldr-ring"></div>Loading…</div></div>
   </div>
 
@@ -518,67 +524,69 @@
     });
   }
 
-  function card(e){
-    var open = !!openCards[e.id];
+  function cardDetails(e){
     var media = arr(e.media).filter(function(m){ return m && m.url; });
-    var hero = media.length
-      ? '<div class="media">' + mediaEmbed(media[0]) + '</div>'
-      : '<div class="media-none"><svg aria-hidden="true" focusable="false" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.6-3.6a2 2 0 0 0-2.8 0L6 21"/></svg>No media yet</div>';
     var extra = media.length > 1 ? '<div class="media-more">' + media.slice(1).map(mediaEmbed).join('') + '</div>' : '';
     var stakes = arr(e.stakeholders).filter(function(s){ return s && (s.name||s.team); });
     var stakeHtml = stakes.length ? '<div class="meta-row">'+stakes.map(function(s){
-      return '<span class="stake">'+(s.name?('<b>'+esc(s.name)+'</b>'):'')+(s.name&&s.team?' · ':'')+(s.team?esc(s.team):'')+'</span>';
+      return '<span class="stake">'+(s.name?('<b>'+esc(s.name)+'</b>'):'')+(s.name&&s.team?' \u00b7 ':'')+(s.team?esc(s.team):'')+'</span>';
     }).join('')+'</div>' : "";
     var lks = arr(e.links).filter(function(l){ return l && l.url; });
     var linkHtml = lks.length ? '<div class="clinks">'+lks.map(function(l){
       return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer" title="'+esc(l.url)+'"><svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg><span>'+esc(l.label||l.url)+'</span></a>';
     }).join('')+'</div>' : "";
-    var details =
-      (e.notes ? '<div class="cnotes">'+esc(e.notes)+'</div>' : '') +
-      extra +
-      stakeHtml +
-      linkHtml +
+    return '<div class="card-details-modal">'+
+      (e.notes ? '<div class="cnotes">'+esc(e.notes)+'</div>' : '') + extra + stakeHtml + linkHtml +
       '<div class="cactions">'+
         '<button class="cbtn edit" data-edit="'+esc(e.id)+'"><svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button>'+
         '<button class="cbtn del" data-del="'+esc(e.id)+'"><svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>Remove</button>'+
-      '</div>';
-    return '<div class="card'+(open?' open':'')+'">'+
+      '</div></div>';
+  }
+  function card(e){
+    var media = arr(e.media).filter(function(m){ return m && m.url; });
+    var hero = media.length
+      ? '<div class="media">' + mediaEmbed(media[0]) + '</div>'
+      : '<div class="media-none"><svg aria-hidden="true" focusable="false" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.6-3.6a2 2 0 0 0-2.8 0L6 21"/></svg>No media yet</div>';
+    return '<div class="card" data-card-id="'+esc(e.id)+'">'+
       hero +
-      '<button class="chead" data-toggle="'+esc(e.id)+'" aria-expanded="'+(open?'true':'false')+'">'+
+      '<button type="button" class="chead" data-card="'+esc(e.id)+'" title="View details">'+
         '<div class="chead-txt">'+
           '<div class="cname">'+esc(e.name||"Untitled")+'</div>'+
           ((e.type||e.date)?'<div class="chead-meta">'+(e.type?'<span class="ctype">'+esc(e.type)+'</span>':'')+(e.date?'<span class="cdate">'+esc(fmtDate(e.date))+'</span>':'')+'</div>':'')+
         '</div>'+
-        '<svg aria-hidden="true" focusable="false" class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>'+
+        '<svg aria-hidden="true" focusable="false" class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>'+
       '</button>'+
-      '<div class="cdetails">'+details+'</div>'+
     '</div>';
   }
-
   function wireCards(){
-    document.querySelectorAll("[data-toggle]").forEach(function(b){
-      b.addEventListener("click", function(){
-        var id = b.getAttribute("data-toggle");
-        openCards[id] = !openCards[id];
-        var cardEl = b.closest(".card");
-        if(cardEl) cardEl.classList.toggle("open", !!openCards[id]);
-        b.setAttribute("aria-expanded", openCards[id] ? "true" : "false");
-      });
+    document.querySelectorAll("[data-card]").forEach(function(b){
+      b.addEventListener("click", function(){ openCardModal(b.getAttribute("data-card")); });
     });
     document.querySelectorAll("[data-completed]").forEach(function(b){
       b.addEventListener("click", async function(){ if(await requirePw()) openFromCompleted(b.getAttribute("data-completed")); });
     });
-    document.querySelectorAll("[data-edit]").forEach(function(b){
-      b.addEventListener("click", async function(){ if(await requirePw()) openEdit(b.getAttribute("data-edit")); });
-    });
-    document.querySelectorAll("[data-del]").forEach(function(b){
-      b.addEventListener("click", async function(){
-        var id = b.getAttribute("data-del");
-        if(!(await requirePw())) return;
-        if(!(await mhConfirm({ title:"Remove project?", message:"Remove this project from the library?", confirmLabel:"Remove", danger:true }))) return;
-        var ok = await saveLibrary(library.filter(function(e){ return e.id !== id; }));
-        if(ok) load(true);
-      });
+  }
+
+  function openCardModal(id){
+    var e=null; for(var i=0;i<library.length;i++){ if(library[i].id===id){ e=library[i]; break; } }
+    if(!e) return;
+    var body=document.getElementById("cardModalBody"); if(!body) return;
+    var media=arr(e.media).filter(function(m){ return m && m.url; });
+    var hero=media.length ? '<a class="media exp-thumb-link" href="'+esc(hrefFor((media[0]||{}).url))+'" target="_blank" rel="noopener noreferrer">'+mediaEmbed(media[0])+'</a>' : '';
+    var meta=((e.type||e.date)?'<div class="chead-meta">'+(e.type?'<span class="ctype">'+esc(e.type)+'</span>':'')+(e.date?'<span class="cdate">'+esc(fmtDate(e.date))+'</span>':'')+'</div>':'');
+    body.innerHTML='<div class="exp-m-head">'+hero+'<div class="exp-m-title"><div class="cname">'+esc(e.name||"Untitled")+'</div>'+meta+'</div></div>'+cardDetails(e);
+    var m=document.getElementById("cardModal"); if(m){ m.hidden=false; document.documentElement.style.overflow="hidden"; }
+  }
+  function closeCardModal(){ var m=document.getElementById("cardModal"); if(m) m.hidden=true; document.documentElement.style.overflow=""; }
+  function initCardModal(){
+    var m=document.getElementById("cardModal"); if(!m) return;
+    document.getElementById("cardModalX").addEventListener("click", closeCardModal);
+    document.getElementById("cardModalBd").addEventListener("click", closeCardModal);
+    document.addEventListener("keydown", function(ev){ if(ev.key==="Escape" && !m.hidden) closeCardModal(); });
+    document.getElementById("cardModalBody").addEventListener("click", async function(ev){
+      var el;
+      if((el=ev.target.closest("[data-edit]"))){ if(!(await requirePw())) return; var id=el.getAttribute("data-edit"); closeCardModal(); openEdit(id); return; }
+      if((el=ev.target.closest("[data-del]"))){ var id=el.getAttribute("data-del"); if(!(await requirePw())) return; if(!(await mhConfirm({ title:"Remove project?", message:"Remove this project from the library?", confirmLabel:"Remove", danger:true }))) return; var ok=await saveLibrary(library.filter(function(x){ return x.id!==id; })); closeCardModal(); if(ok) load(true); return; }
     });
   }
 
@@ -757,8 +765,9 @@
   var EXP_EDIT_ICO = '<svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   var EXP_EXPAND_ICO = '<svg aria-hidden="true" focusable="false" class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
   function expDef(id){ for(var i=0;i<EXP_DEFS.length;i++){ if(EXP_DEFS[i].id===id) return EXP_DEFS[i]; } return {}; }
-  function expData(id){ var d=(expMeta&&expMeta[id])||{}; var def=expDef(id); return { desc:(d.desc!=null?d.desc:def.desc)||"", links:arr(d.links) }; }
+  function expData(id){ var d=(expMeta&&expMeta[id])||{}; var def=expDef(id); return { desc:(d.desc!=null?d.desc:def.desc)||"", links:arr(d.links), media:arr(d.media) }; }
   function expLinkRow(label,url){ return '<div class="exp-linkrow"><input class="exp-f exp-llabel" placeholder="Label" value="'+esc(label)+'" /><input class="exp-f exp-lurl" placeholder="https://\u2026" value="'+esc(url)+'" /><button type="button" class="exp-lrm" title="Remove link" aria-label="Remove link">\u2715</button></div>'; }
+  function expMediaRow(kind,url){ return '<div class="exp-linkrow exp-mediarow"><select class="exp-f exp-mkind" style="flex:0 0 92px"><option value="image"'+(kind!=="video"?" selected":"")+'>Image</option><option value="video"'+(kind==="video"?" selected":"")+'>Video</option></select><input class="exp-f exp-murl" placeholder="Image or video URL" value="'+esc(url)+'" /><button type="button" class="exp-lrm" title="Remove media" aria-label="Remove media">\u2715</button></div>'; }
   async function saveExperiments(){
     var snap; try{ snap=await getSnapshot(); }catch(e){ return false; }
     if(!snap || typeof snap.data!=="object") return false;
@@ -769,8 +778,9 @@
     var grid=document.getElementById("expGrid"); if(!grid) return;
     if(lastData && typeof lastData[EXP_KEY]==="object" && lastData[EXP_KEY]) expMeta=lastData[EXP_KEY];
     grid.innerHTML = EXP_DEFS.map(function(def){
+      var d=expData(def.id), mm=(d.media||[]).filter(function(m){return m&&m.url&&m.kind!=="video";}), thumb=mm.length?hrefFor(mm[0].url):def.thumb;
       return '<div class="card exp-card" data-exp="'+def.id+'">'+
-        '<a class="media exp-thumb-link" href="'+esc(def.url)+'" aria-label="Open '+esc(def.name)+'"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div></a>'+
+        '<a class="media exp-thumb-link" href="'+esc(def.url)+'" aria-label="Open '+esc(def.name)+'"><div class="media-embed"><img src="'+esc(thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div></a>'+
         '<button type="button" class="chead exp-head" data-exp-open="'+def.id+'" title="View details">'+
           '<div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+
           EXP_EXPAND_ICO+
@@ -781,14 +791,17 @@
   function renderExpModalBody(id){
     var body=document.getElementById("expModalBody"); if(!body) return;
     var def=expDef(id), d=expData(id), editing=!!expEditing[id];
-    var head='<div class="exp-m-head"><a class="media exp-thumb-link" href="'+esc(def.url)+'"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" /></div></a><div class="exp-m-title"><div class="cname">'+esc(def.name)+'</div><span class="ctype">Experiment</span></div></div>';
+    var vm=(d.media||[]).filter(function(m){return m&&m.url;}), thumb=(vm.length&&vm[0].kind!=="video")?hrefFor(vm[0].url):def.thumb;
+    var head='<div class="exp-m-head"><a class="media exp-thumb-link" href="'+esc(def.url)+'"><div class="media-embed"><img src="'+esc(thumb)+'" alt="'+esc(def.name)+' preview" /></div></a><div class="exp-m-title"><div class="cname">'+esc(def.name)+'</div><span class="ctype">Experiment</span></div></div>';
     if(editing){
       var rows=d.links.map(function(l){ return expLinkRow(l.label||"",l.url||""); }).join('');
-      body.innerHTML = head + '<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="5">'+esc(d.desc)+'</textarea><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+id+'">Cancel</button></div></div>';
+      var mrows=(d.media||[]).map(function(m){ return expMediaRow(m.kind||"image",m.url||""); }).join('');
+      body.innerHTML = head + '<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="5">'+esc(d.desc)+'</textarea><label class="exp-lbl">Screenshots &amp; media</label><div class="exp-mediarows">'+mrows+'</div><button type="button" class="cbtn exp-addlink" data-exp-addmedia="'+id+'">+ Add media</button><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+id+'">Cancel</button></div></div>';
     } else {
       var links='<a class="clink" href="'+esc(def.url)+'">'+EXP_LINK_ICO+'<span>Open '+esc(def.name)+'</span></a>'+
         d.links.filter(function(l){return l&&l.url;}).map(function(l){ return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>'+esc(l.label||l.url)+'</span></a>'; }).join('');
-      body.innerHTML = head + '<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+'<div class="clinks">'+links+'</div><div class="cactions"><a class="cbtn primary" href="'+esc(def.url)+'">Open '+esc(def.name)+'</a><button type="button" class="cbtn" data-exp-edit="'+id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
+      var moreMedia = vm.length>1 ? '<div class="media-more">'+vm.slice(1).map(mediaEmbed).join('')+'</div>' : '';
+      body.innerHTML = head + '<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+moreMedia+'<div class="clinks">'+links+'</div><div class="cactions"><a class="cbtn primary" href="'+esc(def.url)+'">Open '+esc(def.name)+'</a><button type="button" class="cbtn" data-exp-edit="'+id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
     }
   }
   function openExpModal(id){ expModalId=id; expEditing[id]=false; renderExpModalBody(id); var m=document.getElementById("expModal"); if(m){ m.hidden=false; document.documentElement.style.overflow="hidden"; } }
@@ -806,13 +819,15 @@
       if((el=e.target.closest("[data-exp-edit]"))){ if(!(await requirePw())) return; var id=el.getAttribute("data-exp-edit"); expEditing[id]=true; renderExpModalBody(id); return; }
       if((el=e.target.closest("[data-exp-cancel]"))){ var id=el.getAttribute("data-exp-cancel"); expEditing[id]=false; renderExpModalBody(id); return; }
       if((el=e.target.closest("[data-exp-add]"))){ var rows=body.querySelector(".exp-linkrows"); if(rows) rows.insertAdjacentHTML("beforeend", expLinkRow("","")); return; }
+      if((el=e.target.closest("[data-exp-addmedia]"))){ var mr=body.querySelector(".exp-mediarows"); if(mr) mr.insertAdjacentHTML("beforeend", expMediaRow("image","")); return; }
       if((el=e.target.closest(".exp-lrm"))){ var row=el.closest(".exp-linkrow"); if(row) row.remove(); return; }
       if((el=e.target.closest("[data-exp-save]"))){
         var id=el.getAttribute("data-exp-save");
         var desc=((body.querySelector(".exp-desc")||{}).value||"").trim();
-        var links=[]; Array.prototype.forEach.call(body.querySelectorAll(".exp-linkrow"),function(r){ var lab=((r.querySelector(".exp-llabel")||{}).value||"").trim(); var u=((r.querySelector(".exp-lurl")||{}).value||"").trim(); if(u) links.push({label:lab,url:u}); });
+        var links=[]; Array.prototype.forEach.call(body.querySelectorAll(".exp-linkrows .exp-linkrow"),function(r){ var lab=((r.querySelector(".exp-llabel")||{}).value||"").trim(); var u=((r.querySelector(".exp-lurl")||{}).value||"").trim(); if(u) links.push({label:lab,url:u}); });
+        var media=[]; Array.prototype.forEach.call(body.querySelectorAll(".exp-mediarows .exp-mediarow"),function(r){ var u=((r.querySelector(".exp-murl")||{}).value||"").trim(); if(u) media.push({kind:((r.querySelector(".exp-mkind")||{}).value||"image"),url:u}); });
         if(!expMeta||typeof expMeta!=="object") expMeta={};
-        expMeta[id]={ desc:desc, links:links };
+        expMeta[id]={ desc:desc, links:links, media:media };
         el.disabled=true; el.textContent="Saving\u2026";
         var ok=await saveExperiments();
         expEditing[id]=false; renderExpModalBody(id); renderExperiments();
@@ -842,6 +857,7 @@
     document.getElementById("backdrop").addEventListener("click", function(e){ if(e.target===document.getElementById("backdrop")) closeModal(); });
     document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !document.getElementById("backdrop").hidden) closeModal(); });
     initExperiments();
+    initCardModal();
     load(false);
     setInterval(function(){ if(document.getElementById("backdrop").hidden) load(true); }, POLL_MS);
   });
@@ -1215,6 +1231,13 @@ window.mhConfirm=function(opts){
     <div class="exp-modal-box">
       <button class="exp-modal-x" id="expModalX" aria-label="Close">&times;</button>
       <div id="expModalBody"></div>
+    </div>
+  </div>
+  <div class="exp-modal" id="cardModal" hidden role="dialog" aria-modal="true" aria-label="Project details">
+    <div class="exp-modal-bd" id="cardModalBd"></div>
+    <div class="exp-modal-box">
+      <button class="exp-modal-x" id="cardModalX" aria-label="Close">&times;</button>
+      <div id="cardModalBody"></div>
     </div>
   </div>
 </body>
