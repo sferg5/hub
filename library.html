@@ -69,6 +69,7 @@
   .media-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:10px}
   .media-embed{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:10px;overflow:hidden}
   .media-embed iframe,.media-embed video{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .media-embed img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border:0;display:block}
   .cdetails .media-more{display:flex;flex-direction:column;gap:8px;padding:0;background:transparent;margin-top:2px}
   .media-none{aspect-ratio:4/3;display:grid;place-items:center;background:linear-gradient(135deg,#1a1a1f,#0d0d10);color:var(--faint);font-size:12px;gap:8px;border-radius:10px;margin:16px 16px 8px}
   .media-thumb{aspect-ratio:4/3;overflow:hidden;border-radius:10px;margin:16px 16px 8px;background:#0d0d10}
@@ -759,7 +760,7 @@
       var view='<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+'<div class="clinks">'+links+'</div><div class="cactions"><button type="button" class="cbtn" data-exp-edit="'+def.id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
       var rows=d.links.map(function(l){ return expLinkRow(l.label||"",l.url||""); }).join('');
       var edit='<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="4">'+esc(d.desc)+'</textarea><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+def.id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+def.id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+def.id+'">Cancel</button></div></div>';
-      return '<div class="card exp-card'+(open?' open':'')+'" data-exp="'+def.id+'"><div class="media-thumb"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div><button type="button" class="chead" data-exp-toggle="'+def.id+'" aria-expanded="'+(open?'true':'false')+'"><div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+EXP_CHEV+'</button><div class="cdetails">'+(editing?edit:view)+'</div></div>';
+      return '<div class="card exp-card'+(open?' open':'')+'" data-exp="'+def.id+'"><div class="media"><div class="media-embed"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div></div><button type="button" class="chead" data-exp-toggle="'+def.id+'" aria-expanded="'+(open?'true':'false')+'"><div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+EXP_CHEV+'</button><div class="cdetails">'+(editing?edit:view)+'</div></div>';
     }).join('');
   }
   function initExperiments(){
