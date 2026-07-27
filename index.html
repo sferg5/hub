@@ -7669,7 +7669,22 @@ function CeremoniesCard() {
   });
   return React.createElement("div", {
     className: "bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-xl mb-6 overflow-hidden"
-  }, React.createElement("button", {
+  }, confirmReq && React.createElement(ConfirmModal, {
+    title: confirmReq.title,
+    message: confirmReq.message,
+    confirmLabel: confirmReq.confirmLabel,
+    danger: confirmReq.danger,
+    onConfirm: () => {
+      const r = confirmReq.resolve;
+      setConfirmReq(null);
+      r(true);
+    },
+    onCancel: () => {
+      const r = confirmReq.resolve;
+      setConfirmReq(null);
+      r(false);
+    }
+  }), React.createElement("button", {
     onClick: () => setCollapsed(!collapsed),
     className: "w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-900/40 transition text-left"
   }, React.createElement("div", {
@@ -7789,22 +7804,7 @@ function IntakeCard({
   }
   return React.createElement("div", {
     className: "bg-gradient-to-br from-zinc-900/80 to-zinc-900/40 border border-zinc-800 rounded-xl mb-6 overflow-hidden"
-  }, confirmReq && React.createElement(ConfirmModal, {
-    title: confirmReq.title,
-    message: confirmReq.message,
-    confirmLabel: confirmReq.confirmLabel,
-    danger: confirmReq.danger,
-    onConfirm: () => {
-      const r = confirmReq.resolve;
-      setConfirmReq(null);
-      r(true);
-    },
-    onCancel: () => {
-      const r = confirmReq.resolve;
-      setConfirmReq(null);
-      r(false);
-    }
-  }), React.createElement("button", {
+  }, React.createElement("button", {
     onClick: () => setCollapsed(!collapsed),
     className: "w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-900/40 transition text-left"
   }, React.createElement("div", {
