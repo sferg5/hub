@@ -653,7 +653,7 @@ void main(){
     const t = [{ id:'toggle', x:0.78, y:0.03, w:0.19, h:0.12, label:'FX', val: MENU.open?'\u25be':'\u25b8' }];
     if (MENU.open){
       const rows = [
-        { id:'strobe', label:'Music strobe', val:['Off','On'][MENU.strobe] },
+        { id:'strobe', label:'Music strobe', val:['Off','Low','Med','High'][MENU.strobe] },
         { id:'smoke',  label:'Smoke',        val:['Off','Low','Med','High'][MENU.smoke] },
         { id:'glow',   label:'Glow',         val:['Off','Low','Med','High'][MENU.glow] },
         { id:'grain',  label:'Film grain',   val:['Off','Low','Med','High'][MENU.grain] },
@@ -666,7 +666,7 @@ void main(){
   function doAction(id){
     if (id==='toggle') MENU.open = !MENU.open;
     else if (id==='close') MENU.open = false;
-    else if (id==='strobe') MENU.strobe = MENU.strobe ? 0 : 1;
+    else if (id==='strobe') MENU.strobe = (MENU.strobe+1)%4;
     else if (id==='smoke') MENU.smoke = (MENU.smoke+1)%4;
     else if (id==='glow')  MENU.glow  = (MENU.glow+1)%4;
     else if (id==='grain') MENU.grain = (MENU.grain+1)%4;
@@ -728,6 +728,20 @@ void main(){
         mctx.strokeStyle='rgba(120,170,255,.95)'; mctx.lineWidth=3; mctx.stroke();
       }
     }
+    // recognize the two-hand pinch-resize of the kaleidoscope
+    if (scrubLatched){
+      const pct = Math.round(kaleidoVal*100);
+      const txt = '\ud83c\udf00 Kaleidoscope ' + pct + '%';
+      mctx.font = 'bold ' + Math.round(hh*0.052) + 'px system-ui,sans-serif';
+      mctx.textAlign='center'; mctx.textBaseline='middle';
+      const pw = mctx.measureText(txt).width + hh*0.14, ph = hh*0.15, px=(w-pw)/2, py=hh*0.78;
+      mctx.fillStyle='rgba(10,10,14,.82)'; rrect(px,py,pw,ph,10); mctx.fill();
+      mctx.strokeStyle='rgba(120,170,255,.6)'; mctx.lineWidth=1.5; mctx.stroke();
+      mctx.fillStyle='#dbe4fb'; mctx.fillText(txt, w/2, py+ph*0.35);
+      const bx=px+pw*0.1, by=py+ph*0.72, bw=pw*0.8, bh=Math.max(3,hh*0.016);
+      mctx.fillStyle='rgba(255,255,255,.18)'; rrect(bx,by,bw,bh,bh/2); mctx.fill();
+      mctx.fillStyle='rgba(120,170,255,.95)'; rrect(bx,by,bw*kaleidoVal,bh,bh/2); mctx.fill();
+    }
   }
 
   // ---------- loop ----------
@@ -775,7 +789,7 @@ void main(){
     gl.uniform1f(U.u_morph, P.morph.s);
     gl.uniform1f(U.u_pinch, P.pinch.s);
     gl.uniform1f(U.u_kaleido, kaleidoS);
-    gl.uniform1f(U.u_strobe, MENU.strobe);
+    gl.uniform1f(U.u_strobe, MENU.strobe/3);
     gl.uniform1f(U.u_smoke, MENU.smoke/3);
     gl.uniform1f(U.u_glow, MENU.glow/3);
     gl.uniform1f(U.u_grain, MENU.grain/3);
