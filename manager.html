@@ -747,7 +747,7 @@
     document.querySelectorAll(".chk-btn.remove").forEach(function(b){
       b.addEventListener("click", async function(){
         var id = b.getAttribute("data-id");
-        if(!window.confirm("Remove this checklist item?")) return;
+        if(!(await mhConfirm({ title:"Remove item?", message:"Remove this checklist item?", confirmLabel:"Remove", danger:true }))) return;
         setMsg("Removing…", null);
         var ok = await removeChecklistItem(id);
         if(ok){ setMsg("Removed.", "ok"); load(true); }
@@ -1110,5 +1110,56 @@
   });
 })();
 </script>
+
+<style>
+.mhc-ov{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.6)}
+.mhc-ov[hidden]{display:none}
+.mhc-box{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.mhc-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.mhc-ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(244,63,94,.15);color:#f43f5e}
+.mhc-ic.ok{background:rgba(34,197,94,.15);color:var(--accent)}
+.mhc-h{font-size:18px;font-weight:700;color:var(--text);margin:0 0 4px}
+.mhc-m{font-size:14px;color:var(--muted);line-height:1.5;margin:0}
+.mhc-btns{display:flex;gap:10px}
+.mhc-btn{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:transparent;color:var(--text)}
+.mhc-btn.cancel:hover{background:var(--surface)}
+.mhc-btn.go{border:none}
+.mhc-btn.go.danger{background:#f43f5e;color:#fff}
+.mhc-btn.go.safe{background:var(--accent);color:#052e16}
+</style>
+<div class="mhc-ov" id="mhcOv" hidden role="dialog" aria-modal="true" aria-label="Confirm">
+  <div class="mhc-box">
+    <div class="mhc-top">
+      <div class="mhc-ic" id="mhcIc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div><h2 class="mhc-h" id="mhcH"></h2><p class="mhc-m" id="mhcM"></p></div>
+    </div>
+    <div class="mhc-btns"><button class="mhc-btn cancel" id="mhcCancel">Cancel</button><button class="mhc-btn go" id="mhcGo"></button></div>
+  </div>
+</div>
+<script>
+window.mhConfirm=function(opts){
+  if(typeof opts==="string") opts={message:opts};
+  opts=opts||{};
+  return new Promise(function(resolve){
+    var ov=document.getElementById("mhcOv");
+    document.getElementById("mhcH").textContent=opts.title||"Are you sure?";
+    document.getElementById("mhcM").textContent=opts.message||"";
+    var danger=opts.danger!==false;
+    var go=document.getElementById("mhcGo"); go.textContent=opts.confirmLabel||"Confirm";
+    go.className="mhc-btn go "+(danger?"danger":"safe");
+    document.getElementById("mhcIc").className="mhc-ic"+(danger?"":" ok");
+    var cb=document.getElementById("mhcCancel");
+    ov.hidden=false;
+    function done(v){ ov.hidden=true; go.onclick=null; cb.onclick=null; ov.onclick=null; document.removeEventListener("keydown",onKey); resolve(v); }
+    go.onclick=function(){ done(true); };
+    cb.onclick=function(){ done(false); };
+    ov.onclick=function(e){ if(e.target===ov) done(false); };
+    function onKey(e){ if(e.key==="Escape") done(false); else if(e.key==="Enter") done(true); }
+    document.addEventListener("keydown",onKey);
+    try{ go.focus(); }catch(e){}
+  });
+};
+</script>
+
 </body>
 </html>
