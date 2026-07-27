@@ -653,6 +653,8 @@
   }
   var rb=document.getElementById("resetBtn"); if(rb) rb.addEventListener("click",async function(){ if(await mhConfirm({ title:"Start over?", message:"Start the intake over? This clears your current answers.", confirmLabel:"Start over", danger:true })) start(); });
   start();
+  // reopening via back/forward (bfcache) restores the old half-finished chat — reset to a fresh form
+  window.addEventListener("pageshow", function(ev){ if (ev.persisted) start(); });
 })();
 </script>
   <script>

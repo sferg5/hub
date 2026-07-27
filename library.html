@@ -72,7 +72,7 @@
   .cdetails .media-more{display:flex;flex-direction:column;gap:8px;padding:0;background:transparent;margin-top:2px}
   .media-none{aspect-ratio:4/3;display:grid;place-items:center;background:linear-gradient(135deg,#1a1a1f,#0d0d10);color:var(--faint);font-size:12px;gap:8px;border-radius:10px;margin:16px 16px 8px}
   .media-thumb{aspect-ratio:4/3;overflow:hidden;border-radius:10px;margin:16px 16px 8px;background:#0d0d10}
-  .media-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .media-thumb img{width:100%;height:100%;object-fit:contain;display:block}
   .chead{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 16px;background:transparent;border:0;cursor:pointer;text-align:left;color:inherit;font-family:inherit}
   .chead:hover{background:var(--panel)}
   .chead-txt{min-width:0;display:flex;flex-direction:column;gap:4px}
@@ -246,9 +246,18 @@
   .lib-experiments{margin-bottom:28px}
   .lib-experiments .grid{margin-top:0}
   .lx-title{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 12px}
-  .lxp-card{text-decoration:none;color:inherit;cursor:pointer}
-  .lxp-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.3)}
-  .lxp-card:hover .chev{transform:translateX(3px);color:var(--accent)}
+  .exp-card{transition:border-color .18s ease}
+  .exp-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .exp-f{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;font-family:inherit;outline:none}
+  .exp-f:focus{border-color:var(--accent)}
+  textarea.exp-desc{resize:vertical;line-height:1.5}
+  .exp-linkrow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .exp-linkrow .exp-llabel{flex:0 0 34%}
+  .exp-lrm{flex-shrink:0;width:30px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
+  .exp-lrm:hover{color:#f43f5e;border-color:#f43f5e}
+  .exp-addlink{align-self:flex-start}
+  .cbtn.primary{background:var(--accent);color:#052e16;border-color:transparent;font-weight:600}
+  .exp-edit{display:flex;flex-direction:column;gap:8px}
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
 </head>
@@ -335,22 +344,7 @@
 
     <div class="lib-experiments">
       <div class="lx-title">Experiments</div>
-      <div class="grid">
-        <a class="card lxp-card" href="https://hub-mospec.vercel.app/tracking.html" aria-label="Open Kaleidoscope">
-          <div class="media-thumb"><img src="kaleidoscope-thumb.jpg" alt="Kaleidoscope preview" loading="lazy" /></div>
-          <div class="chead">
-            <div class="chead-txt"><div class="cname">Kaleidoscope</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>
-            <svg aria-hidden="true" focusable="false" class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </div>
-        </a>
-        <a class="card lxp-card" href="https://hub-mospec.vercel.app/holodeck.html" aria-label="Open Holodeck">
-          <div class="media-thumb"><img src="holodeck-thumb.jpg" alt="Holodeck preview" loading="lazy" /></div>
-          <div class="chead">
-            <div class="chead-txt"><div class="cname">Holodeck</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>
-            <svg aria-hidden="true" focusable="false" class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </div>
-        </a>
-      </div>
+      <div class="grid" id="expGrid"></div>
     </div>
 
     <div id="content"><div class="loading"><div class="ldr-ring"></div>Loading…</div></div>
@@ -734,9 +728,67 @@
     document.addEventListener("keydown", function(e){ if(e.key==="Escape") setOpen(false); });
   }
 
+  // ---------- editable experiment cards (collapsible, like a library card) ----------
+  var EXP_KEY = PREFIX + "experiments";
+  var EXP_DEFS = [
+    { id:"kaleidoscope", name:"Kaleidoscope", url:"tracking.html", thumb:"kaleidoscope-thumb.jpg",
+      desc:"A live webcam kaleidoscope driven by hand and face tracking. The right hand shapes the pattern, the head morphs shape and color, and the left hand paints the background \u2014 with an in-camera FX menu (music strobe, smoke, film grain, finger lasers)." },
+    { id:"holodeck", name:"Holodeck", url:"holodeck.html", thumb:"holodeck-thumb.jpg",
+      desc:"A Star Trek-style 3D product-projection playground for viewing fabric swatches in cinematic environments \u2014 tilt, zoom, weather, wind, and material controls." }
+  ];
+  var expMeta = {}, expOpen = {}, expEditing = {};
+  var EXP_LINK_ICO = '<svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+  var EXP_CHEV = '<svg aria-hidden="true" focusable="false" class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  var EXP_EDIT_ICO = '<svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  function expDef(id){ for(var i=0;i<EXP_DEFS.length;i++){ if(EXP_DEFS[i].id===id) return EXP_DEFS[i]; } return {}; }
+  function expData(id){ var d=(expMeta&&expMeta[id])||{}; var def=expDef(id); return { desc:(d.desc!=null?d.desc:def.desc)||"", links:arr(d.links) }; }
+  function expLinkRow(label,url){ return '<div class="exp-linkrow"><input class="exp-f exp-llabel" placeholder="Label" value="'+esc(label)+'" /><input class="exp-f exp-lurl" placeholder="https://\u2026" value="'+esc(url)+'" /><button type="button" class="exp-lrm" title="Remove link" aria-label="Remove link">\u2715</button></div>'; }
+  async function saveExperiments(){
+    var snap; try{ snap=await getSnapshot(); }catch(e){ return false; }
+    if(!snap || typeof snap.data!=="object") return false;
+    snap.data[EXP_KEY]=expMeta; snap.updatedAt=Date.now();
+    try{ var res=await fetch(SYNC_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)}); return res.ok; }catch(e){ return false; }
+  }
+  function renderExperiments(){
+    var grid=document.getElementById("expGrid"); if(!grid) return;
+    if(lastData && typeof lastData[EXP_KEY]==="object" && lastData[EXP_KEY]) expMeta=lastData[EXP_KEY];
+    grid.innerHTML = EXP_DEFS.map(function(def){
+      var d=expData(def.id), editing=!!expEditing[def.id], open=!!expOpen[def.id]||editing;
+      var links='<a class="clink" href="'+esc(def.url)+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>Open '+esc(def.name)+'</span></a>'+
+        d.links.filter(function(l){return l&&l.url;}).map(function(l){ return '<a class="clink" href="'+esc(hrefFor(l.url))+'" target="_blank" rel="noopener noreferrer">'+EXP_LINK_ICO+'<span>'+esc(l.label||l.url)+'</span></a>'; }).join('');
+      var view='<div class="exp-view">'+(d.desc?'<div class="cnotes">'+esc(d.desc)+'</div>':'')+'<div class="clinks">'+links+'</div><div class="cactions"><button type="button" class="cbtn" data-exp-edit="'+def.id+'">'+EXP_EDIT_ICO+'Edit</button></div></div>';
+      var rows=d.links.map(function(l){ return expLinkRow(l.label||"",l.url||""); }).join('');
+      var edit='<div class="exp-edit"><label class="exp-lbl">Description</label><textarea class="exp-f exp-desc" rows="4">'+esc(d.desc)+'</textarea><label class="exp-lbl">Links</label><div class="exp-linkrows">'+rows+'</div><button type="button" class="cbtn exp-addlink" data-exp-add="'+def.id+'">+ Add link</button><div class="cactions"><button type="button" class="cbtn primary" data-exp-save="'+def.id+'">Save</button><button type="button" class="cbtn" data-exp-cancel="'+def.id+'">Cancel</button></div></div>';
+      return '<div class="card exp-card'+(open?' open':'')+'" data-exp="'+def.id+'"><div class="media-thumb"><img src="'+esc(def.thumb)+'" alt="'+esc(def.name)+' preview" loading="lazy" /></div><button type="button" class="chead" data-exp-toggle="'+def.id+'" aria-expanded="'+(open?'true':'false')+'"><div class="chead-txt"><div class="cname">'+esc(def.name)+'</div><div class="chead-meta"><span class="ctype">Experiment</span></div></div>'+EXP_CHEV+'</button><div class="cdetails">'+(editing?edit:view)+'</div></div>';
+    }).join('');
+  }
+  function initExperiments(){
+    var grid=document.getElementById("expGrid"); if(!grid) return;
+    grid.addEventListener("click", async function(e){
+      var el;
+      if((el=e.target.closest("[data-exp-toggle]"))){ var id=el.getAttribute("data-exp-toggle"); if(expEditing[id]) return; expOpen[id]=!expOpen[id]; var c=el.closest(".card"); if(c){ c.classList.toggle("open",!!expOpen[id]); el.setAttribute("aria-expanded",expOpen[id]?"true":"false"); } return; }
+      if((el=e.target.closest("[data-exp-edit]"))){ if(!(await requirePw())) return; var id=el.getAttribute("data-exp-edit"); expEditing[id]=true; expOpen[id]=true; renderExperiments(); return; }
+      if((el=e.target.closest("[data-exp-cancel]"))){ expEditing[el.getAttribute("data-exp-cancel")]=false; renderExperiments(); return; }
+      if((el=e.target.closest("[data-exp-add]"))){ var card=el.closest(".card"); var rows=card&&card.querySelector(".exp-linkrows"); if(rows){ rows.insertAdjacentHTML("beforeend", expLinkRow("","")); } return; }
+      if((el=e.target.closest(".exp-lrm"))){ var row=el.closest(".exp-linkrow"); if(row) row.remove(); return; }
+      if((el=e.target.closest("[data-exp-save]"))){
+        var id=el.getAttribute("data-exp-save"), card=el.closest(".card"); if(!card) return;
+        var desc=((card.querySelector(".exp-desc")||{}).value||"").trim();
+        var links=[]; Array.prototype.forEach.call(card.querySelectorAll(".exp-linkrow"),function(r){ var lab=((r.querySelector(".exp-llabel")||{}).value||"").trim(); var u=((r.querySelector(".exp-lurl")||{}).value||"").trim(); if(u) links.push({label:lab,url:u}); });
+        if(!expMeta||typeof expMeta!=="object") expMeta={};
+        expMeta[id]={ desc:desc, links:links };
+        el.disabled=true; el.textContent="Saving\u2026";
+        var ok=await saveExperiments();
+        expEditing[id]=false; renderExperiments();
+        if(!ok) window.alert("Couldn\u2019t save \u2014 please try again.");
+        return;
+      }
+    });
+  }
+
   async function load(silent){
     if(!silent) document.getElementById("content").innerHTML = '<div class="loading"><div class="ldr-ring"></div>Loading…</div>';
-    try { var snap = await getSnapshot(); setState(snap.data || {}); render(); }
+    try { var snap = await getSnapshot(); setState(snap.data || {}); render(); renderExperiments(); }
     catch(e){ document.getElementById("content").innerHTML = '<div class="loading">Couldn\u2019t load data. If this persists, the data endpoint may be unreachable.</div>'; }
   }
 
@@ -753,6 +805,7 @@
     document.getElementById("msave").addEventListener("click", saveEntry);
     document.getElementById("backdrop").addEventListener("click", function(e){ if(e.target===document.getElementById("backdrop")) closeModal(); });
     document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !document.getElementById("backdrop").hidden) closeModal(); });
+    initExperiments();
     load(false);
     setInterval(function(){ if(document.getElementById("backdrop").hidden) load(true); }, POLL_MS);
   });
