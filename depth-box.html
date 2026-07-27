@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Depth Box</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #stage {
+    position: fixed; inset: 0;
+    width: 100vw; height: 100vh;
+    background: #000;
+  }
+  svg { display: block; width: 100%; height: 100%; }
+
+  /* the tunnel lines */
+  .walls { stroke: #fff; stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+  .floor { stroke: #cfcfcf; stroke-width: 1; fill: none; vector-effect: non-scaling-stroke; }
+
+  #hint {
+    position: fixed; left: 0; right: 0; bottom: 34px;
+    text-align: center;
+    font: 500 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: rgba(255,255,255,.55);
+    letter-spacing: .04em;
+    transition: opacity .6s ease;
+    pointer-events: none;
+  }
+  #enable {
+    position: fixed; inset: 0;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    font: 600 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: .03em;
+    z-index: 5;
+  }
+  #enable span {
+    border: 1px solid rgba(255,255,255,.4);
+    padding: 14px 22px; border-radius: 40px;
+    background: rgba(255,255,255,.06);
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <svg id="svg" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <path id="wallPath" class="walls"></path>
+      <path id="floorPath" class="floor"></path>
+    </svg>
+  </div>
+
+  <div id="hint">tilt your phone</div>
+  <div id="enable"><span>tap to enable motion</span></div>
+
+<script>
+(function () {
+  const svg = document.getElementById('svg');
+  const wallPath = document.getElementById('wallPath');
+  const floorPath = document.getElementById('floorPath');
+  const hint = document.getElementById('hint');
+  const enable = document.getElementById('enable');
+
+  // logical canvas — matches an iPhone screen; SVG scales to fill the device.
+  let W = 383, H = 852;
+
+  // ---- geometry parameters ----
+  const COLS = 8;          // grid columns across width
+  const ROWS = 18;         // grid rows down the length (keeps cells ~square)
+  const RINGS = 7;         // depth rings on the walls (opening -> floor)
+  const FLOOR_SCALE = 0.5; // floor size relative to the opening
+  const DEPTH_EASE = 1.9;   // >1 bunches rings toward the floor (perspective)
+
+  // ---- live tilt state (smoothed) ----
+  const target = { x: 0, y: 0, z: 0 }; // x/y = parallax shift (-1..1), z = look-in depth
+  const cur = { x: 0, y: 0, z: 0 };
+
+  function setViewBox() {
+    // fit the logical box to the real screen aspect, keeping it centered
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const ar = vw / vh;
+    // keep 383x852 proportions but let it fill: recompute logical W/H to device aspect
+    H = 852;
+    W = Math.round(H * ar);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  }
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  // bilinear point inside a quad defined by 4 corners (u,v in 0..1)
+  function quadPt(A, B, C, D, u, v) {
+    // A=outer start, B=outer end (along opening edge)
+    // D=floor start,  C=floor end  (along floor edge)
+    const topx = lerp(A.x, B.x, u), topy = lerp(A.y, B.y, u);
+    const botx = lerp(D.x, C.x, u), boty = lerp(D.y, C.y, u);
+    return { x: lerp(topx, botx, v), y: lerp(topy, boty, v) };
+  }
+
+  // ring depth positions, bunched toward the floor for a perspective feel
+  const ringV = [];
+  for (let k = 1; k < RINGS; k++) {
+    const t = k / RINGS;
+    ringV.push(1 - Math.pow(1 - t, DEPTH_EASE));
+  }
+
+  function buildWall(d, A, B, C, D, uDiv) {
+    // depth lines: from opening edge to floor edge
+    for (let i = 0; i <= uDiv; i++) {
+      const u = i / uDiv;
+      const p0 = quadPt(A, B, C, D, u, 0);
+      const p1 = quadPt(A, B, C, D, u, 1);
+      d.push(`M${p0.x.toFixed(2)} ${p0.y.toFixed(2)}L${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`);
+    }
+    // ring lines (horizontal grid on the wall)
+    for (const v of ringV) {
+      let s = '';
+      for (let i = 0; i <= uDiv; i++) {
+        const p = quadPt(A, B, C, D, i / uDiv, v);
+        s += (i === 0 ? 'M' : 'L') + p.x.toFixed(2) + ' ' + p.y.toFixed(2);
+      }
+      d.push(s);
+    }
+  }
+
+  function render() {
+    // --- opening rectangle (the phone screen / ceiling) ---
+    // slightly inset so the outer edge lines are visible
+    const m = 1;
+    const o = {
+      TL: { x: m,     y: m     },
+      TR: { x: W - m, y: m     },
+      BR: { x: W - m, y: H - m },
+      BL: { x: m,     y: H - m },
+    };
+
+    // --- floor rectangle: scaled + shifted by tilt for parallax depth ---
+    const cx = W / 2, cy = H / 2;
+    // look-in depth: tilting shrinks the floor (feels deeper)
+    const scale = FLOOR_SCALE * (1 - 0.10 * cur.z);
+    const fw = W * scale, fh = H * scale;
+    // parallax: floor slides opposite the tilt, so the box gains real depth
+    const shiftX = cur.x * (W * 0.16);
+    const shiftY = cur.y * (H * 0.16);
+    const fcx = cx + shiftX, fcy = cy + shiftY;
+
+    const f = {
+      TL: { x: fcx - fw / 2, y: fcy - fh / 2 },
+      TR: { x: fcx + fw / 2, y: fcy - fh / 2 },
+      BR: { x: fcx + fw / 2, y: fcy + fh / 2 },
+      BL: { x: fcx - fw / 2, y: fcy + fh / 2 },
+    };
+
+    const d = [];
+    // four walls, each a quad from an opening edge to the matching floor edge
+    buildWall(d, o.TL, o.TR, f.TR, f.TL, COLS); // top wall
+    buildWall(d, o.BL, o.BR, f.BR, f.BL, COLS); // bottom wall
+    buildWall(d, o.TL, o.BL, f.BL, f.TL, ROWS); // left wall
+    buildWall(d, o.TR, o.BR, f.BR, f.TR, ROWS); // right wall
+    // opening outline (the ungridded ceiling edge)
+    d.push(`M${o.TL.x} ${o.TL.y}L${o.TR.x} ${o.TR.y}L${o.BR.x} ${o.BR.y}L${o.BL.x} ${o.BL.y}Z`);
+    wallPath.setAttribute('d', d.join(''));
+
+    // --- floor grid ---
+    const fd = [];
+    fd.push(`M${f.TL.x.toFixed(2)} ${f.TL.y.toFixed(2)}L${f.TR.x.toFixed(2)} ${f.TR.y.toFixed(2)}L${f.BR.x.toFixed(2)} ${f.BR.y.toFixed(2)}L${f.BL.x.toFixed(2)} ${f.BL.y.toFixed(2)}Z`);
+    for (let i = 1; i < COLS; i++) {
+      const x = lerp(f.TL.x, f.TR.x, i / COLS);
+      fd.push(`M${x.toFixed(2)} ${f.TL.y.toFixed(2)}L${x.toFixed(2)} ${f.BL.y.toFixed(2)}`);
+    }
+    for (let j = 1; j < ROWS; j++) {
+      const y = lerp(f.TL.y, f.BL.y, j / ROWS);
+      fd.push(`M${f.TL.x.toFixed(2)} ${y.toFixed(2)}L${f.TR.x.toFixed(2)} ${y.toFixed(2)}`);
+    }
+    floorPath.setAttribute('d', fd.join(''));
+  }
+
+  // ---- animation loop: ease current toward target ----
+  function tick() {
+    cur.x = lerp(cur.x, target.x, 0.12);
+    cur.y = lerp(cur.y, target.y, 0.12);
+    cur.z = lerp(cur.z, target.z, 0.12);
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  // ---- input: device orientation ----
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function onOrient(e) {
+    // gamma: left-right (-90..90), beta: front-back (-180..180)
+    const g = e.gamma || 0;
+    const b = e.beta || 0;
+    // neutral holding angle ~ phone tilted back at ~45deg; center around that
+    const bAdj = b - 45;
+    target.x = clamp(g / 35, -1, 1);
+    target.y = clamp(bAdj / 35, -1, 1);
+    target.z = clamp(Math.abs(g) / 45 + Math.abs(bAdj) / 55, 0, 1);
+    hideHint();
+  }
+
+  // ---- input: mouse / touch fallback (desktop preview) ----
+  function onMove(clientX, clientY) {
+    const nx = (clientX / window.innerWidth) * 2 - 1;
+    const ny = (clientY / window.innerHeight) * 2 - 1;
+    target.x = clamp(nx, -1, 1);
+    target.y = clamp(ny, -1, 1);
+    target.z = clamp(Math.hypot(nx, ny) * 0.8, 0, 1);
+    hideHint();
+  }
+  window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+  window.addEventListener('touchmove', (e) => {
+    const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY);
+  }, { passive: true });
+
+  let hintGone = false;
+  function hideHint() {
+    if (hintGone) return;
+    hintGone = true;
+    hint.style.opacity = '0';
+    setTimeout(() => hint.remove(), 700);
+  }
+
+  // ---- iOS 13+ needs a user gesture to grant motion permission ----
+  function needsPermission() {
+    return typeof DeviceOrientationEvent !== 'undefined' &&
+           typeof DeviceOrientationEvent.requestPermission === 'function';
+  }
+  function attachOrientation() {
+    window.addEventListener('deviceorientation', onOrient, true);
+  }
+  if (needsPermission()) {
+    enable.style.display = 'flex';
+    enable.addEventListener('click', async () => {
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res === 'granted') attachOrientation();
+      } catch (_) {}
+      enable.style.display = 'none';
+    });
+  } else if (typeof DeviceOrientationEvent !== 'undefined') {
+    attachOrientation();
+  }
+
+  window.addEventListener('resize', setViewBox);
+  window.addEventListener('orientationchange', () => setTimeout(setViewBox, 200));
+
+  setViewBox();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
