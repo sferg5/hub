@@ -73,8 +73,9 @@
   let W = 383, H = 852;
 
   // ---- geometry parameters ----
-  const COLS = 8;          // grid columns across width
-  const ROWS = 18;         // grid rows down the length (keeps cells ~square)
+  const CELL = 48;         // logical px per cell -> guarantees perfectly square cells
+  let COLS = 9;            // grid columns across width (fixed)
+  let ROWS = 20;           // grid rows down the length (recomputed from aspect)
   const RINGS = 7;         // depth rings on the walls (opening -> floor)
   const FLOOR_SCALE = 0.5; // floor size relative to the opening
   const DEPTH_EASE = 1.9;   // >1 bunches rings toward the floor (perspective)
@@ -86,10 +87,11 @@
   function setViewBox() {
     // fit the logical box to the real screen aspect, keeping it centered
     const vw = window.innerWidth, vh = window.innerHeight;
-    const ar = vw / vh;
-    // keep 383x852 proportions but let it fill: recompute logical W/H to device aspect
-    H = 852;
-    W = Math.round(H * ar);
+    const ar = vw / vh;                 // device aspect ratio
+    // exact multiples of CELL so every grid cell is a true square
+    W = COLS * CELL;
+    ROWS = Math.max(1, Math.round((W / ar) / CELL));
+    H = ROWS * CELL;
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   }
 
@@ -132,8 +134,7 @@
 
   function render() {
     // --- opening rectangle (the phone screen / ceiling) ---
-    // slightly inset so the outer edge lines are visible
-    const m = 1;
+    const m = 0;
     const o = {
       TL: { x: m,     y: m     },
       TR: { x: W - m, y: m     },
@@ -146,9 +147,9 @@
     // look-in depth: tilting shrinks the floor (feels deeper)
     const scale = FLOOR_SCALE * (1 - 0.10 * cur.z);
     const fw = W * scale, fh = H * scale;
-    // parallax: floor slides opposite the tilt, so the box gains real depth
-    const shiftX = cur.x * (W * 0.16);
-    const shiftY = cur.y * (H * 0.16);
+    // parallax: floor slides toward the tilt, as if peering into a real box in hand
+    const shiftX = -cur.x * (W * 0.16);
+    const shiftY = -cur.y * (H * 0.16);
     const fcx = cx + shiftX, fcy = cy + shiftY;
 
     const f = {
