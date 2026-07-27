@@ -333,6 +333,58 @@
 })();
 
 </script>
+<script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
+<style id="mhs-style">
+html.theme-light body{background-color:#f4f4f5}
+html.theme-light .bg-zinc-950{background-color:#f4f4f5 !important}
+html.theme-light [class*="bg-zinc-950/"]{background-color:#ffffff !important}
+html.theme-light [class*="bg-black"]{background-color:#f4f4f5 !important}
+html.theme-light [class*="bg-zinc-900"]{background-color:#ffffff !important}
+html.theme-light [class*="bg-zinc-800"]{background-color:#ececef !important}
+html.theme-light [class*="bg-zinc-700"]{background-color:#e2e2e5 !important}
+html.theme-light [class*="bg-zinc-600"],html.theme-light [class*="bg-zinc-500"]{background-color:#a1a1aa !important}
+html.theme-light [class*="bg-zinc-100"]{background-color:#27272a !important}
+html.theme-light [class*="text-zinc-400"]{color:#52525b !important}
+html.theme-light [class*="text-zinc-500"]{color:#71717a !important}
+html.theme-light [class*="text-zinc-600"]{color:#9b9ba3 !important}
+html.theme-light [class*="text-zinc-700"]{color:#52525b !important}
+html.theme-light [class*="text-zinc-300"]{color:#3f3f46 !important}
+html.theme-light [class*="text-zinc-200"]{color:#27272a !important}
+html.theme-light [class*="text-zinc-100"],html.theme-light [class*="text-white"]{color:#18181b !important}
+html.theme-light [class*="text-zinc-900"],html.theme-light [class*="text-zinc-950"]{color:#f4f4f5 !important}
+html.theme-light [class*="border-zinc-800"],html.theme-light [class*="border-zinc-700"],html.theme-light [class*="border-zinc-600"],html.theme-light [class*="border-zinc-500"]{border-color:#e4e4e7 !important}
+html.theme-light [class*="border-zinc-100"]{border-color:#3f3f46 !important}
+html.theme-light [class*="from-zinc-900"]{--tw-gradient-from:#ffffff var(--tw-gradient-from-position) !important;--tw-gradient-to:rgba(255,255,255,0) var(--tw-gradient-to-position) !important}
+html.theme-light [class*="to-zinc-900"]{--tw-gradient-to:#eef0f3 var(--tw-gradient-to-position) !important}
+html.theme-light [class*="text-green-400"],html.theme-light [class*="text-green-300"]{color:#15803d !important}
+html.reduce-motion *,html.reduce-motion *::before,html.reduce-motion *::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}
+
+.mhs-gear{position:fixed;top:14px;right:14px;z-index:2000;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:#18181b;border:1px solid #27272a;color:#a1a1aa;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.mhs-gear:hover{color:#f4f4f5;border-color:#3f3f46}
+html.theme-light .mhs-gear{background:#fff;border-color:#e4e4e7;color:#52525b}
+.mhs-ov{position:fixed;inset:0;z-index:2001;display:flex;align-items:flex-start;justify-content:flex-end;padding:58px 14px 14px}
+.mhs-ov[hidden]{display:none}
+.mhs-bd{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.mhs-panel{position:relative;width:100%;max-width:340px;background:#18181b;border:1px solid #27272a;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.5);padding:20px;color:#f4f4f5;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif}
+html.theme-light .mhs-panel{background:#fff;border-color:#e4e4e7;color:#18181b}
+.mhs-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;border:1px solid #27272a;background:#0d0d0f;color:#a1a1aa;cursor:pointer;font-size:16px;line-height:1}
+html.theme-light .mhs-close{background:#f4f4f5;border-color:#e4e4e7;color:#52525b}
+.mhs-h{font-size:16px;font-weight:700;margin:0 0 2px}
+.mhs-sub{font-size:12px;color:#8a8a92;margin:0 0 6px}
+.mhs-grp{margin-top:18px}
+.mhs-lbl{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a8a92;margin-bottom:8px}
+.mhs-seg{display:flex;gap:4px;background:#0d0d0f;border:1px solid #27272a;border-radius:10px;padding:3px}
+html.theme-light .mhs-seg{background:#f4f4f5;border-color:#e4e4e7}
+.mhs-seg button{flex:1;padding:7px 8px;border-radius:7px;border:none;background:none;color:#a1a1aa;font-size:12.5px;cursor:pointer;font-family:inherit}
+html.theme-light .mhs-seg button{color:#52525b}
+.mhs-seg button.on{background:#22c55e;color:#052e16;font-weight:600}
+.mhs-f{width:100%;box-sizing:border-box;background:#0d0d0f;border:1px solid #27272a;border-radius:9px;padding:9px 11px;color:#f4f4f5;font-size:13px;font-family:inherit;outline:none;margin-bottom:8px}
+html.theme-light .mhs-f{background:#f4f4f5;border-color:#e4e4e7;color:#18181b}
+textarea.mhs-f{min-height:74px;resize:vertical}
+.mhs-send{width:100%;background:#22c55e;color:#052e16;border:none;border-radius:9px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.mhs-send:disabled{opacity:.6;cursor:default}
+.mhs-note{font-size:12px;color:#8a8a92;margin-top:8px;min-height:16px}
+</style>
 </head>
 <body class="bg-zinc-950">
 
@@ -9122,5 +9174,59 @@ function IntakeModal({
   }
 })();
   </script>
+<button class="mhs-gear" id="mhsGear" aria-label="Settings" title="Settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+<div class="mhs-ov" id="mhsOv" hidden role="dialog" aria-modal="true" aria-label="Settings">
+  <div class="mhs-bd" id="mhsBd"></div>
+  <div class="mhs-panel">
+    <button class="mhs-close" id="mhsClose" aria-label="Close">&times;</button>
+    <h2 class="mhs-h">Settings</h2>
+    <p class="mhs-sub">Saved on this device.</p>
+    <div class="mhs-grp"><div class="mhs-lbl">Appearance</div><div class="mhs-seg" id="mhsTheme"><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="system">System</button></div></div>
+    <div class="mhs-grp"><div class="mhs-lbl">Motion</div><div class="mhs-seg" id="mhsMotion"><button data-v="full">Full</button><button data-v="reduce">Reduced</button><button data-v="system">System</button></div></div>
+    <div class="mhs-grp"><div class="mhs-lbl">Report a bug</div><textarea class="mhs-f" id="mhsText" placeholder="What went wrong? What did you expect to happen?"></textarea><input class="mhs-f" id="mhsFrom" placeholder="Your name or email (optional)" /><button class="mhs-send" id="mhsSend">Send report</button><div class="mhs-note" id="mhsNote"></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var gear=document.getElementById("mhsGear"), ov=document.getElementById("mhsOv");
+  if(!gear||!ov) return;
+  function openS(){ ov.hidden=false; } function closeS(){ ov.hidden=true; }
+  gear.addEventListener("click",openS);
+  document.getElementById("mhsClose").addEventListener("click",closeS);
+  document.getElementById("mhsBd").addEventListener("click",closeS);
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!ov.hidden) closeS(); });
+  document.addEventListener("click",function(e){ var a=e.target&&e.target.closest?e.target.closest('a[href="#open-settings"]'):null; if(a){ e.preventDefault(); openS(); } });
+  function mm(q){ try{ return window.matchMedia(q); }catch(e){ return {matches:false,addEventListener:function(){}}; } }
+  function applyTheme(v){ var lm=(v==="light")||(v==="system"&&mm("(prefers-color-scheme: light)").matches); document.documentElement.classList.toggle("theme-light",lm); }
+  function applyMotion(v){ var rm=(v==="reduce")||(v==="system"&&mm("(prefers-reduced-motion: reduce)").matches); document.documentElement.classList.toggle("reduce-motion",rm); }
+  function seg(id,key,def,apply){ var el=document.getElementById(id); if(!el) return; var cur=null; try{cur=localStorage.getItem(key);}catch(e){} cur=cur||def;
+    function paint(){ Array.prototype.forEach.call(el.querySelectorAll("button"),function(b){ b.classList.toggle("on",b.getAttribute("data-v")===cur); }); }
+    Array.prototype.forEach.call(el.querySelectorAll("button"),function(b){ b.addEventListener("click",function(){ cur=b.getAttribute("data-v"); try{localStorage.setItem(key,cur);}catch(e){} paint(); apply(cur); }); });
+    paint(); apply(cur);
+  }
+  seg("mhsTheme","mh-theme","system",applyTheme);
+  seg("mhsMotion","mh-motion","system",applyMotion);
+  mm("(prefers-color-scheme: light)").addEventListener("change",function(){ try{ if((localStorage.getItem("mh-theme")||"system")==="system") applyTheme("system"); }catch(e){} });
+  mm("(prefers-reduced-motion: reduce)").addEventListener("change",function(){ try{ if((localStorage.getItem("mh-motion")||"system")==="system") applyMotion("system"); }catch(e){} });
+  var sb=document.getElementById("mhsSend"), note=document.getElementById("mhsNote");
+  sb.addEventListener("click",async function(){
+    var txt=(document.getElementById("mhsText").value||"").trim();
+    if(!txt){ note.textContent="Add a short description first."; return; }
+    sb.disabled=true; note.textContent="Sending\u2026";
+    var rep={ id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), text:txt, from:(document.getElementById("mhsFrom").value||"").trim(), page:"index.html", ua:(navigator.userAgent||"").slice(0,200), at:Date.now() };
+    try{
+      var r=await fetch("/api/data",{cache:"no-store"}); var s=await r.json();
+      if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
+      var list=s.data["motion-tracker:bugReports"]; if(!Array.isArray(list))list=[];
+      list.unshift(rep); if(list.length>200)list=list.slice(0,200);
+      s.data["motion-tracker:bugReports"]=list; s.updatedAt=Date.now();
+      var res=await fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
+      if(!res.ok) throw 0;
+      note.textContent="Thanks \u2014 your report was sent."; document.getElementById("mhsText").value=""; document.getElementById("mhsFrom").value="";
+    }catch(e){ note.textContent="Couldn\u2019t send \u2014 please try again."; }
+    sb.disabled=false;
+  });
+})();
+</script>
 </body>
 </html>

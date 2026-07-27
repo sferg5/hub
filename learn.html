@@ -44,7 +44,7 @@
   .navwrap{position:relative;flex-shrink:0}
   .hamb{display:flex;align-items:center;justify-content:center;padding:8px;border-radius:10px;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--muted);transition:border-color .14s ease,color .14s ease}
   .hamb:hover{border-color:var(--line2);color:var(--text)}
-  .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:hidden;z-index:60}
+  .navmenu{position:absolute;left:0;top:calc(100% + 8px);width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);overflow:visible;z-index:60}
   .navmenu[hidden]{display:none}
   .navitem{display:flex;align-items:center;gap:12px;padding:12px 12px;text-decoration:none;color:var(--text);transition:background .14s;font-size:13.5px}
   .navitem:hover{background:var(--surface)}
@@ -311,10 +311,10 @@
   #settingsGear{order:999;align-self:stretch;padding-left:10px;padding-right:10px}
   .hs-filter-lbl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);align-self:center;margin-right:2px;flex-shrink:0}
   .nav-has-sub{position:relative}
-  .navsub{display:none;background:var(--surface);border-top:1px solid var(--line)}
+  .navsub{display:none;position:absolute;left:100%;top:-1px;width:210px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:5px 7px 16px -4px rgba(0,0,0,.4);overflow:hidden;z-index:70}
   .nav-has-sub:hover .navsub,.nav-has-sub:focus-within .navsub{display:block}
-  .navsubitem{display:block;padding:9px 12px 9px 42px;font-size:12.5px;color:var(--muted);text-decoration:none;transition:background .14s,color .14s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .navsubitem:hover{background:var(--panel);color:var(--text)}
+  .navsubitem{display:block;padding:11px 14px;font-size:13px;color:var(--muted);text-decoration:none;transition:background .14s,color .14s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .navsubitem:hover{background:var(--surface);color:var(--text)}
   html.theme-light .qtag.wait{color:#b45309}
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
