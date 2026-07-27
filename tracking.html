@@ -14,11 +14,13 @@
   #camWrap {
     position: fixed; right: 16px; bottom: 16px; width: 220px; height: 165px;
     border-radius: 12px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,.5);
-    border: 1px solid rgba(255,255,255,.12); background: #000; z-index: 5; transition: opacity .3s;
+    border: 1px solid rgba(255,255,255,.12); background: #000; z-index: 5; transition: opacity .3s, width .25s ease, height .25s ease;
   }
   #camWrap.hidden { opacity: 0; pointer-events: none; }
   #cam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
   #overlay { position: absolute; inset: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+  #menu { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+  #camWrap.menu-open { width: 380px; height: 285px; }
 
   #hud {
     position: fixed; left: 16px; top: 16px; z-index: 6;
@@ -116,6 +118,7 @@
   <div id="camWrap">
     <video id="cam" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
+    <canvas id="menu"></canvas>
   </div>
 
   <div id="gate">
@@ -137,6 +140,7 @@ uniform vec2  u_res;
 uniform float u_time;
 // foreground (right hand + face)
 uniform float u_fgVis, u_rot, u_scale, u_open, u_sym, u_hue, u_morph, u_pinch, u_kaleido;
+uniform float u_strobe, u_smoke, u_glow, u_grain;
 uniform vec2  u_fgC;
 // background (left hand)
 uniform float u_bgVis, u_bgHue, u_bgScale, u_bgSpread;
@@ -156,6 +160,12 @@ vec3 hsl2rgb(vec3 c){
   vec3 rgb = clamp(abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0);
   return c.z + c.y*(rgb-0.5)*(1.0-abs(2.0*c.z-1.0));
 }
+
+float hash21(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }
+float vnoise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f);
+  float a=hash21(i),b=hash21(i+vec2(1.0,0.0)),c=hash21(i+vec2(0.0,1.0)),d=hash21(i+vec2(1.0,1.0));
+  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
+float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<4;i++){ v+=a*vnoise(p); p*=2.0; a*=0.5; } return v; }
 
 // mirror kaleidoscope -> vec2(angleInWedge, radius)
 vec2 kaleido(vec2 uv, float sym, float rot){
@@ -280,6 +290,19 @@ void main(){
   // ---------------- tap pulse ----------------
   col += u_tap * 0.12;
 
+  // ---- menu-driven camera effects ----
+  col += col*col*u_glow*0.7;                                   // glow / bloom
+  if (u_smoke > 0.001) {                                        // drifting smoke
+    float s = fbm(uv*2.2 + vec2(u_time*0.05, -u_time*0.035));
+    s = smoothstep(0.35, 0.9, s);
+    col = mix(col, vec3(0.80,0.82,0.86), s*u_smoke*0.6);
+  }
+  col += vec3(1.0) * u_strobe * pow(clamp(u_audio,0.0,1.0),1.4) * 0.8;   // music strobe
+  if (u_grain > 0.001) {                                        // film grain
+    float g = hash21(gl_FragCoord.xy + u_time*60.0);
+    col += (g - 0.5) * u_grain * 0.28;
+  }
+
   float vig = smoothstep(1.5, 0.2, length(uv));
   col *= 0.30 + 0.70*vig;
   col  = pow(clamp(col, 0.0, 1.0), vec3(0.85));        // gentle gamma lift
@@ -296,6 +319,8 @@ void main(){
   const cam = document.getElementById('cam');
   const overlay = document.getElementById('overlay');
   const octx = overlay.getContext('2d');
+  const menuCv = document.getElementById('menu');
+  const mctx = menuCv.getContext('2d');
   const gate = document.getElementById('gate');
   const startBtn = document.getElementById('start');
   const statusEl = document.getElementById('status');
@@ -315,6 +340,7 @@ void main(){
     W = window.innerWidth; H = window.innerHeight;
     glc.width = Math.floor(W * DPR); glc.height = Math.floor(H * DPR);
     overlay.width = 220; overlay.height = 165;
+    menuCv.width = 384; menuCv.height = 288;
   }
   window.addEventListener('resize', resize);
   resize();
@@ -348,7 +374,8 @@ void main(){
     for (const n of ['u_res','u_time','u_fgVis','u_rot','u_scale','u_open','u_sym','u_hue',
       'u_morph','u_pinch','u_fgC','u_bgVis','u_bgHue','u_bgScale','u_bgSpread','u_bgC',
       'u_pattern','u_burst','u_burstC','u_flare','u_flareC','u_tap',
-      'u_bolt','u_boltA','u_boltB','u_audio','u_bgPattern','u_kaleido'])
+      'u_bolt','u_boltA','u_boltB','u_audio','u_bgPattern','u_kaleido',
+      'u_strobe','u_smoke','u_glow','u_grain'])
       U[n] = gl.getUniformLocation(program, n);
   }
 
@@ -616,6 +643,93 @@ void main(){
     if (lastFg) drawHand(lastFg, 'rgba(85,221,255,.9)');
   }
 
+  // ---------- in-camera FX menu: right index finger = cursor, tap forward or dwell = click ----------
+  const MENU = { open:false, strobe:0, smoke:0, glow:0, grain:0 };
+  const cur = { x:0.5, y:0.5, on:false, prog:0 };
+  let zBase = 0, lastTapT = 0, dwellId = null, dwellStart = 0, actedId = null;
+  const DWELL_MS = 850;
+
+  function menuTargets(){
+    const t = [{ id:'toggle', x:0.78, y:0.03, w:0.19, h:0.12, label:'FX', val: MENU.open?'\u25be':'\u25b8' }];
+    if (MENU.open){
+      const rows = [
+        { id:'strobe', label:'Music strobe', val:['Off','On'][MENU.strobe] },
+        { id:'smoke',  label:'Smoke',        val:['Off','Low','Med','High'][MENU.smoke] },
+        { id:'glow',   label:'Glow',         val:['Off','Low','Med','High'][MENU.glow] },
+        { id:'grain',  label:'Film grain',   val:['Off','Low','Med','High'][MENU.grain] },
+        { id:'close',  label:'Close',        val:'\u2715' }
+      ];
+      rows.forEach((r,i)=>{ r.x=0.40; r.y=0.185 + i*0.155; r.w=0.57; r.h=0.135; t.push(r); });
+    }
+    return t;
+  }
+  function doAction(id){
+    if (id==='toggle') MENU.open = !MENU.open;
+    else if (id==='close') MENU.open = false;
+    else if (id==='strobe') MENU.strobe = MENU.strobe ? 0 : 1;
+    else if (id==='smoke') MENU.smoke = (MENU.smoke+1)%4;
+    else if (id==='glow')  MENU.glow  = (MENU.glow+1)%4;
+    else if (id==='grain') MENU.grain = (MENU.grain+1)%4;
+  }
+  function hitTarget(ts){
+    for (const r of ts){ if (cur.x>=r.x && cur.x<=r.x+r.w && cur.y>=r.y && cur.y<=r.y+r.h) return r; }
+    return null;
+  }
+  function updateMenuInput(){
+    const lm = lastFg, now = performance.now();
+    if (!lm){ cur.on=false; dwellId=null; actedId=null; cur.prog=0; return; }
+    cur.on = true;
+    cur.x = lerp(cur.x, 1 - lm[8].x, 0.4);   // un-mirror to match the (non-mirrored) menu canvas
+    cur.y = lerp(cur.y, lm[8].y, 0.4);
+    // forward "tap": index tip jabs toward the camera (z dips below a slow baseline)
+    const tz = lm[8].z;
+    zBase = lerp(zBase, tz, 0.06);
+    let tap = false;
+    if ((zBase - tz) > 0.045 && now - lastTapT > 450){ tap = true; lastTapT = now; }
+    const hovered = hitTarget(menuTargets());
+    if (hovered){
+      if (hovered.id !== dwellId){ dwellId = hovered.id; dwellStart = now; }
+      cur.prog = Math.min(1, (now - dwellStart)/DWELL_MS);
+      if ((tap || cur.prog>=1) && actedId !== hovered.id){ doAction(hovered.id); actedId = hovered.id; dwellStart = now; }
+    } else { dwellId=null; actedId=null; cur.prog=0; }
+  }
+  function rrect(x,y,w,h,r){ mctx.beginPath(); mctx.moveTo(x+r,y); mctx.arcTo(x+w,y,x+w,y+h,r); mctx.arcTo(x+w,y+h,x,y+h,r); mctx.arcTo(x,y+h,x,y,r); mctx.arcTo(x,y,x+w,y,r); mctx.closePath(); }
+  function drawMenu(){
+    camWrap.classList.toggle('menu-open', MENU.open);
+    const w=menuCv.width, hh=menuCv.height;
+    mctx.clearRect(0,0,w,hh);
+    const ts = menuTargets();
+    const hovered = cur.on ? hitTarget(ts) : null;
+    if (MENU.open){
+      mctx.fillStyle='rgba(10,10,14,.72)'; rrect(0.375*w, 0.15*hh, 0.605*w, 0.82*hh, 12); mctx.fill();
+      mctx.fillStyle='rgba(170,195,255,.8)'; mctx.font='bold '+Math.round(hh*0.05)+'px system-ui,sans-serif';
+      mctx.textBaseline='middle'; mctx.textAlign='left';
+      mctx.fillText('EFFECTS', 0.41*w, 0.115*hh);
+    }
+    for (const r of ts){
+      const x=r.x*w, y=r.y*hh, rw=r.w*w, rh=r.h*hh;
+      const hot = hovered && hovered.id===r.id;
+      mctx.fillStyle = hot ? 'rgba(90,140,255,.92)' : (r.id==='toggle'?'rgba(28,32,46,.85)':'rgba(26,28,40,.9)');
+      rrect(x,y,rw,rh,8); mctx.fill();
+      mctx.fillStyle = hot ? '#fff' : 'rgba(222,230,248,.92)';
+      mctx.font = (r.id==='toggle'?'bold ':'') + Math.round(hh*0.046)+'px system-ui,sans-serif';
+      mctx.textBaseline='middle'; mctx.textAlign='left';
+      mctx.fillText(r.label, x+rw*0.07, y+rh*0.5);
+      mctx.textAlign='right';
+      mctx.fillStyle = hot ? '#fff' : 'rgba(150,180,255,.95)';
+      mctx.fillText(r.val, x+rw*0.93, y+rh*0.5);
+    }
+    if (cur.on){
+      const cx=cur.x*w, cy=cur.y*hh, rad=Math.max(9, hh*0.032);
+      mctx.beginPath(); mctx.arc(cx,cy,rad,0,7); mctx.strokeStyle='rgba(255,255,255,.9)'; mctx.lineWidth=2; mctx.stroke();
+      mctx.beginPath(); mctx.arc(cx,cy,2.6,0,7); mctx.fillStyle='rgba(255,255,255,.95)'; mctx.fill();
+      if (hovered && cur.prog>0 && cur.prog<1){
+        mctx.beginPath(); mctx.arc(cx,cy,rad+4,-Math.PI/2, -Math.PI/2 + cur.prog*Math.PI*2);
+        mctx.strokeStyle='rgba(120,170,255,.95)'; mctx.lineWidth=3; mctx.stroke();
+      }
+    }
+  }
+
   // ---------- loop ----------
   let freeze = false, t = 0;
   function step() {
@@ -638,6 +752,8 @@ void main(){
     sampleAudio();
     renderGL();
     updateHUD();
+    updateMenuInput();
+    drawMenu();
     requestAnimationFrame(step);
   }
 
@@ -659,6 +775,10 @@ void main(){
     gl.uniform1f(U.u_morph, P.morph.s);
     gl.uniform1f(U.u_pinch, P.pinch.s);
     gl.uniform1f(U.u_kaleido, kaleidoS);
+    gl.uniform1f(U.u_strobe, MENU.strobe);
+    gl.uniform1f(U.u_smoke, MENU.smoke/3);
+    gl.uniform1f(U.u_glow, MENU.glow/3);
+    gl.uniform1f(U.u_grain, MENU.grain/3);
     gl.uniform2f(U.u_fgC, 0.0, 0.0);   // pattern always centered
     gl.uniform1f(U.u_bgVis, Bp.vis * layerFactor(Bp)); // open/close -> opacity, or pinch -> pulse
     gl.uniform1f(U.u_bgHue, (P.hue.s + 0.5) % 1.0);    // head-driven, complementary to foreground
