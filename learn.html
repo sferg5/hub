@@ -316,6 +316,72 @@
   .navsubitem{display:block;padding:11px 14px;font-size:13px;color:var(--muted);text-decoration:none;transition:background .14s,color .14s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .navsubitem:hover{background:var(--surface);color:var(--text)}
   html.theme-light .qtag.wait{color:#b45309}
+
+  /* --- textbook launcher cards --- */
+  .klass-launch{display:flex;align-items:center;gap:16px;width:100%;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-top:16px;text-align:left;font-family:var(--font);color:var(--text);cursor:pointer;transition:border-color .16s ease,transform .16s ease}
+  .klass-launch:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .klass-launch .klass-title{flex:1;min-width:0}
+  .klass-cta{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .klass-pages{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .klass-open{font-size:12.5px;font-weight:600;color:var(--accent)}
+  @media (max-width:560px){ .klass-cta{display:none} }
+  /* --- textbook modal --- */
+  .book-modal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:24px}
+  .book-modal[hidden]{display:none}
+  .book-modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+  .book-wrap{position:relative;width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
+  .book-x{position:absolute;top:-40px;right:0;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+  .book{position:relative;width:100%;aspect-ratio:3/4;max-height:78vh;border-radius:5px 8px 8px 5px;overflow:hidden;perspective:1600px;
+    box-shadow:0 30px 90px rgba(0,0,0,.6), 6px 0 0 -2px rgba(0,0,0,.25), 11px 0 0 -4px rgba(0,0,0,.18), 15px 0 0 -6px rgba(0,0,0,.12)}
+  .book-stage{position:absolute;inset:0;transform-origin:left center}
+  .book-stage>*{position:absolute;inset:0}
+  @keyframes bkTurnNext{from{opacity:0;transform:translateX(26px) rotateY(-9deg)}to{opacity:1;transform:none}}
+  @keyframes bkTurnPrev{from{opacity:0;transform:translateX(-26px) rotateY(9deg)}to{opacity:1;transform:none}}
+  .book-stage.turn-next{animation:bkTurnNext .34s ease both}
+  .book-stage.turn-prev{animation:bkTurnPrev .34s ease both}
+  .book-nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .book-btn{padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
+  .book-btn.primary{background:var(--accent);color:#052e16;border-color:transparent}
+  .book-btn:disabled{opacity:.35;cursor:default}
+  .book-counter{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7)}
+  /* --- 90s textbook cover --- */
+  .bk-cover{width:100%;height:100%;background:linear-gradient(155deg,var(--c1),var(--c2));color:#fff;position:relative;overflow:hidden}
+  .bk-shapes{position:absolute;inset:0;pointer-events:none}
+  .bk-shape{position:absolute;display:block}
+  .bk-shape.c1{width:150px;height:150px;border:7px solid rgba(255,255,255,.18);border-radius:50%;top:-46px;right:-38px}
+  .bk-shape.t1{width:0;height:0;border-left:38px solid transparent;border-right:38px solid transparent;border-bottom:66px solid var(--ac);opacity:.85;bottom:96px;right:22px;transform:rotate(16deg)}
+  .bk-shape.g1{width:86px;height:86px;bottom:120px;left:22px;background-image:radial-gradient(rgba(255,255,255,.28) 2px,transparent 2px);background-size:15px 15px}
+  .bk-shape.sq{width:120px;height:24px;top:120px;left:20px;opacity:.9}
+  .bk-cover-in{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:30px 28px}
+  .bk-cover-top{display:flex;align-items:center;justify-content:space-between}
+  .bk-series{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;opacity:.9}
+  .bk-lulu{width:30px;height:30px;fill:#fff;flex-shrink:0}
+  .bk-cover-mid{margin-top:auto;margin-bottom:auto}
+  .bk-volwrap{margin-bottom:14px}
+  .bk-vol{display:inline-block;background:var(--ac);color:#141414;font-family:var(--mono);font-weight:800;font-size:clamp(30px,9vw,46px);line-height:1;padding:6px 16px;border-radius:5px;transform:rotate(-2.5deg);box-shadow:5px 5px 0 rgba(0,0,0,.25)}
+  .bk-wordmark{font-size:clamp(44px,15vw,72px);font-weight:900;letter-spacing:-.02em;line-height:.86;text-transform:uppercase}
+  .bk-cover-name{font-size:clamp(18px,5.5vw,24px);font-weight:700;margin-top:8px}
+  .bk-cover-tag{font-size:13px;line-height:1.5;opacity:.9;margin-top:10px;max-width:88%}
+  .bk-cover-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
+  .bk-press{font-weight:700}
+  /* --- paper pages --- */
+  .bk-page{width:100%;height:100%;background:#f6f0e2;color:#2c2823;display:flex;flex-direction:column;font-family:Georgia,"Iowan Old Style",Palatino,serif}
+  .bk-page-head,.bk-page-foot{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#8a8172}
+  .bk-page-head{padding:16px 24px 10px;border-bottom:1px solid #ded3bd}
+  .bk-page-foot{padding:10px 24px 16px;border-top:1px solid #ded3bd}
+  .bk-page-foot .bk-lulu{width:15px;height:15px;fill:#8a8172}
+  .bk-page-foot span{display:flex;align-items:center;gap:6px}
+  .bk-page-body{flex:1;overflow:auto;padding:20px 24px;line-height:1.62;font-size:15px}
+  .bk-page-body h3.bk-h{font-family:var(--font);font-size:22px;font-weight:800;color:#1c1a16;margin:0 0 14px;line-height:1.15}
+  .bk-page-body p{margin:0 0 13px}
+  .bk-page-body p:last-child{margin-bottom:0}
+  .bk-kw{font-family:var(--mono);font-size:.86em;background:#e7dcc4;padding:1px 5px;border-radius:4px;color:#5a4f3a}
+  .bk-list{margin:0 0 13px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+  .bk-list li{line-height:1.5}
+  .bk-callout{margin-top:16px;background:#ece2cd;border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 15px}
+  .bk-callout .bk-tag{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8a6d2f;margin-bottom:5px;font-weight:700}
+  .bk-callout p{margin:0;font-size:14px}
+  html.theme-light .book-modal-bd{background:rgba(0,0,0,.55)}
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
 </head>
@@ -410,120 +476,28 @@
       <span id="concepts" class="anchor"></span>
       <div class="section-eyebrow">The curriculum</div>
       <h3>Learn motion, one class at a time</h3>
-      <p class="section-sub">A plain-language primer, split into three short classes that build on each other — start at Motion 101 and work up. Expand a class to dig in.</p>
+      <p class="section-sub">A plain-language primer for <b>animation in UX &amp; product design</b>, in four short classes. Open a class to read its textbook — eight pages you can flip through, front cover and all.</p>
       <div class="curriculum">
-        <div class="klass" id="m101" data-open="true">
-          <button class="klass-head" type="button" aria-expanded="true">
-            <span class="klass-badge">101</span>
-            <span class="klass-title">
-              <span class="klass-name">Motion 101 · The Foundations</span>
-              <span class="klass-sub">The building blocks — what motion is actually made of.</span>
-            </span>
-            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="klass-body">
-            <div class="klass-section-label">Terms you'll hear</div>
-            <div class="gloss">
-          <div class="term"><h4>Keyframe</h4><p>A marked point in time that stores a specific value — position, scale, rotation, opacity. You set the value you want at a moment, and the software fills in everything between two keyframes.</p></div>
-          <div class="term"><h4>Timeline</h4><p>The track where time runs left to right. You arrange layers and place keyframes along it, and a <span class="kw">playhead</span> shows the exact moment you're viewing.</p></div>
-          <div class="term"><h4>Tween &amp; interpolation</h4><p>The in-between frames the software generates automatically from one keyframe to the next. "Interpolation" is just the math that decides those in-between values.</p></div>
-          <div class="term"><h4>Frame rate (fps)</h4><p>How many frames play each second — 24, 30, 60. Higher frame rates look smoother; screens and export targets often dictate the number.</p></div>
-          <div class="term"><h4>Duration &amp; delay</h4><p><span class="kw">Duration</span> is how long a move takes; <span class="kw">delay</span> is a pause before it starts. Most UI motion lives between roughly 150 and 500&nbsp;ms.</p></div>
-            </div>
-            <div class="klass-section-label">Key idea</div>
-            <div class="concepts">
-              <div class="concept">
-          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 12 4-4 4 4 6-6"/><circle cx="7" cy="8" r="1.4" fill="#22c55e"/><circle cx="11" cy="12" r="1.4" fill="#22c55e"/><circle cx="17" cy="6" r="1.4" fill="#22c55e"/></svg></span>Keyframing</h4>
-          <p><b>The idea:</b> instead of drawing every frame, you define a handful of key moments and let the tool interpolate the rest. Set an element's opacity to 0 at 0&nbsp;ms and 100 at 300&nbsp;ms, and it fades in over that span automatically.</p>
-          <p><b>In practice:</b> fewer, well-placed keyframes almost always read cleaner than many. Start with the two that matter — where the motion begins and ends — then add keyframes only where you need to shape what happens in between.</p>
-        </div>
-            </div>
-            <button class="klass-next" type="button" data-next="m102">Next: Motion 102 — Shaping the Feel →</button>
-          </div>
-        </div>
-        <div class="klass" id="m102" data-open="false">
-          <button class="klass-head" type="button" aria-expanded="false">
-            <span class="klass-badge">102</span>
-            <span class="klass-title">
-              <span class="klass-name">Motion 102 · Shaping the Feel</span>
-              <span class="klass-sub">How motion moves — turning mechanical into natural.</span>
-            </span>
-            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="klass-body" hidden>
-            <div class="klass-section-label">Terms you'll hear</div>
-            <div class="gloss">
-          <div class="term"><h4>Easing</h4><p>How a value speeds up or slows down between keyframes. Easing is what makes motion feel alive instead of mechanical.</p></div>
-          <div class="term"><h4>Ease-in / ease-out</h4><p><span class="kw">Ease-out</span> starts fast and settles softly — great for things entering. <span class="kw">Ease-in</span> starts slow and accelerates — good for things leaving. Ease-in-out does both.</p></div>
-          <div class="term"><h4>Bezier curve</h4><p>The editable curve behind an ease. Dragging its handles reshapes how a value changes over time — the difference between "snappy" and "gentle."</p></div>
-          <div class="term"><h4>Timing &amp; spacing</h4><p><span class="kw">Timing</span> is how long a move takes; <span class="kw">spacing</span> is how far it travels between frames. Together they define the weight and feel of the motion.</p></div>
-            </div>
-            <div class="klass-section-label">Key idea</div>
-            <div class="concepts">
-              <div class="concept">
-          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20c6 0 6-14 18-14"/></svg></span>Easing</h4>
-          <p><b>The idea:</b> nothing in the real world starts or stops instantly — it accelerates and decelerates. Linear motion (constant speed) is the tell-tale sign of something that feels robotic.</p>
-          <p><b>In practice:</b> reach for ease-out when things enter or expand (fast then settling), and ease-in when things exit or collapse. Save big overshoots and bounces for playful, expressive moments — they draw a lot of attention.</p>
-        </div>
-            </div>
-            <button class="klass-next" type="button" data-next="m103">Next: Motion 103 — Motion with Character →</button>
-          </div>
-        </div>
-        <div class="klass" id="m103" data-open="false">
-          <button class="klass-head" type="button" aria-expanded="false">
-            <span class="klass-badge">103</span>
-            <span class="klass-title">
-              <span class="klass-name">Motion 103 · Motion with Character</span>
-              <span class="klass-sub">The expressive touches that make motion feel alive.</span>
-            </span>
-            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="klass-body" hidden>
-            <div class="klass-section-label">Terms you'll hear</div>
-            <div class="gloss">
-          <div class="term"><h4>Stagger</h4><p>Offsetting the start of several elements' animations so they cascade in sequence rather than all moving at once — think a list settling in row by row.</p></div>
-          <div class="term"><h4>Anticipation</h4><p>A small opposite move before the main action — a slight wind-up that prepares the eye for what's about to happen.</p></div>
-          <div class="term"><h4>Follow-through &amp; overshoot</h4><p>Motion that carries slightly past its target before settling back. A touch of it adds life; too much feels bouncy.</p></div>
-            </div>
-            <div class="klass-section-label">Key idea</div>
-            <div class="concepts">
-              <div class="concept">
-          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="12" height="4" rx="1"/><rect x="3" y="16" width="15" height="4" rx="1"/></svg></span>Timelines</h4>
-          <p><b>The idea:</b> every element sits on its own track, and time flows left to right. Where you place each keyframe — and how tracks overlap — is what creates rhythm and sequence.</p>
-          <p><b>In practice:</b> overlapping and staggering are your friends. Letting one element begin just before another finishes keeps a sequence feeling connected, while a small stagger across a group turns a flat "everything at once" into a graceful cascade.</p>
-        </div>
-            </div>
-            <button class="klass-next" type="button" data-next="m104">Next up: handoff &amp; delivery ↓</button>
-          </div>
-        </div>
-        <div class="klass" id="m104" data-open="false">
-          <button class="klass-head" type="button" aria-expanded="false">
-            <span class="klass-badge">104</span>
-            <span class="klass-title">
-              <span class="klass-name">Motion 104 · Handoff &amp; Delivery</span>
-              <span class="klass-sub">Getting motion out of the tool and cleanly into the product.</span>
-            </span>
-            <svg class="klass-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="klass-body" hidden>
-            <div class="klass-section-label">Terms you'll hear</div>
-            <div class="gloss">
-          <div class="term"><h4>Handoff</h4><p>The moment motion leaves the design tool and gets specified for engineering — the durations, easings, and triggers written down so it can be built faithfully.</p></div>
-          <div class="term"><h4>Spec</h4><p>The precise recipe for a motion: what animates, from which value to which, over how long, with what easing curve, and what kicks it off.</p></div>
-          <div class="term"><h4>Lottie</h4><p>A lightweight format that plays vector animations natively in apps and on the web — often the cleanest way to ship complex motion without heavy video.</p></div>
-          <div class="term"><h4>Motion tokens</h4><p>Reusable, named values for duration and easing (like “fast” or “standard ease”) so motion stays consistent across a product and is easy to tune in one place.</p></div>
-            </div>
-            <div class="klass-section-label">Key idea</div>
-            <div class="concepts">
-              <div class="concept">
-          <h4><span class="ic"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>Design the handoff, not just the motion</h4>
-          <p><b>The idea:</b> a beautiful animation only ships well if whoever builds it knows exactly what you intended. The spec — durations, curves, and triggers — is part of the craft, not an afterthought.</p>
-          <p><b>In practice:</b> name your easings and durations and keep them consistent, then hand over values a developer can drop straight in. When motion lives in tokens, tuning the whole product later is a one-line change instead of a hunt.</p>
-              </div>
-            </div>
-            <button class="klass-next" type="button" data-next="office-hours">Bring your questions to office hours ↓</button>
-          </div>
-        </div>
+        <button class="klass klass-launch" type="button" data-book="m101">
+          <span class="klass-badge">101</span>
+          <span class="klass-title"><span class="klass-name">Motion 101 · The Foundations</span><span class="klass-sub">The building blocks — what UI motion is made of, and the states it connects.</span></span>
+          <span class="klass-cta"><span class="klass-pages">8 pages</span><span class="klass-open">Open textbook →</span></span>
+        </button>
+        <button class="klass klass-launch" type="button" data-book="m102">
+          <span class="klass-badge">102</span>
+          <span class="klass-title"><span class="klass-name">Motion 102 · Shaping the Feel</span><span class="klass-sub">How UI motion moves — easing that feels responsive, not mechanical.</span></span>
+          <span class="klass-cta"><span class="klass-pages">8 pages</span><span class="klass-open">Open textbook →</span></span>
+        </button>
+        <button class="klass klass-launch" type="button" data-book="m103">
+          <span class="klass-badge">103</span>
+          <span class="klass-title"><span class="klass-name">Motion 103 · Motion with Purpose</span><span class="klass-sub">Guiding attention and showing how the interface fits together.</span></span>
+          <span class="klass-cta"><span class="klass-pages">8 pages</span><span class="klass-open">Open textbook →</span></span>
+        </button>
+        <button class="klass klass-launch" type="button" data-book="m104">
+          <span class="klass-badge">104</span>
+          <span class="klass-title"><span class="klass-name">Motion 104 · Handoff &amp; Delivery</span><span class="klass-sub">Getting motion out of the tool and cleanly into the product.</span></span>
+          <span class="klass-cta"><span class="klass-pages">8 pages</span><span class="klass-open">Open textbook →</span></span>
+        </button>
       </div>
     </section>
 
@@ -1074,27 +1048,52 @@
 </script>
 <script>
 (function(){
-  var classes=document.querySelectorAll(".klass");
-  if(!classes.length) return;
-  function setOpen(k,open){
-    k.setAttribute("data-open",open?"true":"false");
-    var body=k.querySelector(".klass-body"); if(body) body.hidden=!open;
-    var head=k.querySelector(".klass-head"); if(head) head.setAttribute("aria-expanded",open?"true":"false");
+  "use strict";
+  var LULU_PATH="M 148.414062 174.613281 C 129.636719 174.613281 114.414062 159.34375 114.414062 140.507812 C 114.414062 133.796875 116.84375 127.855469 119.144531 121.6875 C 120.773438 117.316406 122.402344 112.945312 124.019531 108.566406 C 127.824219 98.242188 131.480469 87.660156 133.164062 76.742188 C 134.503906 68.082031 134.351562 57.539062 127.777344 50.902344 C 122.75 45.828125 114.964844 44.699219 108 44.660156 C 101.03125 44.699219 93.25 45.828125 88.21875 50.902344 C 81.648438 57.539062 81.492188 68.082031 82.832031 76.742188 C 84.519531 87.660156 88.171875 98.242188 91.980469 108.566406 C 93.59375 112.945312 95.222656 117.316406 96.851562 121.6875 C 99.152344 127.855469 101.585938 133.796875 101.585938 140.507812 C 101.585938 159.34375 86.363281 174.613281 67.582031 174.613281 C 53.277344 174.613281 41.058594 165.738281 36.039062 153.191406 C 39.996094 156.816406 45.246094 159.042969 51.03125 159.042969 C 57.800781 159.042969 64.3125 155.871094 68.511719 150.542969 C 73.273438 144.5 74.292969 136.261719 72.257812 128.9375 C 70.03125 120.929688 65.195312 114.433594 61.316406 106.996094 C 48.710938 85.457031 49.222656 69.355469 49.222656 69.355469 C 49.222656 68.351562 49.25 67.351562 49.3125 66.355469 C 49.394531 65.027344 49.535156 63.703125 49.746094 62.386719 C 49.941406 61.152344 50.195312 59.925781 50.519531 58.714844 C 50.832031 57.566406 51.195312 56.433594 51.628906 55.324219 C 52.046875 54.257812 52.523438 53.21875 53.058594 52.207031 C 53.582031 51.222656 54.160156 50.269531 54.792969 49.355469 C 55.421875 48.449219 56.101562 47.582031 56.828125 46.753906 C 57.554688 45.925781 58.328125 45.140625 59.140625 44.398438 C 59.964844 43.648438 60.832031 42.945312 61.726562 42.28125 C 62.644531 41.605469 63.597656 40.972656 64.570312 40.386719 C 65.578125 39.78125 66.609375 39.222656 67.664062 38.707031 C 68.753906 38.175781 69.863281 37.6875 70.988281 37.238281 C 72.15625 36.773438 73.339844 36.347656 74.539062 35.964844 C 75.777344 35.566406 77.03125 35.203125 78.292969 34.878906 C 79.605469 34.542969 80.921875 34.242188 82.25 33.972656 C 83.621094 33.695312 85.003906 33.453125 86.386719 33.234375 C 87.820312 33.011719 89.261719 32.820312 90.703125 32.65625 C 92.191406 32.488281 93.683594 32.34375 95.175781 32.226562 C 96.714844 32.109375 98.257812 32.011719 99.796875 31.941406 C 101.386719 31.867188 102.972656 31.816406 104.558594 31.785156 C 106.449219 31.75 108.34375 31.742188 110.238281 31.765625 C 111.832031 31.785156 113.429688 31.828125 115.019531 31.890625 C 116.574219 31.953125 118.121094 32.035156 119.671875 32.144531 C 121.175781 32.25 122.675781 32.378906 124.175781 32.535156 C 125.628906 32.6875 127.078125 32.863281 128.523438 33.070312 C 129.917969 33.273438 131.3125 33.503906 132.699219 33.765625 C 134.039062 34.019531 135.371094 34.304688 136.695312 34.625 C 137.972656 34.9375 139.242188 35.28125 140.5 35.664062 C 141.710938 36.03125 142.914062 36.4375 144.097656 36.882812 C 145.238281 37.316406 146.371094 37.785156 147.476562 38.300781 C 148.546875 38.796875 149.601562 39.332031 150.625 39.917969 C 151.621094 40.484375 152.59375 41.09375 153.53125 41.75 C 154.449219 42.390625 155.335938 43.074219 156.183594 43.804688 C 157.019531 44.523438 157.816406 45.285156 158.566406 46.089844 C 159.320312 46.890625 160.023438 47.734375 160.675781 48.617188 C 161.332031 49.507812 161.941406 50.433594 162.488281 51.394531 C 163.054688 52.375 163.558594 53.390625 164.003906 54.433594 C 164.464844 55.511719 164.863281 56.617188 165.203125 57.742188 C 165.554688 58.917969 165.84375 60.117188 166.070312 61.324219 C 166.308594 62.609375 166.484375 63.902344 166.597656 65.203125 C 166.722656 66.585938 166.734375 67.964844 166.777344 69.355469 C 166.777344 69.355469 167.289062 85.457031 154.683594 106.996094 C 150.800781 114.433594 145.964844 120.929688 143.738281 128.9375 C 141.707031 136.261719 142.726562 144.5 147.488281 150.542969 C 151.683594 155.871094 158.195312 159.042969 164.96875 159.042969 C 170.753906 159.042969 176.003906 156.816406 179.960938 153.191406 C 174.9375 165.738281 162.71875 174.613281 148.414062 174.613281 M 108 4.636719 C 50.914062 4.636719 4.636719 50.914062 4.636719 108 C 4.636719 165.085938 50.914062 211.363281 108 211.363281 C 165.085938 211.363281 211.363281 165.085938 211.363281 108 C 211.363281 50.914062 165.085938 4.636719 108 4.636719 ";
+  var LULU='<svg class="bk-lulu" viewBox="0 0 216 216" aria-hidden="true" focusable="false"><path fill-rule="nonzero" d="'+LULU_PATH+'"/></svg>';
+  var SHAPES='<span class="bk-shape c1"></span><span class="bk-shape t1"></span><span class="bk-shape g1"></span>'
+    +'<svg class="bk-shape sq" viewBox="0 0 120 24" fill="none"><path d="M2 12 Q 12 2 22 12 T 42 12 T 62 12 T 82 12 T 102 12" stroke="rgba(255,255,255,.45)" stroke-width="4" stroke-linecap="round"/></svg>';
+  var COURSES={"m101": {"vol": "101", "name": "The Foundations", "tagline": "What UI motion is made of, and the states it connects.", "theme": {"c1": "#0e7490", "c2": "#134e4a", "ac": "#f97316"}, "pages": [{"title": "What UI motion really is", "html": "<p>In a product, motion isn't decoration for its own sake \u2014 it's the connective tissue between what the interface <i>was</i> and what it's <i>becoming</i>. Every animation you design quietly answers a question for the user: what just happened, where did this come from, what can I do next?</p><p>Get that job right and motion feels invisible and inevitable. Get it wrong and it feels like a screensaver bolted onto a tool.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Mantra</span><p>Motion connects <b>states</b>. If you can't name the two states it's moving between, you don't have a transition yet \u2014 you have decoration.</p></div>"}, {"title": "States &amp; transitions", "html": "<p>Every UI element lives in <b>states</b>: a sheet is closed or open, a button is default, pressed, or disabled, a screen is empty, loading, or loaded. Motion is simply the <b>transition</b> from one state to another.</p><p>The discipline that separates UX motion from general animation: name the <i>before</i> and <i>after</i> first. A filter panel goes from <span class=\"bk-kw\">off-screen + transparent</span> to <span class=\"bk-kw\">on-screen + opaque</span>. Once the two states are clear, the animation almost designs itself.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Try this</span><p>Pick any component you've built. List its states out loud. The interesting motion lives in the arrows between them.</p></div>"}, {"title": "Keyframes &amp; interpolation", "html": "<p>A <b>keyframe</b> stores a value \u2014 position, scale, opacity \u2014 at a specific moment. <b>Interpolation</b> is the math that fills in every frame between two keyframes, so you never hand-draw the in-betweens.</p><p>You rarely animate raw pixels; you set the start and end values of a property and let the tool tween. And fewer keyframes almost always read cleaner than many \u2014 start with the two that matter (begin and end) and add more only to shape what happens in between.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Key term</span><p><b>Interpolation</b> \u2014 the automatically-generated values between your keyframes. \u201cLinear\u201d interpolation is a straight line; easing (Motion 102) bends it.</p></div>"}, {"title": "Timing: duration &amp; delay", "html": "<p><b>Duration</b> is how long a move takes; <b>delay</b> is a pause before it starts. In functional UI, faster is usually better \u2014 but instant can be disorienting.</p><ul class=\"bk-list\"><li><b>&lt;100 ms</b> \u2014 taps &amp; direct feedback (feels instant)</li><li><b>150\u2013250 ms</b> \u2014 small transitions, toggles, hovers</li><li><b>250\u2013400 ms</b> \u2014 sheets, dialogs, screen changes</li><li><b>&gt;500 ms</b> \u2014 reserve for rare, expressive moments</li></ul><p>Delay is how you build sequence and rhythm (see staggering in Motion 103).</p>"}, {"title": "Frame rate &amp; performance", "html": "<p>Screens refresh 60 times a second (16.7 ms per frame); newer displays hit 120. Miss that budget and you get <b>jank</b> \u2014 visible stutter that makes a product feel cheap.</p><p>The single biggest performance rule for UI motion: animate <b>cheap</b> properties. <span class=\"bk-kw\">transform</span> and <span class=\"bk-kw\">opacity</span> are handled by the GPU and stay smooth; animating layout properties like <span class=\"bk-kw\">width</span>, <span class=\"bk-kw\">top</span>, or <span class=\"bk-kw\">margin</span> forces the browser to re-lay-out every frame and drops frames.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Try this</span><p>Need something to grow? Animate <b>scale</b>, not width. Need it to move? Animate <b>translate</b>, not top/left.</p></div>"}, {"title": "The UX motion toolchain", "html": "<p>Different stages call for different tools:</p><ul class=\"bk-list\"><li><b>Explore</b> \u2014 After Effects for complex, expressive motion studies.</li><li><b>Prototype in context</b> \u2014 Figma Smart Animate, Principle, or ProtoPie to feel motion inside the real layout and flow.</li><li><b>Ship</b> \u2014 the real thing in CSS, SwiftUI, or Jetpack Compose, or a Lottie file for complex vector work.</li></ul><p>A prototype communicates intent; production is where it becomes real. Knowing which stage you're in keeps you from over-polishing a throwaway or under-specifying the real build.</p>"}, {"title": "Anatomy of a transition", "html": "<p>Let's spec one end to end \u2014 a <b>bottom sheet</b> opening from a button:</p><ul class=\"bk-list\"><li><b>States:</b> hidden \u2192 shown</li><li><b>Properties:</b> sheet <span class=\"bk-kw\">translateY 100% \u2192 0</span>, <span class=\"bk-kw\">opacity 0 \u2192 1</span>; backdrop <span class=\"bk-kw\">opacity 0 \u2192 0.4</span></li><li><b>Duration:</b> ~280 ms</li><li><b>Easing:</b> ease-out (fast in, soft settle)</li><li><b>Trigger:</b> tap the button</li></ul><p>That's a complete, buildable description \u2014 and notice it's mostly decisions, not drawing. That's UX motion.</p>"}, {"title": "Recap &amp; checklist", "html": "<p>You now have the vocabulary the rest of the series builds on.</p><ul class=\"bk-list\"><li>Name the two <b>states</b> before you animate.</li><li>Animate the <b>smallest set</b> of properties that tells the story.</li><li>Keep functional motion <b>quick</b>.</li><li>Prefer <b>transform</b> and <b>opacity</b> for smoothness.</li><li>Always spec the <b>trigger</b>.</li></ul><div class=\"bk-callout\"><span class=\"bk-tag\">Next</span><p><b>Motion 102 \u00b7 Shaping the Feel</b> \u2014 how easing turns these mechanical moves into motion that feels alive.</p></div>"}]}, "m102": {"vol": "102", "name": "Shaping the Feel", "tagline": "Easing that feels responsive, not mechanical.", "theme": {"c1": "#6d28d9", "c2": "#3b0764", "ac": "#facc15"}, "pages": [{"title": "Why easing matters", "html": "<p>Nothing in the real world starts or stops instantly \u2014 it accelerates and decelerates. <b>Linear</b> motion (constant speed) is the tell-tale sign of something robotic, and in an interface it reads as sluggish and lifeless.</p><p>Easing is the single biggest lever you have on how a UI <i>feels</i>. Same distance, same duration \u2014 change only the easing and the same move can feel snappy, gentle, heavy, or playful.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Rule</span><p>If a UI move looks \u201coff\u201d but you can't say why, check the easing first. Linear is almost never the answer.</p></div>"}, {"title": "Ease-in, ease-out, ease-in-out", "html": "<ul class=\"bk-list\"><li><b>Ease-out</b> \u2014 starts fast, settles softly. The workhorse for things <b>entering</b> or expanding (menus, sheets, toasts). Feels responsive.</li><li><b>Ease-in</b> \u2014 starts slow, accelerates away. Good for things <b>leaving</b>, since you care less about a graceful exit.</li><li><b>Ease-in-out</b> \u2014 eases both ends. Best for moves that stay on screen the whole time (an element sliding from A to B).</li></ul><div class=\"bk-callout\"><span class=\"bk-tag\">Shortcut</span><p><b>Enter with ease-out, exit with ease-in.</b> That one habit fixes most amateur-looking UI motion.</p></div>"}, {"title": "Bezier curves", "html": "<p>Behind every ease is an editable <b>cubic-bezier</b> curve \u2014 four numbers that plot speed over time. Reading it is simple: steep = fast, flat = slow.</p><p>Dragging the handles is the difference between \u201csnappy\u201d and \u201cgentle.\u201d You don't have to invent curves from scratch \u2014 every design system publishes a small set (a standard ease, a decelerate, an accelerate) that you can reuse.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Key term</span><p><b>cubic-bezier(x1, y1, x2, y2)</b> \u2014 the CSS way to write a custom curve. <span class=\"bk-kw\">ease-out</span> is roughly <span class=\"bk-kw\">cubic-bezier(0, 0, .2, 1)</span>.</p></div>"}, {"title": "Springs", "html": "<p>Instead of a fixed curve and duration, a <b>spring</b> is defined by physics \u2014 <b>stiffness</b>, <b>damping</b>, and mass. It has no set length; it settles when the physics says so.</p><p>The superpower of springs is that they're <b>interruptible</b>: if a user grabs a sheet that's mid-animation and flings it, a spring handles that gracefully where a fixed curve would snap. That's why iOS/SwiftUI, Framer Motion, and React-Spring lean on them for gestural UI.</p><div class=\"bk-callout\"><span class=\"bk-tag\">When to reach for a spring</span><p>Anything the user can grab, drag, or interrupt. Use curves for simple, non-interactive transitions.</p></div>"}, {"title": "Timing &amp; spacing = weight", "html": "<p><b>Timing</b> is how long a move takes; <b>spacing</b> is how far it travels between frames. Together they create a sense of <b>weight</b>.</p><p>A heavy object accelerates slowly and carries a little follow-through; a light one darts. Keeping weight consistent across a product is a big part of why polished apps feel \u201cof a piece\u201d \u2014 a heavy modal and a feather-light tooltip shouldn't move on the same timing.</p>"}, {"title": "Perceived performance", "html": "<p>Motion changes how <i>fast</i> a product feels, independent of how fast it actually is. A well-eased 250 ms transition often feels quicker than an instant, jarring swap \u2014 because the transition tells the eye what happened, so the brain doesn't have to re-orient.</p><p>Snappy ease-out entrances, skeleton loaders that pulse, and optimistic UI (showing the result before the server confirms) all buy perceived speed. Motion is a performance tool, not just a finish.</p>"}, {"title": "Borrow the platform standards", "html": "<p>You rarely need to invent timing from zero. The big systems have done the research:</p><ul class=\"bk-list\"><li><b>Material</b> \u2014 named durations (100\u2013500 ms) and standard / emphasized easing sets.</li><li><b>Apple HIG</b> \u2014 fluid, interruptible, largely spring-based motion.</li></ul><p>Use them as your defaults so your work feels native, and deviate only on purpose \u2014 for brand moments or a deliberate signature feel.</p>"}, {"title": "Recap &amp; checklist", "html": "<ul class=\"bk-list\"><li><b>Never linear</b> for UI motion.</li><li><b>Ease-out</b> to enter, <b>ease-in</b> to exit.</li><li>Reach for <b>springs</b> when motion is gestural or interruptible.</li><li>Keep <b>weight</b> consistent across the product.</li><li>Start from <b>platform curves</b>; deviate deliberately.</li></ul><div class=\"bk-callout\"><span class=\"bk-tag\">Next</span><p><b>Motion 103 \u00b7 Motion with Purpose</b> \u2014 using motion to guide attention and keep people oriented.</p></div>"}]}, "m103": {"vol": "103", "name": "Motion with Purpose", "tagline": "Guiding attention and showing how the UI fits together.", "theme": {"c1": "#be185d", "c2": "#831843", "ac": "#22c55e"}, "pages": [{"title": "Functional vs. expressive", "html": "<p>Two jobs, very different budgets:</p><ul class=\"bk-list\"><li><b>Functional</b> motion clarifies \u2014 where something came from, what just changed, what's loading. It earns its place by aiding comprehension.</li><li><b>Expressive</b> motion adds personality and brand delight.</li></ul><p>In product UX, the vast majority of your motion should be functional. Expressive moments are seasoning \u2014 occasional, earned, and never in the way of a frequent task.</p>"}, {"title": "Spatial continuity", "html": "<p>Motion can preserve a sense of <b>place</b>. A panel that grows from the button that opened it tells the user exactly where it \u201clives.\u201d A screen that slides in from the right implies you can swipe right to go back.</p><p>The most powerful version is a <b>shared-element transition</b>: an item (a thumbnail, a card) morphs continuously into its detail view, so the user never loses track of what they tapped.</p><div class=\"bk-callout\"><span class=\"bk-tag\">Key idea</span><p>Motion is a map. Every move should reinforce where things are and how they connect \u2014 never teleport the user.</p></div>"}, {"title": "Guiding attention", "html": "<p>The eye is wired to follow movement \u2014 which makes motion a precise tool for directing focus. Use it to point at <b>what changed</b>: a newly added row slides in and briefly highlights; an error field gives a small shake.</p><p>The flip side: if everything moves, nothing stands out. Restraint is what makes the one meaningful animation actually land.</p>"}, {"title": "Stagger &amp; sequencing", "html": "<p><b>Staggering</b> offsets the start of several elements' animations so a group cascades instead of arriving all at once. A list settles row by row; a form's fields appear in reading order.</p><p>Keep stagger small \u2014 roughly <b>20\u201360 ms</b> between items \u2014 and <b>overlap</b> related moves so a sequence feels connected rather than choppy. Letting one element begin just before the previous finishes is what turns a flat \u201ceverything at once\u201d into a graceful flow.</p>"}, {"title": "Anticipation &amp; follow-through", "html": "<p>Borrowed from classic animation and used <i>sparingly</i> in UI: <b>anticipation</b> is a tiny wind-up before an action (a button dips before it fires); <b>follow-through</b> is a slight carry past the target before settling.</p><p>A touch of either adds life and draws the eye. Too much and your product feels like a toy \u2014 bouncy overshoots belong on a game's start screen, not a checkout button.</p>"}, {"title": "Motion as feedback", "html": "<p>Motion is the interface's <b>response</b> to the user. Press states, ripples, a control that follows your finger as you drag, the rubber-band bounce at the end of a scroll \u2014 these confirm \u201cyes, I felt that,\u201d instantly.</p><p>Feedback motion should be near-immediate (&lt;100 ms). Latency here is felt as unresponsiveness even when the underlying action was fast.</p>"}, {"title": "When NOT to animate", "html": "<p>Just as important as knowing how to animate: knowing when to skip it.</p><ul class=\"bk-list\"><li>High-frequency, repeated actions (they get old fast).</li><li>Anything that <b>blocks</b> the user from acting.</li><li>Dense, data-heavy views where motion adds noise.</li><li>Motion that fights the task instead of serving it.</li></ul><p>And remember some users are motion-sensitive \u2014 which is exactly where Motion 104 picks up.</p>"}, {"title": "Recap &amp; checklist", "html": "<ul class=\"bk-list\"><li><b>Functional first</b>; expressive is seasoning.</li><li>Preserve a sense of <b>place</b>.</li><li>Use motion to <b>guide the eye</b> to what changed.</li><li><b>Stagger</b> groups; keep feedback <b>instant</b>.</li><li>When in doubt, <b>cut it</b>.</li></ul><div class=\"bk-callout\"><span class=\"bk-tag\">Next</span><p><b>Motion 104 \u00b7 Handoff &amp; Delivery</b> \u2014 getting all of this cleanly out of the tool and into the shipped product.</p></div>"}]}, "m104": {"vol": "104", "name": "Handoff & Delivery", "tagline": "Getting motion out of the tool and cleanly into the product.", "theme": {"c1": "#1d4ed8", "c2": "#1e3a8a", "ac": "#ef4444"}, "pages": [{"title": "From tool to product", "html": "<p>A beautiful animation only ships well if whoever builds it knows exactly what you intended. The gap between a gorgeous Figma prototype and the shipped code is where most motion quietly dies.</p><p>In UX, the <b>handoff</b> is part of the craft, not an afterthought. Your job isn't done when it looks right in the design tool \u2014 it's done when it looks right in the product.</p>"}, {"title": "Writing a motion spec", "html": "<p>A spec is the precise recipe a developer can build without guessing. For each animation, write down:</p><ul class=\"bk-list\"><li><b>What</b> animates (which element, which property)</li><li><b>From \u2192 to</b> values</li><li><b>Duration</b> and <b>easing</b> (or spring)</li><li><b>Trigger</b> \u2014 what kicks it off</li><li><b>Reduced-motion</b> behavior</li></ul><p>A tidy table beats a paragraph. Ambiguity is where fidelity leaks out.</p>"}, {"title": "Motion tokens", "html": "<p>Just like color tokens, <b>motion tokens</b> are named, reusable values living in the design system: <span class=\"bk-kw\">duration.fast = 150 ms</span>, <span class=\"bk-kw\">ease.standard = cubic-bezier(.2,0,0,1)</span>.</p><p>They buy you two things: <b>consistency</b> (everything uses the same handful of values) and <b>one-line tuning</b> (change the token, and the whole product re-times at once instead of a hunt through a hundred files).</p><div class=\"bk-callout\"><span class=\"bk-tag\">Key idea</span><p>Design time like you design color and spacing \u2014 as a small, named, shared scale.</p></div>"}, {"title": "Prototype vs. production", "html": "<p>A prototype's job is to <b>communicate intent</b> \u2014 Figma, Principle, ProtoPie, After Effects. Production is the <b>real thing</b>, rebuilt in the platform.</p><p>Don't try to ship the prototype; translate it. Know what survives the jump: your timing, easing, and sequencing decisions carry over cleanly \u2014 but a prototype's exact frames don't, and shouldn't.</p>"}, {"title": "Lottie &amp; formats", "html": "<p><b>Lottie</b> plays vector animations natively and lightweight \u2014 you design in After Effects, export via Bodymovin, and drop the JSON into web, iOS, or Android.</p><p>It shines for complex, illustrative motion (an animated empty-state, a success check). For simple UI transitions, coded motion is lighter and more flexible; for photoreal content, video may win. Match the format to the job.</p>"}, {"title": "Building it in code", "html": "<p>The same spec, expressed per platform:</p><ul class=\"bk-list\"><li><b>Web</b> \u2014 CSS <span class=\"bk-kw\">transition</span> / <span class=\"bk-kw\">@keyframes</span>, or JS libraries for springs.</li><li><b>iOS</b> \u2014 SwiftUI <span class=\"bk-kw\">withAnimation(.spring())</span>.</li><li><b>Android</b> \u2014 Compose <span class=\"bk-kw\">animate*AsState</span>.</li></ul><p>You don't have to write it, but understanding it makes your specs realistic \u2014 and makes you the designer engineers love to work with.</p>"}, {"title": "Accessibility &amp; reduced motion", "html": "<p>Some people get dizzy or nauseated from motion (vestibular disorders). Every OS has a <b>Reduce Motion</b> setting, exposed to the web as <span class=\"bk-kw\">prefers-reduced-motion</span>.</p><p>Honor it: swap slides and parallax for simple fades, kill auto-playing and looping motion, and keep essential feedback subtle. A reduced-motion fallback isn't a nice-to-have \u2014 it's part of \u201cdone.\u201d</p><div class=\"bk-callout\"><span class=\"bk-tag\">Rule</span><p>If your animation has no reduced-motion path, it isn't finished.</p></div>"}, {"title": "Recap &amp; you're done", "html": "<p>You've got the full arc \u2014 foundations, feel, purpose, and delivery.</p><ul class=\"bk-list\"><li><b>Spec</b> everything a builder needs.</li><li><b>Tokenize</b> durations and easings.</li><li><b>Translate</b> prototypes into production.</li><li>Pick the <b>right format</b>.</li><li>Always ship a <b>reduced-motion</b> path.</li></ul><div class=\"bk-callout\"><span class=\"bk-tag\">That's the series</span><p>Bring the questions these raised to office hours \u2014 and go make something move with purpose.</p></div>"}]}};
+  var modal=document.getElementById("bookModal");
+  if(!modal) return;
+  var stage=document.getElementById("bookStage"), counter=document.getElementById("bookCounter"),
+      prevB=document.getElementById("bookPrev"), nextB=document.getElementById("bookNext");
+  var cur=null, idx=0;
+  function total(){ return cur ? cur.pages.length : 0; }
+  function coverHtml(c){ var t=c.theme;
+    return '<div class="bk-cover" style="--c1:'+t.c1+';--c2:'+t.c2+';--ac:'+t.ac+'">'
+      +'<div class="bk-shapes">'+SHAPES+'</div>'
+      +'<div class="bk-cover-in">'
+      +'<div class="bk-cover-top"><span class="bk-series">A Motion Specialist Series</span>'+LULU+'</div>'
+      +'<div class="bk-cover-mid"><div class="bk-volwrap"><span class="bk-vol">'+c.vol+'</span></div>'
+      +'<div class="bk-wordmark">MOTION</div><div class="bk-cover-name">'+c.name+'</div>'
+      +'<div class="bk-cover-tag">'+c.tagline+'</div></div>'
+      +'<div class="bk-cover-bottom"><span>Vol. '+c.vol+' \u00b7 First Edition</span><span class="bk-press">lululemon UX Press</span></div>'
+      +'</div></div>';
   }
-  Array.prototype.forEach.call(classes,function(k){
-    var head=k.querySelector(".klass-head");
-    if(head) head.addEventListener("click",function(){ setOpen(k, k.getAttribute("data-open")!=="true"); });
-    var next=k.querySelector(".klass-next");
-    if(next) next.addEventListener("click",function(){
-      var id=next.getAttribute("data-next"); var target=document.getElementById(id);
-      if(!target) return;
-      if(target.classList.contains("klass")) setOpen(target,true);
-      target.scrollIntoView({behavior:"smooth",block:"start"});
-    });
-  });
-  if(location.hash==="#vocabulary"||location.hash==="#concepts"){
-    Array.prototype.forEach.call(classes,function(k){ setOpen(k,true); });
+  function pageHtml(c,i){ var pp=c.pages[i];
+    return '<div class="bk-page"><div class="bk-page-head"><span>Motion '+c.vol+' \u00b7 '+c.name+'</span><span>'+(i+1)+' / '+c.pages.length+'</span></div>'
+      +'<div class="bk-page-body"><h3 class="bk-h">'+pp.title+'</h3>'+pp.html+'</div>'
+      +'<div class="bk-page-foot">'+LULU+'<span>lululemon UX Press</span></div></div>';
   }
+  function render(dir){
+    stage.innerHTML = idx===0 ? coverHtml(cur) : pageHtml(cur, idx-1);
+    stage.classList.remove("turn-next","turn-prev"); void stage.offsetWidth;
+    stage.classList.add(dir==="prev"?"turn-prev":"turn-next");
+    if(stage.firstChild && stage.firstChild.querySelector){ var b=stage.firstChild.querySelector(".bk-page-body"); if(b) b.scrollTop=0; }
+    counter.textContent = idx===0 ? "Front cover" : ("Page "+idx+" of "+total());
+    prevB.disabled = idx<=0; nextB.disabled = idx>=total();
+    nextB.textContent = idx>=total() ? "The end" : (idx===0 ? "Open \u2192" : "Next \u203a");
+  }
+  function openBook(id){ cur=COURSES[id]; if(!cur) return; idx=0; modal.hidden=false; document.documentElement.style.overflow="hidden"; render("next"); nextB.focus(); }
+  function closeBook(){ modal.hidden=true; document.documentElement.style.overflow=""; cur=null; }
+  function go(d){ if(!cur) return; var n=idx+d; if(n<0||n>total()) return; idx=n; render(d>0?"next":"prev"); }
+  prevB.addEventListener("click",function(){ go(-1); });
+  nextB.addEventListener("click",function(){ go(1); });
+  document.getElementById("bookX").addEventListener("click",closeBook);
+  document.getElementById("bookBd").addEventListener("click",closeBook);
+  document.addEventListener("keydown",function(e){ if(modal.hidden) return; if(e.key==="Escape") closeBook(); else if(e.key==="ArrowRight") go(1); else if(e.key==="ArrowLeft") go(-1); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-book]"),function(b){ b.addEventListener("click",function(){ openBook(b.getAttribute("data-book")); }); });
 })();
 </script>
 <script>
@@ -1311,5 +1310,17 @@
   });
 })();
 </script>
+  <div class="book-modal" id="bookModal" hidden role="dialog" aria-modal="true" aria-label="Motion textbook">
+    <div class="book-modal-bd" id="bookBd"></div>
+    <div class="book-wrap">
+      <button class="book-x" id="bookX" aria-label="Close textbook">&times;</button>
+      <div class="book"><div class="book-stage" id="bookStage"></div></div>
+      <div class="book-nav">
+        <button class="book-btn" id="bookPrev">&lsaquo; Back</button>
+        <span class="book-counter" id="bookCounter"></span>
+        <button class="book-btn primary" id="bookNext">Next &rsaquo;</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
