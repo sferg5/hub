@@ -326,19 +326,53 @@
   .klass-open{font-size:12.5px;font-weight:600;color:var(--accent)}
   @media (max-width:560px){ .klass-cta{display:none} }
   /* --- textbook modal --- */
-  .book-modal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:24px}
+  .book-modal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:20px}
   .book-modal[hidden]{display:none}
-  .book-modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.72)}
-  .book-wrap{position:relative;width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px}
-  .book-x{position:absolute;top:-40px;right:0;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);color:#fff;font-size:20px;line-height:1;cursor:pointer}
-  .book{position:relative;width:100%;aspect-ratio:3/4;max-height:78vh;border-radius:5px 8px 8px 5px;overflow:hidden;perspective:1600px;
+  .book-modal-bd{position:absolute;inset:0;background:rgba(0,0,0,.82)}
+  .book-wrap{position:relative;width:100%;max-width:560px;display:flex;flex-direction:column;gap:14px;transition:max-width .42s cubic-bezier(.4,0,.2,1)}
+  .book-wrap.spread{max-width:min(1340px,96vw)}
+  .book-wrap.spread .book{aspect-ratio:3/2;max-height:90vh}
+  .book-x{position:absolute;top:18px;right:18px;z-index:10;width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.45);color:#fff;font-size:21px;line-height:1;cursor:pointer}
+  .book-x:hover{background:rgba(0,0,0,.65)}
+  .book{position:relative;width:100%;aspect-ratio:3/4;max-height:82vh;border-radius:5px 8px 8px 5px;overflow:visible;perspective:1600px;
     box-shadow:0 30px 90px rgba(0,0,0,.6), 6px 0 0 -2px rgba(0,0,0,.25), 11px 0 0 -4px rgba(0,0,0,.18), 15px 0 0 -6px rgba(0,0,0,.12)}
-  .book-stage{position:absolute;inset:0;transform-origin:left center}
+  .book.bk-anim{transition:transform .72s cubic-bezier(.34,.06,.2,1)}
+  .book.bk-cf{transform:translateX(-25%)}   /* closed front: center the cover (right half) */
+  .book.bk-cb{transform:translateX(25%)}    /* closed back: center the back cover (left half) */
+  .book-stage{position:absolute;inset:0}
   .book-stage>*{position:absolute;inset:0}
-  @keyframes bkTurnNext{from{opacity:0;transform:translateX(26px) rotateY(-9deg)}to{opacity:1;transform:none}}
-  @keyframes bkTurnPrev{from{opacity:0;transform:translateX(-26px) rotateY(9deg)}to{opacity:1;transform:none}}
-  .book-stage.turn-next{animation:bkTurnNext .34s ease both}
-  .book-stage.turn-prev{animation:bkTurnPrev .34s ease both}
+  .bk-single{position:absolute;inset:0}
+  .bk-fade{animation:bkFade .34s ease both}
+  @keyframes bkFade{from{opacity:0}to{opacity:1}}
+  /* open-book spread */
+  .bk-book{position:absolute;inset:0;display:flex;background:transparent;perspective:2400px}
+  .bk-book.oneup{display:block}
+  .bk-half{position:relative;width:50%;height:100%;overflow:hidden;background:transparent}
+  .bk-half.bk-empty{box-shadow:none}
+  .bk-book.oneup .bk-half{width:100%}
+  .bk-left{box-shadow:inset -16px 0 30px -20px rgba(0,0,0,.4)}
+  .bk-right{box-shadow:inset 16px 0 30px -20px rgba(0,0,0,.4)}
+  /* 3D turning leaf */
+  .bk-leaf{position:absolute;top:0;height:100%;width:50%;transform-style:preserve-3d;transition:transform .72s cubic-bezier(.34,.06,.2,1);z-index:6;will-change:transform}
+  .bk-leaf.right{left:50%;transform-origin:left center}
+  .bk-leaf.left{left:0;transform-origin:right center}
+  .bk-leaf.oneup{width:100%}
+  .bk-leaf.right.flip{transform:rotateY(-179.9deg)}
+  .bk-leaf.left.flip{transform:rotateY(179.9deg)}
+  .bk-leaf-face{position:absolute;inset:0;overflow:hidden;background:#f6f0e2;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .bk-leaf-back{transform:rotateY(180deg)}
+  .bk-shade{position:absolute;inset:0;opacity:0;transition:opacity .72s ease;pointer-events:none}
+  .bk-leaf-front .bk-shade{background:linear-gradient(270deg,rgba(0,0,0,.32),transparent 62%)}
+  .bk-leaf.left .bk-leaf-front .bk-shade{background:linear-gradient(90deg,rgba(0,0,0,.32),transparent 62%)}
+  .bk-leaf-back .bk-shade{background:linear-gradient(90deg,rgba(0,0,0,.32),transparent 62%);opacity:1}
+  .bk-leaf.left .bk-leaf-back .bk-shade{background:linear-gradient(270deg,rgba(0,0,0,.32),transparent 62%)}
+  .bk-leaf.flip .bk-leaf-front .bk-shade{opacity:1}
+  .bk-leaf.flip .bk-leaf-back .bk-shade{opacity:0}
+  .bk-blank{background:#f6f0e2}
+  .bk-coverpage{position:absolute;inset:0}
+  .bk-endpaper{position:absolute;inset:0;background:linear-gradient(150deg,var(--c1),var(--c2));display:grid;place-items:center}
+  .bk-endpaper svg{width:68px;height:68px;fill:rgba(255,255,255,.16)}
+  @media (prefers-reduced-motion: reduce){ .bk-leaf{transition-duration:.001ms} }
   .book-nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .book-btn{padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
   .book-btn.primary{background:var(--accent);color:#052e16;border-color:transparent}
@@ -364,6 +398,16 @@
   .bk-cover-tag{font-size:13px;line-height:1.5;opacity:.9;margin-top:10px;max-width:88%}
   .bk-cover-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
   .bk-press{font-weight:700}
+  /* --- back cover --- */
+  .bk-backcover{width:100%;height:100%;background:linear-gradient(200deg,var(--c1),var(--c2));color:#fff;position:relative;overflow:hidden}
+  .bk-bc-in{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:30px 28px}
+  .bk-bc-top{display:flex;justify-content:flex-end}
+  .bk-bc-top .bk-lulu{width:26px;height:26px;fill:#fff}
+  .bk-bc-mid{margin-top:auto;margin-bottom:auto;max-width:84%}
+  .bk-bc-blurb{font-size:clamp(15px,3.8vw,19px);line-height:1.5;font-weight:700}
+  .bk-bc-series{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:14px}
+  .bk-bc-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
+  .bk-barcode{width:78px;height:26px;background-color:rgba(255,255,255,.1);background-image:repeating-linear-gradient(90deg,#fff 0 2px,transparent 2px 5px);border-radius:2px}
   /* --- paper pages --- */
   .bk-page{width:100%;height:100%;background:#f6f0e2;color:#2c2823;display:flex;flex-direction:column;font-family:Georgia,"Iowan Old Style",Palatino,serif}
   .bk-page-head,.bk-page-foot{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#8a8172}
@@ -371,7 +415,7 @@
   .bk-page-foot{padding:10px 24px 16px;border-top:1px solid #ded3bd}
   .bk-page-foot .bk-lulu{width:15px;height:15px;fill:#8a8172}
   .bk-page-foot span{display:flex;align-items:center;gap:6px}
-  .bk-page-body{flex:1;overflow:auto;padding:20px 24px;line-height:1.62;font-size:15px}
+  .bk-page-body{flex:1;overflow:auto;padding:24px 30px;line-height:1.64;font-size:15.5px}
   .bk-page-body h3.bk-h{font-family:var(--font);font-size:22px;font-weight:800;color:#1c1a16;margin:0 0 14px;line-height:1.15}
   .bk-page-body p{margin:0 0 13px}
   .bk-page-body p:last-child{margin-bottom:0}
@@ -1049,6 +1093,7 @@
 <script>
 (function(){
   "use strict";
+  function boot(){
   var LULU_PATH="M 148.414062 174.613281 C 129.636719 174.613281 114.414062 159.34375 114.414062 140.507812 C 114.414062 133.796875 116.84375 127.855469 119.144531 121.6875 C 120.773438 117.316406 122.402344 112.945312 124.019531 108.566406 C 127.824219 98.242188 131.480469 87.660156 133.164062 76.742188 C 134.503906 68.082031 134.351562 57.539062 127.777344 50.902344 C 122.75 45.828125 114.964844 44.699219 108 44.660156 C 101.03125 44.699219 93.25 45.828125 88.21875 50.902344 C 81.648438 57.539062 81.492188 68.082031 82.832031 76.742188 C 84.519531 87.660156 88.171875 98.242188 91.980469 108.566406 C 93.59375 112.945312 95.222656 117.316406 96.851562 121.6875 C 99.152344 127.855469 101.585938 133.796875 101.585938 140.507812 C 101.585938 159.34375 86.363281 174.613281 67.582031 174.613281 C 53.277344 174.613281 41.058594 165.738281 36.039062 153.191406 C 39.996094 156.816406 45.246094 159.042969 51.03125 159.042969 C 57.800781 159.042969 64.3125 155.871094 68.511719 150.542969 C 73.273438 144.5 74.292969 136.261719 72.257812 128.9375 C 70.03125 120.929688 65.195312 114.433594 61.316406 106.996094 C 48.710938 85.457031 49.222656 69.355469 49.222656 69.355469 C 49.222656 68.351562 49.25 67.351562 49.3125 66.355469 C 49.394531 65.027344 49.535156 63.703125 49.746094 62.386719 C 49.941406 61.152344 50.195312 59.925781 50.519531 58.714844 C 50.832031 57.566406 51.195312 56.433594 51.628906 55.324219 C 52.046875 54.257812 52.523438 53.21875 53.058594 52.207031 C 53.582031 51.222656 54.160156 50.269531 54.792969 49.355469 C 55.421875 48.449219 56.101562 47.582031 56.828125 46.753906 C 57.554688 45.925781 58.328125 45.140625 59.140625 44.398438 C 59.964844 43.648438 60.832031 42.945312 61.726562 42.28125 C 62.644531 41.605469 63.597656 40.972656 64.570312 40.386719 C 65.578125 39.78125 66.609375 39.222656 67.664062 38.707031 C 68.753906 38.175781 69.863281 37.6875 70.988281 37.238281 C 72.15625 36.773438 73.339844 36.347656 74.539062 35.964844 C 75.777344 35.566406 77.03125 35.203125 78.292969 34.878906 C 79.605469 34.542969 80.921875 34.242188 82.25 33.972656 C 83.621094 33.695312 85.003906 33.453125 86.386719 33.234375 C 87.820312 33.011719 89.261719 32.820312 90.703125 32.65625 C 92.191406 32.488281 93.683594 32.34375 95.175781 32.226562 C 96.714844 32.109375 98.257812 32.011719 99.796875 31.941406 C 101.386719 31.867188 102.972656 31.816406 104.558594 31.785156 C 106.449219 31.75 108.34375 31.742188 110.238281 31.765625 C 111.832031 31.785156 113.429688 31.828125 115.019531 31.890625 C 116.574219 31.953125 118.121094 32.035156 119.671875 32.144531 C 121.175781 32.25 122.675781 32.378906 124.175781 32.535156 C 125.628906 32.6875 127.078125 32.863281 128.523438 33.070312 C 129.917969 33.273438 131.3125 33.503906 132.699219 33.765625 C 134.039062 34.019531 135.371094 34.304688 136.695312 34.625 C 137.972656 34.9375 139.242188 35.28125 140.5 35.664062 C 141.710938 36.03125 142.914062 36.4375 144.097656 36.882812 C 145.238281 37.316406 146.371094 37.785156 147.476562 38.300781 C 148.546875 38.796875 149.601562 39.332031 150.625 39.917969 C 151.621094 40.484375 152.59375 41.09375 153.53125 41.75 C 154.449219 42.390625 155.335938 43.074219 156.183594 43.804688 C 157.019531 44.523438 157.816406 45.285156 158.566406 46.089844 C 159.320312 46.890625 160.023438 47.734375 160.675781 48.617188 C 161.332031 49.507812 161.941406 50.433594 162.488281 51.394531 C 163.054688 52.375 163.558594 53.390625 164.003906 54.433594 C 164.464844 55.511719 164.863281 56.617188 165.203125 57.742188 C 165.554688 58.917969 165.84375 60.117188 166.070312 61.324219 C 166.308594 62.609375 166.484375 63.902344 166.597656 65.203125 C 166.722656 66.585938 166.734375 67.964844 166.777344 69.355469 C 166.777344 69.355469 167.289062 85.457031 154.683594 106.996094 C 150.800781 114.433594 145.964844 120.929688 143.738281 128.9375 C 141.707031 136.261719 142.726562 144.5 147.488281 150.542969 C 151.683594 155.871094 158.195312 159.042969 164.96875 159.042969 C 170.753906 159.042969 176.003906 156.816406 179.960938 153.191406 C 174.9375 165.738281 162.71875 174.613281 148.414062 174.613281 M 108 4.636719 C 50.914062 4.636719 4.636719 50.914062 4.636719 108 C 4.636719 165.085938 50.914062 211.363281 108 211.363281 C 165.085938 211.363281 211.363281 165.085938 211.363281 108 C 211.363281 50.914062 165.085938 4.636719 108 4.636719 ";
   var LULU='<svg class="bk-lulu" viewBox="0 0 216 216" aria-hidden="true" focusable="false"><path fill-rule="nonzero" d="'+LULU_PATH+'"/></svg>';
   var SHAPES='<span class="bk-shape c1"></span><span class="bk-shape t1"></span><span class="bk-shape g1"></span>'
@@ -1058,8 +1103,13 @@
   if(!modal) return;
   var stage=document.getElementById("bookStage"), counter=document.getElementById("bookCounter"),
       prevB=document.getElementById("bookPrev"), nextB=document.getElementById("bookNext");
-  var cur=null, idx=0;
-  function total(){ return cur ? cur.pages.length : 0; }
+  var wrap=document.querySelector(".book-wrap");
+  var bookEl=document.querySelector(".book");
+  function applyCenter(v){ if(!bookEl) return; bookEl.classList.toggle("bk-cf", twoUp && v===0); bookEl.classList.toggle("bk-cb", twoUp && v===lastView()); }
+  var cur=null, view=0, twoUp=true, animating=false;
+  function pageCount(){ return cur ? cur.pages.length : 0; }
+  function lastView(){ return twoUp ? Math.ceil(pageCount()/2)+1 : pageCount()+1; }
+  function contentAt(c,i){ return (i>=0 && i<c.pages.length) ? pageHtml(c,i) : '<div class="bk-page bk-blank"></div>'; }
   function coverHtml(c){ var t=c.theme;
     return '<div class="bk-cover" style="--c1:'+t.c1+';--c2:'+t.c2+';--ac:'+t.ac+'">'
       +'<div class="bk-shapes">'+SHAPES+'</div>'
@@ -1076,24 +1126,88 @@
       +'<div class="bk-page-body"><h3 class="bk-h">'+pp.title+'</h3>'+pp.html+'</div>'
       +'<div class="bk-page-foot">'+LULU+'<span>lululemon UX Press</span></div></div>';
   }
-  function render(dir){
-    stage.innerHTML = idx===0 ? coverHtml(cur) : pageHtml(cur, idx-1);
-    stage.classList.remove("turn-next","turn-prev"); void stage.offsetWidth;
-    stage.classList.add(dir==="prev"?"turn-prev":"turn-next");
-    if(stage.firstChild && stage.firstChild.querySelector){ var b=stage.firstChild.querySelector(".bk-page-body"); if(b) b.scrollTop=0; }
-    counter.textContent = idx===0 ? "Front cover" : ("Page "+idx+" of "+total());
-    prevB.disabled = idx<=0; nextB.disabled = idx>=total();
-    nextB.textContent = idx>=total() ? "The end" : (idx===0 ? "Open \u2192" : "Next \u203a");
+  function backCoverHtml(c){ var t=c.theme;
+    return '<div class="bk-backcover" style="--c1:'+t.c1+';--c2:'+t.c2+';--ac:'+t.ac+'">'
+      +'<div class="bk-shapes">'+SHAPES+'</div>'
+      +'<div class="bk-bc-in">'
+      +'<div class="bk-bc-top">'+LULU+'</div>'
+      +'<div class="bk-bc-mid"><div class="bk-bc-blurb">'+c.tagline+'</div>'
+      +'<div class="bk-bc-series">Motion Specialist Series \u00b7 Vol. '+c.vol+'</div></div>'
+      +'<div class="bk-bc-bottom"><span class="bk-barcode"></span><span class="bk-press">lululemon UX Press</span></div>'
+      +'</div></div>';
   }
-  function openBook(id){ cur=COURSES[id]; if(!cur) return; idx=0; modal.hidden=false; document.documentElement.style.overflow="hidden"; render("next"); nextB.focus(); }
-  function closeBook(){ modal.hidden=true; document.documentElement.style.overflow=""; cur=null; }
-  function go(d){ if(!cur) return; var n=idx+d; if(n<0||n>total()) return; idx=n; render(d>0?"next":"prev"); }
-  prevB.addEventListener("click",function(){ go(-1); });
+  function coverPage(){ return '<div class="bk-coverpage">'+coverHtml(cur)+'</div>'; }
+  function backCoverPage(){ return '<div class="bk-coverpage">'+backCoverHtml(cur)+'</div>'; }
+  function setHalf(el,html){ if(!el) return; el.innerHTML=html; el.classList.toggle("bk-empty", html===""); }
+  function halfHtml(v,side){
+    if(v===0) return side==="left" ? "" : coverPage();
+    if(v===lastView()) return side==="left" ? backCoverPage() : "";
+    var L=(v-1)*2; return contentAt(cur, side==="left"?L:L+1);
+  }
+  function oneHtml(v){ if(v===0) return coverPage(); if(v===lastView()) return backCoverPage(); return contentAt(cur,v-1); }
+  function updateNav(){
+    if(view===0){ counter.textContent="Front cover"; }
+    else if(view===lastView()){ counter.textContent="Back cover"; }
+    else if(twoUp){ var L=(view-1)*2+1, R=Math.min(L+1,pageCount()); counter.textContent=(L===R?("Page "+L):("Pages "+L+"\u2013"+R))+" of "+pageCount(); }
+    else { counter.textContent="Page "+view+" of "+pageCount(); }
+    prevB.disabled=view<=0||animating; nextB.disabled=view>=lastView()||animating;
+    nextB.textContent=view>=lastView()?"The end":(view===0?"Open \u2192":"Next \u203a");
+    prevB.textContent="\u2039 Back";
+  }
+  function bookInner(){
+    if(twoUp){ var lh=halfHtml(view,"left"), rh=halfHtml(view,"right");
+      return '<div class="bk-book"><div class="bk-half bk-left'+(lh===""?" bk-empty":"")+'" id="bkL">'+lh+'</div><div class="bk-half bk-right'+(rh===""?" bk-empty":"")+'" id="bkR">'+rh+'</div></div>'; }
+    return '<div class="bk-book oneup"><div class="bk-half bk-right" id="bkR">'+oneHtml(view)+'</div></div>';
+  }
+  function renderBase(fade){
+    stage.innerHTML=bookInner();
+    wrap.classList.toggle("spread", twoUp);
+    applyCenter(view);
+    if(fade){ stage.classList.remove("bk-fade"); void stage.offsetWidth; stage.classList.add("bk-fade"); }
+    updateNav();
+  }
+  function leafFace(html,cls){ return '<div class="bk-leaf-face '+cls+'">'+html+'<span class="bk-shade"></span></div>'; }
+  function flip(dir){
+    if(animating) return;
+    var book=stage.querySelector(".bk-book"); if(!book) return;
+    animating=true; updateNav();
+    var leaf=document.createElement("div"), finish=null, nView=view+dir;
+    applyCenter(nView);
+    if(twoUp){
+      if(dir>0){
+        setHalf(document.getElementById("bkR"), halfHtml(nView,"right"));
+        leaf.className="bk-leaf right";
+        leaf.innerHTML=leafFace(halfHtml(view,"right"),"bk-leaf-front")+leafFace(halfHtml(nView,"left"),"bk-leaf-back");
+        finish=function(){ setHalf(document.getElementById("bkL"), halfHtml(nView,"left")); };
+      } else {
+        setHalf(document.getElementById("bkL"), halfHtml(nView,"left"));
+        leaf.className="bk-leaf left";
+        leaf.innerHTML=leafFace(halfHtml(view,"left"),"bk-leaf-front")+leafFace(halfHtml(nView,"right"),"bk-leaf-back");
+        finish=function(){ setHalf(document.getElementById("bkR"), halfHtml(nView,"right")); };
+      }
+    } else {
+      var eo=document.getElementById("bkR"); if(eo) eo.innerHTML=oneHtml(nView);
+      leaf.className="bk-leaf "+(dir>0?"right":"left")+" oneup";
+      leaf.innerHTML=leafFace(oneHtml(view),"bk-leaf-front")+leafFace(oneHtml(nView),"bk-leaf-back");
+    }
+    book.appendChild(leaf);
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ leaf.classList.add("flip"); }); });
+    var ended=false;
+    var done=function(){ if(ended) return; ended=true; if(finish) finish(); if(leaf.parentNode) leaf.parentNode.removeChild(leaf); view=nView; animating=false; updateNav(); };
+    leaf.addEventListener("transitionend",function(e){ if(e.propertyName==="transform") done(); });
+    setTimeout(done, 1000);
+  }
+  function openBook(id){ cur=COURSES[id]; if(!cur) return; twoUp=window.innerWidth>=700; view=0; modal.hidden=false; document.documentElement.style.overflow="hidden"; renderBase(true); requestAnimationFrame(function(){ if(bookEl) bookEl.classList.add("bk-anim"); }); nextB.focus(); }
+  function closeBook(){ modal.hidden=true; document.documentElement.style.overflow=""; if(bookEl) bookEl.classList.remove("bk-anim","bk-cf","bk-cb"); cur=null; animating=false; }
+  function go(d){ if(!cur||animating) return; if(d>0 && view<lastView()) flip(1); else if(d<0 && view>0) flip(-1); }
+    prevB.addEventListener("click",function(){ go(-1); });
   nextB.addEventListener("click",function(){ go(1); });
   document.getElementById("bookX").addEventListener("click",closeBook);
   document.getElementById("bookBd").addEventListener("click",closeBook);
   document.addEventListener("keydown",function(e){ if(modal.hidden) return; if(e.key==="Escape") closeBook(); else if(e.key==="ArrowRight") go(1); else if(e.key==="ArrowLeft") go(-1); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-book]"),function(b){ b.addEventListener("click",function(){ openBook(b.getAttribute("data-book")); }); });
+  }
+  if(document.readyState!=="loading") boot(); else document.addEventListener("DOMContentLoaded", boot);
 })();
 </script>
 <script>
@@ -1312,8 +1426,8 @@
 </script>
   <div class="book-modal" id="bookModal" hidden role="dialog" aria-modal="true" aria-label="Motion textbook">
     <div class="book-modal-bd" id="bookBd"></div>
+    <button class="book-x" id="bookX" aria-label="Close textbook">&times;</button>
     <div class="book-wrap">
-      <button class="book-x" id="bookX" aria-label="Close textbook">&times;</button>
       <div class="book"><div class="book-stage" id="bookStage"></div></div>
       <div class="book-nav">
         <button class="book-btn" id="bookPrev">&lsaquo; Back</button>
