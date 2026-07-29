@@ -924,13 +924,15 @@
     if(sessionStorage.getItem(sk)) return;
     sessionStorage.setItem(sk,"1");
     var day=new Date().toISOString().slice(0,10);
+    function once(k){try{if(localStorage.getItem(k))return false;localStorage.setItem(k,"1");return true;}catch(e){return false;}}
+    var uNew=once("mh-uniq-visitor"),uPage=once("mh-uniq-page:"+page),uDay=once("mh-uniq-day:"+day);
     fetch("/api/data",{cache:"no-store"}).then(function(r){return r.json();}).then(function(s){
       if(!s||typeof s!=="object")s={}; if(!s.data||typeof s.data!=="object")s.data={};
       var t=s.data["motion-tracker:traffic"]; if(!t||typeof t!=="object")t={};
       if(typeof t.total!=="number")t.total=0;
       if(!t.pages||typeof t.pages!=="object")t.pages={};
       if(!t.days||typeof t.days!=="object")t.days={};
-      t.total++; t.pages[page]=(t.pages[page]||0)+1; t.days[day]=(t.days[day]||0)+1; t.updatedAt=Date.now();
+      if(typeof t.uTotal!=="number")t.uTotal=0; if(!t.upages||typeof t.upages!=="object")t.upages={}; if(!t.udays||typeof t.udays!=="object")t.udays={}; t.total++; t.pages[page]=(t.pages[page]||0)+1; t.days[day]=(t.days[day]||0)+1; if(uNew)t.uTotal++; if(uPage)t.upages[page]=(t.upages[page]||0)+1; if(uDay)t.udays[day]=(t.udays[day]||0)+1; t.updatedAt=Date.now();
       s.data["motion-tracker:traffic"]=t; s.updatedAt=Date.now();
       fetch("/api/data",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(s)});
     }).catch(function(){});
