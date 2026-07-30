@@ -972,7 +972,7 @@ const STATUSES = [{
   bar: "bg-zinc-600"
 }];
 const KANBAN_STATUSES = STATUSES.filter(s => s.id !== "backlog" && s.id !== "intake");
-function reqToProject(r) {
+function intakeExtras(r){r=r||{};var LBL={where:"Platforms",date:"Target date",goal:"Goal",iconAsset:"Icon / asset",iconWhere:"Where it lives",iconFeel:"Desired feel",iconAssetLink:"Asset link",iconRef:"Reference",effectWhat:"Effect",effectWhere:"Where it appears",effectTrigger:"Trigger",effectFeel:"Desired feel",effectRef:"Reference",transFrom:"From state",transTo:"To state",transTrigger:"Trigger",transScreens:"Screens involved",transFile:"Design file",transRef:"Reference",vidPurpose:"Purpose",vidLength:"Target length",vidFormat:"Aspect ratio",vidScript:"Script / storyboard",vidRef:"Reference",sigMoment:"The moment",sigWhere:"Where in the journey"};var SKIP={id:1,createdAt:1,typeKey:1,status:1,title:1,type:1,name:1,team:1,priority:1,order:1,startDate:1,deliveredAt:1,estimatedHours:1,fromRequest:1,goal:1,date:1};function val(v){if(v==null)return "";if(Object.prototype.toString.call(v)==="[object Array]")return v.filter(function(x){return x!=null&&x!=="";}).join(", ");return String(v).trim();}function pretty(k){var s=String(k).replace(/([a-z0-9])([A-Z])/g,"$1 $2").replace(/[_-]+/g," ");return s.charAt(0).toUpperCase()+s.slice(1);}var deadline="",dateHandled=false,raw=val(r.date);if(raw){var iso=/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw:"";if(!iso){var y=(new Date()).getFullYear(),d=new Date(raw+" "+y);if(!isNaN(d.getTime())){var co=new Date();co.setDate(co.getDate()-7);if(d<co)d=new Date(raw+" "+(y+1));if(!isNaN(d.getTime())){iso=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}}}if(iso){deadline=iso;dateHandled=true;}}var lines=[],used={},goal=val(r.goal);if(goal)lines.push(goal);var ORDER=["where","iconAsset","iconWhere","iconFeel","iconAssetLink","iconRef","effectWhat","effectWhere","effectTrigger","effectFeel","effectRef","transFrom","transTo","transTrigger","transScreens","transFile","transRef","vidPurpose","vidLength","vidFormat","vidScript","vidRef","sigMoment","sigWhere"];function add(k){if(used[k])return;used[k]=1;if(SKIP[k])return;var v=val(r[k]);if(!v)return;lines.push((LBL[k]||pretty(k))+": "+v);}for(var i=0;i<ORDER.length;i++)add(ORDER[i]);for(var k in r){if(Object.prototype.hasOwnProperty.call(r,k))add(k);}if(!dateHandled){var dv=val(r.date);if(dv)lines.push("Target date: "+dv);}return {notes:lines.join("\n"),deadline:deadline};} function reqToProject(r) {
   r = r || {};
   var OLD = {
     "Received": "intake",
@@ -992,7 +992,7 @@ function reqToProject(r) {
     high: "high",
     critical: "high"
   };
-  var pr = PMAP[String(r.priority || "medium").toLowerCase()] || "medium";
+  var pr = PMAP[String(r.priority || "medium").toLowerCase()] || "medium"; var __ie = intakeExtras(r);
   return {
     id: "req-" + r.id,
     fromRequest: r.id,
@@ -1008,9 +1008,9 @@ function reqToProject(r) {
     }],
     links: [],
     timeEntries: [],
-    notes: r.goal || "",
+    notes: __ie.notes,
     startDate: r.startDate || "",
-    deadline: r.deadline || "",
+    deadline: __ie.deadline || r.deadline || "",
     deliveredAt: r.deliveredAt || "",
     estimatedHours: typeof r.estimatedHours === "number" ? r.estimatedHours : ""
   };
@@ -2792,7 +2792,7 @@ function DailyBriefing({
   }
   const dayMeta = weekDays.map(d => ({
     label: d.label,
-    disabled: d.isPast
+    disabled: false
   }));
   const assignableProjects = projects.filter(p => !["delivered", "onhold"].includes(p.status)).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const weekView = weekDays.map((d, idx) => {
@@ -2809,7 +2809,7 @@ function DailyBriefing({
     const ptoH = Math.max(0, Math.min(DAY_CAPACITY, ptoHoursOf(pto[idx])));
     const ptoType = ptoTypeOf(pto[idx]);
     const fullPto = ptoH >= DAY_CAPACITY;
-    const capacity = d.isPast ? 0 : Math.max(0, DAY_CAPACITY - ptoH);
+    const capacity = Math.max(0, DAY_CAPACITY - ptoH);
     const used = Math.round(items.reduce((s, i) => s + (i.hours || 0), 0) * 10) / 10;
     const over = used > capacity + 0.001;
     const capLeft = Math.max(0, Math.round((capacity - used) * 10) / 10);
@@ -3257,7 +3257,7 @@ function DayBlock({
     setShowAdd(false);
   }
   return React.createElement("div", {
-    className: `border rounded-lg p-3 min-h-[88px] flex flex-col ${blocked ? "border-zinc-800/60 bg-zinc-900/30" : isToday ? "border-green-500/50 bg-green-500/5" : isPast ? "border-zinc-800/40 bg-zinc-900/20 opacity-60" : "border-zinc-800 bg-zinc-950/40"}`
+    className: `border rounded-lg p-3 min-h-[88px] flex flex-col ${blocked ? "border-zinc-800/60 bg-zinc-900/30" : isToday ? "border-green-500/50 bg-green-500/5" : isPast ? "border-zinc-800/40 bg-zinc-900/20" : "border-zinc-800 bg-zinc-950/40"}`
   }, React.createElement("div", {
     className: "flex items-center justify-between mb-2 gap-1"
   }, React.createElement("span", {
@@ -3266,7 +3266,7 @@ function DayBlock({
     className: "flex items-center gap-2 flex-wrap justify-end"
   }, isToday && React.createElement("span", {
     className: "text-[9px] text-green-400 font-bold uppercase tracking-wider"
-  }, "Today"), blocked ? onRestoreDay && React.createElement("button", {
+  }, "Today"), isPast && !isToday && React.createElement("span", { className: "text-[9px] text-zinc-500 font-bold uppercase tracking-wider" }, "Past"), blocked ? onRestoreDay && React.createElement("button", {
     onClick: () => onRestoreDay(dayIndex),
     className: "text-[9px] uppercase tracking-wider text-zinc-400 hover:text-green-400 transition flex items-center gap-0.5",
     title: "Restore this day to the schedule"
@@ -3331,7 +3331,7 @@ function DayBlock({
   }, "Full day"), React.createElement("button", {
     onClick: () => onSetPto(dayIndex, 0, ptoEditType),
     className: "px-2 py-0.5 rounded text-[9px] text-zinc-400 hover:text-zinc-200 border border-zinc-800"
-  }, "None"))), !isPast && fullPto ? React.createElement("div", {
+  }, "None"))), fullPto ? React.createElement("div", {
     className: `mb-2 rounded border ${ptoMeta.bd} ${ptoMeta.bg} px-2 py-2 flex items-center gap-2`
   }, React.createElement(CalendarDays, {
     className: "w-3 h-3 flex-shrink-0",
@@ -3340,7 +3340,7 @@ function DayBlock({
     }
   }), React.createElement("span", {
     className: `text-[10px] ${ptoMeta.text}`
-  }, ptoMeta.label, " \u2014 no work scheduled")) : !isPast && capacity > 0 && React.createElement("div", {
+  }, ptoMeta.label, " \u2014 no work scheduled")) : capacity > 0 && React.createElement("div", {
     className: "mb-2"
   }, React.createElement("div", {
     className: "flex items-center justify-between text-[10px] mb-1"
@@ -3437,7 +3437,7 @@ function DayBlock({
     className: "w-2.5 h-2.5"
   }), " Logged") : React.createElement(React.Fragment, null, React.createElement(Timer, {
     className: "w-2.5 h-2.5"
-  }), " Log these hours")), !isPast && !fullPto && (showAdd ? React.createElement("div", {
+  }), " Log these hours")), !fullPto && (showAdd ? React.createElement("div", {
     className: "mb-2 space-y-1 rounded border border-green-500/30 bg-green-500/5 p-2"
   }, React.createElement("select", {
     value: addId,
