@@ -1,0 +1,36 @@
+HOLOCLOTH — flat, ready-to-host version
+=======================================
+
+These are the finished, compiled files. No folders, no build step, no Node.
+Just put them in a GitHub repo and turn on Pages.
+
+STEPS
+-----
+1. On github.com, create a new PUBLIC repository (any name, e.g. "holocloth").
+
+2. On the empty repo page, click "uploading an existing file".
+   Select ALL the files in this folder at once and drag them in:
+       index.html
+       index.js
+       index.css
+       holo-bg-2.jpg
+       bump-scratches.jpg
+   (Do NOT upload this READ-ME-FIRST.txt — it's just for you.)
+   Click "Commit changes".
+
+3. Go to the repo's Settings -> Pages.
+   Under "Build and deployment":
+       Source = "Deploy from a branch"
+       Branch = "main"  and folder = "/ (root)"
+   Click Save.
+
+4. Wait ~1 minute, then reload the Settings -> Pages page.
+   Your live link appears at the top:
+       https://<your-username>.github.io/<repo-name>/
+
+That's it. To change the poster image later, replace holo-bg-2.jpg in the repo
+with your own image using the same filename.
+
+NOTE: These files are the compiled output, so they aren't meant for editing by
+hand. If you want to change the actual code, use the full source project
+(holocloth-github.zip) instead.
