@@ -48,7 +48,7 @@
       .rail button.sel .dot { box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
 
       /* actions */
-      .acts { position: absolute; left: 26px; bottom: 32px; display: flex; gap: 8px; }
+      .acts { position: absolute; right: 26px; top: 74px; display: flex; flex-direction: column; gap: 8px; }
       .acts button { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--shadow); font-size: 16px; }
       .acts button:hover { border-color: var(--ink); }
 
@@ -102,6 +102,38 @@
       .match .rlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--faint); }
       .match h4 { margin: 5px 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
       .match .why { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; line-height: 1.5; }
+
+      /* conversation — ambient bubbles floating over the scene */
+      .convo { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%);
+        width: 540px; max-width: calc(100vw - 36px); display: flex; flex-direction: column; gap: 10px; }
+      .stream { display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; max-height: 46vh; overflow: hidden;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 52px); mask-image: linear-gradient(to bottom, transparent 0, #000 52px); }
+      .msg { max-width: 80%; font-size: 14.5px; line-height: 1.5; padding: 11px 15px; border-radius: 18px; display: flex; flex-direction: column; gap: 9px;
+        animation: rise .32s ease both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+      .msg.bot { align-self: flex-start; background: rgba(255,255,255,0.85); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        color: var(--ink); box-shadow: 0 6px 26px rgba(0,0,0,0.12); border-bottom-left-radius: 6px; }
+      .msg.user { align-self: flex-end; background: rgba(22,22,22,0.92); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+        color: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.16); border-bottom-right-radius: 6px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip2 { border: 0; background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        color: var(--ink); border-radius: 999px; padding: 9px 15px; font-size: 13px; font-weight: 500; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); transition: transform .1s; }
+      .chip2:hover { transform: translateY(-1px); }
+      .chip2 .cdot { width: 13px; height: 13px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+      .prodcard { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-decoration: none; color: var(--ink);
+        border: 1px solid rgba(0,0,0,0.10); border-radius: 12px; padding: 10px 12px; background: #fff; }
+      .prodcard:hover { border-color: var(--ink); }
+      .prodcard .pn { font-weight: 500; font-size: 13px; }
+      .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
+      .ask { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border-radius: 999px; padding: 6px 6px 6px 18px; box-shadow: 0 6px 26px rgba(0,0,0,0.12); }
+      .ask input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); }
+      .ask input::placeholder { color: var(--faint); }
+      .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+      .askbtn:hover { background: #000; }
+      .restart { align-self: center; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
+      .restart:hover { color: var(--muted); }
     </style>
     <script type="module" crossorigin src="./holocloth.js"></script>
   </head>
