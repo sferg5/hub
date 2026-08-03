@@ -1,25 +1,9 @@
 FABRIC LAB — drop-in page for your existing site
 ================================================
-
-Three files, all named "holocloth" so they won't touch your existing index page
-or its assets. No build step, no Node.
-
-UPLOAD THESE THREE FILES (and nothing else):
+Upload these three files (same folder), nothing else:
     holocloth.html
     holocloth.js
     holocloth.css
-
-Put all three together in the SAME folder in your site's repo. You can drop them
-at the top level (next to your index.html) or inside a subfolder — either works,
-because the paths are relative.
-
-Your page will then be at:
-    https://your-site/holocloth.html            (if at top level)
-    https://your-site/<subfolder>/holocloth.html (if in a subfolder)
-
-Link to it from your existing index page however you like.
-
-(Do NOT upload this READ-ME-FIRST.txt.)
-
-To change fabrics or tune look/drape, edit src/fabrics.ts in the source project
-(fabric-lab-source.zip) and rebuild — the build regenerates these three files.
+They won't touch your existing index page. Link to holocloth.html from your site.
+Pick a fabric from the "Fabric" dropdown (top-right). Drag on the cloth to pull it;
+hold Space + drag to orbit.
