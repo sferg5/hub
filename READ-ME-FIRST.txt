@@ -1,9 +1,13 @@
-FABRIC LAB — drop-in page for your existing site
-================================================
-Upload these three files (same folder), nothing else:
+FABRIC FINDER — drop-in page for your existing site
+===================================================
+Upload these files (same folder), nothing else:
     holocloth.html
     holocloth.js
-    holocloth.css
 They won't touch your existing index page. Link to holocloth.html from your site.
-Pick a fabric from the "Fabric" dropdown (top-right). Drag on the cloth to pull it;
-hold Space + drag to orbit.
+
+The page: an intro, a 4-question "find my fabric" quiz, a fabric library, and a
+detail view with an interactive 3D fabric preview, care info, activities and
+products (with prices, linking to lululemon).
+
+To update products/prices or the quiz, edit src/content.ts in the source project
+(fabric-finder-source.zip) and rebuild.
