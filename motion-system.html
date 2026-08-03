@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motion Design System — Identity</title>
+<style>
+  :root{
+    --bg:#09090b; --panel:#18181b; --panel2:#141417; --surface:#0d0d0f; --line:#27272a; --line2:#323236;
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#71717a; --accent:#22c55e; --accent-ink:#052e16;
+    --android:#3ddc84; --ios:#7dd3fc; --web:#c4b5fd;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  .app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+  /* sidebar */
+  .side{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;border-right:1px solid var(--line);background:var(--panel2);padding:18px 14px}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .brand .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);display:grid;place-items:center}
+  .brand .dot svg{width:13px;height:13px}
+  .brand b{font-size:13px;letter-spacing:.2px}
+  .side .sub{font-size:10px;color:var(--faint);font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em;margin:16px 0 6px;padding-left:6px}
+  .side a.nav{display:block;font-size:12.5px;color:var(--muted);padding:6px 8px;border-radius:7px;line-height:1.3}
+  .side a.nav:hover{background:var(--panel);color:var(--text)}
+  .side a.nav.active{color:var(--accent);background:#14240e}
+  .side .exit{margin-top:18px;font-size:11px;color:var(--faint);display:block;padding:6px}
+  /* header */
+  .main{min-width:0}
+  .topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;justify-content:space-between;
+    padding:12px 24px;background:rgba(9,9,11,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar h1{font-size:14px;margin:0;font-weight:600}
+  .topbar .meta{font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{font-family:var(--sans);font-size:12px;padding:7px 11px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--faint)}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+  .btn.primary:hover{background:#16a34a}
+  .btn.ghost{background:transparent}
+  .content{padding:26px 24px 120px;max-width:1120px}
+  .lede{background:linear-gradient(180deg,#14240e33,transparent);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:26px}
+  .lede h2{margin:0 0 6px;font-size:16px}
+  .lede p{margin:0;color:var(--muted);font-size:13px;line-height:1.65;max-width:78ch}
+  .lede .pills{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:4px 9px;border-radius:20px;border:1px solid var(--line2);color:var(--muted)}
+  .pill.and{color:var(--android);border-color:#14532d} .pill.ios{color:var(--ios);border-color:#0c4a6e} .pill.web{color:var(--web);border-color:#4c1d95}
+  /* section */
+  section{margin:0 0 34px;scroll-margin-top:70px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:6px}
+  .sec-head .n{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .sec-head h3{font-size:16px;margin:0}
+  .sec-note{color:var(--muted);font-size:12.5px;line-height:1.6;margin:8px 0 16px;max-width:82ch}
+  .sec-note b{color:var(--text)}
+  /* fields */
+  input.f,textarea.f{width:100%;font-family:var(--sans);font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none;transition:border-color .12s}
+  input.f:focus,textarea.f:focus{border-color:var(--accent)}
+  input.f::placeholder,textarea.f::placeholder{color:#52525b}
+  textarea.f{resize:vertical;min-height:44px;line-height:1.55}
+  input.f.mono{font-family:var(--mono);font-size:12px}
+  label.lab{display:block;font-size:10.5px;color:var(--faint);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 5px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{margin-bottom:14px}
+  /* token tables */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+  table.tok{border-collapse:collapse;width:100%;min-width:760px}
+  table.tok th{text-align:left;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-weight:500;padding:10px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.tok th.plat-and{color:var(--android)} table.tok th.plat-ios{color:var(--ios)} table.tok th.plat-web{color:var(--web)}
+  table.tok td{padding:6px 8px;vertical-align:top;border-bottom:1px solid var(--line)}
+  table.tok tr:last-child td{border-bottom:none}
+  table.tok td.name input{font-family:var(--mono);font-size:12px;color:var(--accent)}
+  table.tok td.del{width:34px;text-align:center}
+  .icon-btn{background:none;border:1px solid transparent;color:var(--faint);cursor:pointer;border-radius:6px;width:26px;height:26px;line-height:1;font-size:15px}
+  .icon-btn:hover{color:#f87171;border-color:#3f1d1d;background:#1a0f0f}
+  .add{margin-top:10px}
+  .add .btn{border-style:dashed}
+  /* pattern cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--panel2);padding:14px}
+  .card .chead{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .card .chead input{font-family:var(--mono);font-size:12.5px;color:var(--accent);flex:1}
+  .card .plat{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+  .platlab{display:inline-flex;align-items:center;gap:6px}
+  .platlab::before{content:"";width:7px;height:7px;border-radius:50%}
+  .platlab.and::before{background:var(--android)} .platlab.ios::before{background:var(--ios)} .platlab.web::before{background:var(--web)}
+  /* topic list */
+  .topics{display:flex;flex-direction:column;gap:10px}
+  .topic{display:grid;grid-template-columns:minmax(150px,230px) 1fr 34px;gap:10px;align-items:start;border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:10px}
+  .topic input.tp{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .plat-band{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:5px;margin-bottom:8px}
+  .plat-band.and{color:var(--android);background:#14532d33} .plat-band.ios{color:var(--ios);background:#0c4a6e33} .plat-band.web{color:var(--web);background:#4c1d9533}
+  .dodont{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dd h4{font-size:12px;margin:0 0 8px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase}
+  .dd.do h4{color:var(--accent)} .dd.dont h4{color:#f87171}
+  .lineitem{display:grid;grid-template-columns:1fr 30px;gap:8px;margin-bottom:8px}
+  @media(max-width:820px){ .app{grid-template-columns:1fr} .side{display:none} .row2,.dodont{grid-template-columns:1fr} }
+  @media print{ .side,.topbar,.icon-btn,.add,.lede .pills{display:none!important} .content{max-width:none} input.f,textarea.f{border-color:#ccc} }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="#052e16" stroke-width="2.5" stroke-linecap="round"><path d="M4 12h4l2-6 4 12 2-6h4"/></svg></span><b>Motion System</b></div>
+    <div style="font-size:10px;color:var(--faint);padding-left:6px">Identity scaffold</div>
+    <div class="sub">Identity</div>
+    <a class="nav" href="#identity">Identity &amp; principles</a>
+    <div class="sub">Foundations</div>
+    <a class="nav" href="#durations">Duration</a>
+    <a class="nav" href="#easings">Easing &amp; curves</a>
+    <a class="nav" href="#springs">Springs</a>
+    <a class="nav" href="#distances">Distance &amp; scale</a>
+    <a class="nav" href="#rhythm">Rhythm &amp; stagger</a>
+    <div class="sub">Choreography</div>
+    <a class="nav" href="#patterns">Motion patterns</a>
+    <div class="sub">Platform playbooks</div>
+    <a class="nav" href="#android">Android</a>
+    <a class="nav" href="#ios">iOS</a>
+    <a class="nav" href="#web">International web</a>
+    <div class="sub">Cross-cutting</div>
+    <a class="nav" href="#a11y">Accessibility</a>
+    <a class="nav" href="#i18n">Internationalization</a>
+    <div class="sub">Governance</div>
+    <a class="nav" href="#governance">Governance &amp; hand-off</a>
+    <a class="exit" href="about.html">← Exit to Hub</a>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="sysTitle">Untitled Motion System</h1>
+        <div class="meta" id="meta">0 fields defined</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="importBtn">Import</button>
+        <button class="btn" id="exportBtn">Export JSON</button>
+        <button class="btn ghost" id="printBtn">Print / PDF</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+        <input type="file" id="fileIn" accept="application/json" style="display:none">
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="lede">
+        <h2>An empty motion system, fully considered.</h2>
+        <p>Every slot a cross-platform motion system needs is here — foundations, choreography, per-platform playbooks, accessibility and internationalization — but <b>nothing is prescribed</b>. The hints in each field are prompts, not rules. Fill it in to define your identity. Each token has a lane for <b>Android</b>, <b>iOS</b>, and <b>international web</b> so the same idea can be expressed natively on each. Your work saves in this browser; use <b>Export</b> to keep it as the source of truth.</p>
+        <div class="pills"><span class="pill and">Android</span><span class="pill ios">iOS</span><span class="pill web">International web</span><span class="pill">Tokens · Patterns · Governance</span></div>
+      </div>
+      <div id="root"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY="motion-design-system:v1";
+
+/* ---------------- default scaffold (structure + prompts, values blank) ---------------- */
+function defaults(){ return {
+  identity:{
+    name:"", tagline:"", northStar:"", personality:"",
+    principles:[
+      {title:"", desc:""},
+      {title:"", desc:""},
+      {title:"", desc:""}
+    ]
+  },
+  tokens:{
+    durations:[
+      {name:"instant",    when:"State flips, tiny feedback", android:"", ios:"", web:""},
+      {name:"quick",      when:"Hovers, toggles, small UI",  android:"", ios:"", web:""},
+      {name:"base",       when:"Standard transitions",       android:"", ios:"", web:""},
+      {name:"expressive", when:"Sheets, larger moves",       android:"", ios:"", web:""},
+      {name:"deliberate", when:"Hero / onboarding moments",  android:"", ios:"", web:""}
+    ],
+    easings:[
+      {name:"standard",   role:"Most on-screen moves",           android:"", ios:"", web:""},
+      {name:"entrance",   role:"Elements appearing (decelerate)",android:"", ios:"", web:""},
+      {name:"exit",       role:"Elements leaving (accelerate)",  android:"", ios:"", web:""},
+      {name:"emphasized", role:"Signature, expressive moments",  android:"", ios:"", web:""},
+      {name:"sharp",      role:"Quick, utilitarian (menus)",     android:"", ios:"", web:""}
+    ],
+    springs:[
+      {name:"primary", use:"Default gestural motion",    ios:"", android:"", web:""},
+      {name:"gentle",  use:"Calm, minimal overshoot",    ios:"", android:"", web:""},
+      {name:"bouncy",  use:"Playful accents (sparingly)",ios:"", android:"", web:""}
+    ],
+    distances:[
+      {name:"nudge",     meaning:"Micro shifts / feedback", android:"", ios:"", web:""},
+      {name:"travel-sm", meaning:"Small slides",            android:"", ios:"", web:""},
+      {name:"travel-lg", meaning:"Sheet / page moves",      android:"", ios:"", web:""},
+      {name:"scale-in",  meaning:"Appear scale start",      android:"", ios:"", web:""}
+    ],
+    rhythm:[
+      {name:"stagger",       use:"Delay between list items", value:"", note:""},
+      {name:"section-delay", use:"Grouped reveals",          value:"", note:""}
+    ]
+  },
+  patterns: [
+    "Screen / page transition","Container transform (shared element)","Enter / appear","Exit / dismiss",
+    "Expand / collapse","List stagger","Overlay / modal / sheet","Tab / segment switch",
+    "Selection & toggle feedback","Button / press feedback","Loading, skeleton & progress",
+    "Scroll-linked & pull-to-refresh","Notification / attention","Empty · success · error states"
+  ].map(function(n){ return {name:n, what:"", when:"", tokens:"", android:"", ios:"", web:""}; }),
+  playbooks:{
+    android:[
+      "Framework: Views vs Jetpack Compose","Material Motion (shared axis, fade through, container transform)",
+      "Duration & easing resources / theme attrs","MotionLayout & Transitions API",
+      "Compose: AnimatedVisibility / AnimatedContent / animate*AsState","Interpolators (PathInterpolator, Emphasized set)",
+      "Performance: Choreographer, overdraw, jank","System: ANIMATOR_DURATION_SCALE & \u201cRemove animations\u201d",
+      "Lottie — when/where, perf budget","Haptics pairing"
+    ].map(topic),
+    ios:[
+      "Framework: UIKit vs SwiftUI","UIKit: UIViewPropertyAnimator / Core Animation / CADisplayLink",
+      "SwiftUI: withAnimation / transition / matchedGeometryEffect","Spring API mapping (response / dampingFraction)",
+      "ProMotion 120Hz & display-link timing","Reduce Motion (UIAccessibility.isReduceMotionEnabled)",
+      "Lottie — when/where, perf budget","Haptics pairing (UIFeedbackGenerator)","Navigation & sheet presentation motion"
+    ].map(topic),
+    web:[
+      "Technique: CSS vs Web Animations API vs library (Framer Motion / GSAP)","View Transitions API (SPA & MPA)",
+      "prefers-reduced-motion handling","Direction-aware motion (RTL, logical properties)",
+      "Compositor-only props (transform/opacity), will-change","Performance budget & low-end devices",
+      "Variable refresh rates / requestAnimationFrame","Localization & text expansion effects",
+      "SSR / hydration & first-load motion","Battery / data-saver (Save-Data)"
+    ].map(topic)
+  },
+  a11y:[
+    "Reduced-motion strategy (detect + respond) on each platform",
+    "Essential vs decorative — what survives reduced motion",
+    "Vestibular safety (limit large parallax, spin, zoom, bounce)",
+    "Fallbacks (crossfade / opacity instead of movement)",
+    "Timing & cognitive load","Autoplay & looping limits","Focus handling & scroll-driven motion"
+  ].map(topic),
+  i18n:[
+    "Direction-aware motion — mirror slides/arrows for RTL",
+    "Text expansion & layout shifts from localized strings",
+    "Cultural expectations & connotations of motion",
+    "Device & network diversity — performance floor for low-end",
+    "Locale-driven content & timing","Counters, tickers & number/date motion"
+  ].map(topic),
+  governance:{
+    naming:"", versioning:"", handoff:"", tooling:"",
+    dos:[{text:""},{text:""}], donts:[{text:""},{text:""}]
+  }
+}; }
+function topic(t){ return {topic:t, note:""}; }
+
+/* ---------------- state + persistence ---------------- */
+var state = load();
+function load(){
+  try{ var raw=localStorage.getItem(KEY); if(raw){ return merge(defaults(), JSON.parse(raw)); } }catch(e){}
+  return defaults();
+}
+function merge(base, over){ // shallow-ish: prefer saved arrays/objects when present
+  if(over==null) return base;
+  if(Array.isArray(base)) return Array.isArray(over)?over:base;
+  if(typeof base==="object"){ var out={}; for(var k in base){ out[k]=merge(base[k], over[k]); } for(var k2 in over){ if(!(k2 in out)) out[k2]=over[k2]; } return out; }
+  return over!==undefined?over:base;
+}
+var saveT=null;
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} updateMeta(); }
+function scheduleSave(){ clearTimeout(saveT); saveT=setTimeout(save, 250); }
+
+/* ---------------- path helpers ---------------- */
+function getPath(o,p){ var a=p.split("."); for(var i=0;i<a.length;i++){ if(o==null) return undefined; o=o[a[i]]; } return o; }
+function setPath(o,p,v){ var a=p.split("."); for(var i=0;i<a.length-1;i++){ var k=a[i]; if(o[k]==null) o[k]=/^\d+$/.test(a[i+1])?[]:{}; o=o[k]; } o[a[a.length-1]]=v; }
+
+/* ---------------- render helpers ---------------- */
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function inp(path,val,ph,cls){ return '<input class="f '+(cls||"")+'" data-path="'+path+'" value="'+esc(val)+'" placeholder="'+esc(ph||"")+'">'; }
+function ta(path,val,ph){ return '<textarea class="f" data-path="'+path+'" placeholder="'+esc(ph||"")+'">'+esc(val)+'</textarea>'; }
+function secHead(n,title){ return '<div class="sec-head"><span class="n">'+n+'</span><h3>'+title+'</h3></div>'; }
+function delBtn(path,i){ return '<button class="icon-btn" data-del="'+path+'" data-i="'+i+'" title="Remove">\u00d7</button>'; }
+function addBtn(path,kind,label){ return '<div class="add"><button class="btn" data-add="'+path+'" data-kind="'+kind+'">+ '+label+'</button></div>'; }
+
+function tokTable(path,kind,cols,arr){
+  var th=cols.map(function(c){ var cl=c.k==="android"?"plat-and":c.k==="ios"?"plat-ios":c.k==="web"?"plat-web":""; return '<th class="'+cl+'">'+c.label+'</th>'; }).join("")+'<th></th>';
+  var rows=arr.map(function(r,i){
+    var tds=cols.map(function(c){
+      var cell=inp(path+'.'+i+'.'+c.k, r[c.k], c.ph, c.mono?"mono":"");
+      return '<td class="'+(c.k==="name"?"name":"")+'">'+cell+'</td>';
+    }).join("");
+    return '<tr>'+tds+'<td class="del">'+delBtn(path,i)+'</td></tr>';
+  }).join("");
+  return '<div class="tbl-wrap"><table class="tok"><thead><tr>'+th+'</tr></thead><tbody>'+rows+'</tbody></table></div>'+addBtn(path,kind,"Add token");
+}
+
+function topicList(path,arr,platClass,platLabel){
+  var band = platClass? '<span class="plat-band '+platClass+'">'+platLabel+'</span>':'';
+  var items=arr.map(function(t,i){
+    return '<div class="topic">'
+      +'<div>'+inp(path+'.'+i+'.topic', t.topic, "Consideration", "tp")+'</div>'
+      +'<div>'+ta(path+'.'+i+'.note', t.note, "Your decision \u2014 leave blank until you\u2019re ready")+'</div>'
+      +'<div>'+delBtn(path,i)+'</div></div>';
+  }).join("");
+  return band+'<div class="topics">'+items+'</div>'+addBtn(path,"topic","Add consideration");
+}
+
+/* ---------------- section renderers ---------------- */
+function renderIdentity(){
+  var id=state.identity;
+  var principles=id.principles.map(function(p,i){
+    return '<div class="card"><div class="chead">'+inp('identity.principles.'+i+'.title', p.title, "Principle name (e.g. \u201cPurposeful\u201d)")+delBtn('identity.principles',i)+'</div>'
+      +ta('identity.principles.'+i+'.desc', p.desc, "What this principle means for motion, in your own words")+'</div>';
+  }).join("");
+  return '<section id="identity">'+secHead("01","Identity & principles")
+    +'<p class="sec-note">The <b>why</b> behind every animation. Name the system, capture its personality, and set the principles that will keep motion consistent across platforms. This is the part only you can define.</p>'
+    +'<div class="row2">'
+      +'<div class="field"><label class="lab">System name</label>'+inp('identity.name', id.name, "e.g. lululemon Motion")+'</div>'
+      +'<div class="field"><label class="lab">Tagline / one-liner</label>'+inp('identity.tagline', id.tagline, "Motion in one sentence")+'</div>'
+    +'</div>'
+    +'<div class="field"><label class="lab">North star</label>'+ta('identity.northStar', id.northStar, "The feeling every motion should reinforce. What should users sense without noticing?")+'</div>'
+    +'<div class="field"><label class="lab">Personality (adjectives)</label>'+inp('identity.personality', id.personality, "e.g. calm, precise, grounded, alive \u2014 comma separated")+'</div>'
+    +'<label class="lab">Principles</label><div class="cards">'+principles+'</div>'+addBtn('identity.principles','principle','Add principle')
+    +'</section>';
+}
+function renderDurations(){
+  return '<section id="durations">'+secHead("02","Duration")
+    +'<p class="sec-note">A named time scale, not scattered magic numbers. Give each step a job, then set a value per platform \u2014 remember iOS often thinks in seconds, Android &amp; web in milliseconds, and every value should scale down under reduced motion.</p>'
+    +tokTable('tokens.durations','duration',[
+      {k:"name",label:"Token",ph:"instant",mono:1},{k:"when",label:"When to use",ph:"e.g. tiny state flips"},
+      {k:"android",label:"Android",ph:"ms"},{k:"ios",label:"iOS",ph:"s / ms"},{k:"web",label:"Web",ph:"ms"}
+    ], state.tokens.durations)+'</section>';
+}
+function renderEasings(){
+  return '<section id="easings">'+secHead("03","Easing & curves")
+    +'<p class="sec-note">The <b>character</b> of movement. Define roles (entrance decelerates, exit accelerates, an emphasized curve for signature moments) then express each natively: a Material/Compose interpolator, a Core Animation curve or SwiftUI spring, a web <span style="font-family:var(--mono)">cubic-bezier()</span>.</p>'
+    +tokTable('tokens.easings','easing',[
+      {k:"name",label:"Token",ph:"standard",mono:1},{k:"role",label:"Role",ph:"most moves"},
+      {k:"android",label:"Android",ph:"Emphasized / PathInterpolator"},{k:"ios",label:"iOS",ph:"curve / spring"},{k:"web",label:"Web",ph:"cubic-bezier(\u2026)"}
+    ], state.tokens.easings)+'</section>';
+}
+function renderSprings(){
+  return '<section id="springs">'+secHead("04","Springs")
+    +'<p class="sec-note">Physics-based motion for gestures and interruptible UI. Springs don\u2019t map 1:1 across platforms \u2014 note the intent, then each platform\u2019s parameters: iOS <span style="font-family:var(--mono)">response / dampingFraction</span>, Compose <span style="font-family:var(--mono)">dampingRatio / stiffness</span>, web via a JS library.</p>'
+    +tokTable('tokens.springs','spring',[
+      {k:"name",label:"Token",ph:"primary",mono:1},{k:"use",label:"Use",ph:"default gestural"},
+      {k:"ios",label:"iOS (response / damping)",ph:"0.4 / 0.8"},{k:"android",label:"Android (dampingRatio / stiffness)",ph:"0.8 / 380"},{k:"web",label:"Web (lib / config)",ph:"spring(\u2026)"}
+    ], state.tokens.springs)+'</section>';
+}
+function renderDistances(){
+  return '<section id="distances">'+secHead("05","Distance & scale")
+    +'<p class="sec-note">How far things travel and how much they scale. Keep units native \u2014 Android <b>dp</b>, iOS <b>pt</b>, web <b>px / rem / %</b> \u2014 so motion feels consistent across densities and screen sizes.</p>'
+    +tokTable('tokens.distances','distance',[
+      {k:"name",label:"Token",ph:"travel-sm",mono:1},{k:"meaning",label:"Meaning",ph:"small slides"},
+      {k:"android",label:"Android (dp)",ph:"dp"},{k:"ios",label:"iOS (pt)",ph:"pt"},{k:"web",label:"Web",ph:"px / rem / %"}
+    ], state.tokens.distances)+'</section>';
+}
+function renderRhythm(){
+  return '<section id="rhythm">'+secHead("06","Rhythm & stagger")
+    +'<p class="sec-note">The cadence that makes groups feel choreographed rather than simultaneous. Define stagger offsets and any caps (too much stagger feels slow), plus direction rules.</p>'
+    +tokTable('tokens.rhythm','rhythm',[
+      {k:"name",label:"Token",ph:"stagger",mono:1},{k:"use",label:"Use",ph:"between list items"},
+      {k:"value",label:"Value",ph:"e.g. 40ms"},{k:"note",label:"Notes",ph:"cap, direction, max items\u2026"}
+    ], state.tokens.rhythm)+'</section>';
+}
+function renderPatterns(){
+  var cards=state.patterns.map(function(p,i){
+    return '<div class="card"><div class="chead">'+inp('patterns.'+i+'.name', p.name, "Pattern name")+delBtn('patterns',i)+'</div>'
+      +'<div class="field"><label class="lab">What it is</label>'+ta('patterns.'+i+'.what', p.what, "Describe the motion")+'</div>'
+      +'<div class="field"><label class="lab">When to use</label>'+ta('patterns.'+i+'.when', p.when, "Triggers & where it applies")+'</div>'
+      +'<div class="field"><label class="lab">Tokens used</label>'+inp('patterns.'+i+'.tokens', p.tokens, "e.g. base + entrance + travel-sm")+'</div>'
+      +'<div class="plat">'
+        +'<div><span class="platlab and">Android</span>'+ta('patterns.'+i+'.android', p.android, "How it\u2019s built natively")+'</div>'
+        +'<div><span class="platlab ios">iOS</span>'+ta('patterns.'+i+'.ios', p.ios, "How it\u2019s built natively")+'</div>'
+        +'<div><span class="platlab web">Web</span>'+ta('patterns.'+i+'.web', p.web, "How it\u2019s built natively")+'</div>'
+      +'</div></div>';
+  }).join("");
+  return '<section id="patterns">'+secHead("07","Motion patterns")
+    +'<p class="sec-note">The reusable choreography of your product \u2014 one entry per recurring moment. Each pattern should reference your tokens and describe how it\u2019s expressed on every platform, so the same idea feels native everywhere. Rename, remove, or add patterns freely.</p>'
+    +'<div class="cards">'+cards+'</div>'+addBtn('patterns','pattern','Add pattern')+'</section>';
+}
+function renderPlaybook(id,n,title,note,platKey,platClass,platLabel){
+  return '<section id="'+id+'">'+secHead(n,title)
+    +'<p class="sec-note">'+note+'</p>'
+    +topicList('playbooks.'+platKey, state.playbooks[platKey], platClass, platLabel)+'</section>';
+}
+function renderCross(id,n,title,note,key){
+  return '<section id="'+id+'">'+secHead(n,title)+'<p class="sec-note">'+note+'</p>'+topicList(key, state[key], null, null)+'</section>';
+}
+function renderGovernance(){
+  var g=state.governance;
+  function lines(path,arr,ph){ return arr.map(function(x,i){ return '<div class="lineitem">'+inp(path+'.'+i+'.text', x.text, ph)+delBtn(path,i)+'</div>'; }).join("")+addBtn(path,'line','Add'); }
+  return '<section id="governance">'+secHead("13","Governance & hand-off")
+    +'<p class="sec-note">How the system stays alive: what to name things, how it versions, and what you hand to engineering. Keep motion honest with a short list of do\u2019s and don\u2019ts.</p>'
+    +'<div class="row2">'
+      +'<div class="field"><label class="lab">Naming convention</label>'+ta('governance.naming', g.naming, "How tokens & patterns are named (scheme, casing, prefixes)")+'</div>'
+      +'<div class="field"><label class="lab">Versioning & changelog</label>'+ta('governance.versioning', g.versioning, "How changes are versioned and communicated")+'</div>'
+    +'</div>'
+    +'<div class="row2">'
+      +'<div class="field"><label class="lab">Hand-off artifacts</label>'+ta('governance.handoff', g.handoff, "Tokens JSON, Lottie, prototypes, specs \u2014 what engineering receives")+'</div>'
+      +'<div class="field"><label class="lab">Tooling & source of truth</label>'+ta('governance.tooling', g.tooling, "Where the canonical values live and how they\u2019re distributed")+'</div>'
+    +'</div>'
+    +'<div class="dodont"><div class="dd do"><h4>Do</h4>'+lines('governance.dos',g.dos,"A guardrail to keep")+'</div>'
+    +'<div class="dd dont"><h4>Don\u2019t</h4>'+lines('governance.donts',g.donts,"An anti-pattern to avoid")+'</div></div>'
+    +'</section>';
+}
+
+function renderAll(){
+  var html = renderIdentity()+renderDurations()+renderEasings()+renderSprings()+renderDistances()+renderRhythm()
+    +renderPatterns()
+    +renderPlaybook("android","08","Android playbook","How your identity is expressed with Android tooling. Note choices and constraints \u2014 the tokens above stay the source of truth.","android","and","Android")
+    +renderPlaybook("ios","09","iOS playbook","How your identity is expressed with iOS tooling. Map springs and curves to native APIs.","ios","ios","iOS")
+    +renderPlaybook("web","10","International web playbook","The web reaches the widest, most varied audience \u2014 devices, refresh rates, languages and directions. Decide techniques and the guarantees you make everywhere.","web","web","Web")
+    +renderCross("a11y","11","Accessibility","Motion must never harm. Decide how the system respects reduced-motion and stays vestibular-safe on every platform.","a11y")
+    +renderCross("i18n","12","Internationalization","Motion should feel right in every language and direction. Consider mirroring, text expansion, and the performance floor of global devices.","i18n")
+    +renderGovernance();
+  document.getElementById("root").innerHTML=html;
+  updateMeta();
+}
+
+/* ---------------- meta / completeness ---------------- */
+function countFields(o){ var total=0,filled=0;
+  (function walk(x){ if(x==null) return; if(typeof x==="string"){ total++; if(x.trim()!=="") filled++; } else if(Array.isArray(x)){ x.forEach(walk); } else if(typeof x==="object"){ for(var k in x) walk(x[k]); } })(o);
+  return {total:total,filled:filled};
+}
+function updateMeta(){
+  var c=countFields(state);
+  document.getElementById("meta").textContent = c.filled+" of "+c.total+" fields defined";
+  var nm=(state.identity.name||"").trim();
+  document.getElementById("sysTitle").textContent = nm || "Untitled Motion System";
+  document.title = (nm||"Motion Design System")+" \u2014 Identity";
+}
+
+/* ---------------- events ---------------- */
+var root=document.getElementById("root");
+root.addEventListener("input", function(e){ var t=e.target; var p=t.getAttribute&&t.getAttribute("data-path"); if(!p) return; setPath(state,p,t.value); if(p==="identity.name") updateMeta(); scheduleSave(); });
+root.addEventListener("click", function(e){
+  var add=e.target.closest("[data-add]");
+  if(add){ var ap=add.getAttribute("data-add"), kind=add.getAttribute("data-kind"); var arr=getPath(state,ap); if(!Array.isArray(arr)){ setPath(state,ap,[]); arr=getPath(state,ap);} arr.push(newRow(kind)); renderAll(); save(); return; }
+  var del=e.target.closest("[data-del]");
+  if(del){ var dp=del.getAttribute("data-del"), i=+del.getAttribute("data-i"); var a=getPath(state,dp); if(Array.isArray(a)){ a.splice(i,1); renderAll(); save(); } return; }
+});
+function newRow(kind){
+  switch(kind){
+    case "duration": return {name:"",when:"",android:"",ios:"",web:""};
+    case "easing":   return {name:"",role:"",android:"",ios:"",web:""};
+    case "spring":   return {name:"",use:"",ios:"",android:"",web:""};
+    case "distance": return {name:"",meaning:"",android:"",ios:"",web:""};
+    case "rhythm":   return {name:"",use:"",value:"",note:""};
+    case "pattern":  return {name:"",what:"",when:"",tokens:"",android:"",ios:"",web:""};
+    case "principle":return {title:"",desc:""};
+    case "topic":    return {topic:"",note:""};
+    case "line":     return {text:""};
+    default:         return {};
+  }
+}
+
+/* nav active state */
+var navLinks=[].slice.call(document.querySelectorAll(".side a.nav"));
+window.addEventListener("scroll", function(){
+  var y=window.scrollY+90, cur=null;
+  navLinks.forEach(function(a){ var el=document.querySelector(a.getAttribute("href")); if(el && el.offsetTop<=y) cur=a; });
+  navLinks.forEach(function(a){ a.classList.toggle("active", a===cur); });
+}, {passive:true});
+
+/* toolbar actions */
+document.getElementById("exportBtn").addEventListener("click", function(){
+  var blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  var u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=((state.identity.name||"motion-design-system").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"motion-design-system")+".json";
+  a.click(); URL.revokeObjectURL(u);
+});
+document.getElementById("importBtn").addEventListener("click", function(){ document.getElementById("fileIn").click(); });
+document.getElementById("fileIn").addEventListener("change", function(e){
+  var f=e.target.files[0]; if(!f) return; var r=new FileReader();
+  r.onload=function(){ try{ var data=JSON.parse(r.result); state=merge(defaults(), data); save(); renderAll(); window.scrollTo(0,0); }catch(err){ alert("That file couldn\u2019t be read as a motion system JSON."); } };
+  r.readAsText(f); e.target.value="";
+});
+document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+document.getElementById("resetBtn").addEventListener("click", function(){
+  if(confirm("Reset to the empty scaffold? This clears everything you\u2019ve entered in this browser.")){ state=defaults(); save(); renderAll(); window.scrollTo(0,0); }
+});
+
+/* boot */
+renderAll();
+})();
+</script>
+</body>
+</html>
