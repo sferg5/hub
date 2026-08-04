@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>lululemon · Still</title>
+<style>
+  :root{
+    --paper:#e9e7e0;
+    --muted:#8a8f98;
+    --accent:#8fa38a;
+    --line:rgba(255,255,255,.12);
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; background:#07090b; color:var(--paper);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    overflow:hidden; cursor:default; }
+
+  #stage{ position:fixed; inset:0; }
+  #cam{ position:absolute; transform:scaleX(-1); object-fit:cover; background:#07090b;
+    transition:none; }
+  #sea{ position:absolute; }
+  #abs{ position:absolute; }
+  #ov{ position:absolute; }
+  #vignette{ position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(120% 100% at 50% 42%, rgba(7,9,11,0) 42%, rgba(7,9,11,.36) 100%); }
+
+  #brand{ position:fixed; top:22px; left:24px; z-index:6; pointer-events:none;
+    letter-spacing:.28em; font-size:12px; text-transform:uppercase; font-weight:600;
+    color:rgba(255,255,255,.8); text-shadow:0 1px 12px rgba(0,0,0,.5);
+    transition:opacity 2s; }
+  #brand span{ opacity:.5; font-weight:400; }
+
+  #status{ position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:6;
+    font-size:12px; letter-spacing:.04em; color:rgba(255,255,255,.9);
+    background:rgba(16,18,22,.5); border:1px solid var(--line); backdrop-filter:blur(8px);
+    padding:7px 14px; border-radius:999px; transition:opacity .4s; white-space:nowrap; }
+
+  #dock{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:6;
+    display:flex; gap:10px; align-items:center; padding:10px 12px;
+    background:rgba(14,16,20,.42); border:1px solid var(--line); border-radius:16px;
+    backdrop-filter:blur(16px); box-shadow:0 12px 40px rgba(0,0,0,.4);
+    transition:opacity .8s; }
+  .tg{ font-size:11px; letter-spacing:.08em; color:rgba(255,255,255,.75); cursor:pointer;
+    padding:7px 14px; border-radius:999px; border:1px solid var(--line); user-select:none; }
+  .tg.on{ background:rgba(255,255,255,.9); color:#14161a; font-weight:600; }
+  .hidden{ opacity:0 !important; pointer-events:none !important; }
+
+  /* Gate */
+  #gate{ position:fixed; inset:0; z-index:20; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; gap:22px;
+    background:radial-gradient(80% 80% at 50% 42%, #101318 0%, #06080a 100%); padding:24px;
+    transition:opacity 1.2s; }
+  #gate h1{ margin:0; font-weight:300; font-size:clamp(28px,5vw,46px); letter-spacing:-.01em; }
+  #gate h1 b{ font-weight:600; }
+  #gate p{ margin:0; max-width:440px; color:var(--muted); line-height:1.7; font-size:15px; }
+  #go{ margin-top:6px; border:none; cursor:pointer; font-size:15px; font-weight:600;
+    color:#0d0f12; background:var(--paper); padding:15px 36px; border-radius:999px;
+    transition:transform .15s, background .2s; }
+  #go:hover{ transform:translateY(-1px); background:#fff; }
+  #go:disabled{ opacity:.5; cursor:default; transform:none; }
+  #gatehint{ font-size:12px; color:rgba(255,255,255,.32); max-width:440px; line-height:1.6; }
+  .kbd{ font-family:ui-monospace,Menlo,monospace; background:rgba(255,255,255,.08);
+    padding:2px 6px; border-radius:5px; color:rgba(255,255,255,.7); }
+
+  /* Summary */
+  #summary{ position:fixed; inset:0; z-index:18; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; gap:14px;
+    background:radial-gradient(80% 80% at 50% 42%, rgba(13,16,20,.95) 0%, rgba(5,7,9,.98) 100%);
+    opacity:0; pointer-events:none; transition:opacity 2.4s; }
+  #summary.show{ opacity:1; pointer-events:auto; }
+  #sumBig{ font-size:clamp(44px,9vw,84px); font-weight:200; letter-spacing:.01em;
+    font-variant-numeric:tabular-nums; color:#fff; }
+  #sumBig .arrow{ color:var(--accent); font-weight:300; padding:0 .15em; }
+  #sumLab{ font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.45); }
+  #sumLine{ margin-top:10px; font-size:14px; color:var(--muted); line-height:1.7; max-width:420px; }
+  #again{ margin-top:26px; border:1px solid var(--line); cursor:pointer; font-size:13px;
+    letter-spacing:.06em; color:var(--paper); background:transparent; padding:12px 30px;
+    border-radius:999px; transition:background .2s; }
+  #again:hover{ background:rgba(255,255,255,.08); }
+  #sumNote{ margin-top:16px; font-size:10px; letter-spacing:.08em; color:rgba(255,255,255,.25); }
+
+  .fadeout{ opacity:0 !important; pointer-events:none; }
+
+  /* HUD — visible while eyes are open */
+  #hud2{ position:fixed; left:50%; bottom:118px; transform:translateX(-50%); z-index:5;
+    text-align:center; pointer-events:none; opacity:0; will-change:opacity,transform; }
+  #bpm{ font-size:46px; font-weight:200; letter-spacing:.02em; line-height:1;
+    color:#fff; text-shadow:0 2px 24px rgba(0,0,0,.55); font-variant-numeric:tabular-nums; }
+  #bpmlab{ margin-top:5px; font-size:10px; letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(255,255,255,.5); }
+  #breathlab{ margin-top:12px; font-size:11px; letter-spacing:.34em; text-transform:uppercase;
+    color:var(--accent); min-height:14px; }
+  #delta{ margin-top:5px; font-size:11px; letter-spacing:.06em;
+    color:rgba(255,255,255,.45); min-height:13px; }
+  #eyehint{ position:fixed; top:20px; right:24px; z-index:6; font-size:10px;
+    letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.3);
+    transition:opacity 1s; pointer-events:none; }
+
+  /* Metrics rail — live tracking readouts, eyes-open only */
+  #metrics{ position:fixed; left:24px; bottom:96px; z-index:5; pointer-events:none;
+    display:flex; flex-direction:column; gap:13px; opacity:0; will-change:opacity;
+    padding:16px 18px; background:rgba(12,14,18,.38); border:1px solid var(--line);
+    border-radius:14px; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    min-width:168px; }
+  .mi{ display:flex; flex-direction:column; gap:4px; }
+  .mrow{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; }
+  .ml{ font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.42); }
+  .mv{ font-size:12px; color:rgba(255,255,255,.88); font-variant-numeric:tabular-nums;
+    letter-spacing:.03em; }
+  .mb{ height:2px; border-radius:1px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .mb i{ display:block; height:100%; width:0%; background:var(--accent); border-radius:1px;
+    transition:width .3s ease; }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <video id="cam" playsinline muted></video>
+    <canvas id="sea"></canvas>
+    <canvas id="abs"></canvas>
+    <canvas id="ov"></canvas>
+    <div id="vignette"></div>
+  </div>
+
+  <div id="brand">lululemon&nbsp;&nbsp;<span>still</span></div>
+  <div id="status">Loading…</div>
+  <div id="eyehint">close your eyes to dim the room</div>
+
+  <div id="hud2">
+    <div id="bpm">—</div>
+    <div id="bpmlab">beats per minute</div>
+    <div id="breathlab"></div>
+    <div id="delta"></div>
+  </div>
+
+  <div id="metrics">
+    <div class="mi"><div class="mrow"><span class="ml">Pulse</span><span class="mv" id="mPulse">acquiring…</span></div><div class="mb"><i id="bPulse"></i></div></div>
+    <div class="mi"><div class="mrow"><span class="ml">Signal</span><span class="mv" id="mSignal">—</span></div><div class="mb"><i id="bSignal"></i></div></div>
+    <div class="mi"><div class="mrow"><span class="ml">Stillness</span><span class="mv" id="mStill">—</span></div><div class="mb"><i id="bStill"></i></div></div>
+    <div class="mi"><div class="mrow"><span class="ml">Light</span><span class="mv" id="mLight">—</span></div><div class="mb"><i id="bLight"></i></div></div>
+    <div class="mi"><div class="mrow"><span class="ml">Breath</span><span class="mv" id="mBreath">—</span></div><div class="mb"><i id="bBreath"></i></div></div>
+  </div>
+
+  <div id="dock" class="hidden">
+    <div class="tg on" id="soundTg">Sound on</div>
+    <div class="tg" id="endTg">End</div>
+  </div>
+
+  <div id="gate">
+    <h1>Five minutes of <b>still</b></h1>
+    <p>A ring that breathes, sound that breathes with it, and a camera that quietly listens to your heart through the light on your skin. Eyes open, you’ll see your heart and your breath. Close your eyes, and the room dissolves into light — it keeps listening. When it’s over, you’ll see what your heart did.</p>
+    <button id="go">Begin</button>
+    <div id="gatehint">Sit comfortably with soft, even light on your face. Headphones are lovely but not required. If the camera doesn’t start when opening the file directly, serve the folder — <span class="kbd">python3 -m http.server</span> → <span class="kbd">http://localhost:8000/live-still.html</span>. Nothing is uploaded.</div>
+  </div>
+
+  <div id="summary">
+    <div id="sumLab">your heart · before → after</div>
+    <div id="sumBig">— <span class="arrow">→</span> —</div>
+    <div id="sumLine"></div>
+    <button id="again">once more</button>
+    <div id="sumNote">an experience, not a medical reading · everything stayed on your device</div>
+  </div>
+
+<script type="module">
+import { FilesetResolver, FaceLandmarker, ImageSegmenter }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12";
+
+// ================= DOM =================
+const video   = document.getElementById("cam");
+const seaCan  = document.getElementById("sea");
+const absCan  = document.getElementById("abs");
+const ovCan   = document.getElementById("ov");
+const seaCtx  = seaCan.getContext("2d");
+const absCtx  = absCan.getContext("2d");
+const ctx     = ovCan.getContext("2d");
+const statusEl= document.getElementById("status");
+const gate    = document.getElementById("gate");
+const goBtn   = document.getElementById("go");
+const dock    = document.getElementById("dock");
+const soundTg = document.getElementById("soundTg");
+const endTg   = document.getElementById("endTg");
+const summary = document.getElementById("summary");
+const sumBig  = document.getElementById("sumBig");
+const sumLine = document.getElementById("sumLine");
+const againBtn= document.getElementById("again");
+const brand   = document.getElementById("brand");
+const hud2    = document.getElementById("hud2");
+const bpmEl   = document.getElementById("bpm");
+const breathLab = document.getElementById("breathlab");
+const deltaEl = document.getElementById("delta");
+const eyeHint = document.getElementById("eyehint");
+const metricsEl = document.getElementById("metrics");
+const M = {};
+for(const id of ["mPulse","bPulse","mSignal","bSignal","mStill","bStill","mLight","bLight","mBreath","bBreath"])
+  M[id]=document.getElementById(id);
+
+// ================= Layout =================
+let dispW=0, dispH=0, vidL=0, vidT=0;
+const DPR = Math.min(devicePixelRatio || 1, 2);
+function layout(){
+  const vw = innerWidth, vh = innerHeight;
+  const ar = (video.videoWidth && video.videoHeight) ? video.videoWidth/video.videoHeight : 16/9;
+  let w = vw, h = vw/ar;
+  if(h > vh){ h = vh; w = vh*ar; }
+  dispW = w; dispH = h;
+  const left=(vw-w)/2, top=(vh-h)/2;
+  vidL=left; vidT=top;
+  video.style.width=w+"px"; video.style.height=h+"px";
+  video.style.left=left+"px"; video.style.top=top+"px";
+  // scene + overlay canvases cover the WHOLE window (scene extends past video)
+  for(const el of [seaCan, absCan, ovCan]){
+    el.style.width=vw+"px"; el.style.height=vh+"px";
+    el.style.left="0px"; el.style.top="0px";
+    el.width=Math.round(vw*DPR); el.height=Math.round(vh*DPR);
+  }
+}
+addEventListener("resize", layout);
+
+// ================= Face + rPPG engine (same core as the pulse page) =================
+let facer=null, lastVideoTime=-1, face=null;
+async function initFace(){
+  const fileset = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12/wasm");
+  facer = await FaceLandmarker.createFromOptions(fileset, {
+    baseOptions:{
+      modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+      delegate:"GPU",
+    },
+    runningMode:"VIDEO", numFaces:1,
+    outputFaceBlendshapes:true,
+  });
+}
+
+// ---- selfie segmentation (figure cutout; optional — page degrades gracefully) ----
+let segmenter=null, segReady=false;
+const personCan=document.createElement("canvas");
+const personCtx=personCan.getContext("2d");
+const maskCan=document.createElement("canvas");
+const maskCtx=maskCan.getContext("2d");
+const maskBlurCan=document.createElement("canvas");
+const maskBlurCtx=maskBlurCan.getContext("2d");
+let maskImg=null;
+async function initSeg(){
+  const fileset = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12/wasm");
+  segmenter = await ImageSegmenter.createFromOptions(fileset, {
+    baseOptions:{
+      // landscape variant: built for 16:9 frames → far cleaner edges than the square model
+      modelAssetPath:"https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite",
+      delegate:"GPU",
+    },
+    runningMode:"VIDEO",
+    outputConfidenceMasks:true,
+    outputCategoryMask:false,
+  });
+}
+
+function updatePersonCutout(nowMs){
+  if(!segmenter) return;
+  try{
+    const segRes = segmenter.segmentForVideo(video, nowMs);
+    const mask = segRes.confidenceMasks && segRes.confidenceMasks[0];
+    if(mask){
+      const mw=mask.width, mh=mask.height;
+      if(maskCan.width!==mw || maskCan.height!==mh){
+        maskCan.width=mw; maskCan.height=mh; maskImg=null;
+      }
+      const arr=mask.getAsFloat32Array();
+      if(!maskImg) maskImg=maskCtx.createImageData(mw,mh);
+      const d=maskImg.data;
+      for(let i=0;i<arr.length;i++){
+        let a=(arr[i]-0.40)/0.25;                    // crisp core…
+        a = a<0?0 : a>1?1 : a;
+        a = a*a*(3-2*a);
+        const o=i*4;
+        d[o]=255; d[o+1]=255; d[o+2]=255; d[o+3]=a*255;
+      }
+      maskCtx.putImageData(maskImg,0,0);
+      if(personCan.width!==video.videoWidth){
+        personCan.width=video.videoWidth; personCan.height=video.videoHeight;
+        maskBlurCan.width=personCan.width; maskBlurCan.height=personCan.height;
+      }
+      // …then feather at full resolution: upscale with smoothing + gaussian blur
+      maskBlurCtx.clearRect(0,0,maskBlurCan.width,maskBlurCan.height);
+      maskBlurCtx.imageSmoothingEnabled=true;
+      maskBlurCtx.imageSmoothingQuality="high";
+      maskBlurCtx.filter="blur(7px)";
+      maskBlurCtx.drawImage(maskCan,0,0,maskBlurCan.width,maskBlurCan.height);
+      maskBlurCtx.filter="none";
+      personCtx.clearRect(0,0,personCan.width,personCan.height);
+      personCtx.drawImage(video,0,0,personCan.width,personCan.height);
+      personCtx.globalCompositeOperation="destination-in";
+      personCtx.drawImage(maskBlurCan,0,0);
+      personCtx.globalCompositeOperation="source-over";
+      segReady=true;
+      mask.close();
+    }
+    if(typeof segRes.close==="function") segRes.close();
+  }catch(e){ /* segmentation is an enhancement, never a blocker */ }
+}
+
+const roiCan = document.createElement("canvas");
+roiCan.width=24; roiCan.height=24;
+const roiCtx = roiCan.getContext("2d", { willReadFrequently:true });
+
+function roiRects(lm){
+  const xL=lm[105].x, xR=lm[334].x;
+  const yBrow=Math.min(lm[105].y, lm[334].y);
+  const yTop=lm[10].y;
+  const fh={ x:xL+(xR-xL)*0.08, y:yTop+(yBrow-yTop)*0.18, w:(xR-xL)*0.84, h:(yBrow-yTop)*0.55 };
+  const eyeD=Math.hypot(lm[33].x-lm[263].x, lm[33].y-lm[263].y);
+  const s=eyeD*0.16;
+  const c1={ x:lm[205].x-s/2, y:lm[205].y-s/2, w:s, h:s };
+  const c2={ x:lm[425].x-s/2, y:lm[425].y-s/2, w:s, h:s };
+  return [ {r:fh,wgt:0.5}, {r:c1,wgt:0.25}, {r:c2,wgt:0.25} ];
+}
+
+function sampleROIs(rois){
+  const vw=video.videoWidth, vh=video.videoHeight;
+  let R=0,G=0,B=0,W=0,bright=0;
+  for(const {r,wgt} of rois){
+    const sx=Math.max(0,r.x*vw), sy=Math.max(0,r.y*vh);
+    const sw2=Math.min(vw-sx, r.w*vw), sh2=Math.min(vh-sy, r.h*vh);
+    if(sw2<4||sh2<4) continue;
+    roiCtx.drawImage(video, sx,sy,sw2,sh2, 0,0,24,24);
+    const d=roiCtx.getImageData(0,0,24,24).data;
+    let r_=0,g_=0,b_=0;
+    for(let i=0;i<d.length;i+=4){ r_+=d[i]; g_+=d[i+1]; b_+=d[i+2]; }
+    const n=d.length/4;
+    R+=(r_/n)*wgt; G+=(g_/n)*wgt; B+=(b_/n)*wgt; W+=wgt;
+    bright+=((r_+g_+b_)/(3*n))*wgt;
+  }
+  if(W<0.4) return null;
+  return { R:R/W, G:G/W, B:B/W, bright:bright/W };
+}
+
+const tArr=[], rArr=[], gArr=[], bArr=[];
+function pushSample(t,s){
+  tArr.push(t); rArr.push(s.R); gArr.push(s.G); bArr.push(s.B);
+  const cutoff=t-40;
+  while(tArr.length && tArr[0]<cutoff){ tArr.shift(); rArr.shift(); gArr.shift(); bArr.shift(); }
+}
+
+function resample(span, fs){
+  if(tArr.length<8) return null;
+  const tEnd=tArr[tArr.length-1];
+  const t0=Math.max(tArr[0], tEnd-span);
+  const n=Math.floor((tEnd-t0)*fs);
+  if(n<fs*5) return null;
+  const R=new Float32Array(n), G=new Float32Array(n), B=new Float32Array(n);
+  let j=0;
+  for(let i=0;i<n;i++){
+    const t=t0+i/fs;
+    while(j<tArr.length-2 && tArr[j+1]<t) j++;
+    const t1=tArr[j], t2=tArr[j+1], f=(t2>t1)?(t-t1)/(t2-t1):0;
+    const k=Math.min(Math.max(f,0),1);
+    R[i]=rArr[j]+(rArr[j+1]-rArr[j])*k;
+    G[i]=gArr[j]+(gArr[j+1]-gArr[j])*k;
+    B[i]=bArr[j]+(bArr[j+1]-bArr[j])*k;
+  }
+  return { R,G,B, fs, n };
+}
+
+function posSignal(R,G,B,fs){
+  const n=R.length, L=Math.min(Math.round(1.6*fs), n);
+  const H=new Float32Array(n);
+  const s1=new Float32Array(L), s2=new Float32Array(L);
+  for(let st=0; st+L<=n; st++){
+    let mR=0,mG=0,mB=0;
+    for(let i=st;i<st+L;i++){ mR+=R[i]; mG+=G[i]; mB+=B[i]; }
+    mR/=L; mG/=L; mB/=L;
+    if(mR<1||mG<1||mB<1) continue;
+    let m1=0,m2=0;
+    for(let k=0;k<L;k++){
+      const i=st+k;
+      const r=R[i]/mR, g=G[i]/mG, b=B[i]/mB;
+      s1[k]=g-b; s2[k]=-2*r+g+b;
+      m1+=s1[k]; m2+=s2[k];
+    }
+    m1/=L; m2/=L;
+    let v1=0,v2=0;
+    for(let k=0;k<L;k++){ v1+=(s1[k]-m1)*(s1[k]-m1); v2+=(s2[k]-m2)*(s2[k]-m2); }
+    const alpha=Math.sqrt(v1/L)/(Math.sqrt(v2/L)+1e-9);
+    for(let k=0;k<L;k++) H[st+k]+=(s1[k]-m1)+alpha*(s2[k]-m2);
+  }
+  return H;
+}
+
+function fft(re, im){
+  const n=re.length;
+  for(let i=1,j=0;i<n;i++){
+    let bit=n>>1;
+    for(;j&bit;bit>>=1) j^=bit;
+    j|=bit;
+    if(i<j){ const tr=re[i]; re[i]=re[j]; re[j]=tr; const ti=im[i]; im[i]=im[j]; im[j]=ti; }
+  }
+  for(let len=2;len<=n;len<<=1){
+    const ang=-2*Math.PI/len, wr=Math.cos(ang), wi=Math.sin(ang);
+    const half=len>>1;
+    for(let i=0;i<n;i+=len){
+      let cr=1, ci=0;
+      for(let k=0;k<half;k++){
+        const ar=re[i+k], ai=im[i+k];
+        const br=re[i+k+half]*cr - im[i+k+half]*ci;
+        const bi=re[i+k+half]*ci + im[i+k+half]*cr;
+        re[i+k]=ar+br; im[i+k]=ai+bi;
+        re[i+k+half]=ar-br; im[i+k+half]=ai-bi;
+        const nr=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=nr;
+      }
+    }
+  }
+}
+
+const FS=30, NFFT=512;
+function estimateBPM(H, fs){
+  const n=H.length;
+  const re=new Float32Array(NFFT), im=new Float32Array(NFFT);
+  for(let i=0;i<Math.min(n,NFFT);i++){
+    const w=0.5*(1-Math.cos(2*Math.PI*i/(n-1)));
+    re[i]=H[i]*w;
+  }
+  fft(re,im);
+  const kLo=Math.max(2, Math.floor(0.70*NFFT/fs));
+  const kHi=Math.min(NFFT/2-2, Math.ceil(3.00*NFFT/fs));
+  let kMax=-1, pMax=0, pSum=0;
+  const P=new Float32Array(kHi+2);
+  for(let k=kLo;k<=kHi;k++){
+    P[k]=re[k]*re[k]+im[k]*im[k];
+    pSum+=P[k];
+    if(P[k]>pMax){ pMax=P[k]; kMax=k; }
+  }
+  if(kMax<0||pSum<=0) return null;
+  const y1=P[kMax-1]||0, y2=P[kMax], y3=P[kMax+1]||0;
+  const denom=(y1-2*y2+y3);
+  const off=denom!==0 ? 0.5*(y1-y3)/denom : 0;
+  const f=(kMax+Math.max(-0.5,Math.min(0.5,off)))*fs/NFFT;
+  const peakP=y1+y2+y3;
+  const snr=peakP/(pSum-peakP+1e-9);
+  return { bpm:f*60, snr };
+}
+
+// ================= Session =================
+const DUR = 300;
+const PHASES = [
+  { name:"arrival",   t0:0,   breath:{inh:5, exh:5} },
+  { name:"grounding", t0:45,  breath:{inh:4, exh:6} },
+  { name:"deepening", t0:150, breath:{inh:4, exh:7} },
+  { name:"stillness", t0:240, breath:{inh:5, exh:8} },
+  { name:"return",    t0:285, breath:{inh:4, exh:4} },
+];
+let running=false, sessionT=0, phaseIdx=0, ended=false;
+
+let bpmSmooth=0, locked=false, motion=0, lowLight=false;
+let noseX=0, noseY=0, faceLostAt=-1;
+let curROIs=null, brightSm=0, lastSNR=0, weakSince=0;
+const bpmLog=[];           // {t, bpm}
+let breathCount=0, lastBreathS=0;
+
+let lastTick=0, tickCount=0;
+let wf=null, wfFs=FS;                       // live pulse waveform for the HUD
+function processTick(now){
+  if(now-lastTick<0.25) return;
+  lastTick=now; tickCount++;
+  const rs=resample(12, FS);
+  if(!rs) return;
+  const H=posSignal(rs.R, rs.G, rs.B, rs.fs);
+  wf=H; wfFs=rs.fs;
+  if(tickCount%4!==0) return;
+  if(motion>0.011 || lowLight) return;
+  const est=estimateBPM(H, rs.fs);
+  if(!est) return;
+  lastSNR=est.snr;
+  if(est.snr>0.55 && est.bpm>=42 && est.bpm<=180){
+    if(!bpmSmooth) bpmSmooth=est.bpm;
+    if(Math.abs(est.bpm-bpmSmooth)<14) bpmSmooth+=(est.bpm-bpmSmooth)*0.30;
+    else bpmSmooth+=(est.bpm-bpmSmooth)*0.08;
+    locked=true;
+    weakSince=0;
+    bpmLog.push({ t:sessionT, bpm:bpmSmooth });
+  } else if(locked && !weakSince){
+    weakSince=now;
+  }
+}
+
+function median(a){
+  if(!a.length) return null;
+  const s=[...a].sort((x,y)=>x-y);
+  return s[Math.floor(s.length/2)];
+}
+
+// ================= Audio =================
+let AC=null, master=null, padFilter=null, airGain=null, airFilter=null, padTone=null;
+let soundOn=true;
+function initAudio(){
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  master = AC.createGain(); master.gain.value=0;
+  master.connect(AC.destination);
+
+  // drone pad — detuned sines through a dark lowpass
+  padFilter = AC.createBiquadFilter();
+  padFilter.type="lowpass"; padFilter.frequency.value=340; padFilter.Q.value=0.4;
+  const padGain = AC.createGain(); padGain.gain.value=0.16;
+  padFilter.connect(padGain); padGain.connect(master);
+  const partials=[[110,0.5],[110.35,0.4],[165,0.28],[220.6,0.16]];
+  for(const [f,g] of partials){
+    const o=AC.createOscillator(); o.type="sine"; o.frequency.value=f;
+    const og=AC.createGain(); og.gain.value=g;
+    o.connect(og); og.connect(padFilter); o.start();
+  }
+  padTone = padFilter.frequency;
+
+  // breath-coupled "air" — filtered noise
+  const len=AC.sampleRate*2;
+  const buf=AC.createBuffer(1, len, AC.sampleRate);
+  const d=buf.getChannelData(0);
+  let v=0;
+  for(let i=0;i<len;i++){ v=v*0.98 + (Math.random()*2-1)*0.02; d[i]=v*8; } // soft brownish noise
+  const noise=AC.createBufferSource(); noise.buffer=buf; noise.loop=true;
+  airFilter=AC.createBiquadFilter(); airFilter.type="bandpass";
+  airFilter.frequency.value=520; airFilter.Q.value=0.6;
+  airGain=AC.createGain(); airGain.gain.value=0;
+  noise.connect(airFilter); airFilter.connect(airGain); airGain.connect(master);
+  noise.start();
+}
+
+function bell(){
+  if(!AC || !soundOn) return;
+  const t=AC.currentTime;
+  for(const [f,g] of [[660,0.06],[992,0.025]]){
+    const o=AC.createOscillator(); o.type="sine"; o.frequency.value=f;
+    const og=AC.createGain();
+    og.gain.setValueAtTime(0, t);
+    og.gain.linearRampToValueAtTime(g, t+0.02);
+    og.gain.exponentialRampToValueAtTime(0.0001, t+4.5);
+    o.connect(og); og.connect(master);
+    o.start(t); o.stop(t+4.6);
+  }
+}
+
+function thump(){
+  if(!AC || !soundOn) return;
+  const t=AC.currentTime;
+  const o=AC.createOscillator(); o.type="sine";
+  o.frequency.setValueAtTime(64, t);
+  o.frequency.exponentialRampToValueAtTime(38, t+0.14);
+  const og=AC.createGain();
+  og.gain.setValueAtTime(0, t);
+  og.gain.linearRampToValueAtTime(0.09, t+0.012);
+  og.gain.exponentialRampToValueAtTime(0.0001, t+0.22);
+  o.connect(og); og.connect(master);
+  o.start(t); o.stop(t+0.25);
+}
+
+// shared swell clock — the SAME phase drives the waves on screen and the wash in the audio
+function swellAt(now){ return 0.5 + 0.5*Math.sin(now*0.5 + 1.3); }
+
+function audioFrame(now, breathS){
+  if(!AC) return;
+  const t=AC.currentTime;
+  // master fade in over first 8 s; softer in stillness; fade near end
+  let target = soundOn ? 0.9 : 0;
+  if(sessionT<8) target *= sessionT/8;
+  if(PHASES[phaseIdx].name==="stillness") target *= 0.7;
+  if(ended) target = 0;
+  master.gain.setTargetAtTime(target, t, 0.6);
+  // breath coupling + ocean swell (synced with the visual waves)
+  const sw=swellAt(now);
+  airGain.gain.setTargetAtTime(0.006 + 0.045*breathS + 0.022*sw, t, 0.25);
+  airFilter.frequency.setTargetAtTime(400 + 240*breathS + 120*sw, t, 0.3);
+  padTone.setTargetAtTime(300 + 220*breathS + (PHASES[phaseIdx].name==="return" ? 120 : 0), t, 0.5);
+}
+
+// ================= Breath =================
+let breathT=0;
+const sm=x=>x*x*(3-2*x);
+function breathState(dt){
+  const b=PHASES[phaseIdx].breath;
+  breathT+=dt;
+  const T=b.inh+b.exh, t=breathT%T;
+  let s, label;
+  if(t<b.inh){ s=sm(t/b.inh); label="inhale"; }
+  else{ s=1-sm((t-b.inh)/b.exh); label="exhale"; }
+  // count completed exhales
+  if(lastBreathS>0.02 && s<=0.02 && breathT>T*0.9) breathCount++;
+  lastBreathS=s;
+  return { s, label };
+}
+
+// ---- eye state: open → HUD, closed → visualizer (blink-proof) ----
+let eyeSm=0, closedFor=0, openFor=0, eyesClosed=false, modeW=0;
+
+// ================= Visual scene =================
+let beatPhase=0, pulse=0;
+let videoOpacity=1;
+
+// ---- beach scene: a bright, heavily blurred day at the ocean behind your figure ----
+// painted small, upscaled with blur → dreamy out-of-focus depth of field
+const bgCan=document.createElement("canvas");
+bgCan.width=256; bgCan.height=144;
+const bgCtx=bgCan.getContext("2d");
+
+function drawBeachBG(now, breathS){
+  const W=256, H=144;
+  const sw=swellAt(now);
+  const hor=H*0.44, sand=H*0.72;
+  // hazy summer sky
+  let g=bgCtx.createLinearGradient(0,0,0,hor);
+  g.addColorStop(0,"#8fbcd8"); g.addColorStop(0.65,"#c6dde0"); g.addColorStop(1,"#eef2e6");
+  bgCtx.fillStyle=g; bgCtx.fillRect(0,0,W,hor+1);
+  // sun haze, high right
+  g=bgCtx.createRadialGradient(W*0.72,H*0.08,0, W*0.72,H*0.08,W*0.55);
+  g.addColorStop(0,"rgba(255,251,238,.9)"); g.addColorStop(1,"rgba(255,251,238,0)");
+  bgCtx.fillStyle=g; bgCtx.fillRect(0,0,W,H);
+  // sea — teal fading to pale shallows
+  g=bgCtx.createLinearGradient(0,hor,0,sand);
+  g.addColorStop(0,"#4f96a8"); g.addColorStop(0.55,"#79b3b8"); g.addColorStop(1,"#b3d4c8");
+  bgCtx.fillStyle=g; bgCtx.fillRect(0,hor,W,sand-hor);
+  // soft drifting glints on the water (breath-and-swell tinted)
+  for(let k=0;k<4;k++){
+    const y=hor+(sand-hor)*(0.18+0.20*k) + Math.sin(now*(0.30+0.09*k)+k*2.1)*1.6;
+    const a=0.08+0.05*(0.5+0.5*Math.sin(now*0.5+k*1.7))+0.03*breathS;
+    bgCtx.fillStyle=`rgba(255,255,255,${a.toFixed(3)})`;
+    bgCtx.fillRect(0, y, W, 1.6+k*0.8);
+  }
+  // sand
+  g=bgCtx.createLinearGradient(0,sand,0,H);
+  g.addColorStop(0,"#e2d2b0"); g.addColorStop(1,"#cfb68e");
+  bgCtx.fillStyle=g; bgCtx.fillRect(0,sand,W,H-sand);
+  // wet sand sheen where the last wave reached
+  const foamY=sand + (H-sand)*(0.18+0.42*(1-sw));   // rides the SAME swell as the audio
+  bgCtx.fillStyle="rgba(150,175,170,.28)";
+  bgCtx.fillRect(0,sand,W,foamY-sand);
+  // foam line
+  g=bgCtx.createLinearGradient(0,foamY-5,0,foamY+4);
+  g.addColorStop(0,"rgba(255,255,255,0)");
+  g.addColorStop(0.7,`rgba(255,255,255,${(0.45+0.35*sw).toFixed(3)})`);
+  g.addColorStop(1,"rgba(255,255,255,0)");
+  bgCtx.fillStyle=g; bgCtx.fillRect(0,foamY-5,W,9);
+}
+
+function drawSea(now, breathS){
+  const W=innerWidth, H=innerHeight;
+  seaCtx.setTransform(DPR,0,0,DPR,0,0);
+  seaCtx.clearRect(0,0,W,H);
+  if(!running) return;
+  drawBeachBG(now, breathS);
+  // blit small → huge with smoothing + blur = deep bokeh
+  seaCtx.imageSmoothingEnabled=true;
+  seaCtx.imageSmoothingQuality="high";
+  seaCtx.filter="blur(10px)";
+  seaCtx.drawImage(bgCan, -24,-24, W+48, H+48);     // overdraw so the blur has no hard edges
+  seaCtx.filter="none";
+  // your figure, cut out of the room, lifted slightly to sit in the light
+  if(segReady && personCan.width){
+    seaCtx.save();
+    seaCtx.globalAlpha=Math.max(0, 1-modeW)*0.98;
+    seaCtx.filter="brightness(1.07) saturate(1.04)";
+    seaCtx.translate(vidL+dispW, vidT);
+    seaCtx.scale(-1,1);
+    seaCtx.drawImage(personCan, 0,0, dispW, dispH);
+    seaCtx.filter="none";
+    seaCtx.restore();
+  }
+  // warm unifying veil
+  seaCtx.fillStyle="rgba(255,244,224,.05)";
+  seaCtx.fillRect(0,0,W,H);
+}
+
+function draw(now, dt, breathS){
+  const vw=innerWidth, vh=innerHeight;
+  const cx=vw/2, cy=vh*0.5;
+
+  // ---- raw video: hidden once segmentation runs (the cutout replaces it);
+  //      fallback to the dimmed self-view if segmentation is unavailable ----
+  let vTarget = 1;
+  if(running){
+    if(segReady){
+      vTarget = 0;
+    } else {
+      vTarget = 0.85*(1-modeW);
+      if(faceLostAt>0 && now-faceLostAt>4 && !ended) vTarget=Math.max(vTarget, 0.3);
+    }
+  }
+  videoOpacity += (vTarget-videoOpacity)*Math.min(1, dt*2);
+  video.style.opacity = videoOpacity.toFixed(3);
+
+  drawSea(now, breathS);
+
+  // ---- abstract scene (eyes closed) ----
+  absCtx.setTransform(DPR,0,0,DPR,0,0);
+  absCtx.clearRect(0,0,vw,vh);
+  const a = running ? modeW : 0;
+  if(a>0.002){
+    absCtx.globalAlpha=a;
+    // base wash — warm-dark, like sunlight through closed eyelids; the beach ghosts through
+    absCtx.fillStyle="rgba(24,20,15,.80)";
+    absCtx.fillRect(0,0,vw,vh);
+    const deep = PHASES[phaseIdx].name==="stillness" ? 0.6 : 1;
+    // drifting under-glow
+    const dx=Math.sin(now*0.05)*vw*0.06, dy=Math.cos(now*0.037)*vh*0.05;
+    const g2=absCtx.createRadialGradient(cx+dx, cy+dy+vh*0.08, 0, cx+dx, cy+dy, Math.max(vw,vh)*0.75);
+    g2.addColorStop(0, `rgba(38,48,44,${0.55*deep})`);
+    g2.addColorStop(1, "rgba(7,9,11,0)");
+    absCtx.fillStyle=g2;
+    absCtx.fillRect(0,0,vw,vh);
+    // breathing orb
+    const orbR=Math.min(vw,vh)*(0.20+0.085*breathS)*deep + Math.min(vw,vh)*0.02*pulse;
+    const g1=absCtx.createRadialGradient(cx,cy,orbR*0.1, cx,cy,orbR);
+    g1.addColorStop(0, `rgba(143,163,138,${(0.16+0.05*breathS)*deep})`);
+    g1.addColorStop(0.7, `rgba(105,124,112,${0.07*deep})`);
+    g1.addColorStop(1, "rgba(7,9,11,0)");
+    absCtx.fillStyle=g1;
+    absCtx.beginPath(); absCtx.arc(cx,cy,orbR,0,Math.PI*2); absCtx.fill();
+    absCtx.globalAlpha=1;
+  }
+
+  // ---- ring + progress ----
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,vw,vh);
+  if(running && !ended){
+    // soft shadow so white linework stays legible over the bright scene
+    ctx.shadowColor="rgba(10,20,25,.5)";
+    ctx.shadowBlur=5;
+
+    // ---- ROI tracking ticks on the face (eyes open) ----
+    const roiA = (1-modeW)*videoOpacity*0.55;
+    if(curROIs && roiA>0.02){
+      ctx.strokeStyle=`rgba(233,231,224,${roiA.toFixed(3)})`;
+      ctx.lineWidth=1;
+      for(const {r} of curROIs){
+        const x=vidL+(1-(r.x+r.w))*dispW, y=vidT+r.y*dispH, w=r.w*dispW, h=r.h*dispH;
+        const t=Math.min(w,h)*0.28;
+        ctx.beginPath();
+        ctx.moveTo(x, y+t); ctx.lineTo(x, y); ctx.lineTo(x+t, y);
+        ctx.moveTo(x+w-t, y); ctx.lineTo(x+w, y); ctx.lineTo(x+w, y+t);
+        ctx.moveTo(x+w, y+h-t); ctx.lineTo(x+w, y+h); ctx.lineTo(x+w-t, y+h);
+        ctx.moveTo(x+t, y+h); ctx.lineTo(x, y+h); ctx.lineTo(x, y+h-t);
+        ctx.stroke();
+      }
+    }
+
+    const rBase=74 + 30*breathS + 5*pulse;
+    const glow=ctx.createRadialGradient(cx,cy,rBase*0.2, cx,cy,rBase*1.35);
+    glow.addColorStop(0, `rgba(143,163,138,${0.08+0.15*pulse})`);
+    glow.addColorStop(1, "rgba(143,163,138,0)");
+    ctx.fillStyle=glow;
+    ctx.beginPath(); ctx.arc(cx,cy,rBase*1.35,0,Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle=`rgba(233,231,224,${0.42+0.3*pulse})`;
+    ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,rBase,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle="rgba(143,163,138,.4)";
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(cx,cy,rBase-7,0,Math.PI*2); ctx.stroke();
+
+    // hairline session progress
+    ctx.strokeStyle="rgba(233,231,224,.16)";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.arc(cx,cy, 74+30+18, -Math.PI/2, -Math.PI/2 + Math.PI*2*Math.min(1,sessionT/DUR));
+    ctx.stroke();
+
+    // ---- live pulse waveform (HUD, eyes open) ----
+    if(wf && locked && modeW<0.95){
+      const wWf=Math.min(vw*0.40, 520), hWf=40;
+      const x0=cx-wWf/2, y0=cy-(74+30+18)-64;
+      const i1=wf.length, i0=Math.max(0, i1-Math.floor(6*wfFs));
+      let mean=0, sd=0, cnt=i1-i0;
+      for(let i=i0;i<i1;i++) mean+=wf[i];
+      mean/=Math.max(cnt,1);
+      for(let i=i0;i<i1;i++) sd+=(wf[i]-mean)*(wf[i]-mean);
+      sd=Math.sqrt(sd/Math.max(cnt,1))||1;
+      ctx.beginPath();
+      for(let i=i0;i<i1;i++){
+        const u=(i-i0)/Math.max(cnt-1,1);
+        const v=Math.max(-2.6, Math.min(2.6, (wf[i]-mean)/sd));
+        const x=x0+u*wWf, y=y0 - v*(hWf/2.6/2);
+        if(i===i0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=`rgba(233,231,224,${(0.58*(1-modeW)).toFixed(3)})`;
+      ctx.lineWidth=1.4;
+      ctx.stroke();
+    }
+  }
+}
+
+// ================= Phase transitions =================
+function updatePhase(){
+  let idx=0;
+  for(let i=0;i<PHASES.length;i++) if(sessionT>=PHASES[i].t0) idx=i;
+  if(idx!==phaseIdx){
+    phaseIdx=idx;
+    bell();
+  }
+}
+
+// ================= End of session =================
+function endSession(){
+  if(ended) return;
+  ended=true;
+  running=false;
+  dock.classList.add("hidden");
+  brand.style.opacity=0.4;
+
+  const startArr=bpmLog.filter(e=>e.t<90).map(e=>e.bpm);
+  const endArr  =bpmLog.filter(e=>e.t>sessionT-60).map(e=>e.bpm);
+  const b0=median(startArr), b1=median(endArr);
+  const mins=Math.max(1, Math.round(sessionT/60));
+
+  if(b0 && b1){
+    sumBig.innerHTML=`${Math.round(b0)} <span class="arrow">→</span> ${Math.round(b1)}`;
+    const d=Math.round(b0-b1);
+    sumLine.textContent =
+      d>=3 ? `Your heart slowed by ${d} beats per minute over ${mins} minutes and ${breathCount} slow breaths.`
+      : d<=-3 ? `${breathCount} slow breaths over ${mins} minutes. Hearts have their own weather — come back tomorrow.`
+      : `Steady the whole way — ${breathCount} slow breaths over ${mins} minutes.`;
+  }else{
+    sumBig.innerHTML=`${breathCount}`;
+    document.getElementById("sumLab").textContent="slow breaths";
+    sumLine.textContent=`The light was too low to read your heart today — but ${breathCount} long exhales over ${mins} minutes did their quiet work anyway.`;
+  }
+  setTimeout(()=>summary.classList.add("show"), 1800);
+}
+
+againBtn.onclick=()=>{ location.reload(); };
+endTg.onclick=()=>{ sessionT=Math.max(sessionT, DUR-0.1); };
+soundTg.onclick=()=>{
+  soundOn=!soundOn;
+  soundTg.textContent=soundOn ? "Sound on" : "Sound off";
+  soundTg.classList.toggle("on", soundOn);
+};
+
+// dock auto-hide
+let lastMouse=0;
+addEventListener("mousemove", ()=>{ lastMouse=performance.now(); });
+
+// ================= Main loop =================
+const startClock=performance.now();
+let lastFrameT=0;
+function frame(){
+  requestAnimationFrame(frame);
+  const nowMs=performance.now();
+  const now=(nowMs-startClock)/1000;
+  const dt=Math.min(now-lastFrameT, 1/20); lastFrameT=now;
+
+  if(running && !ended){
+    sessionT+=dt;
+    updatePhase();
+    if(sessionT>=DUR) endSession();
+  }
+
+  // face detection + sampling (continues even when the video is invisible)
+  if(facer && video.readyState>=2 && video.currentTime!==lastVideoTime){
+    lastVideoTime=video.currentTime;
+    const res=facer.detectForVideo(video, nowMs);
+    face=(res.faceLandmarks && res.faceLandmarks[0]) ? res.faceLandmarks[0] : null;
+    const bshapes=(res.faceBlendshapes && res.faceBlendshapes[0]) ? res.faceBlendshapes[0].categories : null;
+    if(bshapes){
+      let l=0, r=0;
+      for(const c of bshapes){
+        if(c.categoryName==="eyeBlinkLeft") l=c.score;
+        else if(c.categoryName==="eyeBlinkRight") r=c.score;
+      }
+      eyeSm += ((l+r)/2 - eyeSm)*0.35;
+    }
+    if(face){
+      faceLostAt=-1;
+      const nx=face[1].x, ny=face[1].y;
+      const step=Math.hypot(nx-noseX, ny-noseY);
+      motion+=(Math.min(step,0.05)-motion)*0.12;
+      noseX=nx; noseY=ny;
+      curROIs=roiRects(face);
+      const s=sampleROIs(curROIs);
+      if(s){
+        lowLight=s.bright<34;
+        brightSm += (s.bright-brightSm)*0.1;
+        pushSample(now, s);
+      }
+    }else{
+      curROIs=null;
+      if(faceLostAt<0) faceLostAt=now;
+    }
+    updatePersonCutout(nowMs);
+  }
+  if(face && running && !ended) processTick(now);
+
+  // heartbeat-synced pulse + audio thump (deepening onward)
+  const phName=PHASES[phaseIdx].name;
+  if(locked && bpmSmooth>0 && running && !ended){
+    beatPhase+=dt*bpmSmooth/60;
+    if(beatPhase>=1){
+      beatPhase-=1; pulse=1;
+      if(phName==="deepening"||phName==="stillness") thump();
+    }
+  }
+  pulse*=Math.exp(-dt*5.5);
+
+  // ---- eye state machine (dwell beats blink) ----
+  if(face){
+    if(eyeSm>0.5){ closedFor+=dt; openFor=0; }
+    else{ openFor+=dt; closedFor=0; }
+    if(closedFor>0.9) eyesClosed=true;
+    else if(openFor>0.25) eyesClosed=false;
+  }
+  modeW += ((eyesClosed?1:0) - modeW)*Math.min(1, dt*1.4);
+
+  const br=(running && !ended) ? breathState(dt) : { s:0.5, label:"" };
+  audioFrame(now, br.s);
+  draw(now, dt, br.s);
+
+  // ---- HUD (eyes open) ----
+  const hudOp=(running && !ended) ? (1-modeW) : 0;
+  hud2.style.opacity=hudOp.toFixed(2);
+  metricsEl.style.opacity=hudOp.toFixed(2);
+  eyeHint.style.opacity = (running && !ended && sessionT<20) ? (0.9*(1-modeW)).toFixed(2) : "0";
+  if(hudOp>0.02){
+    bpmEl.textContent = (locked && bpmSmooth>0) ? Math.round(bpmSmooth) : "—";
+    hud2.style.transform=`translateX(-50%) scale(${(1+0.022*pulse).toFixed(4)})`;
+    if(breathLab.textContent!==br.label) breathLab.textContent=br.label;
+    if(bpmLog.length>=5){
+      const base=median(bpmLog.slice(0,5).map(e=>e.bpm));
+      const d=Math.round(bpmSmooth-base);
+      deltaEl.textContent = d<=-3 ? `settling ↓ ${-d} from start` : "";
+    }
+
+    // ---- metrics rail ----
+    const span=tArr.length ? tArr[tArr.length-1]-tArr[0] : 0;
+    const acq=Math.min(1, span/10);
+    const conf=Math.min(1, lastSNR/1.5);
+    const still=Math.max(0, 1-motion/0.011);
+    const lightV=Math.min(1, brightSm/140);
+
+    M.mPulse.textContent = locked ? `${Math.round(bpmSmooth)} bpm · locked` : `acquiring ${Math.round(acq*100)}%`;
+    M.bPulse.style.width = `${Math.round((locked?conf:acq*0.6)*100)}%`;
+    M.mSignal.textContent = locked ? `${Math.round(conf*100)}%` : "—";
+    M.bSignal.style.width = `${Math.round(conf*100)}%`;
+    M.mStill.textContent = still>0.75 ? "steady" : still>0.4 ? "settling" : "moving";
+    M.bStill.style.width = `${Math.round(still*100)}%`;
+    M.mLight.textContent = lowLight ? "low" : lightV>0.8 ? "good" : "fair";
+    M.bLight.style.width = `${Math.round(lightV*100)}%`;
+    M.mBreath.textContent = br.label ? `${br.label} · ${breathCount}` : `${breathCount}`;
+    M.bBreath.style.width = `${Math.round(br.s*100)}%`;
+  }
+
+  // ---- tracking status pill (eyes open) ----
+  if(running && !ended && modeW<0.5){
+    let msg=null;
+    if(!face) msg="Come back into frame…";
+    else if(!locked){
+      const span=tArr.length ? tArr[tArr.length-1]-tArr[0] : 0;
+      msg=`Hold still — finding your pulse… ${Math.round(Math.min(1,span/10)*100)}%`;
+    }
+    else if(motion>0.011) msg="Hold still — reading your pulse…";
+    else if(lowLight) msg="More light on your face helps.";
+    else if(weakSince>0 && now-weakSince>7) msg="Signal weak — soft, even light works best.";
+    if(msg) setStatus(msg); else setStatus(null);
+  } else if(running && !ended){
+    statusEl.style.opacity=0;
+  }
+
+  // dock visibility
+  if(running && !ended){
+    dock.classList.toggle("hidden", performance.now()-lastMouse>3500);
+  }
+}
+
+// ================= Boot =================
+let statusHideT=null;
+function setStatus(msg){
+  if(msg){
+    statusEl.textContent=msg;
+    statusEl.style.opacity=1;
+    clearTimeout(statusHideT); statusHideT=null;
+  } else if(statusEl.style.opacity!=="0" && statusHideT===null){
+    statusHideT=setTimeout(()=>{ statusEl.style.opacity=0; statusHideT=null; }, 1500);
+  }
+}
+
+goBtn.addEventListener("click", async ()=>{
+  goBtn.disabled=true; goBtn.textContent="Preparing…";
+  try{
+    if(!facer) await initFace();
+    if(!segmenter){ try{ await initSeg(); }catch(e){ console.warn("segmentation unavailable", e); } }
+    if(!AC) initAudio();
+    if(AC.state==="suspended") await AC.resume();
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{ width:{ideal:1280}, height:{ideal:720}, facingMode:"user" }, audio:false });
+    video.srcObject=stream;
+    await video.play();
+    layout();
+    gate.classList.add("fadeout");
+    setTimeout(()=>gate.remove(), 1300);
+    running=true;
+    setStatus(null);
+    statusEl.style.opacity=0;
+    frame();
+  }catch(e){
+    goBtn.disabled=false; goBtn.textContent="Begin";
+    statusEl.style.opacity=1;
+    statusEl.textContent=(e && e.name==="NotAllowedError")
+      ? "Camera blocked — allow access and try again."
+      : "Couldn’t start: "+(e && e.name ? e.name : e);
+    console.error(e);
+  }
+});
+
+initFace().then(()=> setStatus("Ready.")).catch(()=>{});
+initSeg().catch(()=>{});     // preload; page still works without it
+setStatus("Loading…");
+</script>
+</body>
+</html>
