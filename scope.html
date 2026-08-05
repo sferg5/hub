@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Oscilloscope — sound draws the picture</title>
+<style>
+  :root{
+    --accent:#39ff78;
+    --panel:#101216;
+    --panel2:#171a20;
+    --ink:#c9d1d9;
+    --dim:#7d8590;
+    --line:#262b33;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#0a0b0d;color:var(--ink);
+    font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13px}
+  #app{display:flex;gap:16px;padding:16px;height:100vh}
+  /* ---------- scope ---------- */
+  #scopeWrap{flex:1 1 auto;display:flex;flex-direction:column;min-width:0}
+  #bezel{flex:1;background:linear-gradient(160deg,#15171b,#0b0c0e);border-radius:18px;
+    padding:20px;box-shadow:inset 0 2px 8px rgba(255,255,255,.04), inset 0 -6px 18px rgba(0,0,0,.6), 0 10px 30px rgba(0,0,0,.5);
+    display:flex;min-height:0}
+  #screen{position:relative;flex:1;border-radius:10px;overflow:hidden;background:#020403;
+    box-shadow:inset 0 0 40px rgba(0,0,0,.9)}
+  #screen.armed{cursor:crosshair}
+  #screen canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #overlay{position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0 1px, transparent 1px 3px);
+    box-shadow:inset 0 0 80px rgba(0,0,0,.55)}
+  #status{margin-top:10px;font-size:12px;color:var(--accent);opacity:.85;min-height:16px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* ---------- panel ---------- */
+  #panel{width:330px;flex:0 0 330px;overflow-y:auto;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;padding:16px}
+  #panel::-webkit-scrollbar{width:8px}
+  #panel::-webkit-scrollbar-thumb{background:#2a2f36;border-radius:4px}
+  .brand{font-weight:700;letter-spacing:3px;font-size:15px;color:#e6edf3;margin-bottom:2px}
+  .brand small{display:block;font-weight:400;letter-spacing:1px;font-size:10px;color:var(--dim);margin-top:3px}
+  .section{margin:18px 0;padding-top:14px;border-top:1px solid var(--line)}
+  .section:first-of-type{border-top:none}
+  .label{font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+  .row{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .row>span{flex:0 0 66px;color:var(--dim);font-size:11px}
+  .row>output{flex:0 0 62px;text-align:right;color:var(--accent);font-size:11px}
+  input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:2px;
+    background:#2a2f36;outline:none;margin:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;
+    border-radius:50%;background:#cfd8e3;border:2px solid #454d58;cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+    background:#cfd8e3;border:2px solid #454d58;cursor:pointer}
+  select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+    padding:5px 6px;font-family:inherit;font-size:11px;flex:1}
+  button{font-family:inherit;font-size:11px;color:var(--ink);background:var(--panel2);
+    border:1px solid var(--line);border-radius:7px;padding:7px 10px;cursor:pointer;transition:all .12s}
+  button:hover{border-color:#3a4250;background:#1d2128}
+  button.on{color:#04140a;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .bigbtn{width:100%;padding:10px;font-size:12px;letter-spacing:1px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}
+  .tabs button{flex:1 1 auto}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chips button{padding:4px 9px;border-radius:20px;font-size:10.5px}
+  .shapeGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  .shapeGrid button{padding:8px 2px;font-size:10.5px}
+  .swatches{display:flex;gap:10px;align-items:center}
+  .swatches button{width:22px;height:22px;border-radius:50%;padding:0;border:2px solid transparent}
+  .swatches button.on{border-color:#fff;box-shadow:0 0 0 2px #000 inset}
+  .hint{font-size:10.5px;color:var(--dim);line-height:1.5;margin-top:8px}
+  .srcPanel{display:none}
+  .srcPanel.active{display:block}
+  .inline{display:flex;gap:8px;align-items:center;margin:8px 0}
+  .inline label{font-size:11px;color:var(--dim);display:flex;gap:6px;align-items:center;cursor:pointer}
+  #fileName{font-size:10.5px;color:var(--dim);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  input[type=file]{display:none}
+  input[type=checkbox]{accent-color:var(--accent)}
+  @media (max-width:920px){
+    #app{flex-direction:column;height:auto}
+    #screen{aspect-ratio:4/3}
+    #panel{width:auto;flex:none}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="scopeWrap">
+    <div id="bezel">
+      <div id="screen">
+        <canvas id="bg"></canvas>
+        <canvas id="beam"></canvas>
+        <div id="overlay"></div>
+      </div>
+    </div>
+    <div id="status">power on a source to begin — the sound you hear is exactly what the beam draws</div>
+  </div>
+
+  <div id="panel">
+    <div class="brand">AUDIO SCOPE<small>XY phosphor simulator · sound → picture</small></div>
+
+    <div class="section">
+      <div class="label">Source</div>
+      <div class="tabs" id="srcTabs">
+        <button data-src="synth" class="on">Synth</button>
+        <button data-src="shapes">Shapes</button>
+        <button data-src="draw">Draw</button>
+        <button data-src="file">File</button>
+        <button data-src="mic">Mic</button>
+      </div>
+    </div>
+
+    <!-- SYNTH -->
+    <div class="section srcPanel active" id="panel-synth">
+      <button id="synthStart" class="bigbtn">▶ START OSCILLATORS</button>
+      <div class="row"><span>X freq</span><input type="range" id="freqX" min="0" max="1000" value="500"><output id="freqXo">200 Hz</output></div>
+      <div class="row"><span>Y freq</span><input type="range" id="freqY" min="0" max="1000" value="588"><output id="freqYo">300 Hz</output></div>
+      <div class="row"><span>Y phase</span><input type="range" id="phase" min="0" max="360" value="90"><output id="phaseo">90°</output></div>
+      <div class="row"><span>Y drift</span><input type="range" id="drift" min="0" max="30" value="2"><output id="drifto">2 ct</output></div>
+      <div class="row"><span>waves</span><select id="waveX"><option value="sine">X: sine</option><option value="triangle">X: triangle</option><option value="sawtooth">X: saw</option><option value="square">X: square</option></select>
+      <select id="waveY"><option value="sine">Y: sine</option><option value="triangle">Y: triangle</option><option value="sawtooth">Y: saw</option><option value="square">Y: square</option></select></div>
+      <div class="chips" id="ratioChips">
+        <button data-r="1">1:1</button><button data-r="2">2:1</button><button data-r="1.5">3:2</button>
+        <button data-r="1.3333333">4:3</button><button data-r="1.25">5:4</button><button data-r="1.6">8:5</button>
+      </div>
+      <div class="hint">Two tones: left channel moves the beam sideways, right channel moves it up/down. Whole-number ratios lock into Lissajous figures; drift makes them slowly tumble.</div>
+    </div>
+
+    <!-- SHAPES -->
+    <div class="section srcPanel" id="panel-shapes">
+      <div class="shapeGrid" id="shapeGrid">
+        <button data-shape="circle">circle</button>
+        <button data-shape="square">square</button>
+        <button data-shape="triangle">triangle</button>
+        <button data-shape="star">star</button>
+        <button data-shape="heart">heart</button>
+        <button data-shape="infinity">infinity</button>
+        <button data-shape="rose">rose</button>
+        <button data-shape="butterfly">butterfly</button>
+      </div>
+      <div class="row"><span>pitch</span><input type="range" id="shapeFreq" min="0" max="1000" value="400"><output id="shapeFreqo">70 Hz</output></div>
+      <div class="row"><span>size</span><input type="range" id="shapeSize" min="10" max="100" value="80"><output id="shapeSizeo">80%</output></div>
+      <div class="hint">Each shape is a hand-built stereo waveform: the beam traces the outline once per audio cycle, so what you hear <i>is</i> the outline. Raise the pitch and the shape stays put — it just hums higher.</div>
+    </div>
+
+    <!-- DRAW -->
+    <div class="section srcPanel" id="panel-draw">
+      <button id="drawArm" class="bigbtn">✏ DRAW ON THE SCREEN</button>
+      <div class="row"><span>pitch</span><input type="range" id="drawFreq" min="0" max="1000" value="350"><output id="drawFreqo">58 Hz</output></div>
+      <div class="hint">Arm, then sketch directly on the scope with your mouse or finger. When you let go, the stroke is converted into a looping audio waveform that traces itself — you can literally hear your drawing. Draw again to replace it.</div>
+    </div>
+
+    <!-- FILE -->
+    <div class="section srcPanel" id="panel-file">
+      <button class="bigbtn" id="filePick">⇪ LOAD AUDIO FILE</button>
+      <input type="file" id="fileInput" accept="audio/*">
+      <div id="fileName">no file loaded</div>
+      <div class="inline">
+        <button id="filePlay" disabled>▶ play</button>
+        <button id="fileRewind" disabled>⟲ rewind</button>
+        <label><input type="checkbox" id="fileLoop" checked> loop</label>
+      </div>
+      <div class="hint">Stereo music in XY mode is the classic “oscilloscope music” view — vocals and centered bass collapse to a diagonal line, wide stereo content blooms into shapes. Try tracks by Jerobeam Fenderson for audio designed to draw pictures.</div>
+    </div>
+
+    <!-- MIC -->
+    <div class="section srcPanel" id="panel-mic">
+      <button id="micStart" class="bigbtn">● ENABLE MICROPHONE</button>
+      <div class="row"><span>gain</span><input type="range" id="micGain" min="5" max="80" value="25"><output id="micGaino">2.5×</output></div>
+      <div class="row"><span>Y delay</span><input type="range" id="micDelay" min="0" max="200" value="30"><output id="micDelayo">3.0 ms</output></div>
+      <div class="hint">A mono mic on both axes is just a diagonal line, so the Y axis is fed a delayed copy — turning pitch into ellipses and loops. Hum, whistle, or point it at a speaker. Mic audio is never played back (no feedback).</div>
+    </div>
+
+    <!-- DISPLAY -->
+    <div class="section">
+      <div class="label">Display</div>
+      <div class="tabs">
+        <button id="modeXY" class="on">XY mode</button>
+        <button id="modeSweep">Sweep mode</button>
+      </div>
+      <div class="row"><span>persist</span><input type="range" id="persist" min="0" max="95" value="55"><output id="persisto">55%</output></div>
+      <div class="row"><span>intensity</span><input type="range" id="intensity" min="10" max="200" value="100"><output id="intensityo">100%</output></div>
+      <div class="row"><span>zoom</span><input type="range" id="zoom" min="20" max="200" value="90"><output id="zoomo">0.9×</output></div>
+      <div class="row" id="sweepRow" style="display:none"><span>sweep</span><input type="range" id="sweepWin" min="0" max="1000" value="500"><output id="sweepWino"></output></div>
+      <div class="row"><span>phosphor</span>
+        <div class="swatches">
+          <button data-c="green" class="on" style="background:#39ff78" title="P1 green"></button>
+          <button data-c="amber" style="background:#ffb040" title="amber"></button>
+          <button data-c="blue" style="background:#5caaff" title="blue"></button>
+          <button data-c="white" style="background:#e8ecf4" title="white"></button>
+        </div>
+      </div>
+      <div class="inline">
+        <label><input type="checkbox" id="gridChk" checked> graticule</label>
+        <button id="clearBtn">clear screen</button>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="section">
+      <div class="label">Output</div>
+      <div class="row"><span>volume</span><input type="range" id="volume" min="0" max="100" value="35"><output id="volumeo">35%</output></div>
+      <div class="inline">
+        <button id="muteBtn">🔊 sound on</button>
+        <button id="stopBtn">■ STOP ALL</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ================================================================
+   AUDIO SCOPE — an XY oscilloscope where the audio IS the video.
+   Left channel drives the beam horizontally, right channel drives
+   it vertically. Everything on screen is drawn by sound.
+   ================================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const TAU = Math.PI * 2;
+const clamp = (v,a,b) => v<a?a:(v>b?b:v);
+
+/* ---------------- state ---------------- */
+const state = {
+  mode: 'xy',
+  source: 'synth',
+  persistence: 0.55,
+  intensity: 1.0,
+  zoom: 0.9,
+  color: 'green',
+  grid: true,
+  volume: 0.35,
+  muted: false,
+  sweepWin: 1024,
+};
+const PHOSPHORS = {
+  green: { glow:[57,255,120],  core:[200,255,215] },
+  amber: { glow:[255,176,64],  core:[255,238,200] },
+  blue:  { glow:[92,170,255],  core:[215,235,255] },
+  white: { glow:[200,212,232], core:[255,255,255] },
+};
+const rgba = (c,a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+const synthCfg = { freqX:200, freqY:300, phase:90, drift:2, waveX:'sine', waveY:'sine' };
+const shapeCfg = { freq:66, size:0.8, last:null, lastLabel:'' };
+const drawCfg  = { freq:55 };
+const micCfg   = { gain:2.5, delayMs:3 };
+
+/* slider <-> value maps */
+const oscHz   = v => 20 * Math.pow(100, v/1000);          //  20 Hz – 2 kHz
+const oscPos  = f => 1000 * Math.log(f/20) / Math.log(100);
+const shapeHz = v => 15 * Math.pow(40, v/1000);           //  15 – 600 Hz
+const winSamp = v => Math.round(256 * Math.pow(16, v/1000)); // 256 – 4096
+
+/* ---------------- audio graph ---------------- */
+let AC = null;
+let scopeTap, monitorGain, anL, anR, dataL, dataR;
+let current = null;   // active source handle {type, stop(), ...}
+
+function ensureAudio(){
+  if (AC){ if (AC.state === 'suspended') AC.resume(); return AC; }
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  scopeTap    = AC.createGain();
+  monitorGain = AC.createGain();
+  monitorGain.gain.value = state.muted ? 0 : state.volume;
+  const splitter = AC.createChannelSplitter(2);
+  anL = AC.createAnalyser(); anR = AC.createAnalyser();
+  anL.fftSize = 4096; anR.fftSize = 4096;
+  anL.smoothingTimeConstant = 0; anR.smoothingTimeConstant = 0;
+  scopeTap.connect(splitter);
+  splitter.connect(anL, 0);
+  splitter.connect(anR, 1);
+  monitorGain.connect(AC.destination);
+  dataL = new Float32Array(anL.fftSize);
+  dataR = new Float32Array(anR.fftSize);
+  return AC;
+}
+function stopSource(){
+  if (current){ try{ current.stop(); }catch(e){} current = null; }
+  refreshRunButtons();
+}
+function setStatus(msg){ $('#status').textContent = msg; }
+
+/* ---------------- source: synth ---------------- */
+function phaseDelay(){ return (synthCfg.phase/360) / Math.max(synthCfg.freqY, 1); }
+function startSynth(){
+  ensureAudio(); stopSource();
+  const oX = AC.createOscillator(), oY = AC.createOscillator();
+  oX.type = synthCfg.waveX;  oY.type = synthCfg.waveY;
+  oX.frequency.value = synthCfg.freqX;
+  oY.frequency.value = synthCfg.freqY;
+  oY.detune.value = synthCfg.drift;
+  const dly = AC.createDelay(1); dly.delayTime.value = phaseDelay();
+  const gX = AC.createGain(), gY = AC.createGain();
+  gX.gain.value = 0.85; gY.gain.value = 0.85;
+  const merger = AC.createChannelMerger(2);
+  oX.connect(gX); gX.connect(merger, 0, 0);
+  oY.connect(dly); dly.connect(gY); gY.connect(merger, 0, 1);
+  merger.connect(scopeTap); merger.connect(monitorGain);
+  oX.start(); oY.start();
+  current = { type:'synth', oX, oY, dly,
+    stop(){ oX.stop(); oY.stop(); merger.disconnect(); } };
+  refreshRunButtons();
+  syncSynthStatus();
+}
+function syncSynthStatus(){
+  if (current && current.type === 'synth')
+    setStatus(`synth · X ${Math.round(synthCfg.freqX)} Hz · Y ${Math.round(synthCfg.freqY)} Hz · phase ${synthCfg.phase}°`);
+}
+function updateSynth(){
+  if (!current || current.type !== 'synth') return;
+  const t = AC.currentTime;
+  current.oX.frequency.setTargetAtTime(synthCfg.freqX, t, 0.02);
+  current.oY.frequency.setTargetAtTime(synthCfg.freqY, t, 0.02);
+  current.oY.detune.setTargetAtTime(synthCfg.drift, t, 0.02);
+  current.dly.delayTime.setTargetAtTime(phaseDelay(), t, 0.02);
+  current.oX.type = synthCfg.waveX;
+  current.oY.type = synthCfg.waveY;
+  syncSynthStatus();
+}
+
+/* ---------------- shape math ---------------- */
+function sampleParam(f, n){
+  n = n || 4096;
+  const pts = [];
+  for (let i=0;i<n;i++) pts.push(f(i/n));
+  return normalizePts(pts);
+}
+function normalizePts(pts){
+  let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+  for (const p of pts){
+    if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0];
+    if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1];
+  }
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  const s = 2/Math.max(maxX-minX, maxY-minY, 1e-9);
+  return pts.map(p => [(p[0]-cx)*s, (p[1]-cy)*s]);
+}
+function polygonPts(verts){
+  const pts=[]; const M=verts.length;
+  for (let i=0;i<M;i++){
+    const a=verts[i], b=verts[(i+1)%M];
+    for (let k=0;k<64;k++){
+      const f=k/64;
+      pts.push([a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]);
+    }
+  }
+  return normalizePts(pts);
+}
+function ngon(n, rot){
+  const v=[]; for(let i=0;i<n;i++){ const a=rot+i*TAU/n; v.push([Math.cos(a),Math.sin(a)]);}
+  return v;
+}
+const SHAPES = {
+  circle:   () => sampleParam(t => [Math.cos(TAU*t), Math.sin(TAU*t)]),
+  square:   () => polygonPts(ngon(4, Math.PI/4)),
+  triangle: () => polygonPts(ngon(3, Math.PI/2)),
+  star:     () => {
+    const v=[]; for(let i=0;i<10;i++){ const a=Math.PI/2+i*TAU/10; const r=(i%2===0)?1:0.42;
+      v.push([r*Math.cos(a), r*Math.sin(a)]); }
+    return polygonPts(v);
+  },
+  heart:    () => sampleParam(t => { const a=TAU*t;
+    return [16*Math.pow(Math.sin(a),3),
+            13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a)]; }),
+  infinity: () => sampleParam(t => [Math.cos(TAU*t), Math.sin(2*TAU*t)*0.55]),
+  rose:     () => sampleParam(t => { const a=TAU*t; const r=Math.cos(3*a);
+    return [r*Math.cos(a), r*Math.sin(a)]; }),
+  butterfly:() => sampleParam(t => { const a=24*Math.PI*t;
+    const m=Math.exp(Math.cos(a))-2*Math.cos(4*a)-Math.pow(Math.sin(a/12),5);
+    return [Math.sin(a)*m, Math.cos(a)*m]; }, 8192),
+};
+
+/* resample a closed path to N points, uniform by arc length */
+function resampleClosed(pts, N){
+  N = N || 2048;
+  const M = pts.length;
+  const d = [0]; let tot = 0;
+  for (let i=1;i<=M;i++){
+    const a=pts[i-1], b=pts[i%M];
+    tot += Math.hypot(b[0]-a[0], b[1]-a[1]);
+    d.push(tot);
+  }
+  if (tot < 1e-6) return null;
+  const out = []; let j = 0;
+  for (let k=0;k<N;k++){
+    const target = tot*k/N;
+    while (j < M-1 && d[j+1] < target) j++;
+    const a=pts[j%M], b=pts[(j+1)%M];
+    const seg = (d[j+1]-d[j]) || 1e-9;
+    const f = (target-d[j])/seg;
+    out.push([a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f]);
+  }
+  return out;
+}
+
+/* ---------------- source: shapes / drawings ---------------- */
+function startShape(rawPts, hz, label, sizeMul){
+  ensureAudio(); stopSource();
+  const pts = resampleClosed(rawPts, 2048);
+  if (!pts){ setStatus('that path was too small — try again'); return; }
+  const buf = AC.createBuffer(2, pts.length, AC.sampleRate);
+  const ch0 = buf.getChannelData(0), ch1 = buf.getChannelData(1);
+  const sz = (sizeMul == null ? shapeCfg.size : sizeMul);
+  for (let i=0;i<pts.length;i++){
+    ch0[i] = clamp(pts[i][0]*sz, -1, 1);
+    ch1[i] = clamp(pts[i][1]*sz, -1, 1);
+  }
+  const src = AC.createBufferSource();
+  src.buffer = buf; src.loop = true;
+  const cycleHz = AC.sampleRate / buf.length;
+  src.playbackRate.value = hz / cycleHz;
+  const g = AC.createGain(); g.gain.value = 0.9;
+  src.connect(g); g.connect(scopeTap); g.connect(monitorGain);
+  src.start();
+  current = { type:'shape', src, cycleHz, label,
+    stop(){ try{src.stop();}catch(e){} g.disconnect(); } };
+  refreshRunButtons();
+  setStatus(`${label} · traced ${Math.round(hz)} times per second (${Math.round(hz)} Hz tone)`);
+}
+function updateShapeFreq(hz, label){
+  if (current && current.type === 'shape'){
+    current.src.playbackRate.setTargetAtTime(hz / current.cycleHz, AC.currentTime, 0.02);
+    setStatus(`${current.label} · traced ${Math.round(hz)} times per second (${Math.round(hz)} Hz tone)`);
+  }
+}
+
+/* ---------------- source: file ---------------- */
+let fileBuf = null;
+const fileState = { offset:0, startedAt:0, playing:false, name:'' };
+async function loadFile(file){
+  ensureAudio();
+  setStatus('decoding ' + file.name + ' …');
+  try{
+    const ab = await file.arrayBuffer();
+    fileBuf = await AC.decodeAudioData(ab);
+    fileState.offset = 0; fileState.name = file.name;
+    $('#fileName').textContent = `${file.name} · ${fileBuf.duration.toFixed(1)}s · ${fileBuf.numberOfChannels===1?'mono':'stereo'}`;
+    $('#filePlay').disabled = false; $('#fileRewind').disabled = false;
+    setStatus(fileBuf.numberOfChannels===1
+      ? 'mono file loaded — Y will get a delayed copy so it opens up in XY'
+      : 'stereo file loaded — press play');
+    playFile();
+  }catch(err){
+    setStatus('could not decode that file (' + err.message + ')');
+  }
+}
+function playFile(){
+  if (!fileBuf) return;
+  ensureAudio(); stopSource();
+  const src = AC.createBufferSource();
+  src.buffer = fileBuf;
+  src.loop = $('#fileLoop').checked;
+  let head = src;
+  if (fileBuf.numberOfChannels === 1){
+    // mono → pseudo-XY: direct on X, delayed copy on Y
+    const dly = AC.createDelay(0.1); dly.delayTime.value = 0.003;
+    const merger = AC.createChannelMerger(2);
+    src.connect(merger, 0, 0);
+    src.connect(dly); dly.connect(merger, 0, 1);
+    head = merger;
+  }
+  head.connect(scopeTap); head.connect(monitorGain);
+  const startOffset = fileState.offset % fileBuf.duration;
+  src.start(0, startOffset);
+  fileState.playing = true;
+  fileState.startedAt = AC.currentTime - startOffset;
+  src.onended = () => {
+    if (current && current.src === src && !src.loop){
+      fileState.playing = false; fileState.offset = 0;
+      current = null; refreshRunButtons();
+      setStatus('end of file');
+    }
+  };
+  current = { type:'file', src,
+    stop(){
+      if (fileState.playing){
+        fileState.offset = AC.currentTime - fileState.startedAt;
+        fileState.playing = false;
+      }
+      src.onended = null;
+      try{ src.stop(); }catch(e){}
+      try{ src.disconnect(); }catch(e){}
+    } };
+  refreshRunButtons();
+  setStatus('playing · ' + fileState.name);
+}
+function pauseFile(){ if (current && current.type==='file'){ stopSource(); setStatus('paused'); } }
+
+/* ---------------- source: microphone ---------------- */
+async function startMic(){
+  ensureAudio(); stopSource();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    setStatus('microphone not available in this view — open the HTML file directly in a browser'); return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }});
+    const src = AC.createMediaStreamSource(stream);
+    const g = AC.createGain(); g.gain.value = micCfg.gain;
+    const dly = AC.createDelay(0.1); dly.delayTime.value = micCfg.delayMs/1000;
+    const merger = AC.createChannelMerger(2);
+    src.connect(g);
+    g.connect(merger, 0, 0);
+    g.connect(dly); dly.connect(merger, 0, 1);
+    merger.connect(scopeTap);            // scope only — never to speakers
+    current = { type:'mic', g, dly,
+      stop(){ stream.getTracks().forEach(t=>t.stop()); merger.disconnect(); } };
+    refreshRunButtons();
+    setStatus('mic live · hum or whistle — steady pitches make the cleanest loops');
+  }catch(err){
+    setStatus('mic blocked (' + err.name + ') — open the HTML file directly in a browser and allow the mic');
+  }
+}
+function updateMic(){
+  if (current && current.type === 'mic'){
+    current.g.gain.setTargetAtTime(micCfg.gain, AC.currentTime, 0.02);
+    current.dly.delayTime.setTargetAtTime(micCfg.delayMs/1000, AC.currentTime, 0.02);
+  }
+}
+
+/* ================================================================
+   RENDERING — a phosphor CRT simulation. Segment brightness falls
+   with beam speed (fast sweeps are dim, dwell points glow hot),
+   drawn additively over a fading trail for persistence.
+   ================================================================ */
+const screen = $('#screen');
+const bgC = $('#bg'), beamC = $('#beam');
+const bgX = bgC.getContext('2d');
+const bx  = beamC.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+let lastShape = null;
+
+function resize(){
+  const r = screen.getBoundingClientRect();
+  if (r.width < 10 || r.height < 10) return;
+  DPR = window.devicePixelRatio || 1;
+  W = r.width; H = r.height;
+  bgC.width  = Math.round(W*DPR); bgC.height  = Math.round(H*DPR);
+  beamC.width = Math.round(W*DPR); beamC.height = Math.round(H*DPR);
+  bgX.setTransform(DPR,0,0,DPR,0,0);
+  bx.setTransform(DPR,0,0,DPR,0,0);
+  drawBG();
+}
+new ResizeObserver(resize).observe(screen);
+
+const beamScale = () => Math.min(W,H)/2 * 0.92 * state.zoom;
+
+function drawBG(){
+  const g = PHOSPHORS[state.color].glow;
+  bgX.fillStyle = '#020403'; bgX.fillRect(0,0,W,H);
+  if (state.grid){
+    bgX.lineWidth = 1;
+    bgX.strokeStyle = rgba(g, 0.07);
+    bgX.beginPath();
+    for (let i=1;i<10;i++){ bgX.moveTo(i*W/10, 0); bgX.lineTo(i*W/10, H); }
+    for (let i=1;i<8;i++){ bgX.moveTo(0, i*H/8); bgX.lineTo(W, i*H/8); }
+    bgX.stroke();
+    bgX.strokeStyle = rgba(g, 0.15);
+    bgX.beginPath();
+    bgX.moveTo(W/2,0); bgX.lineTo(W/2,H);
+    bgX.moveTo(0,H/2); bgX.lineTo(W,H/2);
+    bgX.stroke();
+  }
+  const vg = bgX.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35, W/2,H/2,Math.max(W,H)*0.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)');
+  vg.addColorStop(1,'rgba(0,0,0,0.5)');
+  bgX.fillStyle = vg; bgX.fillRect(0,0,W,H);
+}
+
+function drawXY(ph){
+  const s = beamScale(), cx = W/2, cy = H/2;
+  const n = 2048, off = dataL.length - n;
+  const NB = 8;
+  const paths = [];
+  for (let b=0;b<NB;b++) paths.push(new Path2D());
+  let px = cx + dataL[off]*s, py = cy - dataR[off]*s;
+  for (let i=1;i<n;i++){
+    const x = cx + dataL[off+i]*s, y = cy - dataR[off+i]*s;
+    const d = Math.hypot(x-px, y-py);
+    let a = 9/(d+3); if (a>1) a=1;
+    const b = Math.min(NB-1, (a*NB)|0);
+    paths[b].moveTo(px,py);
+    paths[b].lineTo(x+0.01, y+0.01);
+    px = x; py = y;
+  }
+  const ia = Math.min(state.intensity, 1.6);
+  for (let b=0;b<NB;b++){
+    const a = ((b+0.7)/NB) * ia;
+    bx.lineWidth = 6;   bx.strokeStyle = rgba(ph.glow, Math.min(a*0.26,1)); bx.stroke(paths[b]);
+    bx.lineWidth = 1.6; bx.strokeStyle = rgba(ph.core, Math.min(a,1));      bx.stroke(paths[b]);
+  }
+}
+
+function trace(data, start, win, stride, s, col, mul, halo){
+  const cy = H/2;
+  bx.beginPath();
+  for (let i=0;i<=win;i+=stride){
+    const x = (i/win)*W;
+    const y = cy - clamp(data[start+i], -1.4, 1.4)*s;
+    if (i===0) bx.moveTo(x,y); else bx.lineTo(x,y);
+  }
+  const ia = Math.min(state.intensity, 1.6);
+  if (halo){ bx.lineWidth = 6; bx.strokeStyle = rgba(halo, Math.min(0.2*ia*mul,1)); bx.stroke(); }
+  bx.lineWidth = 1.5; bx.strokeStyle = rgba(col, Math.min(0.9*ia*mul,1)); bx.stroke();
+}
+function drawSweep(ph){
+  const win = Math.min(state.sweepWin, dataL.length-1);
+  let start = 0;
+  for (let i=1;i<dataL.length-win;i++){
+    if (dataL[i-1] <= 0 && dataL[i] > 0){ start = i; break; }
+  }
+  const s = beamScale()*0.85;
+  const stride = Math.max(1, Math.floor(win/(W*2)));
+  trace(dataR, start, win, stride, s, ph.glow, 0.45, null);
+  trace(dataL, start, win, stride, s, ph.core, 1.0, ph.glow);
+}
+
+function idleDot(ph){
+  const a = 0.45 + 0.25*Math.sin(performance.now()/450);
+  bx.fillStyle = rgba(ph.glow, a*0.5);
+  bx.beginPath(); bx.arc(W/2,H/2,5,0,TAU); bx.fill();
+  bx.fillStyle = rgba(ph.core, a);
+  bx.beginPath(); bx.arc(W/2,H/2,2,0,TAU); bx.fill();
+}
+
+function previewStroke(ph){
+  if (rawDraw.length < 2) return;
+  const s = beamScale(), cx = W/2, cy = H/2;
+  bx.beginPath();
+  for (let i=0;i<rawDraw.length;i++){
+    const x = cx + rawDraw[i][0]*s, y = cy - rawDraw[i][1]*s;
+    if (i===0) bx.moveTo(x,y); else bx.lineTo(x,y);
+  }
+  bx.lineWidth = 1.5;
+  bx.strokeStyle = rgba(ph.core, 0.5);
+  bx.stroke();
+}
+
+function render(){
+  requestAnimationFrame(render);
+  if (W === 0) return;
+  const fade = 0.02 + Math.pow(1 - state.persistence, 1.6) * 0.5;
+  bx.globalCompositeOperation = 'destination-out';
+  bx.fillStyle = `rgba(0,0,0,${fade})`;
+  bx.fillRect(0,0,W,H);
+  bx.globalCompositeOperation = 'lighter';
+  bx.lineCap = 'round'; bx.lineJoin = 'round';
+  const ph = PHOSPHORS[state.color];
+  if (!AC){
+    idleDot(ph);
+  } else {
+    anL.getFloatTimeDomainData(dataL);
+    anR.getFloatTimeDomainData(dataR);
+    if (state.mode === 'xy') drawXY(ph); else drawSweep(ph);
+  }
+  if (isDrawing) previewStroke(ph);
+}
+
+/* ---------------- freehand drawing capture ---------------- */
+let drawArmed = false, isDrawing = false, rawDraw = [];
+function evtMath(e){
+  const r = screen.getBoundingClientRect();
+  const s = beamScale();
+  return [ clamp((e.clientX - r.left - r.width/2)/s, -1.15, 1.15),
+           clamp((r.height/2 - (e.clientY - r.top))/s, -1.15, 1.15) ];
+}
+screen.addEventListener('pointerdown', e => {
+  if (!drawArmed) return;
+  e.preventDefault();
+  isDrawing = true; rawDraw = [evtMath(e)];
+  try{ screen.setPointerCapture(e.pointerId); }catch(err){}
+});
+screen.addEventListener('pointermove', e => {
+  if (!isDrawing) return;
+  const p = evtMath(e), q = rawDraw[rawDraw.length-1];
+  if (Math.hypot(p[0]-q[0], p[1]-q[1]) > 0.008) rawDraw.push(p);
+});
+screen.addEventListener('pointerup', e => {
+  if (!isDrawing) return;
+  isDrawing = false;
+  finishDrawing();
+});
+function finishDrawing(){
+  if (rawDraw.length < 8){ rawDraw = []; setStatus('stroke too short — draw something bigger'); return; }
+  let pts = rawDraw.slice(); rawDraw = [];
+  const gap = Math.hypot(pts[0][0]-pts[pts.length-1][0], pts[0][1]-pts[pts.length-1][1]);
+  if (gap > 0.12 && pts.length > 3){
+    pts = pts.concat(pts.slice(1, pts.length-1).reverse()); // retrace open strokes → continuous loop
+  }
+  lastShape = { pts, label:'your drawing', kind:'drawing' };
+  startShape(pts, drawCfg.freq, 'your drawing', 1);
+}
+
+/* ---------------- UI wiring ---------------- */
+function refreshRunButtons(){
+  const t = current ? current.type : null;
+  const sb = $('#synthStart');
+  sb.textContent = t==='synth' ? '■ STOP OSCILLATORS' : '▶ START OSCILLATORS';
+  sb.classList.toggle('on', t==='synth');
+  const mb = $('#micStart');
+  mb.textContent = t==='mic' ? '■ DISABLE MICROPHONE' : '● ENABLE MICROPHONE';
+  mb.classList.toggle('on', t==='mic');
+  $('#filePlay').textContent = t==='file' ? '⏸ pause' : '▶ play';
+}
+
+/* source tabs */
+$$('#srcTabs button').forEach(b => b.addEventListener('click', () => {
+  $$('#srcTabs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  state.source = b.dataset.src;
+  $$('.srcPanel').forEach(p => p.classList.remove('active'));
+  $('#panel-' + state.source).classList.add('active');
+}));
+
+/* synth */
+$('#synthStart').addEventListener('click', () => {
+  if (current && current.type === 'synth'){ stopSource(); setStatus('oscillators stopped'); }
+  else startSynth();
+});
+$('#freqX').addEventListener('input', e => {
+  synthCfg.freqX = oscHz(+e.target.value);
+  $('#freqXo').textContent = Math.round(synthCfg.freqX) + ' Hz';
+  updateSynth();
+});
+$('#freqY').addEventListener('input', e => {
+  synthCfg.freqY = oscHz(+e.target.value);
+  $('#freqYo').textContent = Math.round(synthCfg.freqY) + ' Hz';
+  updateSynth();
+});
+$('#phase').addEventListener('input', e => {
+  synthCfg.phase = +e.target.value;
+  $('#phaseo').textContent = synthCfg.phase + '°';
+  updateSynth();
+});
+$('#drift').addEventListener('input', e => {
+  synthCfg.drift = +e.target.value;
+  $('#drifto').textContent = synthCfg.drift + ' ct';
+  updateSynth();
+});
+$('#waveX').addEventListener('change', e => { synthCfg.waveX = e.target.value; updateSynth(); });
+$('#waveY').addEventListener('change', e => { synthCfg.waveY = e.target.value; updateSynth(); });
+$$('#ratioChips button').forEach(b => b.addEventListener('click', () => {
+  synthCfg.freqY = synthCfg.freqX * parseFloat(b.dataset.r);
+  $('#freqY').value = clamp(Math.round(oscPos(synthCfg.freqY)), 0, 1000);
+  $('#freqYo').textContent = Math.round(synthCfg.freqY) + ' Hz';
+  updateSynth();
+  if (!current || current.type !== 'synth') startSynth();
+}));
+
+/* shapes */
+$$('#shapeGrid button').forEach(b => b.addEventListener('click', () => {
+  $$('#shapeGrid button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  const k = b.dataset.shape;
+  lastShape = { pts: SHAPES[k](), label: k, kind: 'preset' };
+  startShape(lastShape.pts, shapeCfg.freq, k);
+}));
+$('#shapeFreq').addEventListener('input', e => {
+  shapeCfg.freq = shapeHz(+e.target.value);
+  $('#shapeFreqo').textContent = Math.round(shapeCfg.freq) + ' Hz';
+  if (current && current.type === 'shape' && current.label !== 'your drawing')
+    updateShapeFreq(shapeCfg.freq);
+});
+$('#shapeSize').addEventListener('input', e => {
+  shapeCfg.size = +e.target.value / 100;
+  $('#shapeSizeo').textContent = e.target.value + '%';
+});
+$('#shapeSize').addEventListener('change', () => {
+  if (current && current.type === 'shape' && lastShape && lastShape.kind === 'preset')
+    startShape(lastShape.pts, shapeCfg.freq, lastShape.label);
+});
+
+/* draw */
+$('#drawArm').addEventListener('click', () => {
+  drawArmed = !drawArmed;
+  $('#drawArm').classList.toggle('on', drawArmed);
+  $('#drawArm').textContent = drawArmed ? '✏ DRAWING ARMED — sketch on the scope' : '✏ DRAW ON THE SCREEN';
+  screen.classList.toggle('armed', drawArmed);
+  screen.style.touchAction = drawArmed ? 'none' : '';
+  if (drawArmed) setStatus('draw a shape on the screen — release to hear it');
+});
+$('#drawFreq').addEventListener('input', e => {
+  drawCfg.freq = shapeHz(+e.target.value);
+  $('#drawFreqo').textContent = Math.round(drawCfg.freq) + ' Hz';
+  if (current && current.type === 'shape' && current.label === 'your drawing')
+    updateShapeFreq(drawCfg.freq);
+});
+
+/* file */
+$('#filePick').addEventListener('click', () => $('#fileInput').click());
+$('#fileInput').addEventListener('change', e => {
+  if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+  e.target.value = '';
+});
+$('#filePlay').addEventListener('click', () => {
+  if (current && current.type === 'file') pauseFile(); else playFile();
+});
+$('#fileRewind').addEventListener('click', () => {
+  fileState.offset = 0;
+  if (current && current.type === 'file') playFile();
+});
+$('#fileLoop').addEventListener('change', e => {
+  if (current && current.type === 'file') current.src.loop = e.target.checked;
+});
+
+/* mic */
+$('#micStart').addEventListener('click', () => {
+  if (current && current.type === 'mic'){ stopSource(); setStatus('mic off'); }
+  else startMic();
+});
+$('#micGain').addEventListener('input', e => {
+  micCfg.gain = +e.target.value / 10;
+  $('#micGaino').textContent = micCfg.gain.toFixed(1) + '×';
+  updateMic();
+});
+$('#micDelay').addEventListener('input', e => {
+  micCfg.delayMs = +e.target.value / 10;
+  $('#micDelayo').textContent = micCfg.delayMs.toFixed(1) + ' ms';
+  updateMic();
+});
+
+/* display */
+function setMode(m){
+  state.mode = m;
+  $('#modeXY').classList.toggle('on', m==='xy');
+  $('#modeSweep').classList.toggle('on', m==='sweep');
+  $('#sweepRow').style.display = m==='sweep' ? 'flex' : 'none';
+}
+$('#modeXY').addEventListener('click', () => setMode('xy'));
+$('#modeSweep').addEventListener('click', () => setMode('sweep'));
+$('#persist').addEventListener('input', e => {
+  state.persistence = +e.target.value / 100;
+  $('#persisto').textContent = e.target.value + '%';
+});
+$('#intensity').addEventListener('input', e => {
+  state.intensity = +e.target.value / 100;
+  $('#intensityo').textContent = e.target.value + '%';
+});
+$('#zoom').addEventListener('input', e => {
+  state.zoom = +e.target.value / 100;
+  $('#zoomo').textContent = state.zoom.toFixed(1) + '×';
+});
+function sweepWinText(){
+  const sr = AC ? AC.sampleRate : 48000;
+  $('#sweepWino').textContent = (state.sweepWin/sr*1000).toFixed(1) + ' ms';
+}
+$('#sweepWin').addEventListener('input', e => {
+  state.sweepWin = winSamp(+e.target.value);
+  sweepWinText();
+});
+$$('.swatches button').forEach(b => b.addEventListener('click', () => {
+  $$('.swatches button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  state.color = b.dataset.c;
+  const g = PHOSPHORS[state.color].glow;
+  document.documentElement.style.setProperty('--accent', `rgb(${g[0]},${g[1]},${g[2]})`);
+  drawBG();
+}));
+$('#gridChk').addEventListener('change', e => { state.grid = e.target.checked; drawBG(); });
+$('#clearBtn').addEventListener('click', () => {
+  bx.save(); bx.setTransform(1,0,0,1,0,0);
+  bx.clearRect(0,0,beamC.width,beamC.height);
+  bx.restore();
+});
+
+/* output */
+$('#volume').addEventListener('input', e => {
+  state.volume = +e.target.value / 100;
+  $('#volumeo').textContent = e.target.value + '%';
+  if (AC && !state.muted) monitorGain.gain.setTargetAtTime(state.volume, AC.currentTime, 0.02);
+});
+$('#muteBtn').addEventListener('click', () => {
+  state.muted = !state.muted;
+  $('#muteBtn').textContent = state.muted ? '🔇 muted' : '🔊 sound on';
+  $('#muteBtn').classList.toggle('on', state.muted);
+  if (AC) monitorGain.gain.setTargetAtTime(state.muted ? 0 : state.volume, AC.currentTime, 0.02);
+});
+$('#stopBtn').addEventListener('click', () => { stopSource(); setStatus('stopped — the beam idles at center'); });
+
+/* init readouts */
+$('#freqXo').textContent = Math.round(synthCfg.freqX) + ' Hz';
+synthCfg.freqY = oscHz(+$('#freqY').value);
+$('#freqYo').textContent = Math.round(synthCfg.freqY) + ' Hz';
+shapeCfg.freq = shapeHz(+$('#shapeFreq').value);
+$('#shapeFreqo').textContent = Math.round(shapeCfg.freq) + ' Hz';
+drawCfg.freq = shapeHz(+$('#drawFreq').value);
+$('#drawFreqo').textContent = Math.round(drawCfg.freq) + ' Hz';
+sweepWinText();
+resize();
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
