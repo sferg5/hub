@@ -420,6 +420,33 @@
   }
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
+  // ---------- resilient networking ----------
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  // Fetch + parse JSON with a timeout and automatic retries (handles cold starts / transient errors).
+  // Resolves {ok, status, json, text}; ok is false if the upstream returned an {error} payload.
+  async function fetchJSON(url, opts, cfg){
+    cfg = cfg || {};
+    var tries = cfg.tries || 3, timeout = cfg.timeout || 9000, backoff = cfg.backoff || 600;
+    var lastErr = null;
+    for(var i=0;i<tries;i++){
+      var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, timeout) : null;
+      try{
+        var o = {}; if(opts){ for(var k in opts){ if(opts.hasOwnProperty(k)) o[k]=opts[k]; } }
+        if(ctrl) o.signal = ctrl.signal;
+        var res = await fetch(url, o);
+        if(timer) clearTimeout(timer);
+        var text = await res.text();
+        var json = null; if(text){ try{ json = JSON.parse(text); }catch(e){} }
+        if(!res.ok){ lastErr = new Error("HTTP "+res.status); }
+        else if(json && json.error){ lastErr = new Error(String(json.error)); }
+        else { return { ok:true, status:res.status, json:json, text:text }; }
+      }catch(e){ if(timer) clearTimeout(timer); lastErr = e; }
+      if(i < tries-1) await sleep(backoff * Math.pow(2,i) + Math.floor(Math.random()*250));
+    }
+    throw (lastErr || new Error("request-failed"));
+  }
+
   function mediaEmbed(m){
     if(!m || !m.url) return "";
     var url = m.url.trim();
@@ -432,10 +459,9 @@
   }
 
   async function getSnapshot(){
-    var r = await fetch(SYNC_URL, { method:"GET", cache:"no-store" });
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    var j = await r.json();
-    if(!j || j.error || typeof j.data!=="object") throw new Error(j && j.error ? j.error : "bad-data");
+    var r = await fetchJSON(SYNC_URL, { method:"GET", cache:"no-store" }, { tries:3, timeout:9000 });
+    var j = r.json;
+    if(!j || typeof j.data!=="object") throw new Error("bad-data");
     return j;
   }
   // Safe read-modify-write: only ever touches the library key.
@@ -446,8 +472,8 @@
     snap.data[LIB_KEY] = nextArr;
     snap.updatedAt = Date.now();
     try {
-      var res = await fetch(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) });
-      return res.ok;
+      var r = await fetchJSON(SYNC_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(snap) }, { tries:3, timeout:12000 });
+      return !!(r && r.ok);
     } catch(e){ return false; }
   }
 
@@ -772,7 +798,7 @@
     var snap; try{ snap=await getSnapshot(); }catch(e){ return false; }
     if(!snap || typeof snap.data!=="object") return false;
     snap.data[EXP_KEY]=expMeta; snap.updatedAt=Date.now();
-    try{ var res=await fetch(SYNC_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)}); return res.ok; }catch(e){ return false; }
+    try{ var r=await fetchJSON(SYNC_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(snap)},{tries:3,timeout:12000}); return !!(r&&r.ok); }catch(e){ return false; }
   }
   function renderExperiments(){
     var grid=document.getElementById("expGrid"); if(!grid) return;
@@ -837,10 +863,27 @@
     });
   }
 
+  var _loading = false;
   async function load(silent){
+    if(_loading) return;            // prevent the 60s poll from stacking on a manual load
+    _loading = true;
     if(!silent) document.getElementById("content").innerHTML = '<div class="loading"><div class="ldr-ring"></div>Loading…</div>';
-    try { var snap = await getSnapshot(); setState(snap.data || {}); render(); renderExperiments(); }
-    catch(e){ document.getElementById("content").innerHTML = '<div class="loading">Couldn\u2019t load data. If this persists, the data endpoint may be unreachable.</div>'; }
+    try {
+      var snap = await getSnapshot(); setState(snap.data || {}); render(); renderExperiments();
+    } catch(e){
+      if(!silent){
+        document.getElementById("content").innerHTML =
+          '<div class="loading load-error"><div>Couldn\u2019t reach the library data just now.</div>'
+          +'<div style="opacity:.7;font-size:12.5px;margin-top:6px;max-width:44ch">This usually means the server is waking up. It will keep trying automatically \u2014 or try again now.</div>'
+          +'<button class="btn primary" id="retryLoad" style="margin-top:16px">Try again</button></div>';
+        var rb = document.getElementById("retryLoad");
+        if(rb) rb.addEventListener("click", function(){ load(false); });
+        setTimeout(function(){ if(document.querySelector(".load-error")) load(false); }, 4000); // one auto-retry
+      }
+      // on a silent (background) failure we keep the current content; the next poll retries
+    } finally {
+      _loading = false;
+    }
   }
 
   var PW_HASH="87d756c60f8cf6e776961f6d8b4c60caa3565a1ed61070492a7fd07e90bc639e", _pwOk=false;
