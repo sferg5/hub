@@ -780,12 +780,7 @@
 
   // ---------- editable experiment cards (collapsible, like a library card) ----------
   var EXP_KEY = PREFIX + "experiments";
-  var EXP_DEFS = [
-    { id:"kaleidoscope", name:"Kaleidoscope", url:"tracking.html", thumb:"kaleidoscope-thumb.jpg",
-      desc:"A live webcam kaleidoscope driven by hand and face tracking. The right hand shapes the pattern, the head morphs shape and color, and the left hand paints the background \u2014 with an in-camera FX menu (music strobe, smoke, film grain, finger lasers)." },
-    { id:"holodeck", name:"Holodeck", url:"holodeck.html", thumb:"holodeck-thumb.jpg",
-      desc:"A Star Trek-style 3D product-projection playground for viewing fabric swatches in cinematic environments \u2014 tilt, zoom, weather, wind, and material controls." }
-  ];
+  var EXP_DEFS = [];  // experiments removed from the page; add via "Add project" instead
   var expMeta = {}, expEditing = {}, expModalId = null;
   var EXP_LINK_ICO = '<svg aria-hidden="true" focusable="false" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
   var EXP_EDIT_ICO = '<svg aria-hidden="true" focusable="false" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -802,6 +797,8 @@
   }
   function renderExperiments(){
     var grid=document.getElementById("expGrid"); if(!grid) return;
+    var sec=grid.closest(".lib-experiments"); if(sec) sec.style.display = EXP_DEFS.length ? "" : "none";
+    if(!EXP_DEFS.length){ grid.innerHTML=""; return; }
     if(lastData && typeof lastData[EXP_KEY]==="object" && lastData[EXP_KEY]) expMeta=lastData[EXP_KEY];
     grid.innerHTML = EXP_DEFS.map(function(def){
       var d=expData(def.id), mm=(d.media||[]).filter(function(m){return m&&m.url&&m.kind!=="video";}), thumb=mm.length?hrefFor(mm[0].url):def.thumb;
