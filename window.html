@@ -96,21 +96,20 @@
       <input id="gain" type="range" min="50" max="220" value="115" />
     </div>
     <div class="tg on" id="sndTg">Sound</div>
-    <div class="tg on" id="echoTg">Echoes</div>
     <div class="tg" id="pipTg">Camera</div>
     <div class="tg" id="resetTg">Recenter</div>
   </div>
 
   <div id="gate">
     <h1>The screen is a <b>window</b></h1>
-    <p>Behind the glass there’s a forest, and it’s alive. Your camera watches where your eyes are, and the perspective re-projects in real time — lean around the tree at the edge of the frame. The breeze and birdsong are synthesized live, the gusts you hear move the branches you see… and echoes of you, moments old, stand among the trees.</p>
+    <p>Behind the glass there’s a forest, and it’s alive. Your camera watches where your eyes are, and the perspective re-projects in real time — lean around the tree at the edge of the frame; lean in and the woods come to you. The breeze and birdsong are synthesized live, and the gusts you hear move the branches you see.</p>
     <button id="go">Open the window</button>
     <div id="gatehint">Works best at arm’s length from the screen. If the camera doesn’t start when opening the file directly, serve the folder — <span class="kbd">python3 -m http.server</span> → <span class="kbd">http://localhost:8000/live-window.html</span>. Nothing is uploaded.</div>
   </div>
 
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { FilesetResolver, FaceLandmarker, ImageSegmenter }
+import { FilesetResolver, FaceLandmarker }
   from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12";
 
 // ---------- DOM ----------
@@ -130,10 +129,8 @@ pipTg.onclick=()=>{
   pipTg.classList.toggle("on", on);
 };
 const sndTg=document.getElementById("sndTg");
-const echoTg=document.getElementById("echoTg");
-let soundOn=true, echoOn=true;
+let soundOn=true;
 sndTg.onclick=()=>{ soundOn=!soundOn; sndTg.classList.toggle("on", soundOn); };
-echoTg.onclick=()=>{ echoOn=!echoOn; echoTg.classList.toggle("on", echoOn); };
 
 // ---------- Forest audio (all synthesized) ----------
 // one gust clock drives BOTH the rustle you hear and the branch sway you see
@@ -262,7 +259,7 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a|=0; a=(a+0x6D2B79F5)|0;
   return ((t^(t>>>14))>>>0)/4294967296; }; }
 
 // ---------- Scene ----------
-let roomBuilt=false, canopies=[], butterflies=[], dust=null, ghosts=[];
+let roomBuilt=false, canopies=[], butterflies=[], dust=null;
 
 function canvasTexture(draw, w=256, h=256){
   const c=document.createElement("canvas"); c.width=w; c.height=h;
@@ -497,99 +494,6 @@ function buildRoomIfNeeded(){
     shaft.rotation.z=0.12;
     scene.add(shaft);
   }
-
-  // ---- echoes: planes in the woods showing you, seconds ago ----
-  const mkGhost=(x,z,delay,opacity,tint)=>{
-    const cvs=document.createElement("canvas"); cvs.width=320; cvs.height=180;
-    const tex=new THREE.CanvasTexture(cvs);
-    tex.colorSpace=THREE.SRGBColorSpace;
-    const GH=1.15, GW=GH*16/9;
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(GW,GH),
-      new THREE.MeshBasicMaterial({ map:tex, transparent:true, opacity,
-        color:tint, depthWrite:false }));
-    m.position.set(x, floorY+GH/2-0.02, z);
-    m.renderOrder=5;
-    m.visible=false;
-    scene.add(m);
-    ghosts.push({ mesh:m, ctx:cvs.getContext("2d"), tex, delay, lastT:-1 });
-  };
-  mkGhost(-0.34, -1.35, 2.2, 0.80, 0xe6f0e4);
-  mkGhost( 0.42, -2.70, 4.6, 0.62, 0xcfe0d2);
-  mkGhost(-0.48, -4.50, 7.2, 0.48, 0xb9cec2);
-}
-
-// ---------- Selfie segmentation → rolling buffer of past-you ----------
-let segmenter=null, segReady=false;
-const personCan=document.createElement("canvas");
-const personCtx=personCan.getContext("2d");
-const maskCan=document.createElement("canvas");
-const maskCtx=maskCan.getContext("2d");
-const maskBlurCan=document.createElement("canvas");
-const maskBlurCtx=maskBlurCan.getContext("2d");
-let maskImg=null;
-async function initSeg(){
-  const fileset=await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12/wasm");
-  segmenter=await ImageSegmenter.createFromOptions(fileset,{
-    baseOptions:{
-      modelAssetPath:"https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite",
-      delegate:"GPU",
-    },
-    runningMode:"VIDEO", outputConfidenceMasks:true, outputCategoryMask:false,
-  });
-}
-function updatePersonCutout(nowMs){
-  if(!segmenter) return;
-  try{
-    const segRes=segmenter.segmentForVideo(video, nowMs);
-    const mask=segRes.confidenceMasks && segRes.confidenceMasks[0];
-    if(mask){
-      const mw=mask.width, mh=mask.height;
-      if(maskCan.width!==mw || maskCan.height!==mh){ maskCan.width=mw; maskCan.height=mh; maskImg=null; }
-      const arr=mask.getAsFloat32Array();
-      if(!maskImg) maskImg=maskCtx.createImageData(mw,mh);
-      const d=maskImg.data;
-      for(let i=0;i<arr.length;i++){
-        let a=(arr[i]-0.40)/0.25;
-        a=a<0?0:a>1?1:a; a=a*a*(3-2*a);
-        const o=i*4; d[o]=255; d[o+1]=255; d[o+2]=255; d[o+3]=a*255;
-      }
-      maskCtx.putImageData(maskImg,0,0);
-      if(personCan.width!==video.videoWidth){
-        personCan.width=video.videoWidth; personCan.height=video.videoHeight;
-        maskBlurCan.width=personCan.width; maskBlurCan.height=personCan.height;
-      }
-      maskBlurCtx.clearRect(0,0,maskBlurCan.width,maskBlurCan.height);
-      maskBlurCtx.imageSmoothingEnabled=true;
-      maskBlurCtx.imageSmoothingQuality="high";
-      maskBlurCtx.filter="blur(7px)";
-      maskBlurCtx.drawImage(maskCan,0,0,maskBlurCan.width,maskBlurCan.height);
-      maskBlurCtx.filter="none";
-      personCtx.clearRect(0,0,personCan.width,personCan.height);
-      personCtx.drawImage(video,0,0,personCan.width,personCan.height);
-      personCtx.globalCompositeOperation="destination-in";
-      personCtx.drawImage(maskBlurCan,0,0);
-      personCtx.globalCompositeOperation="source-over";
-      segReady=true;
-      mask.close();
-    }
-    if(typeof segRes.close==="function") segRes.close();
-  }catch(e){ /* echoes are an enhancement, never a blocker */ }
-}
-// ring buffer: ~9 s of downscaled cutouts
-const POOLN=80, pool=[], framesBuf=[];
-let pushIdx=0, lastPush=0;
-function pushCut(nowSec){
-  if(!segReady || nowSec-lastPush<0.12) return;
-  lastPush=nowSec;
-  const idx=pushIdx++%POOLN;
-  if(!pool[idx]){ const c=document.createElement("canvas"); c.width=320; c.height=180; pool[idx]=c; }
-  const g=pool[idx].getContext("2d");
-  g.clearRect(0,0,320,180);
-  g.drawImage(personCan,0,0,320,180);
-  for(let i=framesBuf.length-1;i>=0;i--){ if(framesBuf[i].idx===idx){ framesBuf.splice(i,1); break; } }
-  framesBuf.push({ t:nowSec, idx });
-  while(framesBuf.length && framesBuf[0].t<nowSec-9.5) framesBuf.shift();
 }
 
 // ---------- Face tracking → eye position ----------
@@ -611,8 +515,6 @@ async function initFace(){
 function trackEyes(nowMs){
   if(!(facer && video.readyState>=2 && video.currentTime!==lastVideoTime)) return;
   lastVideoTime=video.currentTime;
-  updatePersonCutout(nowMs);
-  pushCut(nowMs/1000);
   const res=facer.detectForVideo(video, nowMs);
   const lm=(res.faceLandmarks && res.faceLandmarks[0]) ? res.faceLandmarks[0] : null;
   if(!lm){ if(faceLostAt<0) faceLostAt=performance.now(); return; }
@@ -669,24 +571,6 @@ function frame(){
     c.m.rotation.z=Math.sin(t*0.6+c.s)*0.025*gA;
     c.m.rotation.x=Math.sin(t*0.45+c.s*1.3)*0.02*gA;
   }
-  // echoes of you among the trees
-  const nowSec=performance.now()/1000;
-  for(const g of ghosts){
-    if(!echoOn || !framesBuf.length){ g.mesh.visible=false; continue; }
-    const target=nowSec-g.delay;
-    let fr=null;
-    for(let i=framesBuf.length-1;i>=0;i--){ if(framesBuf[i].t<=target){ fr=framesBuf[i]; break; } }
-    if(!fr){ g.mesh.visible=false; continue; }
-    g.mesh.visible=true;
-    if(g.lastT!==fr.t){
-      g.lastT=fr.t;
-      g.ctx.clearRect(0,0,320,180);
-      g.ctx.save(); g.ctx.translate(320,0); g.ctx.scale(-1,1);   // mirror, like a reflection would be
-      g.ctx.drawImage(pool[fr.idx],0,0);
-      g.ctx.restore();
-      g.tex.needsUpdate=true;
-    }
-  }
   audioFrame(t);
   for(const b of butterflies){
     const u=b.userData, s=u.seed;
@@ -728,7 +612,6 @@ goBtn.addEventListener("click", async ()=>{
   goBtn.disabled=true; goBtn.textContent="Opening…";
   try{
     if(!facer) await initFace();
-    if(!segmenter){ try{ await initSeg(); }catch(e){ console.warn("echoes unavailable", e); } }
     if(!AC) initAudio();
     if(AC.state==="suspended") await AC.resume();
     const stream=await navigator.mediaDevices.getUserMedia({
@@ -752,7 +635,6 @@ goBtn.addEventListener("click", async ()=>{
 
 layout();
 initFace().then(()=> setStatus("Ready — open the window.")).catch(()=>{});
-initSeg().catch(()=>{});     // preload; the window still works without echoes
 setStatus("Loading…");
 </script>
 </body>
