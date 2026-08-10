@@ -1,13 +1,2 @@
-FABRIC FINDER — drop-in page for your existing site
-===================================================
-Upload these files (same folder), nothing else:
-    holocloth.html
-    holocloth.js
-They won't touch your existing index page. Link to holocloth.html from your site.
-
-The page: an intro, a 4-question "find my fabric" quiz, a fabric library, and a
-detail view with an interactive 3D fabric preview, care info, activities and
-products (with prices, linking to lululemon).
-
-To update products/prices or the quiz, edit src/content.ts in the source project
-(fabric-finder-source.zip) and rebuild.
+Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
+Splash water with the "Splash water" button or by asking the guide (e.g. "does it repel water?").
