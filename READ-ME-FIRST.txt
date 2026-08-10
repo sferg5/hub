@@ -1,2 +1,2 @@
 Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
-Settings (top-left): performance metrics, quality, and light (Studio/Daylight/Store/Night).
+All controls are in the Menu (top-left): fabric sliders, water, lighting, quality, performance.
