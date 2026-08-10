@@ -1,2 +1,1 @@
 Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
-Splash water with the "Splash water" button or by asking the guide (e.g. "does it repel water?").
