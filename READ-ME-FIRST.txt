@@ -1,2 +1,1 @@
 Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
-All controls are in the Menu (top-left): fabric sliders, water, lighting, quality, performance.
