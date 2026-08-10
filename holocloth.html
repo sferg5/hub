@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fabric Lab</title>
+    <title>FABLAB</title>
     <style>
       :root {
         --ink: #1a1a1a;
@@ -167,6 +167,14 @@
       .askbtn:hover { background: #000; }
       .restart { pointer-events: auto; align-self: center; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
       .restart:hover { color: var(--muted); }
+      .convo-actions { align-self: center; display: flex; align-items: center; gap: 8px; }
+      .linkbtn { pointer-events: auto; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
+      .linkbtn:hover { color: var(--muted); }
+      .dotsep { color: var(--faint); font-size: 12px; }
+      .chat-launch { position: absolute; left: 50%; bottom: 100px; transform: translateX(-50%); border: 0;
+        background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--ink);
+        font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 999px; box-shadow: 0 6px 26px rgba(0,0,0,0.12); cursor: pointer; }
+      .chat-launch:hover { transform: translateX(-50%) translateY(-1px); }
     </style>
     <script type="module" crossorigin src="./holocloth.js"></script>
   </head>
