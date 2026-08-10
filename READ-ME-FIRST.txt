@@ -1,1 +1,2 @@
 Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
+Quality: click the "quality" chip (top-left) to step Maximum -> High -> Balanced -> Performance.
