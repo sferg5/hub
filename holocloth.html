@@ -139,8 +139,7 @@
       .convo { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%);
         width: 540px; max-width: calc(100vw - 36px); display: flex; flex-direction: column; gap: 10px;
         pointer-events: none; } /* let drags fall through to the cloth; controls re-enable below */
-      .stream { display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; min-height: 26vh; max-height: 48vh; overflow: hidden;
-        -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 40px); mask-image: linear-gradient(to bottom, transparent 0, #000 40px); }
+      .stream { display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; max-height: 44vh; overflow: hidden; }
       .msg { max-width: 80%; font-size: 14.5px; line-height: 1.5; padding: 11px 15px; border-radius: 18px; display: flex; flex-direction: column; gap: 9px;
         animation: rise .32s ease both; }
       @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
