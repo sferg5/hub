@@ -1,2 +1,1 @@
 Upload holocloth.html and holocloth.js (same folder). Link to holocloth.html.
-In AR (Android), touch and drag the fabric to grab and shape it.
