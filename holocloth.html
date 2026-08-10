@@ -49,6 +49,19 @@
 
       /* actions */
       .acts { position: absolute; right: 26px; top: 74px; display: flex; flex-direction: column; gap: 8px; }
+
+      /* performance HUD */
+      .perf-wrap { position: absolute; top: 70px; left: 26px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+      .perf-toggle { border: 1px solid var(--line); background: rgba(255,255,255,0.82); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+      .perf-toggle:hover { color: var(--ink); border-color: var(--ink); }
+      .perf { background: rgba(255,255,255,0.82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; box-shadow: var(--shadow);
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; min-width: 190px; }
+      .perf .prow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 2px 0; }
+      .perf .prow span { color: var(--muted); }
+      .perf .prow b { font-weight: 600; color: var(--ink); }
+      .perf .pnote { margin-top: 6px; color: var(--faint); font-size: 10px; }
       .acts button { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--shadow); font-size: 16px; }
       .acts button:hover { border-color: var(--ink); }
 
