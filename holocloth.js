@@ -4426,25 +4426,29 @@ varying float vCavity;
           // over a broad organic band at any zoom.
           float wetF;
           {
+            // NOTE: the wetness field lives in ALPHA. Canvas pixels are
+            // premultiplied and WebGL un-premultiplies on upload, so .r reads
+            // ~1.0 wherever alpha > 0 (a binary mask that "snaps off"); .a is
+            // the true, smoothly fading value.
             vec2 t1 = 3.0 / wts;
             vec2 t2 = 8.0 / wts;
-            float acc = 4.0 * texture2D(uWetMap, wuv).r;
-            acc += 2.0 * texture2D(uWetMap, wuv + vec2( t1.x, 0.0)).r;
-            acc += 2.0 * texture2D(uWetMap, wuv + vec2(-t1.x, 0.0)).r;
-            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0,  t1.y)).r;
-            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0, -t1.y)).r;
-            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x,  t1.y) * 0.707).r;
-            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x,  t1.y) * 0.707).r;
-            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x, -t1.y) * 0.707).r;
-            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x, -t1.y) * 0.707).r;
-            acc += 1.0 * texture2D(uWetMap, wuv + vec2( t2.x, 0.0)).r;
-            acc += 1.0 * texture2D(uWetMap, wuv + vec2(-t2.x, 0.0)).r;
-            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0,  t2.y)).r;
-            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0, -t2.y)).r;
-            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x,  t2.y) * 0.707).r;
-            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x,  t2.y) * 0.707).r;
-            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x, -t2.y) * 0.707).r;
-            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x, -t2.y) * 0.707).r;
+            float acc = 4.0 * texture2D(uWetMap, wuv).a;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2( t1.x, 0.0)).a;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(-t1.x, 0.0)).a;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0,  t1.y)).a;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0, -t1.y)).a;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x,  t1.y) * 0.707).a;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x,  t1.y) * 0.707).a;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x, -t1.y) * 0.707).a;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x, -t1.y) * 0.707).a;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2( t2.x, 0.0)).a;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(-t2.x, 0.0)).a;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0,  t2.y)).a;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0, -t2.y)).a;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x,  t2.y) * 0.707).a;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x,  t2.y) * 0.707).a;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x, -t2.y) * 0.707).a;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x, -t2.y) * 0.707).a;
             wetF = clamp(acc / 25.0, 0.0, 1.0);
           }
           // near-linear ramp: dampness fades gradually from saturated to dry —
