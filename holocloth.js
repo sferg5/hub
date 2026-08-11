@@ -4419,13 +4419,25 @@ varying float vCavity;
           vec2 wuv = vHoloUv * wts - 0.5;
           vec2 wf = fract(wuv);
           wuv = (floor(wuv) + wf * wf * (3.0 - 2.0 * wf) + 0.5) / wts;
+          // 9-tap gaussian over the wet field — guarantees the wet→dry edge
+          // feathers softly no matter the map resolution or camera zoom
+          float wetF = 0.0;
+          {
+            vec2 wtx = 1.6 / wts;
+            float wsum = 0.0;
+            for (int wx = -1; wx <= 1; wx++) {
+              for (int wy = -1; wy <= 1; wy++) {
+                float ww = (wx == 0 && wy == 0) ? 4.0 : ((wx == 0 || wy == 0) ? 2.0 : 1.0);
+                wetF += ww * texture2D(uWetMap, wuv + vec2(float(wx), float(wy)) * wtx).r;
+                wsum += ww;
+              }
+            }
+            wetF = clamp(wetF / wsum, 0.0, 1.0);
+          }
+          // near-linear ramp: dampness fades gradually from saturated to dry —
+          // no threshold, so there is no contour line for blockiness to form on
+          float absorbed = smoothstep(0.03, 0.85, wetF);
           vec4 wet = texture2D(uWetMap, wuv);
-          // Gentle metaball choke: blurred splats still merge into globs,
-          // but the wet→dry boundary stays a long, soft gradient — dampness
-          // fades out over a wide band instead of cutting a hard edge.
-          float wetF = clamp(wet.r, 0.0, 1.0);
-          float absorbed = smoothstep(0.05, 0.8, wetF);
-          absorbed = min(1.0, absorbed + wetF * 0.2);
           float bead = clamp(wet.g, 0.0, 1.0);
           // absorbed water darkens the fabric and makes it a touch glossier
           diffuseColor.rgb *= (1.0 - absorbed * 0.55);
