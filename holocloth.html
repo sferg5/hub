@@ -52,61 +52,68 @@
       .dock > * { pointer-events: auto; }
       .dockgroup { display: flex; max-width: 100%; }
 
-      /* shared pill shell: identical height in both states */
-      .collapsed, .rail, .swatch-row, .ask { min-height: var(--ctl-h); max-width: var(--ctl-max);
+      /* ============================================================
+         PILL SYSTEM — every control is a pill of EXACTLY --ctl-h tall,
+         collapsed or expanded. Expanded pills grow horizontally only,
+         scrolling if the options overflow. One shared type scale:
+           label: 10.5px / 700 / uppercase / muted
+           value + options: 13px / 500
+         ============================================================ */
+      .collapsed, .rail, .swatch-row, .ask { height: var(--ctl-h); max-width: var(--ctl-max);
         background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); }
+        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow: hidden; }
 
       /* collapsed pill showing the current selection */
-      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px;
-        color: var(--ink); font-size: 13.5px; font-weight: 500; }
+      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 16px;
+        color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer; }
       .collapsed:hover { border-color: var(--ink); }
       .collapsed .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; }
-      .collapsed .c-val { font-weight: 600; font-size: 13.5px; }
-      .collapsed .c-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16); }
-      .collapsed .c-caret { color: var(--faint); font-size: 12px; margin-left: 2px; }
-      .collapsed.chat { max-width: var(--ctl-max); }
+      .collapsed .c-val { font-weight: 600; font-size: 13px; white-space: nowrap; }
+      .collapsed .c-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16); flex: 0 0 auto; }
+      .collapsed .c-caret { color: var(--faint); font-size: 11px; margin-left: 1px; }
       .collapsed.chat .c-ic { color: var(--accent); font-size: 13px; flex: 0 0 auto; }
       .collapsed.chat .c-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 500; }
 
-      /* the leading label inside an expanded row that collapses it back */
-      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent;
-        color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
-        padding: 6px 10px 6px 6px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+      /* the leading label inside an expanded pill that collapses it back —
+         same typography as the collapsed label so the states line up */
+      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; border: 0; background: transparent;
+        color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
+        padding: 0 8px 0 16px; height: 100%; cursor: pointer; white-space: nowrap; }
       .dock-label:hover { color: var(--ink); }
 
-      /* expanded option rows scroll horizontally if they overflow, and the
-         leading label stays pinned so it's always tappable */
-      .rail { display: flex; gap: 4px; align-items: center; padding: 0 10px 0 8px; overflow-x: auto; scrollbar-width: none; }
+      /* expanded pill: label + options in one fixed-height row */
+      .rail { display: inline-flex; gap: 3px; align-items: center; padding: 0 12px 0 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
       .rail::-webkit-scrollbar { display: none; }
-      .rail button { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted); padding: 9px 14px; border-radius: 999px; font-weight: 500; font-size: 13.5px; white-space: nowrap; }
-      .rail button:hover { color: var(--ink); background: #f2f0ec; }
-      .rail button.sel { background: var(--ink); color: #fff; }
+      .rail > button:not(.dock-label) { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted);
+        padding: 8px 13px; border-radius: 999px; font-weight: 500; font-size: 13px; white-space: nowrap; cursor: pointer; }
+      .rail > button:not(.dock-label):hover { color: var(--ink); background: #f2f0ec; }
+      .rail > button:not(.dock-label).sel { background: var(--ink); color: #fff; }
 
-      .swatch-row { display: flex; gap: 8px; align-items: center; padding: 0 14px 0 8px; overflow-x: auto; scrollbar-width: none; }
+      .swatch-row { display: inline-flex; gap: 8px; align-items: center; padding: 0 16px 0 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
       .swatch-row::-webkit-scrollbar { display: none; }
-      .sw { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
-      .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
+      .sw { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
+      .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
 
       /* actions */
       .acts { position: absolute; right: 26px; top: 74px; display: flex; flex-direction: column; gap: 8px; }
 
-      /* left-side menu behind a gear toggle */
-      .menu { position: absolute; top: 70px; left: 26px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-      .gear { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,0.9);
-        -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--ink); font-size: 16px; box-shadow: var(--shadow); cursor: pointer; }
-      .gear:hover { border-color: var(--ink); }
-      /* the settings menus use the same collapsed/expanded pill language as the
-         bottom dock: a pill showing the current value that grows horizontally */
-      .menu-stack { max-width: var(--ctl-max); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+      /* left-side controls — a column of pills, same language as the dock */
+      .menu-stack { position: absolute; top: 70px; left: 26px; max-width: var(--ctl-max);
+        display: flex; flex-direction: column; align-items: flex-start; gap: 10px; pointer-events: none; }
+      .menu-stack > * { pointer-events: auto; }
 
-      /* compact slider that fits inside an expanded pill row */
-      .psl { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 0 10px; }
-      .psl span { font-size: 8.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
-      .psl input[type=range] { width: 82px; accent-color: var(--ink); margin: 0; height: 16px; }
+      /* compact labelled slider that fits the fixed pill height */
+      .psl { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; }
+      .psl span { font-size: 11px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+      .psl input[type=range] { width: 74px; accent-color: var(--ink); margin: 0; height: 14px; }
       .rail-action { flex: 0 0 auto; border: 0; background: var(--ink); color: #fff; border-radius: 999px;
-        padding: 9px 16px; font-weight: 600; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+        padding: 8px 15px; font-weight: 600; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
       .rail-action:hover { background: #000; }
+      /* inline metric pair inside an expanded pill */
+      .pm { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 5px; padding: 0 5px; white-space: nowrap;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+      .pm i { font-style: normal; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+      .pm b { font-weight: 600; font-size: 11.5px; color: var(--ink); }
       .panel { background: rgba(255,255,255,0.92); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
         border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
       .panel-head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: transparent; border: 0; cursor: pointer;
@@ -174,6 +181,7 @@
         .pill { padding: 9px 15px; font-size: 13px; }
         :root { --ctl-max: calc(100vw - 32px); --ctl-h: 46px; }
         .dock { left: 16px; bottom: 16px; }
+        .menu-stack { top: 58px; left: 16px; }
       }
       .acts button { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--shadow); font-size: 16px; }
       .acts button:hover { border-color: var(--ink); }
