@@ -36,80 +36,112 @@
 
       /* top bar */
       .topbar { position: absolute; top: 22px; left: 26px; right: 26px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-      .brand { display: flex; flex-direction: column; line-height: 1.05; }
+      /* frosted chip behind the logo — always legible no matter what the
+         fabric behind it looks like */
+      .brand { display: flex; flex-direction: column; line-height: 1.05;
+        background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px 9px; box-shadow: var(--shadow); }
       .brand .k { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--accent); }
-      .brand .t { font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+      .brand .t { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); margin-top: 3px; }
       .pill { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 20px; border-radius: 999px; font-weight: 500; font-size: 14px; letter-spacing: .01em; }
       .pill:hover { background: rgba(0,0,0,.05); }
       .pill.accent { background: var(--ink); border-color: var(--ink); color: #fff; }
       .pill.accent:hover { background: #000; }
 
-      /* bottom-left dock — chat, colors and fabric each collapse to their
-         current selection (a pill) and expand to a scrollable pill of options */
-      /* every dock control — collapsed or expanded — is exactly this tall */
+      /* THE menu — one bottom-left dock holding every control. The Menu pill
+         at the bottom reveals the stack above it; items slide up and fade in
+         with a slight stagger (bottom-most first), and reverse on close. */
       .dock { position: absolute; left: 26px; bottom: 20px; display: flex; flex-direction: column;
         align-items: flex-start; gap: 10px; max-width: var(--ctl-max); pointer-events: none; }
       .dock > * { pointer-events: auto; }
-      .dockgroup { display: flex; max-width: 100%; }
+      .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; max-width: 100%; }
+      .stack > * { opacity: 0; transform: translateY(14px) scale(.97); visibility: hidden; pointer-events: none;
+        transition: opacity .26s ease, transform .26s ease, visibility 0s linear .3s; }
+      .dock.open .stack > * { opacity: 1; transform: none; visibility: visible; pointer-events: auto;
+        transition: opacity .34s cubic-bezier(.2,.7,.3,1), transform .34s cubic-bezier(.2,.7,.3,1); }
+      .dock.open .stack > *:nth-last-child(1) { transition-delay: .02s; }
+      .dock.open .stack > *:nth-last-child(2) { transition-delay: .06s; }
+      .dock.open .stack > *:nth-last-child(3) { transition-delay: .10s; }
+      .dock.open .stack > *:nth-last-child(4) { transition-delay: .14s; }
+      .dock.open .stack > *:nth-last-child(5) { transition-delay: .18s; }
+      .dock.open .stack > *:nth-last-child(6) { transition-delay: .22s; }
+      .dock.open .stack > *:nth-last-child(7) { transition-delay: .26s; }
+      .dock.open .stack > *:nth-last-child(8) { transition-delay: .30s; }
+      .menu-toggle { cursor: pointer; gap: 9px; }
+      .menu-toggle .c-lab { color: var(--ink); }
+      .menu-toggle.open .tog { transform: rotate(45deg); }
 
       /* ============================================================
-         PILL SYSTEM — every control is a pill of EXACTLY --ctl-h tall,
-         collapsed or expanded. Expanded pills grow horizontally only,
-         scrolling if the options overflow. One shared type scale:
-           label: 10.5px / 700 / uppercase / muted
-           value + options: 13px / 500
+         ANIMATED PILL SYSTEM — one shell (.pillmenu) whose collapsed
+         value and expanded options are BOTH mounted; a CSS grid
+         0fr↔1fr tween slides between them so every open/close is a
+         smooth horizontal morph. The + toggle rotates 45° into an ×.
          ============================================================ */
-      .collapsed, .rail, .swatch-row, .ask { height: var(--ctl-h); max-width: var(--ctl-max);
+      .pillmenu { display: inline-flex; align-items: center; height: var(--ctl-h); max-width: var(--ctl-max);
         background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow: hidden; }
-
-      /* the ONE expand/collapse affordance: a circled + / − that always sits
-         at the left edge of the pill, in both states */
+        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
+        padding: 0 14px 0 12px; transition: border-color .2s ease; }
+      .pillmenu:hover { border-color: var(--ink); }
+      .pillmenu .ph { display: inline-flex; align-items: center; gap: 9px; height: 100%; border: 0;
+        background: transparent; cursor: pointer; padding: 0; flex: 0 0 auto; }
       .tog { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line);
         background: #fff; color: var(--muted); display: inline-grid; place-items: center;
-        font-size: 15px; font-weight: 500; line-height: 1; }
-      .collapsed:hover .tog, .dock-label:hover .tog { border-color: var(--ink); color: var(--ink); }
-      button.tog-btn { cursor: pointer; padding: 0; }
-      button.tog-btn:hover { border-color: var(--ink); color: var(--ink); }
+        font-size: 15px; font-weight: 500; line-height: 1;
+        transition: transform .32s cubic-bezier(.4,0,.2,1), border-color .15s, color .15s; }
+      .pillmenu.open .tog { transform: rotate(45deg); border-color: var(--ink); color: var(--ink); }
+      .pillmenu .ph:hover .tog { border-color: var(--ink); color: var(--ink); }
+      .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase;
+        font-weight: 700; white-space: nowrap; }
 
-      /* collapsed pill showing the current selection */
-      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 12px;
-        color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer; }
-      .collapsed:hover { border-color: var(--ink); }
-      .collapsed .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; }
-      .collapsed .c-val { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .collapsed .c-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16); flex: 0 0 auto; }
-      .collapsed .c-caret { color: var(--faint); font-size: 11px; margin-left: 1px; }
-      .collapsed.chat .c-ic { color: var(--accent); font-size: 13px; flex: 0 0 auto; }
-      .collapsed.chat .c-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 500; }
+      /* the sliding regions */
+      .grow { display: grid; min-width: 0; height: 100%;
+        transition: grid-template-columns .38s cubic-bezier(.4,0,.2,1); }
+      .grow .gin { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; display: flex; align-items: center;
+        gap: 6px; min-width: 0; height: 100%; white-space: nowrap;
+        transition: opacity .22s ease; }
+      .grow .gin::-webkit-scrollbar { display: none; }
+      .gval { grid-template-columns: 1fr; }
+      .gopts { grid-template-columns: 0fr; }
+      .pillmenu.open .gval { grid-template-columns: 0fr; }
+      .pillmenu.open .gopts { grid-template-columns: 1fr; }
+      .gval .gin { opacity: 1; padding-left: 10px; }
+      .pillmenu.open .gval .gin { opacity: 0; padding-left: 0; }
+      .gopts .gin { opacity: 0; padding-left: 8px; }
+      .pillmenu.open .gopts .gin { opacity: 1; transition-delay: .12s; }
 
-      /* the leading label inside an expanded pill that collapses it back —
-         same typography as the collapsed label so the states line up */
-      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent;
-        color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
-        padding: 0 8px 0 12px; height: 100%; cursor: pointer; white-space: nowrap; }
-      .dock-label:hover { color: var(--ink); }
+      /* current-value chip — animates in whenever the selection changes */
+      .c-val { font-weight: 600; font-size: 13px; white-space: nowrap; color: var(--ink);
+        animation: valin .3s cubic-bezier(.2,.7,.3,1); }
+      .c-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16);
+        flex: 0 0 auto; animation: valin .3s cubic-bezier(.2,.7,.3,1); }
+      @keyframes valin { from { opacity: 0; transform: translateY(6px) scale(.9); } }
 
-      /* expanded pill: label + options in one fixed-height row */
-      .rail { display: inline-flex; gap: 3px; align-items: center; padding: 0 12px 0 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-      .rail::-webkit-scrollbar { display: none; }
-      .rail > button:not(.dock-label) { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted);
-        padding: 8px 13px; border-radius: 999px; font-weight: 500; font-size: 13px; white-space: nowrap; cursor: pointer; }
-      .rail > button:not(.dock-label):hover { color: var(--ink); background: #f2f0ec; }
-      .rail > button:not(.dock-label).sel { background: var(--ink); color: #fff; }
+      /* option buttons inside an expanded pill — selection animates */
+      .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn) { flex: 0 0 auto; border: 0;
+        background: transparent; color: var(--muted); padding: 8px 13px; border-radius: 999px;
+        font-weight: 500; font-size: 13px; white-space: nowrap; cursor: pointer;
+        transition: background-color .25s ease, color .25s ease, transform .15s ease; }
+      .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn):hover { color: var(--ink); background: #f2f0ec; }
+      .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn).sel { background: var(--ink); color: #fff; }
+      .gopts .gin > button:not(.sw):active { transform: scale(.95); }
 
-      .swatch-row { display: inline-flex; gap: 8px; align-items: center; padding: 0 16px 0 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
-      .swatch-row::-webkit-scrollbar { display: none; }
-      .sw { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
+      .sw { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
+        padding: 0; cursor: pointer; transition: box-shadow .22s ease, transform .15s ease; }
+      .sw:hover { transform: scale(1.12); }
       .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
+
+      /* chat pill specifics */
+      .chatpill .c-ic { color: var(--accent); font-size: 13px; }
+      .chatpill .c-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);
+        font-weight: 500; font-size: 13px; max-width: min(380px, 60vw); }
+      .chatpill.open { width: 100%; }
+      .askin { display: flex; align-items: center; gap: 8px; flex: 1; min-width: min(420px, calc(100vw - 150px)); }
+      .askin input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); min-width: 0; }
+      .askin input::placeholder { color: var(--faint); }
+      .chatpill .gopts.grow { flex: 1; }
 
       /* actions */
       .acts { position: absolute; right: 26px; top: 74px; display: flex; flex-direction: column; gap: 8px; }
-
-      /* left-side controls — a column of pills, same language as the dock */
-      .menu-stack { position: absolute; top: 70px; left: 26px; max-width: var(--ctl-max);
-        display: flex; flex-direction: column; align-items: flex-start; gap: 10px; pointer-events: none; }
-      .menu-stack > * { pointer-events: auto; }
 
       /* compact labelled slider that fits the fixed pill height */
       .psl { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; }
@@ -190,7 +222,8 @@
         .pill { padding: 9px 15px; font-size: 13px; }
         :root { --ctl-max: calc(100vw - 32px); --ctl-h: 46px; }
         .dock { left: 16px; bottom: 16px; }
-        .menu-stack { top: 58px; left: 16px; }
+        .chatpill .c-txt { max-width: 48vw; }
+        .askin { min-width: calc(100vw - 140px); }
       }
       .acts button { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--shadow); font-size: 16px; }
       .acts button:hover { border-color: var(--ink); }
@@ -251,10 +284,11 @@
       .match h4 { margin: 5px 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
       .match .why { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; line-height: 1.5; }
 
-      /* conversation — ambient bubbles anchored bottom-left */
-      .convo { display: flex; flex-direction: column; gap: 10px; }
-      .convo.open { width: var(--ctl-max); pointer-events: none; } /* drags fall through the stream */
-      .convo.open .ask, .convo.open .chips, .convo.open .chip2, .convo.open .prodcard { pointer-events: auto; }
+      /* conversation — the stream floats above the chat pill when open */
+      .convo { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; max-width: 100%; }
+      .convo.open { width: var(--ctl-max); }
+      .convo .stream, .convo .chips { pointer-events: none; } /* drags fall through */
+      .convo .chip2, .convo .prodcard { pointer-events: auto; }
       .stream { display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 9px; max-height: 40vh; overflow: hidden; pointer-events: none; }
       .msg { max-width: 80%; font-size: 14.5px; line-height: 1.5; padding: 11px 15px; border-radius: 18px; display: flex; flex-direction: column; gap: 9px;
         animation: rise .32s ease both; }
@@ -274,9 +308,6 @@
       .prodcard:hover { border-color: var(--ink); }
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .ask { pointer-events: auto; display: flex; align-items: center; gap: 9px; width: var(--ctl-max); padding: 0 6px 0 12px; }
-      .ask input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); }
-      .ask input::placeholder { color: var(--faint); }
       .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
       .askbtn:hover { background: #000; }
       .restart { pointer-events: auto; align-self: center; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
