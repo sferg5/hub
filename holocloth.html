@@ -17,6 +17,10 @@
         --shadow: 0 6px 30px rgba(0,0,0,0.09);
         --dock-w: min(440px, calc(100vw - 24px));
         --dock-bg: rgba(255,255,255,0.92);
+        /* every bottom-dock control shares this height and max width so the
+           collapsed and expanded states are exactly the same size */
+        --ctl-h: 48px;
+        --ctl-max: min(600px, calc(100vw - 52px));
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
@@ -42,40 +46,44 @@
 
       /* bottom-left dock — chat, colors and fabric each collapse to their
          current selection (a pill) and expand to a scrollable pill of options */
+      /* every dock control — collapsed or expanded — is exactly this tall */
       .dock { position: absolute; left: 26px; bottom: 20px; display: flex; flex-direction: column;
-        align-items: flex-start; gap: 10px; max-width: min(460px, calc(100vw - 52px)); pointer-events: none; }
+        align-items: flex-start; gap: 10px; max-width: var(--ctl-max); pointer-events: none; }
       .dock > * { pointer-events: auto; }
       .dockgroup { display: flex; max-width: 100%; }
 
+      /* shared pill shell: identical height in both states */
+      .collapsed, .rail, .swatch-row, .ask { min-height: var(--ctl-h); max-width: var(--ctl-max);
+        background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); }
+
       /* collapsed pill showing the current selection */
-      .collapsed { display: inline-flex; align-items: center; gap: 9px; max-width: min(460px, calc(100vw - 52px));
-        border: 1px solid var(--line); background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border-radius: 999px; padding: 9px 15px; box-shadow: var(--shadow); color: var(--ink); font-size: 13.5px; font-weight: 500; }
+      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px;
+        color: var(--ink); font-size: 13.5px; font-weight: 500; }
       .collapsed:hover { border-color: var(--ink); }
-      .collapsed .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 600; }
-      .collapsed .c-val { font-weight: 600; }
-      .collapsed .c-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16); }
-      .collapsed .c-caret { color: var(--faint); font-size: 11px; margin-left: 1px; }
-      .collapsed.chat { max-width: min(360px, calc(100vw - 52px)); }
-      .collapsed.chat .c-ic { color: var(--accent); font-size: 12px; flex: 0 0 auto; }
+      .collapsed .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; }
+      .collapsed .c-val { font-weight: 600; font-size: 13.5px; }
+      .collapsed .c-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16); }
+      .collapsed .c-caret { color: var(--faint); font-size: 12px; margin-left: 2px; }
+      .collapsed.chat { max-width: var(--ctl-max); }
+      .collapsed.chat .c-ic { color: var(--accent); font-size: 13px; flex: 0 0 auto; }
       .collapsed.chat .c-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-weight: 500; }
 
       /* the leading label inside an expanded row that collapses it back */
-      .dock-label { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted); font-size: 10.5px;
-        font-weight: 700; letter-spacing: .09em; text-transform: uppercase; padding: 6px 8px; border-radius: 999px; cursor: pointer; }
+      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent;
+        color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+        padding: 6px 10px 6px 6px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
       .dock-label:hover { color: var(--ink); }
 
-      .rail { display: flex; gap: 4px; align-items: center; max-width: min(460px, calc(100vw - 52px));
-        padding: 6px 8px; background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow-x: auto; scrollbar-width: none; }
+      /* expanded option rows scroll horizontally if they overflow, and the
+         leading label stays pinned so it's always tappable */
+      .rail { display: flex; gap: 4px; align-items: center; padding: 0 10px 0 8px; overflow-x: auto; scrollbar-width: none; }
       .rail::-webkit-scrollbar { display: none; }
       .rail button { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted); padding: 9px 14px; border-radius: 999px; font-weight: 500; font-size: 13.5px; white-space: nowrap; }
       .rail button:hover { color: var(--ink); background: #f2f0ec; }
       .rail button.sel { background: var(--ink); color: #fff; }
 
-      .swatch-row { display: flex; gap: 8px; align-items: center; max-width: min(460px, calc(100vw - 52px));
-        padding: 8px 12px; background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow-x: auto; scrollbar-width: none; }
+      .swatch-row { display: flex; gap: 8px; align-items: center; padding: 0 14px 0 8px; overflow-x: auto; scrollbar-width: none; }
       .swatch-row::-webkit-scrollbar { display: none; }
       .sw { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
       .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
@@ -95,6 +103,8 @@
         font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
       .panel-head:hover { color: #000; }
       .chev { color: var(--muted); font-size: 15px; font-weight: 400; }
+      .head-right { display: inline-flex; align-items: center; gap: 9px; }
+      .head-val { color: var(--muted); font-size: 11px; font-weight: 500; letter-spacing: 0; text-transform: none; }
       .panel-body { padding: 0 15px 6px; }
       .panel-body .grp { padding: 12px 0; border-top: 1px solid var(--line); }
       .panel-body .grp:first-child { border-top: 0; }
@@ -105,7 +115,18 @@
       .srow { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 8px; margin: 7px 0; }
       .srow span { font-size: 12.5px; color: var(--ink); }
       .srow input[type=range] { width: 100%; accent-color: var(--ink); }
-      .qslider { width: 100%; accent-color: var(--ink); }
+      .qslider { width: 100%; accent-color: var(--ink); display: block; }
+      /* quality tick marks — one per tier, clickable, lowest on the left */
+      .qticks { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 2px; }
+      .qtick { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+        border: 0; background: transparent; padding: 2px 0 0; cursor: pointer; }
+      .qtick .qmark { width: 1px; height: 5px; background: var(--line); }
+      .qtick .qlab { font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); font-weight: 600; white-space: nowrap; }
+      .qtick:first-child { align-items: flex-start; }
+      .qtick:last-child { align-items: flex-end; }
+      .qtick:hover .qlab { color: var(--muted); }
+      .qtick.on .qmark { background: var(--ink); height: 6px; }
+      .qtick.on .qlab { color: var(--ink); }
       .seg { display: flex; flex-wrap: wrap; gap: 6px; }
       .seg button { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 500; cursor: pointer; }
       .seg button:hover { border-color: var(--ink); }
@@ -140,10 +161,8 @@
         .menu-stack { width: min(244px, calc(100vw - 32px)); }
         .brand .k { font-size: 14px; }
         .pill { padding: 9px 15px; font-size: 13px; }
-        .dock { left: 16px; bottom: 16px; max-width: calc(100vw - 32px); }
-        .collapsed, .rail, .swatch-row { max-width: calc(100vw - 32px); }
-        .collapsed.chat { max-width: calc(100vw - 32px); }
-        .convo.open, .ask { width: calc(100vw - 32px); }
+        :root { --ctl-max: calc(100vw - 32px); --ctl-h: 46px; }
+        .dock { left: 16px; bottom: 16px; }
       }
       .acts button { border: 1px solid var(--line); background: var(--card); color: var(--ink); width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; box-shadow: var(--shadow); font-size: 16px; }
       .acts button:hover { border-color: var(--ink); }
@@ -206,7 +225,7 @@
 
       /* conversation — ambient bubbles anchored bottom-left */
       .convo { display: flex; flex-direction: column; gap: 10px; }
-      .convo.open { width: min(440px, calc(100vw - 52px)); pointer-events: none; } /* drags fall through the stream */
+      .convo.open { width: var(--ctl-max); pointer-events: none; } /* drags fall through the stream */
       .convo.open .ask, .convo.open .chips, .convo.open .chip2, .convo.open .prodcard { pointer-events: auto; }
       .stream { display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 9px; max-height: 40vh; overflow: hidden; pointer-events: none; }
       .msg { max-width: 80%; font-size: 14.5px; line-height: 1.5; padding: 11px 15px; border-radius: 18px; display: flex; flex-direction: column; gap: 9px;
@@ -227,10 +246,11 @@
       .prodcard:hover { border-color: var(--ink); }
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .ask { pointer-events: auto; display: flex; align-items: center; gap: 8px; width: min(440px, calc(100vw - 52px)); background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; padding: 5px 5px 5px 10px; box-shadow: var(--shadow); }
-      .ask-collapse { border: 0; background: transparent; color: var(--faint); font-size: 14px; line-height: 1; cursor: pointer; flex: 0 0 auto; padding: 4px 4px; }
-      .ask-collapse:hover { color: var(--ink); }
+      .ask { pointer-events: auto; display: flex; align-items: center; gap: 8px; width: var(--ctl-max); padding: 5px 5px 5px 6px; }
+      /* clear, tappable close control — same size as the send button */
+      .ask-collapse { border: 1px solid var(--line); background: #fff; color: var(--muted); width: 34px; height: 34px;
+        border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex: 0 0 auto; display: grid; place-items: center; }
+      .ask-collapse:hover { border-color: var(--ink); color: var(--ink); }
       .ask input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); }
       .ask input::placeholder { color: var(--faint); }
       .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
