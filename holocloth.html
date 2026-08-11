@@ -36,13 +36,15 @@
 
       /* top bar */
       .topbar { position: absolute; top: 22px; left: 26px; right: 26px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-      /* frosted chip behind the logo — always legible no matter what the
-         fabric behind it looks like */
-      .brand { display: flex; flex-direction: column; line-height: 1.05;
-        background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 14px; padding: 10px 16px 9px; box-shadow: var(--shadow); }
-      .brand .k { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--accent); }
-      .brand .t { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); margin-top: 3px; }
+      /* logo blends with whatever is behind it: difference against light
+         fabric renders dark, against dark fabric renders light — always
+         high contrast, no card needed. It sits OUTSIDE .ui (which is a
+         stacking context) so the blend reaches the WebGL canvas. */
+      .brand { position: fixed; top: 22px; left: 26px; z-index: 3; display: flex; flex-direction: column;
+        line-height: 1.05; mix-blend-mode: difference; pointer-events: none; }
+      .brand .k { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+      .brand .t { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #fff; margin-top: 3px; opacity: .85; }
+      .topbar { justify-content: flex-end; }
       .pill { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 20px; border-radius: 999px; font-weight: 500; font-size: 14px; letter-spacing: .01em; }
       .pill:hover { background: rgba(0,0,0,.05); }
       .pill.accent { background: var(--ink); border-color: var(--ink); color: #fff; }
@@ -67,7 +69,7 @@
       .dock.open .stack > *:nth-last-child(6) { transition-delay: .22s; }
       .dock.open .stack > *:nth-last-child(7) { transition-delay: .26s; }
       .dock.open .stack > *:nth-last-child(8) { transition-delay: .30s; }
-      .menu-toggle { cursor: pointer; gap: 9px; }
+      .menu-toggle { cursor: pointer; gap: 10px; }
       .menu-toggle .c-lab { color: var(--ink); }
       .menu-toggle.open .tog { transform: rotate(45deg); }
 
@@ -77,16 +79,18 @@
          0fr↔1fr tween slides between them so every open/close is a
          smooth horizontal morph. The + toggle rotates 45° into an ×.
          ============================================================ */
+      /* shared metrics so every pill lines up: 11px left inset to the icon,
+         10px gap between icon/label/content, 16px right inset */
       .pillmenu { display: inline-flex; align-items: center; height: var(--ctl-h); max-width: var(--ctl-max);
         background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
         border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
-        padding: 0 14px 0 12px; transition: border-color .2s ease; }
+        padding: 0 16px 0 11px; transition: border-color .2s ease; }
       .pillmenu:hover { border-color: var(--ink); }
-      .pillmenu .ph { display: inline-flex; align-items: center; gap: 9px; height: 100%; border: 0;
+      .pillmenu .ph { display: inline-flex; align-items: center; gap: 10px; height: 100%; border: 0;
         background: transparent; cursor: pointer; padding: 0; flex: 0 0 auto; }
-      .tog { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line);
+      .tog { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
         background: #fff; color: var(--muted); display: inline-grid; place-items: center;
-        font-size: 15px; font-weight: 500; line-height: 1;
+        font-size: 16px; font-weight: 400; line-height: 1; box-sizing: border-box; padding: 0 0 1px;
         transition: transform .32s cubic-bezier(.4,0,.2,1), border-color .15s, color .15s; }
       .pillmenu.open .tog { transform: rotate(45deg); border-color: var(--ink); color: var(--ink); }
       .pillmenu .ph:hover .tog { border-color: var(--ink); color: var(--ink); }
@@ -97,7 +101,7 @@
       .grow { display: grid; min-width: 0; height: 100%;
         transition: grid-template-columns .38s cubic-bezier(.4,0,.2,1); }
       .grow .gin { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; display: flex; align-items: center;
-        gap: 6px; min-width: 0; height: 100%; white-space: nowrap;
+        gap: 8px; min-width: 0; height: 100%; white-space: nowrap;
         transition: opacity .22s ease; }
       .grow .gin::-webkit-scrollbar { display: none; }
       .gval { grid-template-columns: 1fr; }
@@ -106,13 +110,13 @@
       .pillmenu.open .gopts { grid-template-columns: 1fr; }
       .gval .gin { opacity: 1; padding-left: 10px; }
       .pillmenu.open .gval .gin { opacity: 0; padding-left: 0; }
-      .gopts .gin { opacity: 0; padding-left: 8px; }
+      .gopts .gin { opacity: 0; padding-left: 10px; }
       .pillmenu.open .gopts .gin { opacity: 1; transition-delay: .12s; }
 
       /* current-value chip — animates in whenever the selection changes */
       .c-val { font-weight: 600; font-size: 13px; white-space: nowrap; color: var(--ink);
         animation: valin .3s cubic-bezier(.2,.7,.3,1); }
-      .c-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16);
+      .c-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16);
         flex: 0 0 auto; animation: valin .3s cubic-bezier(.2,.7,.3,1); }
       @keyframes valin { from { opacity: 0; transform: translateY(6px) scale(.9); } }
 
