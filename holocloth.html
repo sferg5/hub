@@ -16,10 +16,10 @@
         --radius: 12px;
         --shadow: 0 6px 30px rgba(0,0,0,0.09);
         --dock-w: min(440px, calc(100vw - 24px));
-        --dock-bg: rgba(255,255,255,0.92);
+        --dock-bg: rgba(255,255,255,0.55);
         /* every bottom-dock control shares this height and max width so the
            collapsed and expanded states are exactly the same size */
-        --ctl-h: 48px;
+        --ctl-h: 38px;
         --ctl-max: min(600px, calc(100vw - 52px));
       }
       * { box-sizing: border-box; }
@@ -54,9 +54,9 @@
          at the bottom reveals the stack above it; items slide up and fade in
          with a slight stagger (bottom-most first), and reverse on close. */
       .dock { position: absolute; left: 26px; bottom: 20px; display: flex; flex-direction: column;
-        align-items: flex-start; gap: 10px; max-width: var(--ctl-max); pointer-events: none; }
+        align-items: flex-start; gap: 8px; max-width: var(--ctl-max); pointer-events: none; }
       .dock > * { pointer-events: auto; }
-      .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; max-width: 100%; }
+      .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 100%; }
       .stack > * { opacity: 0; transform: translateY(14px) scale(.97); visibility: hidden; pointer-events: none;
         transition: opacity .26s ease, transform .26s ease, visibility 0s linear .3s; }
       .dock.open .stack > * { opacity: 1; transform: none; visibility: visible; pointer-events: auto;
@@ -82,26 +82,26 @@
       /* shared metrics so every pill lines up: 11px left inset to the icon,
          10px gap between icon/label/content, 16px right inset */
       .pillmenu { display: inline-flex; align-items: center; height: var(--ctl-h); max-width: var(--ctl-max);
-        background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
-        padding: 0 16px 0 11px; transition: border-color .2s ease; }
-      .pillmenu:hover { border-color: var(--ink); }
-      .pillmenu .ph { display: inline-flex; align-items: center; gap: 10px; height: 100%; border: 0;
+        background: var(--dock-bg); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.07); border-radius: 999px; box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+        padding: 0 13px 0 8px; transition: border-color .2s ease, background-color .2s ease; }
+      .pillmenu:hover { border-color: rgba(0,0,0,0.25); background: rgba(255,255,255,0.72); }
+      .pillmenu .ph { display: inline-flex; align-items: center; gap: 8px; height: 100%; border: 0;
         background: transparent; cursor: pointer; padding: 0; flex: 0 0 auto; }
-      .tog { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line);
-        background: #fff; color: var(--muted); display: inline-grid; place-items: center;
-        font-size: 16px; font-weight: 400; line-height: 1; box-sizing: border-box; padding: 0 0 1px;
+      .tog { flex: 0 0 auto; width: 21px; height: 21px; border-radius: 50%; border: 1px solid var(--line);
+        background: rgba(255,255,255,0.8); color: var(--muted); display: inline-grid; place-items: center;
+        font-size: 13px; font-weight: 400; line-height: 1; box-sizing: border-box; padding: 0 0 1px;
         transition: transform .32s cubic-bezier(.4,0,.2,1), border-color .15s, color .15s; }
       .pillmenu.open .tog { transform: rotate(45deg); border-color: var(--ink); color: var(--ink); }
       .pillmenu .ph:hover .tog { border-color: var(--ink); color: var(--ink); }
-      .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase;
+      .c-lab { color: var(--muted); font-size: 9px; letter-spacing: .11em; text-transform: uppercase;
         font-weight: 700; white-space: nowrap; }
 
       /* the sliding regions */
       .grow { display: grid; min-width: 0; height: 100%;
         transition: grid-template-columns .38s cubic-bezier(.4,0,.2,1); }
       .grow .gin { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; display: flex; align-items: center;
-        gap: 8px; min-width: 0; height: 100%; white-space: nowrap;
+        gap: 6px; min-width: 0; height: 100%; white-space: nowrap;
         transition: opacity .22s ease; }
       .grow .gin::-webkit-scrollbar { display: none; }
       .gval { grid-template-columns: 1fr; }
@@ -114,33 +114,32 @@
       .pillmenu.open .gopts .gin { opacity: 1; transition-delay: .12s; }
 
       /* current-value chip — animates in whenever the selection changes */
-      .c-val { font-weight: 600; font-size: 13px; white-space: nowrap; color: var(--ink);
+      .c-val { font-weight: 600; font-size: 11.5px; white-space: nowrap; color: var(--ink);
         animation: valin .3s cubic-bezier(.2,.7,.3,1); }
-      .c-dot { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16);
+      .c-dot { width: 15px; height: 15px; border-radius: 50%; border: 1px solid rgba(0,0,0,.16);
         flex: 0 0 auto; animation: valin .3s cubic-bezier(.2,.7,.3,1); }
       @keyframes valin { from { opacity: 0; transform: translateY(6px) scale(.9); } }
 
       /* option buttons inside an expanded pill — selection animates */
       .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn) { flex: 0 0 auto; border: 0;
-        background: transparent; color: var(--muted); padding: 8px 13px; border-radius: 999px;
-        font-weight: 500; font-size: 13px; white-space: nowrap; cursor: pointer;
+        background: transparent; color: var(--muted); padding: 6px 10px; border-radius: 999px;
+        font-weight: 500; font-size: 11.5px; white-space: nowrap; cursor: pointer;
         transition: background-color .25s ease, color .25s ease, transform .15s ease; }
-      .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn):hover { color: var(--ink); background: #f2f0ec; }
+      .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn):hover { color: var(--ink); background: rgba(0,0,0,0.06); }
       .gopts .gin > button:not(.sw):not(.rail-action):not(.askbtn).sel { background: var(--ink); color: #fff; }
       .gopts .gin > button:not(.sw):active { transform: scale(.95); }
 
-      .sw { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
+      .sw { flex: 0 0 auto; width: 19px; height: 19px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
         padding: 0; cursor: pointer; transition: box-shadow .22s ease, transform .15s ease; }
       .sw:hover { transform: scale(1.12); }
       .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
 
       /* chat pill specifics */
-      .chatpill .c-ic { color: var(--accent); font-size: 13px; }
       .chatpill .c-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);
-        font-weight: 500; font-size: 13px; max-width: min(380px, 60vw); }
+        font-weight: 500; font-size: 11.5px; max-width: min(380px, 60vw); }
       .chatpill.open { width: 100%; }
-      .askin { display: flex; align-items: center; gap: 8px; flex: 1; min-width: min(420px, calc(100vw - 150px)); }
-      .askin input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); min-width: 0; }
+      .askin { display: flex; align-items: center; gap: 7px; flex: 1; min-width: min(400px, calc(100vw - 150px)); }
+      .askin input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 12px; color: var(--ink); min-width: 0; }
       .askin input::placeholder { color: var(--faint); }
       .chatpill .gopts.grow { flex: 1; }
 
@@ -148,17 +147,17 @@
       .acts { position: absolute; right: 26px; top: 74px; display: flex; flex-direction: column; gap: 8px; }
 
       /* compact labelled slider that fits the fixed pill height */
-      .psl { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 0 8px; }
-      .psl span { font-size: 11px; color: var(--muted); font-weight: 500; white-space: nowrap; }
-      .psl input[type=range] { width: 74px; accent-color: var(--ink); margin: 0; height: 14px; }
+      .psl { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; }
+      .psl span { font-size: 10px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+      .psl input[type=range] { width: 62px; accent-color: var(--ink); margin: 0; height: 12px; }
       .rail-action { flex: 0 0 auto; border: 0; background: var(--ink); color: #fff; border-radius: 999px;
-        padding: 8px 15px; font-weight: 600; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+        padding: 6px 12px; font-weight: 600; font-size: 11px; white-space: nowrap; cursor: pointer; }
       .rail-action:hover { background: #000; }
       /* inline metric pair inside an expanded pill */
-      .pm { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 5px; padding: 0 5px; white-space: nowrap;
+      .pm { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 4px; padding: 0 4px; white-space: nowrap;
         font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-      .pm i { font-style: normal; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
-      .pm b { font-weight: 600; font-size: 11.5px; color: var(--ink); }
+      .pm i { font-style: normal; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+      .pm b { font-weight: 600; font-size: 10.5px; color: var(--ink); }
       .panel { background: rgba(255,255,255,0.92); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
         border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
       .panel-head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: transparent; border: 0; cursor: pointer;
@@ -224,7 +223,7 @@
         .menu-stack { width: min(244px, calc(100vw - 32px)); }
         .brand .k { font-size: 14px; }
         .pill { padding: 9px 15px; font-size: 13px; }
-        :root { --ctl-max: calc(100vw - 32px); --ctl-h: 46px; }
+        :root { --ctl-max: calc(100vw - 32px); --ctl-h: 36px; }
         .dock { left: 16px; bottom: 16px; }
         .chatpill .c-txt { max-width: 48vw; }
         .askin { min-width: calc(100vw - 140px); }
@@ -312,7 +311,7 @@
       .prodcard:hover { border-color: var(--ink); }
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+      .askbtn { border: 0; background: var(--ink); color: #fff; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
       .askbtn:hover { background: #000; }
       .restart { pointer-events: auto; align-self: center; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
       .restart:hover { color: var(--muted); }
