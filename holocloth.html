@@ -63,8 +63,17 @@
         background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
         border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow: hidden; }
 
+      /* the ONE expand/collapse affordance: a circled + / − that always sits
+         at the left edge of the pill, in both states */
+      .tog { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line);
+        background: #fff; color: var(--muted); display: inline-grid; place-items: center;
+        font-size: 15px; font-weight: 500; line-height: 1; }
+      .collapsed:hover .tog, .dock-label:hover .tog { border-color: var(--ink); color: var(--ink); }
+      button.tog-btn { cursor: pointer; padding: 0; }
+      button.tog-btn:hover { border-color: var(--ink); color: var(--ink); }
+
       /* collapsed pill showing the current selection */
-      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 16px;
+      .collapsed { display: inline-flex; align-items: center; gap: 10px; padding: 0 18px 0 12px;
         color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer; }
       .collapsed:hover { border-color: var(--ink); }
       .collapsed .c-lab { color: var(--muted); font-size: 10.5px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; }
@@ -76,9 +85,9 @@
 
       /* the leading label inside an expanded pill that collapses it back —
          same typography as the collapsed label so the states line up */
-      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; border: 0; background: transparent;
+      .dock-label { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent;
         color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase;
-        padding: 0 8px 0 16px; height: 100%; cursor: pointer; white-space: nowrap; }
+        padding: 0 8px 0 12px; height: 100%; cursor: pointer; white-space: nowrap; }
       .dock-label:hover { color: var(--ink); }
 
       /* expanded pill: label + options in one fixed-height row */
@@ -265,11 +274,7 @@
       .prodcard:hover { border-color: var(--ink); }
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .ask { pointer-events: auto; display: flex; align-items: center; gap: 8px; width: var(--ctl-max); padding: 5px 5px 5px 6px; }
-      /* clear, tappable close control — same size as the send button */
-      .ask-collapse { border: 1px solid var(--line); background: #fff; color: var(--muted); width: 34px; height: 34px;
-        border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex: 0 0 auto; display: grid; place-items: center; }
-      .ask-collapse:hover { border-color: var(--ink); color: var(--ink); }
+      .ask { pointer-events: auto; display: flex; align-items: center; gap: 9px; width: var(--ctl-max); padding: 0 6px 0 12px; }
       .ask input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); }
       .ask input::placeholder { color: var(--faint); }
       .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
