@@ -4419,29 +4419,43 @@ varying float vCavity;
           vec2 wuv = vHoloUv * wts - 0.5;
           vec2 wf = fract(wuv);
           wuv = (floor(wuv) + wf * wf * (3.0 - 2.0 * wf) + 0.5) / wts;
-          // 9-tap gaussian over the wet field — guarantees the wet→dry edge
-          // feathers softly no matter the map resolution or camera zoom
-          float wetF = 0.0;
+          // Wide 17-tap disc blur of the wet field, done here in the shader
+          // (explicit taps — no reliance on canvas filters). Inner ring at 3
+          // texels + outer ring at 8 texels feathers the wet→dry boundary
+          // over a broad organic band at any zoom.
+          float wetF;
           {
-            vec2 wtx = 1.6 / wts;
-            float wsum = 0.0;
-            for (int wx = -1; wx <= 1; wx++) {
-              for (int wy = -1; wy <= 1; wy++) {
-                float ww = (wx == 0 && wy == 0) ? 4.0 : ((wx == 0 || wy == 0) ? 2.0 : 1.0);
-                wetF += ww * texture2D(uWetMap, wuv + vec2(float(wx), float(wy)) * wtx).r;
-                wsum += ww;
-              }
-            }
-            wetF = clamp(wetF / wsum, 0.0, 1.0);
+            vec2 t1 = 3.0 / wts;
+            vec2 t2 = 8.0 / wts;
+            float acc = 4.0 * texture2D(uWetMap, wuv).r;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2( t1.x, 0.0)).r;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(-t1.x, 0.0)).r;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0,  t1.y)).r;
+            acc += 2.0 * texture2D(uWetMap, wuv + vec2(0.0, -t1.y)).r;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x,  t1.y) * 0.707).r;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x,  t1.y) * 0.707).r;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2( t1.x, -t1.y) * 0.707).r;
+            acc += 1.5 * texture2D(uWetMap, wuv + vec2(-t1.x, -t1.y) * 0.707).r;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2( t2.x, 0.0)).r;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(-t2.x, 0.0)).r;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0,  t2.y)).r;
+            acc += 1.0 * texture2D(uWetMap, wuv + vec2(0.0, -t2.y)).r;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x,  t2.y) * 0.707).r;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x,  t2.y) * 0.707).r;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2( t2.x, -t2.y) * 0.707).r;
+            acc += 0.75 * texture2D(uWetMap, wuv + vec2(-t2.x, -t2.y) * 0.707).r;
+            wetF = clamp(acc / 25.0, 0.0, 1.0);
           }
           // near-linear ramp: dampness fades gradually from saturated to dry —
           // no threshold, so there is no contour line for blockiness to form on
-          float absorbed = smoothstep(0.03, 0.85, wetF);
+          float absorbed = smoothstep(0.04, 0.9, wetF);
           vec4 wet = texture2D(uWetMap, wuv);
           float bead = clamp(wet.g, 0.0, 1.0);
-          // absorbed water darkens the fabric and makes it a touch glossier
-          diffuseColor.rgb *= (1.0 - absorbed * 0.55);
-          roughnessFactor *= (1.0 - absorbed * 0.35);
+          // absorbed water darkens the fabric and makes it a touch glossier.
+          // The gloss change is quadratic — specular response is so nonlinear
+          // that a linear roughness shift re-sharpens the boundary visually.
+          diffuseColor.rgb *= (1.0 - absorbed * 0.5);
+          roughnessFactor *= (1.0 - absorbed * absorbed * 0.22);
           // beads are little glossy lenses: very smooth + a bright rim highlight
           roughnessFactor = mix(roughnessFactor, 0.05, bead);
           float bFacing = clamp(abs(dot(normal, normalize(vViewPosition))), 0.0, 1.0);
