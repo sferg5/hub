@@ -96,7 +96,17 @@
       .gear { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,0.9);
         -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: var(--ink); font-size: 16px; box-shadow: var(--shadow); cursor: pointer; }
       .gear:hover { border-color: var(--ink); }
-      .menu-stack { width: 244px; max-height: calc(100vh - 140px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+      /* the settings menus use the same collapsed/expanded pill language as the
+         bottom dock: a pill showing the current value that grows horizontally */
+      .menu-stack { max-width: var(--ctl-max); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+
+      /* compact slider that fits inside an expanded pill row */
+      .psl { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 0 10px; }
+      .psl span { font-size: 8.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+      .psl input[type=range] { width: 82px; accent-color: var(--ink); margin: 0; height: 16px; }
+      .rail-action { flex: 0 0 auto; border: 0; background: var(--ink); color: #fff; border-radius: 999px;
+        padding: 9px 16px; font-weight: 600; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+      .rail-action:hover { background: #000; }
       .panel { background: rgba(255,255,255,0.92); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
         border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
       .panel-head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; background: transparent; border: 0; cursor: pointer;
@@ -133,9 +143,10 @@
       .seg button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
       .menu-action { width: 100%; border: 1px solid var(--ink); background: var(--ink); color: #fff; border-radius: 999px; padding: 9px 14px; font-weight: 600; font-size: 13px; cursor: pointer; }
       .menu-action:hover { background: #000; }
-      .perf { margin-top: 2px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; }
-      .perf .prow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 2px 0; }
-      .perf .prow span { color: var(--muted); }
+      /* metrics read as a horizontal strip of label/value pairs inside the pill */
+      .perf { display: flex; align-items: center; gap: 14px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; padding: 0 6px; }
+      .perf .prow { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; white-space: nowrap; }
+      .perf .prow span { color: var(--faint); font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; }
       .perf .prow b { font-weight: 600; color: var(--ink); }
       .perf .pnote { margin-top: 6px; color: var(--faint); font-size: 10px; }
 
