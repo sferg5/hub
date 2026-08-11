@@ -15,6 +15,8 @@
         --accent: #d31334;
         --radius: 12px;
         --shadow: 0 6px 30px rgba(0,0,0,0.09);
+        --dock-w: min(440px, calc(100vw - 24px));
+        --dock-bg: rgba(255,255,255,0.92);
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
@@ -39,20 +41,22 @@
       .pill.accent:hover { background: #000; }
 
       /* fabric rail */
-      .rail { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; gap: 4px;
-        padding: 5px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
-        max-width: calc(100vw - 24px); flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+      /* bottom dock — fabric rail, swatches and chat input share one pill style */
+      .rail { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); width: var(--dock-w);
+        display: flex; gap: 4px; justify-content: space-between; align-items: center;
+        padding: 6px 10px; background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow-x: auto; scrollbar-width: none; }
       .rail::-webkit-scrollbar { display: none; }
-      .rail button { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted); padding: 9px 15px; border-radius: 999px; font-weight: 500; font-size: 13.5px; white-space: nowrap; }
+      .rail button { flex: 0 0 auto; border: 0; background: transparent; color: var(--muted); padding: 9px 14px; border-radius: 999px; font-weight: 500; font-size: 13.5px; white-space: nowrap; }
       .rail button:hover { color: var(--ink); background: #f2f0ec; }
       .rail button.sel { background: var(--ink); color: #fff; }
 
-      /* color swatches (always available) */
-      .swatch-row { position: absolute; left: 50%; bottom: 68px; transform: translateX(-50%); display: flex; gap: 8px;
-        padding: 7px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
-        max-width: calc(100vw - 24px); overflow-x: auto; scrollbar-width: none; }
+      .swatch-row { position: absolute; left: 50%; bottom: 78px; transform: translateX(-50%); width: var(--dock-w);
+        display: flex; gap: 8px; justify-content: space-between; align-items: center;
+        padding: 9px 14px; background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); overflow-x: auto; scrollbar-width: none; }
       .swatch-row::-webkit-scrollbar { display: none; }
-      .sw { flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
+      .sw { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.14); padding: 0; cursor: pointer; }
       .sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--ink); }
 
       /* actions */
@@ -80,6 +84,7 @@
       .srow { display: grid; grid-template-columns: 74px 1fr; align-items: center; gap: 8px; margin: 7px 0; }
       .srow span { font-size: 12.5px; color: var(--ink); }
       .srow input[type=range] { width: 100%; accent-color: var(--ink); }
+      .qslider { width: 100%; accent-color: var(--ink); }
       .seg { display: flex; flex-wrap: wrap; gap: 6px; }
       .seg button { border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 500; cursor: pointer; }
       .seg button:hover { border-color: var(--ink); }
@@ -112,10 +117,6 @@
         .topbar { top: 14px; left: 16px; right: 16px; }
         .menu { top: 58px; left: 16px; }
         .menu-stack { width: min(244px, calc(100vw - 32px)); }
-        .convo { width: calc(100vw - 20px); bottom: 116px; }
-        .swatch-row, .rail { max-width: calc(100vw - 16px); }
-        .swatch-row { bottom: 66px; }
-        .rail { bottom: 18px; }
         .brand .k { font-size: 14px; }
         .pill { padding: 9px 15px; font-size: 13px; }
       }
@@ -179,8 +180,8 @@
       .match .why { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; line-height: 1.5; }
 
       /* conversation — ambient bubbles floating over the scene */
-      .convo { position: absolute; left: 50%; bottom: 118px; transform: translateX(-50%);
-        width: 540px; max-width: calc(100vw - 36px); display: flex; flex-direction: column; gap: 10px;
+      .convo { position: absolute; left: 50%; bottom: 136px; transform: translateX(-50%);
+        width: var(--dock-w); display: flex; flex-direction: column; gap: 10px;
         pointer-events: none; } /* let drags fall through to the cloth; controls re-enable below */
       .stream { display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; max-height: 44vh; overflow: hidden; }
       .msg { max-width: 80%; font-size: 14.5px; line-height: 1.5; padding: 11px 15px; border-radius: 18px; display: flex; flex-direction: column; gap: 9px;
@@ -201,8 +202,8 @@
       .prodcard:hover { border-color: var(--ink); }
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
-      .ask { pointer-events: auto; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-        border-radius: 999px; padding: 6px 6px 6px 18px; box-shadow: 0 6px 26px rgba(0,0,0,0.12); }
+      .ask { pointer-events: auto; display: flex; align-items: center; gap: 8px; background: var(--dock-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+        border: 1px solid var(--line); border-radius: 999px; padding: 5px 5px 5px 18px; box-shadow: var(--shadow); }
       .ask input { flex: 1; border: 0; background: transparent; outline: none; font: inherit; font-size: 14px; color: var(--ink); }
       .ask input::placeholder { color: var(--faint); }
       .askbtn { border: 0; background: var(--ink); color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 17px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
