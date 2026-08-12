@@ -172,6 +172,14 @@
 
       /* persistent slot — shared controls that exist in BOTH states */
       .ptail { flex: 0 0 auto; display: inline-flex; align-items: center; padding-left: 8px; }
+
+      /* webcam hand cursors — a ring per tracked hand; fills when pinched */
+      .handcur { position: fixed; z-index: 6; width: 30px; height: 30px; margin: -15px 0 0 -15px;
+        border-radius: 50%; border: 2px solid rgba(255,255,255,.92);
+        box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.3);
+        pointer-events: none; display: none;
+        transition: transform .12s ease, background-color .12s ease; }
+      .handcur.pinch { transform: scale(.62); background: rgba(255,255,255,.9); }
       /* right-edge fade ONLY when the row actually overflows (a carousel);
          when the window is wide enough to show everything, no gradient */
       .pillmenu.open .gopts .gin.can-scroll {
