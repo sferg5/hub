@@ -68,14 +68,33 @@
          pill and interactive chips re-enable themselves */
       .dock.open .stack > .convo { pointer-events: none; }
       .dock.open .convo .pillmenu { pointer-events: auto; }
-      .dock.open .stack > *:nth-last-child(1) { transition-delay: .02s; }
-      .dock.open .stack > *:nth-last-child(2) { transition-delay: .06s; }
-      .dock.open .stack > *:nth-last-child(3) { transition-delay: .10s; }
-      .dock.open .stack > *:nth-last-child(4) { transition-delay: .14s; }
-      .dock.open .stack > *:nth-last-child(5) { transition-delay: .18s; }
-      .dock.open .stack > *:nth-last-child(6) { transition-delay: .22s; }
-      .dock.open .stack > *:nth-last-child(7) { transition-delay: .26s; }
-      .dock.open .stack > *:nth-last-child(8) { transition-delay: .30s; }
+      /* OPEN: bottom-most pill first, rippling upward */
+      .dock.open .stack > *:nth-last-child(1)  { transition-delay: .02s; }
+      .dock.open .stack > *:nth-last-child(2)  { transition-delay: .06s; }
+      .dock.open .stack > *:nth-last-child(3)  { transition-delay: .10s; }
+      .dock.open .stack > *:nth-last-child(4)  { transition-delay: .14s; }
+      .dock.open .stack > *:nth-last-child(5)  { transition-delay: .18s; }
+      .dock.open .stack > *:nth-last-child(6)  { transition-delay: .22s; }
+      .dock.open .stack > *:nth-last-child(7)  { transition-delay: .26s; }
+      .dock.open .stack > *:nth-last-child(8)  { transition-delay: .30s; }
+      .dock.open .stack > *:nth-last-child(9)  { transition-delay: .34s; }
+      .dock.open .stack > *:nth-last-child(10) { transition-delay: .38s; }
+      .dock.open .stack > *:nth-last-child(11) { transition-delay: .42s; }
+      .dock.open .stack > *:nth-last-child(12) { transition-delay: .46s; }
+      /* CLOSE: reverse — top-most pill first, collapsing down toward Menu
+         (per-property delays: opacity, transform, then visibility AFTER) */
+      .stack > *:nth-child(1)  { transition-delay: 0s, 0s, .27s; }
+      .stack > *:nth-child(2)  { transition-delay: .04s, .04s, .31s; }
+      .stack > *:nth-child(3)  { transition-delay: .08s, .08s, .35s; }
+      .stack > *:nth-child(4)  { transition-delay: .12s, .12s, .39s; }
+      .stack > *:nth-child(5)  { transition-delay: .16s, .16s, .43s; }
+      .stack > *:nth-child(6)  { transition-delay: .20s, .20s, .47s; }
+      .stack > *:nth-child(7)  { transition-delay: .24s, .24s, .51s; }
+      .stack > *:nth-child(8)  { transition-delay: .28s, .28s, .55s; }
+      .stack > *:nth-child(9)  { transition-delay: .32s, .32s, .59s; }
+      .stack > *:nth-child(10) { transition-delay: .36s, .36s, .63s; }
+      .stack > *:nth-child(11) { transition-delay: .40s, .40s, .67s; }
+      .stack > *:nth-child(12) { transition-delay: .44s, .44s, .71s; }
       .menu-toggle { cursor: pointer; gap: 10px; }
       .menu-toggle .c-lab { color: var(--ink); }
       .menu-toggle.open .tog { transform: rotate(45deg); }
@@ -111,14 +130,20 @@
         gap: 6px; min-width: 0; height: 100%; white-space: nowrap;
         transition: opacity .22s ease; }
       .grow .gin::-webkit-scrollbar { display: none; }
+      /* sequential swap: whichever region is APPEARING waits until the other
+         has fully faded, so the pill reads as one element transforming —
+         never two versions of the content overlapping */
       .gval { grid-template-columns: 1fr; }
       .gopts { grid-template-columns: 0fr; }
       .pillmenu.open .gval { grid-template-columns: 0fr; }
       .pillmenu.open .gopts { grid-template-columns: 1fr; }
-      .gval .gin { opacity: 1; padding-left: 10px; }
-      .pillmenu.open .gval .gin { opacity: 0; padding-left: 0; }
-      .gopts .gin { opacity: 0; padding-left: 10px; }
-      .pillmenu.open .gopts .gin { opacity: 1; transition-delay: .12s; }
+      .gval .gin { opacity: 1; padding-left: 10px; transition: opacity .14s ease .16s; }
+      .pillmenu.open .gval .gin { opacity: 0; padding-left: 0; transition: opacity .14s ease; }
+      .gopts .gin { opacity: 0; padding-left: 10px; transition: opacity .14s ease; }
+      .pillmenu.open .gopts .gin { opacity: 1; transition: opacity .14s ease .16s; }
+
+      /* persistent slot — shared controls that exist in BOTH states */
+      .ptail { flex: 0 0 auto; display: inline-flex; align-items: center; padding-left: 8px; }
       /* fade at the right edge hints that the options row scrolls sideways */
       .pillmenu.open .gopts .gin {
         -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
