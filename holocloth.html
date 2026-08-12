@@ -83,20 +83,21 @@
       .dock.open .stack > *:nth-last-child(10) { transition-delay: .38s; }
       .dock.open .stack > *:nth-last-child(11) { transition-delay: .42s; }
       .dock.open .stack > *:nth-last-child(12) { transition-delay: .46s; }
-      /* CLOSE: reverse — top-most pill first, collapsing down toward Menu
+      /* CLOSE: quick, tightly-staggered collapse toward the Menu button —
+         small enough steps that no pill visibly straggles behind the rest
          (per-property delays: opacity, transform, then visibility AFTER) */
       .stack > *:nth-child(1)  { transition-delay: 0s, 0s, .27s; }
-      .stack > *:nth-child(2)  { transition-delay: .04s, .04s, .31s; }
-      .stack > *:nth-child(3)  { transition-delay: .08s, .08s, .35s; }
-      .stack > *:nth-child(4)  { transition-delay: .12s, .12s, .39s; }
-      .stack > *:nth-child(5)  { transition-delay: .16s, .16s, .43s; }
-      .stack > *:nth-child(6)  { transition-delay: .20s, .20s, .47s; }
-      .stack > *:nth-child(7)  { transition-delay: .24s, .24s, .51s; }
-      .stack > *:nth-child(8)  { transition-delay: .28s, .28s, .55s; }
-      .stack > *:nth-child(9)  { transition-delay: .32s, .32s, .59s; }
-      .stack > *:nth-child(10) { transition-delay: .36s, .36s, .63s; }
-      .stack > *:nth-child(11) { transition-delay: .40s, .40s, .67s; }
-      .stack > *:nth-child(12) { transition-delay: .44s, .44s, .71s; }
+      .stack > *:nth-child(2)  { transition-delay: .02s, .02s, .29s; }
+      .stack > *:nth-child(3)  { transition-delay: .04s, .04s, .31s; }
+      .stack > *:nth-child(4)  { transition-delay: .06s, .06s, .33s; }
+      .stack > *:nth-child(5)  { transition-delay: .08s, .08s, .35s; }
+      .stack > *:nth-child(6)  { transition-delay: .10s, .10s, .37s; }
+      .stack > *:nth-child(7)  { transition-delay: .12s, .12s, .39s; }
+      .stack > *:nth-child(8)  { transition-delay: .14s, .14s, .41s; }
+      .stack > *:nth-child(9)  { transition-delay: .16s, .16s, .43s; }
+      .stack > *:nth-child(10) { transition-delay: .18s, .18s, .45s; }
+      .stack > *:nth-child(11) { transition-delay: .20s, .20s, .47s; }
+      .stack > *:nth-child(12) { transition-delay: .22s, .22s, .49s; }
       .menu-toggle { cursor: pointer; gap: 10px; }
       .menu-toggle .c-lab { color: var(--ink); }
       .menu-toggle.open .tog { transform: rotate(45deg); }
@@ -120,8 +121,10 @@
         background: rgba(255,255,255,0.8); color: var(--muted); display: inline-grid; place-items: center;
         font-size: 13px; font-weight: 400; line-height: 1; box-sizing: border-box; padding: 0 0 1px;
         transition: transform .32s cubic-bezier(.4,0,.2,1), border-color .15s, color .15s; }
-      .pillmenu.open .tog { transform: rotate(45deg); border-color: var(--ink); color: var(--ink); }
-      .pillmenu .ph:hover .tog { border-color: var(--ink); color: var(--ink); }
+      /* the toggle keeps its quiet hairline in every state — only the glyph
+         rotates (+ → ×) and darkens slightly; no black ring */
+      .pillmenu.open .tog { transform: rotate(45deg); color: var(--ink); }
+      .pillmenu .ph:hover .tog { color: var(--ink); }
       .c-lab { color: var(--muted); font-size: 9px; letter-spacing: .11em; text-transform: uppercase;
         font-weight: 700; white-space: nowrap; }
 
@@ -240,20 +243,20 @@
       .perf .prow b { font-weight: 600; color: var(--ink); }
       .perf .pnote { margin-top: 6px; color: var(--faint); font-size: 10px; }
 
-      /* in-AR DOM overlay (WebXR) */
-      #ar-overlay { position: fixed; inset: 0; z-index: 20; flex-direction: column; justify-content: space-between;
-        pointer-events: none; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
-      #ar-overlay > * { pointer-events: auto; }
-      .ar-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; }
-      .ar-brand { color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
-      .ar-exit { border: 0; background: rgba(255,255,255,0.92); color: #111; font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 999px; }
-      #ar-overlay .ar-hint { position: absolute; top: 64px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.85); font-size: 13px; text-shadow: 0 1px 6px rgba(0,0,0,.55); pointer-events: none; }
-      .ar-bottom { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 14px 26px; }
-      .ar-rail { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; background: rgba(0,0,0,0.32); padding: 6px; border-radius: 999px; backdrop-filter: blur(8px); }
-      .ar-rail button { border: 0; background: transparent; color: rgba(255,255,255,0.8); font-weight: 600; font-size: 13px; padding: 8px 14px; border-radius: 999px; display: flex; align-items: center; gap: 7px; }
-      .ar-rail button .dot { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
-      .ar-rail button.sel { background: #fff; color: #111; }
-      .ar-poke { border: 0; background: rgba(255,255,255,0.92); color: #111; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 999px; }
+      /* in-AR DOM overlay (WebXR) — identical pill language to the main UI.
+         The frosted pills read cleanly over the camera feed. */
+      #ar-overlay { position: fixed; inset: 0; z-index: 20; pointer-events: none;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+      #ar-overlay .ar-topbar { position: absolute; top: 22px; left: 26px; right: 26px;
+        display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
+      #ar-overlay .ar-topbar > * { pointer-events: auto; }
+      .ar-chip { gap: 8px; padding: 0 16px; }
+      #ar-overlay .ar-hint { position: absolute; top: 76px; left: 0; right: 0; text-align: center;
+        color: rgba(255,255,255,0.9); font-size: 12px; text-shadow: 0 1px 6px rgba(0,0,0,.55); pointer-events: none; }
+      /* the dock inside AR behaves exactly like the main one: containers pass
+         through, only pills are interactive */
+      #ar-overlay .dock { pointer-events: none; }
+      #ar-overlay .pill.accent { pointer-events: auto; }
 
       /* mobile-first refinements */
       @media (max-width: 640px) {
