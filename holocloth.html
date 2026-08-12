@@ -180,6 +180,8 @@
         pointer-events: none; display: none;
         transition: transform .12s ease, background-color .12s ease; }
       .handcur.pinch { transform: scale(.62); background: rgba(255,255,255,.9); }
+      /* open-spread hand (four-finger brush): wider dashed ring */
+      .handcur.brush { transform: scale(1.5); border-style: dashed; background: rgba(255,255,255,.12); }
       /* right-edge fade ONLY when the row actually overflows (a carousel);
          when the window is wide enough to show everything, no gradient */
       .pillmenu.open .gopts .gin.can-scroll {
