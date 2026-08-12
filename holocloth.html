@@ -407,6 +407,17 @@
       .prodcard .pn { font-weight: 500; font-size: 13px; }
       .prodcard .pp { font-weight: 600; font-size: 13px; white-space: nowrap; }
       .askbtn { border: 0; background: var(--ink); color: #fff; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; line-height: 1; cursor: pointer; flex: 0 0 auto; }
+      /* voice input toggle — pulses red while listening */
+      .micbtn { border: 1px solid var(--line); background: #fff; color: var(--muted); width: 28px; height: 28px;
+        border-radius: 50%; cursor: pointer; flex: 0 0 auto; display: grid; place-items: center;
+        transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+      .micbtn:hover { border-color: var(--ink); color: var(--ink); }
+      .micbtn.live { background: var(--accent); border-color: var(--accent); color: #fff;
+        animation: micpulse 1.6s ease-in-out infinite; }
+      @keyframes micpulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(211,19,52,.35); }
+        50% { box-shadow: 0 0 0 6px rgba(211,19,52,0); }
+      }
       .askbtn:hover { background: #000; }
       .restart { pointer-events: auto; align-self: center; border: 0; background: transparent; color: var(--faint); font-size: 12px; cursor: pointer; }
       .restart:hover { color: var(--muted); }
