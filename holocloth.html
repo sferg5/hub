@@ -44,8 +44,14 @@
         line-height: 1.05; pointer-events: none; }
       .brand .k { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: #fff; transition: color .45s ease; }
       .brand .t { font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #fff;
-        margin-top: 3px; opacity: .95; transition: color .45s ease; }
+        margin-top: 3px; opacity: .95; transition: color .45s ease; pointer-events: auto; cursor: default;
+        white-space: nowrap; }
       .brand.on-light .k, .brand.on-light .t { color: #141414; }
+      /* FAB[RIC] LAB[ORATORY] — hidden letters slide open from within */
+      .brand .t .x { display: inline-block; max-width: 0; opacity: 0; overflow: hidden;
+        vertical-align: bottom; white-space: nowrap;
+        transition: max-width .5s cubic-bezier(.4,0,.2,1), opacity .3s ease; }
+      .brand.lab-open .t .x { max-width: 9em; opacity: 1; transition: max-width .5s cubic-bezier(.2,.7,.3,1), opacity .35s ease .1s; }
       .topbar { justify-content: flex-end; }
       .pill { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 20px; border-radius: 999px; font-weight: 500; font-size: 14px; letter-spacing: .01em; }
       .pill:hover { background: rgba(0,0,0,.05); }
