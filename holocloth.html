@@ -53,14 +53,21 @@
       /* THE menu — one bottom-left dock holding every control. The Menu pill
          at the bottom reveals the stack above it; items slide up and fade in
          with a slight stagger (bottom-most first), and reverse on close. */
+      /* HIT-TESTING: every container passes pointer events through — ONLY the
+         pill shapes themselves are interactive, so the fabric can be grabbed
+         right between and around the menu rows. */
       .dock { position: absolute; left: 26px; bottom: 20px; display: flex; flex-direction: column;
         align-items: flex-start; gap: 8px; max-width: var(--ctl-max); pointer-events: none; }
-      .dock > * { pointer-events: auto; }
-      .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 100%; }
+      .dock .menu-toggle { pointer-events: auto; }
+      .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 100%; pointer-events: none; }
       .stack > * { opacity: 0; transform: translateY(14px) scale(.97); visibility: hidden; pointer-events: none;
         transition: opacity .26s ease, transform .26s ease, visibility 0s linear .3s; }
       .dock.open .stack > * { opacity: 1; transform: none; visibility: visible; pointer-events: auto;
         transition: opacity .34s cubic-bezier(.2,.7,.3,1), transform .34s cubic-bezier(.2,.7,.3,1); }
+      /* the convo wrapper is a container, not a control — pass through; its
+         pill and interactive chips re-enable themselves */
+      .dock.open .stack > .convo { pointer-events: none; }
+      .dock.open .convo .pillmenu { pointer-events: auto; }
       .dock.open .stack > *:nth-last-child(1) { transition-delay: .02s; }
       .dock.open .stack > *:nth-last-child(2) { transition-delay: .06s; }
       .dock.open .stack > *:nth-last-child(3) { transition-delay: .10s; }
