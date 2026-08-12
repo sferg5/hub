@@ -20,7 +20,9 @@
         /* every bottom-dock control shares this height and max width so the
            collapsed and expanded states are exactly the same size */
         --ctl-h: 38px;
-        --ctl-max: min(600px, calc(100vw - 52px));
+        /* pills may use the full window width — wide screens show every
+           option; narrow ones become scrollable carousels */
+        --ctl-max: calc(100vw - 52px);
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
@@ -104,6 +106,15 @@
       .stack > *:nth-child(10) { transition-delay: .18s, .18s, .45s; }
       .stack > *:nth-child(11) { transition-delay: .20s, .20s, .47s; }
       .stack > *:nth-child(12) { transition-delay: .22s, .22s, .49s; }
+      /* CHAT FOCUS: while the guide conversation is open, every other pill
+         fades away so the chat has the stage; they fade back on collapse.
+         (declared after the stagger rules so it wins the cascade) */
+      /* :nth-child(n) bumps specificity above the open-stagger delay rules */
+      .dock.chat-focus .stack > *:nth-child(n):not(.convo) { opacity: 0; transform: translateY(10px) scale(.98);
+        visibility: hidden; pointer-events: none;
+        transition: opacity .22s ease, transform .22s ease, visibility 0s linear .24s;
+        transition-delay: 0s, 0s, .24s; }
+
       .menu-toggle { cursor: pointer; gap: 10px; }
       .menu-toggle .c-lab { color: var(--ink); }
       .menu-toggle.open .tog { transform: rotate(45deg); }
@@ -155,10 +166,11 @@
 
       /* persistent slot — shared controls that exist in BOTH states */
       .ptail { flex: 0 0 auto; display: inline-flex; align-items: center; padding-left: 8px; }
-      /* fade at the right edge hints that the options row scrolls sideways */
-      .pillmenu.open .gopts .gin {
-        -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
-        mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+      /* right-edge fade ONLY when the row actually overflows (a carousel);
+         when the window is wide enough to show everything, no gradient */
+      .pillmenu.open .gopts .gin.can-scroll {
+        -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+        mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
       }
 
       /* current-value chip — animates in whenever the selection changes */
