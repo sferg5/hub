@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Data migration — Motion Hub</title>
+<style>
+  :root{--bg:#09090b;--panel:#18181b;--panel2:#141417;--surface:#0d0d0f;--line:#27272a;--line2:#323236;--text:#f4f4f5;--muted:#a1a1aa;--faint:#71717a;--accent:#22c55e;--accent-ink:#052e16;--red:#f87171;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:760px;margin:0 auto;padding:34px 22px 90px}
+  a{color:var(--accent);text-decoration:none}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+  .brand .dot{width:24px;height:24px;border-radius:7px;background:var(--accent);display:grid;place-items:center}
+  .brand .dot svg{width:14px;height:14px}
+  h1{font-size:20px;margin:4px 0 4px}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 22px;max-width:60ch}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:0 0 16px}
+  .card h2{font-size:15px;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+  .card .n{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid #14532d;border-radius:20px;padding:2px 8px}
+  .card p{color:var(--muted);font-size:13px;margin:6px 0 14px;max-width:64ch}
+  .btn{font-family:var(--sans);font-size:13px;padding:9px 14px;border-radius:9px;border:1px solid var(--line2);background:var(--panel);color:var(--text);cursor:pointer}
+  .btn:hover{border-color:var(--faint)}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+  .btn.primary:hover{background:#16a34a}
+  .btn.danger{border-color:#7f1d1d;color:#fca5a5}
+  .btn.danger:hover{background:#1a0f0f}
+  .btn:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label.lab{display:block;font-size:10.5px;color:var(--faint);font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px}
+  input.f,textarea.f{width:100%;font-family:var(--mono);font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;outline:none}
+  input.f:focus,textarea.f:focus{border-color:var(--accent)}
+  textarea.f{min-height:110px;resize:vertical;line-height:1.5}
+  .msg{font-size:12.5px;margin-top:12px;min-height:18px}
+  .msg.ok{color:var(--accent)} .msg.err{color:var(--red)} .msg.info{color:var(--muted)}
+  .summary{font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:10px;white-space:pre-wrap}
+  .endpoint{display:flex;gap:8px;align-items:center;margin:0 0 18px}
+  .endpoint input{max-width:320px}
+  .foot{color:var(--faint);font-size:12px;margin-top:8px}
+  hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="#052e16" stroke-width="2.5" stroke-linecap="round"><path d="M4 12h4l2-6 4 12 2-6h4"/></svg></span><b>Motion Hub</b></div>
+  <h1>Data migration</h1>
+  <p class="sub">Carry your data from the old Google backend to the new one. <b>Back up first</b> while the site is still on Google, switch the backend, then <b>restore</b> here. It all talks to the same <span style="font-family:var(--mono)">/api/data</span> endpoint.</p>
+
+  <div class="endpoint">
+    <div style="flex:1"><label class="lab">Endpoint</label><input id="endpoint" class="f" value="/api/data" spellcheck="false"></div>
+    <button class="btn" id="checkBtn" style="margin-top:22px">Check</button>
+  </div>
+  <div class="summary" id="status">Checking current store…</div>
+
+  <hr>
+
+  <div class="card">
+    <h2><span class="n">1</span> Back up current data</h2>
+    <p>Reads everything at the endpoint above and downloads it as a JSON file. Do this <b>before</b> you switch the backend, so you have a copy of what's in the Google Sheet.</p>
+    <div class="row">
+      <button class="btn primary" id="backupBtn">Download backup</button>
+      <span class="foot">Saves <span style="font-family:var(--mono)">motion-hub-backup-YYYY-MM-DD.json</span></span>
+    </div>
+    <div class="msg" id="backupMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span> Restore into the current store</h2>
+    <p>After the new backend is live, load your backup file (or paste it) and write it into the store. <b>This replaces everything</b> currently at the endpoint.</p>
+    <div class="row" style="margin-bottom:12px">
+      <input type="file" id="fileIn" accept="application/json" style="display:none">
+      <button class="btn" id="chooseBtn">Choose backup file…</button>
+      <span class="foot" id="fileName">or paste JSON below</span>
+    </div>
+    <textarea id="pasteIn" class="f" placeholder='{ "data": { … }, "updatedAt": … }'></textarea>
+    <div class="row" style="margin-top:12px">
+      <button class="btn danger" id="restoreBtn">Restore (overwrite store)</button>
+    </div>
+    <div class="msg" id="restoreMsg"></div>
+  </div>
+
+  <p class="foot">Tip: if you open this page from your computer instead of the live site, set the Endpoint to the full URL, e.g. <span style="font-family:var(--mono)">https://hub-mospec.vercel.app/api/data</span>.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id);};
+  function endpoint(){ return ($("endpoint").value||"/api/data").trim(); }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+  async function fetchJSON(url, opts, cfg){
+    cfg=cfg||{}; var tries=cfg.tries||3, timeout=cfg.timeout||10000, backoff=cfg.backoff||600, last=null;
+    for(var i=0;i<tries;i++){
+      var ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
+      var timer=ctrl?setTimeout(function(){try{ctrl.abort();}catch(e){}},timeout):null;
+      try{
+        var o={}; if(opts){for(var k in opts){if(opts.hasOwnProperty(k))o[k]=opts[k];}} if(ctrl)o.signal=ctrl.signal;
+        var res=await fetch(url,o); if(timer)clearTimeout(timer);
+        var text=await res.text(); var j=null; if(text){try{j=JSON.parse(text);}catch(e){}}
+        if(!res.ok) last=new Error("HTTP "+res.status);
+        else if(j&&j.error) last=new Error(String(j.error));
+        else return {ok:true,status:res.status,json:j,text:text};
+      }catch(e){ if(timer)clearTimeout(timer); last=e; }
+      if(i<tries-1) await sleep(backoff*Math.pow(2,i));
+    }
+    throw (last||new Error("request-failed"));
+  }
+  function summarize(data){
+    if(!data||typeof data!=="object") return "(no data)";
+    var keys=Object.keys(data); if(!keys.length) return "Store is empty.";
+    return keys.map(function(k){ var v=data[k]; var n = Array.isArray(v)?(v.length+" item"+(v.length===1?"":"s")):(v&&typeof v==="object"?(Object.keys(v).length+" fields"):String(v)); return k+"  \u2192  "+n; }).join("\n");
+  }
+  var lastSnapshot=null;
+  async function check(){
+    $("status").textContent="Checking current store…";
+    try{
+      var r=await fetchJSON(endpoint(),{method:"GET",cache:"no-store"},{tries:2,timeout:9000});
+      var snap=r.json||{}; lastSnapshot=snap;
+      $("status").textContent = "Reachable. Current contents:\n"+summarize(snap.data);
+    }catch(e){ lastSnapshot=null; $("status").textContent="Couldn\u2019t reach "+endpoint()+" \u2014 "+(e.message||e)+"\n(Set the endpoint above and click Check.)"; }
+  }
+  function msg(id,txt,cls){ var el=$(id); el.textContent=txt; el.className="msg "+(cls||"info"); }
+
+  $("checkBtn").addEventListener("click", check);
+  $("endpoint").addEventListener("keydown", function(e){ if(e.key==="Enter") check(); });
+
+  $("backupBtn").addEventListener("click", async function(){
+    msg("backupMsg","Reading store\u2026","info");
+    try{
+      var r=await fetchJSON(endpoint(),{method:"GET",cache:"no-store"},{tries:3,timeout:12000});
+      var snap=r.json||{data:{}};
+      var blob=new Blob([JSON.stringify(snap,null,2)],{type:"application/json"});
+      var d=new Date(), iso=d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);
+      var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="motion-hub-backup-"+iso+".json"; a.click(); URL.revokeObjectURL(a.href);
+      msg("backupMsg","\u2713 Backup downloaded. Keep it safe.","ok");
+    }catch(e){ msg("backupMsg","Couldn\u2019t back up: "+(e.message||e),"err"); }
+  });
+
+  $("chooseBtn").addEventListener("click", function(){ $("fileIn").click(); });
+  $("fileIn").addEventListener("change", function(e){
+    var f=e.target.files[0]; if(!f) return; $("fileName").textContent=f.name;
+    var rd=new FileReader(); rd.onload=function(){ $("pasteIn").value=rd.result; msg("restoreMsg","Loaded \u201c"+f.name+"\u201d \u2014 review, then Restore.","info"); }; rd.readAsText(f); e.target.value="";
+  });
+
+  $("restoreBtn").addEventListener("click", async function(){
+    var raw=$("pasteIn").value.trim();
+    if(!raw){ msg("restoreMsg","Choose a file or paste JSON first.","err"); return; }
+    var snap; try{ snap=JSON.parse(raw); }catch(err){ msg("restoreMsg","That isn\u2019t valid JSON.","err"); return; }
+    if(!snap||typeof snap!=="object"||typeof snap.data!=="object"){ msg("restoreMsg","JSON must contain a \u201cdata\u201d object (a full snapshot).","err"); return; }
+    var n=Object.keys(snap.data).length;
+    if(!confirm("Overwrite the store at "+endpoint()+" with this backup ("+n+" key"+(n===1?"":"s")+")? This replaces the current contents.")) return;
+    msg("restoreMsg","Restoring\u2026","info");
+    try{
+      var body={ data:snap.data, updatedAt:snap.updatedAt||Date.now() };
+      var r=await fetchJSON(endpoint(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)},{tries:3,timeout:15000});
+      if(r&&r.ok){ msg("restoreMsg","\u2713 Restored. Reload your hub to confirm.","ok"); check(); }
+      else msg("restoreMsg","Restore did not confirm success.","err");
+    }catch(e){ msg("restoreMsg","Couldn\u2019t restore: "+(e.message||e),"err"); }
+  });
+
+  check();
+})();
+</script>
+</body>
+</html>
