@@ -395,7 +395,10 @@
 
   #stage {
     position: relative;
-    /* height set instantly — animating it reflows the whole document */
+    /* The stage's animated bottom edge is a hard boundary: cards and
+       promos mid-transition are clipped at it, so nothing from the grid
+       ever paints over the sections below. */
+    overflow: hidden;
   }
 
   .card {
@@ -1014,7 +1017,21 @@ function render(animate = true) {
     flip(cap, id + ':cap', s.x + 14, s.y + imgH + 12, s.w - 28, capH, animate);
   }
 
+  // Stage height rides the same clock as the cards, so everything below
+  // the grid (view more, related, footer) tracks the grid's bottom edge
+  // smoothly instead of jumping up over the animation.
+  let startH = prevRects.get('stage')?.h ?? height;
+  if (stage.getAnimations().length) startH = parseFloat(getComputedStyle(stage).height);
+  stage.getAnimations().forEach(a => a.cancel());
   stage.style.height = height + 'px';
+  if (animate && Math.abs(startH - height) > 1) {
+    stage.animate(
+      [{ height: startH + 'px' }, { height: height + 'px' }],
+      { duration: DUR, easing: EASE_CSS }
+    );
+  }
+  prevRects.set('stage', { h: height });
+
   stage.classList.toggle('no-text', textless); // drives caption visibility
 
   const set = currentSet();
