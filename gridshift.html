@@ -247,14 +247,80 @@
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14), 0 1px 4px rgba(0, 0, 0, 0.05);
   }
 
-  .rules {
-    font-size: 11px;
-    color: #8a867f;
-    letter-spacing: 0.01em;
-    margin: 40px 0 10px;
+
+  /* ---------- Terminal rules readout (hover bottom-left) ---------- */
+  .term-zone {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 72px;
+    height: 72px;
+    z-index: 40;
   }
 
-  .rules b { color: var(--ink); font-weight: 600; }
+  .term-zone::before {
+    /* subtle affordance: a tiny prompt glyph in the corner */
+    content: '>_';
+    position: absolute;
+    left: 14px;
+    bottom: 10px;
+    font: 700 11px/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: #b5b0a8;
+    opacity: 0.5;
+    transition: opacity 150ms ease;
+  }
+
+  .term-zone:hover::before { opacity: 0; }
+
+  .term {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    width: 660px;
+    max-width: calc(100vw - 24px);
+    max-height: 78vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2e402e transparent;
+    background: rgba(10, 12, 10, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid #263226;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: opacity 160ms ease, transform 160ms ease, visibility 0s 160ms;
+    pointer-events: none;
+  }
+
+  .term-zone:hover .term {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 160ms ease, transform 160ms ease;
+    pointer-events: auto;
+  }
+
+  .term pre {
+    margin: 0;
+    font: 11px/1.65 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color: #8fdc9a;
+    white-space: pre-wrap;
+  }
+
+  .term pre .dim { color: #4e6b52; }
+  .term pre .hi  { color: #d7f5dc; font-weight: 700; }
+
+  .term pre::after {
+    content: '█';
+    color: #8fdc9a;
+    animation: blink 1.1s steps(1) infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
 
   /* ---------- Page end: view more · related · SEO · footer ---------- */
   .grid-end {
@@ -390,7 +456,7 @@
   .stage-wrap {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 28px 24px 120px; /* clearance for the floating toggle */
+    padding: 48px 24px 120px; /* clearance for the floating toggle */
   }
 
   #stage {
@@ -441,6 +507,8 @@
     position: absolute;
     top: 8px;
     left: 8px;
+    transform-origin: -8px -8px; /* counter-scale pivots on the card corner */
+    will-change: transform;
     font-size: 11px;
     font-weight: 500;
     color: var(--ink);
@@ -454,6 +522,8 @@
     position: absolute;
     top: 8px;
     right: 8px;
+    transform-origin: calc(100% + 8px) -8px; /* pivot on the card corner */
+    will-change: transform;
     font-size: 12px;
     font-weight: 600;
     color: var(--ink);
@@ -681,8 +751,11 @@
 </div>
 
 <div class="stage-wrap">
-  <div class="rules" id="rules"></div>
   <div id="stage" class="stage-noanim"></div>
+</div>
+
+<div class="term-zone">
+  <div class="term"><pre id="termOut"></pre></div>
 </div>
 
 <section class="grid-end">
@@ -779,14 +852,6 @@ const PROMOS = [
   { id: 'promo-d', wall: 'left',  wide: true,  row: { 1: 49, 2: 25, 3: 19, 4: 14 },
     headline: 'Fewer seams, more focus', sub: 'Workouts go smoother in the Wunder Train No Line Tight.', cta: 'Shop Wunder Train No Line' },
 ];
-
-const RULE_TEXT = {
-  1: '<b>1-up</b> · mobile · full-width cards · text on',
-  2: '<b>2-up</b> · mobile · promos on walls · 1px gap',
-  3: '<b>3-up</b> · every other promo double-wide · promos on walls · 1px gap',
-  4: '<b>4-up</b> · every other promo double-wide · promos on walls · 1px gap · text on',
-  6: '<b>6-up</b> · products only · 1px gap · no text',
-};
 
 const stage = document.getElementById('stage');
 let userTier = 1;  // density tier the user picked: 0 large · 1 medium · 2 dense
@@ -950,27 +1015,32 @@ function computeLayout(m, stageWidth) {
    interrupted, the next one starts from the exact mid-flight state. */
 const EASE_CSS = 'cubic-bezier(0.32, 0.72, 0.18, 1)';
 const prevRects = new Map(); // last committed rects per element key
+let scrollDeltaForRender = 0; // how far the anchored scroll will travel this transition
 
-function flip(el, key, x, y, w, h, animate) {
+function flip(el, key, x, y, w, h, animate, lockScale = false) {
   const committed = prevRects.get(key);
   let start = null;
 
   if (animate && committed) {
+    // The scroll jumps instantly by scrollDeltaForRender when the render
+    // commits; starting each element shifted by the same amount keeps it
+    // at the exact viewport position it was last seen at.
     if (el.getAnimations().length) {
       // interrupted mid-flight: resume from the visually current state
       const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
       start = {
-        x: m.m41, y: m.m42,
+        x: m.m41, y: m.m42 + scrollDeltaForRender,
         sx: (committed.w * m.a) / w,
         sy: ((committed.h ?? committed.w) * m.d) / (h ?? w),
       };
     } else {
       start = {
-        x: committed.x, y: committed.y,
+        x: committed.x, y: committed.y + scrollDeltaForRender,
         sx: committed.w / w,
         sy: (committed.h ?? committed.w) / (h ?? w),
       };
     }
+    if (lockScale) { start.sx = 1; start.sy = 1; } // fixed-size text: translate only
     if (Math.abs(start.x - x) < 0.5 && Math.abs(start.y - y) < 0.5 &&
         Math.abs(start.sx - 1) < 0.005 && Math.abs(start.sy - 1) < 0.005) start = null;
   }
@@ -993,15 +1063,93 @@ function render(animate = true) {
   const stageWidth = stage.clientWidth;
   const { slots, height, textless } = computeLayout(mode, stageWidth);
 
-  // Promos — hidden at 6-up they fade in place and keep their last rect,
-  // so returning to 3/4-up they animate back out from where they were
+  // Only elements near the viewport animate; far off-screen ones snap
+  // straight to their new spot. Rapid mode-clicks then only cancel and
+  // restart the ~20 animations you can see, not ~100 across the page.
+  const relTop = -stage.getBoundingClientRect().top;
+  const vTop = relTop - window.innerHeight * 0.5;
+  const vBot = relTop + window.innerHeight * 1.5;
+  const nearView = (y, h) => y < vBot && y + h > vTop;
+
+  // Captions are invisible (or covered by the image wall) in no-text
+  // views — skip animating them when either endpoint is textless.
+  const sourceTextless = stage.classList.contains('no-text');
+
+  // Promos glide like everything else when the move is short enough to
+  // track (same neighborhood — e.g., sliding along a wall). Only when a
+  // reposition would send the tile flying across the screen does it
+  // switch to the crossfade: out at the old spot, up at the new one.
+  const GLIDE_MAX = 600; // px of travel a promo is allowed to physically move
+
   for (const [id, el] of cards) {
     const s = slots.get(id);
-    if (!s) { el.classList.add('hidden-card'); continue; }
+    if (!s) {
+      // Exiting promo: it fades out IN PLACE — in the viewer's frame.
+      // The scroll jumps this transition, so shift the resting spot by
+      // the same delta; otherwise a promo that was off-screen can sweep
+      // into view mid-fade and flash.
+      if (!el.classList.contains('hidden-card')) {
+        el.classList.add('hidden-card');
+        const c = prevRects.get(id);
+        if (c && scrollDeltaForRender) {
+          el.getAnimations().forEach(a => a.cancel());
+          const ny = c.y + scrollDeltaForRender;
+          el.style.transform = `translate(${c.x}px, ${ny}px)`;
+          prevRects.set(id, { ...c, y: ny });
+        }
+      }
+      continue;
+    }
+
+    const wasHidden = el.classList.contains('hidden-card');
     el.classList.remove('hidden-card');
     el.classList.toggle('is-big', !!s.big);
     el.classList.toggle('promo-sm', s.w < 300); // headline-only on small tiles
-    flip(el, id, s.x, s.y, s.w, s.h, animate);
+
+    const committed = prevRects.get(id);
+    // Judge the move in the VIEWER'S frame: the anchored scroll travels
+    // with the transition, so a big document-space move can be a small
+    // on-screen move. Those should glide, exactly like the products do.
+    const moved = committed
+      ? Math.abs(committed.x - s.x) + Math.abs((s.y - committed.y) - scrollDeltaForRender)
+      : 0;
+    const target = `translate(${s.x}px, ${s.y}px)`;
+    const vis = nearView(s.y, s.h) || nearView(s.y - scrollDeltaForRender, s.h) ||
+                (committed && nearView(committed.y, committed.h));
+
+    if (animate && vis && (wasHidden || (committed && moved > GLIDE_MAX))) {
+      // settle-in: grows from 96% around its own center as it fades up
+      const settleFrom = `${target} translate(${s.w * 0.02}px, ${s.h * 0.02}px) scale(0.96)`;
+      el.getAnimations().forEach(a => a.cancel());
+      el.style.width = s.w + 'px';
+      el.style.height = s.h + 'px';
+      el.style.transform = target;
+
+      if (wasHidden) {
+        // re-entering the grid: fade up in place during the move
+        el.animate([
+          { transform: settleFrom, opacity: 0 },
+          { transform: settleFrom, opacity: 0, offset: 0.35, easing: 'ease-out' },
+          { transform: target,     opacity: 1, offset: 0.85 },
+          { transform: target,     opacity: 1 },
+        ], { duration: DUR, easing: 'linear' });
+      } else {
+        // too far to glide: fade out where it was, fade up where it lands
+        // (start shifted by the scroll jump to hold its viewport spot)
+        const start = `translate(${committed.x}px, ${committed.y + scrollDeltaForRender}px) scale(${committed.w / s.w}, ${committed.h / s.h})`;
+        el.animate([
+          { transform: start,      opacity: 1 },
+          { transform: start,      opacity: 0, offset: 0.28 },
+          { transform: settleFrom, opacity: 0, offset: 0.38, easing: 'ease-out' },
+          { transform: target,     opacity: 1, offset: 0.88 },
+          { transform: target,     opacity: 1 },
+        ], { duration: DUR, easing: 'linear' });
+      }
+      prevRects.set(id, { x: s.x, y: s.y, w: s.w, h: s.h });
+    } else {
+      // near enough to track: glide with the grid like any other card
+      flip(el, id, s.x, s.y, s.w, s.h, animate && vis);
+    }
   }
 
   // Products: image layer + caption layer, each FLIPped independently.
@@ -1013,8 +1161,25 @@ function render(animate = true) {
     const capH = Math.max(0, s.h - imgH - 12); // clip caption at the card's bottom edge
     const cap = capEls.get(id);
     cap.classList.toggle('cap-sm', capH > 0 && capH < 62); // tight strip: drop swatches first
-    flip(imgEls.get(id), id, s.x, s.y, s.w, imgH, animate);
-    flip(cap, id + ':cap', s.x + 14, s.y + imgH + 12, s.w - 28, capH, animate);
+    const prev = prevRects.get(id);
+    const vis = nearView(s.y, s.h) || nearView(s.y - scrollDeltaForRender, s.h) ||
+                (prev && nearView(prev.y, prev.h ?? s.h));
+    flip(imgEls.get(id), id, s.x, s.y, s.w, imgH, animate && vis);
+    counterScaleBadges(imgEls.get(id));
+
+    const capAnim = animate && vis && !textless && !sourceTextless;
+    const prevCapW = prevRects.get(id + ':cap')?.w; // capture before flip commits
+    flip(cap, id + ':cap', s.x + 14, s.y + imgH + 12, s.w - 28, capH, capAnim, true); // text never scales
+
+    // The caption box must match the image container's width at every
+    // frame — the text keeps its fixed size, but its box eases between
+    // widths on the same clock as the image above it.
+    if (capAnim && prevCapW != null && Math.abs(prevCapW - (s.w - 28)) > 1) {
+      cap.animate(
+        [{ width: prevCapW + 'px' }, { width: (s.w - 28) + 'px' }],
+        { duration: DUR, easing: EASE_CSS }
+      );
+    }
   }
 
   // Stage height rides the same clock as the cards, so everything below
@@ -1024,7 +1189,10 @@ function render(animate = true) {
   if (stage.getAnimations().length) startH = parseFloat(getComputedStyle(stage).height);
   stage.getAnimations().forEach(a => a.cancel());
   stage.style.height = height + 'px';
-  if (animate && Math.abs(startH - height) > 1) {
+  // Only SHRINKING tweens (the footer rides the grid's bottom edge up).
+  // Growing commits instantly, so the document is already tall enough to
+  // host the anchored scroll jump — otherwise the browser clamps it.
+  if (animate && height < startH - 1) {
     stage.animate(
       [{ height: startH + 'px' }, { height: height + 'px' }],
       { duration: DUR, easing: EASE_CSS }
@@ -1034,11 +1202,129 @@ function render(animate = true) {
 
   stage.classList.toggle('no-text', textless); // drives caption visibility
 
+  updateTerm(stageWidth, textless);
+}
+
+/* ---------- Badge counter-scale ----------
+   The number pill and merch flag sit inside the image layer, which
+   FLIP-scales during transitions. They run the exact inverse scale on
+   the same clock (sampled through the same easing curve), so the pills
+   render at a constant size on every frame, in every mode. */
+function counterScaleBadges(img) {
+  const badges = [...img.children].filter(b => b.classList.contains('num') || b.classList.contains('flag'));
+  badges.forEach(b => b.getAnimations().forEach(a => a.cancel()));
+
+  const anim = img.getAnimations()[0];
+  if (!anim || !badges.length) return;
+  const kfMatch = /scale\(([\d.]+)/.exec(anim.effect.getKeyframes()[0].transform || '');
+  if (!kfMatch) return;
+  const k = parseFloat(kfMatch[1]);
+  if (Math.abs(k - 1) < 0.005) return;
+
+  // sample 1/imageScale(t) through the shared easing so the composition
+  // (image scale × badge scale) stays ~1 at every frame
+  const frames = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map(u => ({
+    offset: u,
+    easing: 'linear',
+    transform: `scale(${(1 / (k + (1 - k) * EASE(u))).toFixed(4)})`,
+  }));
+  badges.forEach(b => b.animate(frames, { duration: DUR }));
+}
+
+/* ---------- Terminal rules readout: live values for the current state ---------- */
+function updateTerm(stageWidth, textless) {
+  const cols = mode;
+  const gap = CONFIG.gap[mode];
+  const cellW = (stageWidth - (cols - 1) * gap) / cols;
+  const imgH = cellW / CONFIG.imgAR;
+  const cellH = cellW / (textless ? CONFIG.imgAR : CONFIG.cardAR);
+  const strip = cellH - imgH - 12;
   const set = currentSet();
-  const snapped = set.indexOf(mode) < userTier;
-  document.getElementById('rules').innerHTML = RULE_TEXT[mode] +
-    (textless && mode !== 6 ? ' · <b>text auto-off (narrow)</b>' : '') +
-    (snapped ? ` · <b style="color:var(--accent)">snapped from ${set[userTier]}-up (width)</b>` : '');
+  const tier = set.indexOf(mode);
+  const device = deviceClass();
+  const r = n => Math.round(n);
+
+  document.getElementById('termOut').innerHTML =
+`<span class="dim">sean@gridshift:~ $</span> <span class="hi">rules --live --verbose</span>
+
+<span class="hi">== CURRENT STATE ==================================================</span>
+mode ${mode}-up · tier ${tier} (${['large', 'medium', 'dense'][tier]}) of ${device} set [${set.join(',')}] · stage ${r(stageWidth)}px
+gap ${gap}px · ${CONFIG.productCount} products + ${PROMOS.length} promos · card ${r(cellW)}×${r(cellH)}px · image ${r(cellW)}×${r(imgH)}px
+text ${textless ? '<span class="hi">OFF</span> <span class="dim">(strip ' + r(strip) + 'px &lt; 40px minimum)</span>' : 'on · strip ' + r(strip) + 'px'}
+
+<span class="hi">== LAYOUT ENGINE ==================================================</span>
+the grid is an occupancy map: N columns (N = mode), unlimited rows.
+  cellW = (stageW − (cols−1)·gap) / cols  →  ${cellW.toFixed(2)}px
+  cellH = cellW / AR                      →  ${cellH.toFixed(2)}px
+two aspect ratios drive everything:
+  card container AR = 0.65151001018 (w/h) while text is visible;
+  image box AR      = 0.83275261324 in EVERY mode — at 6-up (or when
+  text auto-hides) the whole card collapses to the image ratio.
+placement, per relayout:
+  1. promos claim wall cells first: col 0 (left wall) or cols−span
+     (right wall); double-wides span 2 cols × 1 row; rows come from a
+     per-column-count config (each promo lists its row for 1/2/3/4 cols).
+  2. products pour into every remaining cell in strict reading order
+     (1→${CONFIG.productCount}, left→right then top→down), reflowing around promo cells.
+  3. every element gets an absolute rect: x = col·(cellW+gap),
+     y = row·(cellH+gap). stage height = lowest occupied edge.
+
+<span class="hi">== CARD ANATOMY ===================================================</span>
+image: a stage-level layer, background-size cover, center-top crop.
+  z-index 2. card number badge top-right, merch flag top-left.
+text block: separate stage-level layer BEHIND the imagery (z-index 1),
+  positioned 12px below the image edge, inset 14px, width = image − 28px.
+  fixed type scale at all modes: swatches 11px, name 14px/600 (ellipsis),
+  colorway 13px grey + price 13px right-aligned. never scales — ever.
+  strip budget = cardH − imageH − 12. under 62px → swatch row drops;
+  under 40px → text off and the card collapses to image AR.
+promo tile: cover image + bottom scrim (black 50% → 0% at card middle),
+  copy block bottom-left (headline 26px/700, sub 13px, white pill CTA).
+  tiles under 300px wide show the headline only.
+
+<span class="hi">== TRANSITIONS (FLIP, transform-only) =============================</span>
+on every mode change: compute the new layout, WRITE IT INSTANTLY
+(final width/height/translate on every element), then animate each
+visible element FROM its previous rect with a WAAPI keyframe pair:
+  from: translate(prevX, prevY) scale(prevW/newW, prevH/newH)
+  to:   translate(newX, newY) scale(1, 1)
+duration ${DUR}ms · cubic-bezier(0.32, 0.72, 0.18, 1) · origin 0 0.
+because the image box keeps ONE aspect ratio in every mode, that scale
+is uniform → zero distortion, zero per-frame layout/paint (compositor
+only). captions ride the same clock with scale LOCKED at 1; their box
+width tweens between widths so it matches the image above every frame.
+interruptions: read the element's live DOMMatrix and restart the FLIP
+from that exact mid-flight state. perf scoping: only elements within
+−0.5/+1.5 viewport-heights of view animate — the rest snap silently.
+stage height tweens on the same curve; stage overflow:hidden clips any
+mid-flight strays so content below always rides the grid's bottom edge.
+
+<span class="hi">== PROMO CHOREOGRAPHY =============================================</span>
+${mode === 6 ? '<span class="hi">currently hidden</span> — at 6-up promos fade out in place (opacity, 340ms)\nand keep their rect, clipped by the stage edge.' : 'visible · pinned to walls (B + D double-wide) · scrim + copy active.'}
+motion policy is judged in the VIEWER'S frame (element Δ − scroll Δ):
+  ≤ 600px on-screen travel  → glide: normal FLIP with the products.
+  &gt; 600px (or re-entering)  → crossfade: hold at the old rect fading
+  1→0 during 0–28%, teleport invisibly, then fade 0→1 from 38%→88%
+  while settling in from scale 0.96 (origin center). never both.
+
+<span class="hi">== SCROLL ANCHORING ===============================================</span>
+anchor = the product image whose center is nearest the viewport's
+vertical center (ties broken by horizontal centrality; sticky to the
+previous anchor so round trips lock on). the scroll target preserves
+the anchor's viewport offset — but scroll is NEVER animated: it jumps
+instantly and every FLIP start is pre-shifted by that same scrollΔ, so
+all visible motion shares one compositor clock (cannot desync).
+skipped when the grid top is within 100px of the viewport (the hero is
+the reference frame up there — scroll must not move at all).
+
+<span class="hi">== RESPONSIVE SNAP ================================================</span>
+stage ≥ ${CONFIG.minWidth[6]}px allows 6-up · ≥ ${CONFIG.minWidth[4]}px allows 4-up · below ${CONFIG.mobileMax}px the
+set remaps to mobile [1,2,3] (same three tiers: large/medium/dense,
+icons + keyboard 1/2/3 remap with it). narrowing clamps the mode down
+(6→4→3); widening opens back up to the densest the width allows.
+device-boundary crossings keep column continuity (4-up → 3-up). fluid
+resizes inside a mode relayout instantly with no animation.
+`;
 }
 
 /* ---------- Scroll anchoring ----------
@@ -1120,18 +1406,43 @@ function applyModeChange(newMode, stagger) {
   const anchor = pickAnchor();
   const stageTopDoc = stage.getBoundingClientRect().top + window.scrollY;
 
+  // Near the top of the page the viewer's reference is the hero and the
+  // grid's fixed top edge — not a mid-grid card. The grid reflows in
+  // place below them, so the scroll position should not move at all.
+  const nearTop = stageTopDoc - window.scrollY > 100;
+
   mode = newMode;
   updateSeg();
-  render(true, stagger);
 
-  if (!anchor) return;
-  const { slots } = computeLayout(mode, stage.clientWidth);
-  const s = slots.get(anchor.id);
-  if (!s) return;
-  // Anchor tracks the image layer's center — same box pickAnchor measured
-  const imgH = s.w / CONFIG.imgAR;
-  const target = stageTopDoc + s.y + imgH / 2 - window.innerHeight / 2 - anchor.offset;
-  animateScroll(Math.max(0, target), DUR, 0);
+  // Compute the scroll destination BEFORE rendering, so render can judge
+  // motion in the viewer's frame of reference (element move minus scroll
+  // move), not in document coordinates.
+  let target = null;
+  if (!nearTop && anchor) {
+    const { slots, height: newStageH } = computeLayout(mode, stage.clientWidth);
+    const s = slots.get(anchor.id);
+    if (s) {
+      // Anchor tracks the image layer's center — same box pickAnchor measured
+      const imgH = s.w / CONFIG.imgAR;
+      target = stageTopDoc + s.y + imgH / 2 - window.innerHeight / 2 - anchor.offset;
+      // Clamp to the scroll range that will exist once the NEW layout has
+      // landed (doc height with the new stage height), so the jump is
+      // never cut short by a document that's still the old size.
+      const committedH = prevRects.get('stage')?.h ?? stage.offsetHeight;
+      const finalDocH = document.documentElement.scrollHeight - committedH + newStageH;
+      target = Math.max(0, Math.min(target, finalDocH - window.innerHeight));
+    }
+  }
+
+  // The scroll is NOT animated: it jumps instantly, and every FLIP start
+  // is shifted by the same delta (see flip/promo blocks), so on screen
+  // nothing moves except the compositor-driven transforms — one clock,
+  // impossible to desync.
+  if (scrollAnimId) cancelAnimationFrame(scrollAnimId);
+  scrollDeltaForRender = (nearTop || target == null) ? 0 : target - window.scrollY;
+  render(true, stagger);
+  if (scrollDeltaForRender !== 0) window.scrollTo(0, target);
+  scrollDeltaForRender = 0;
 }
 
 /* ---------- Mode sets: desktop vs mobile ----------
