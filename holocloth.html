@@ -505,9 +505,16 @@
          scroll vertically while horizontal drags still grab the cloth. */
       #canvas-host.fcanvas canvas { border-radius: 0; touch-action: pan-y; }
 
-      /* HERO — full-bleed cloth in the wind, no copy */
-      .fhero { height: 165svh; position: relative; }
+      /* HERO — full-bleed cloth in the wind.
+         The runway is only ~480px: the first few hundred pixels of scroll
+         scrub the hero animation, then the property blocks begin. */
+      .fhero { height: calc(100svh + 480px); position: relative; }
       .fstage-hero { width: 100%; height: 100svh; }
+      .fhero-tag { position: absolute; inset: 0; z-index: 5; pointer-events: none;
+        display: grid; place-items: center; padding: 0 24px; }
+      .fhero-tag h1 { margin: 0; text-align: center; color: var(--ink); font-weight: 700;
+        font-size: clamp(30px, 5.4vw, 76px); line-height: 1.04; letter-spacing: -0.035em;
+        text-shadow: 0 1px 30px rgba(255,255,255,0.55), 0 1px 3px rgba(255,255,255,0.7); }
 
       /* each block is tall: the extra height is the scroll runway for its
          demo. Kept tight so the blocks read back-to-back. */
