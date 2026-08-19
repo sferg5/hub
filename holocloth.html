@@ -531,16 +531,43 @@
       .fmetrics dd { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink);
         font-variant-numeric: tabular-nums; text-align: right; }
 
-      /* colorway picker — square chips, matching the squared-off styling */
+      /* colorway picker — circular chips, same language as the pill-menu
+         swatches in the main experience (.sw), scaled up a touch */
       .fsw { margin: 0 0 22px; }
       .fsw-lab { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-        color: var(--faint); margin-bottom: 9px; }
-      .fsw-row { display: flex; flex-wrap: wrap; gap: 7px; }
-      .fsw-dot { width: 24px; height: 24px; padding: 0; cursor: pointer; border-radius: 0;
-        border: 1px solid rgba(0,0,0,0.18); outline-offset: 2px;
+        color: var(--faint); margin-bottom: 10px; }
+      .fsw-row { display: flex; flex-wrap: wrap; gap: 9px; }
+      .fsw-dot { flex: 0 0 auto; width: 22px; height: 22px; padding: 0; cursor: pointer;
+        border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
         transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease; }
-      .fsw-dot:hover { transform: translateY(-2px); }
-      .fsw-dot.on { box-shadow: 0 0 0 1.5px #fff inset, 0 0 0 2px var(--ink); }
+      .fsw-dot:hover { transform: scale(1.12); }
+      .fsw-dot.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
+
+      /* ---- wicking motion-graphics overlay (block 01) ----
+         Fixed and transformed onto the same rect as the shared canvas, so
+         the annotations track the fabric exactly. */
+      .fovl { position: fixed; top: 0; left: 0; z-index: 3; pointer-events: none;
+        will-change: transform; overflow: hidden; }
+      .fovl-in { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 22px; }
+      .fovl-ret { width: min(52%, 340px); aspect-ratio: 1 / 1; overflow: visible; }
+      .fovl-ret .ring { fill: none; stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .fovl-ret .ring.accent { stroke: var(--accent); }
+      .fovl-ret .ln { stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      @keyframes fdraw { to { stroke-dashoffset: 0; } }
+      @keyframes fbreathe { 0%, 100% { opacity: .22; transform: scale(1); }
+        50% { opacity: .6; transform: scale(1.14); } }
+      .fovl-ret .breathe { transform-origin: 50% 50%; transform-box: view-box;
+        animation: fbreathe 2.6s ease-in-out infinite; }
+
+      .fovl-beats { position: relative; width: 100%; height: 56px; }
+      .fovl-beat { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: flex-start; gap: 7px; text-align: center; padding: 0 16px; }
+      .fovl-cap { font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+        color: var(--accent); font-weight: 700; }
+      .fovl-val { font-size: clamp(14px, 1.5vw, 17px); font-weight: 650; color: var(--ink);
+        letter-spacing: -0.01em; }
+      @media (prefers-reduced-motion: reduce) { .fovl-ret .breathe { animation: none; opacity: .4; } }
 
       .fhint { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);
         opacity: 0; transform: translateY(4px); transition: opacity .35s ease, transform .35s ease; }
