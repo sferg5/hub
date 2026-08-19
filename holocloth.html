@@ -500,7 +500,10 @@
          Square corners, edge to edge — no card, no shadow. */
       #canvas-host.fcanvas { position: fixed; inset: auto; top: 0; left: 0; z-index: 2;
         border-radius: 0; overflow: hidden; will-change: transform; background: #f0f0f0; }
-      #canvas-host.fcanvas canvas { border-radius: 0; }
+      /* the base rule sets touch-action:none (good for the full-screen tool,
+         fatal here — it swallows touch scrolling). pan-y lets the page
+         scroll vertically while horizontal drags still grab the cloth. */
+      #canvas-host.fcanvas canvas { border-radius: 0; touch-action: pan-y; }
 
       .fhead { position: relative; z-index: 4; display: flex; align-items: baseline; gap: 14px;
         padding: 26px clamp(20px, 4vw, 56px) 0; }
