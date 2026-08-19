@@ -531,6 +531,17 @@
       .fmetrics dd { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink);
         font-variant-numeric: tabular-nums; text-align: right; }
 
+      /* colorway picker — square chips, matching the squared-off styling */
+      .fsw { margin: 0 0 22px; }
+      .fsw-lab { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+        color: var(--faint); margin-bottom: 9px; }
+      .fsw-row { display: flex; flex-wrap: wrap; gap: 7px; }
+      .fsw-dot { width: 24px; height: 24px; padding: 0; cursor: pointer; border-radius: 0;
+        border: 1px solid rgba(0,0,0,0.18); outline-offset: 2px;
+        transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease; }
+      .fsw-dot:hover { transform: translateY(-2px); }
+      .fsw-dot.on { box-shadow: 0 0 0 1.5px #fff inset, 0 0 0 2px var(--ink); }
+
       .fhint { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);
         opacity: 0; transform: translateY(4px); transition: opacity .35s ease, transform .35s ease; }
       .fhint.on { opacity: 1; transform: none; }
