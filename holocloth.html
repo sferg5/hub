@@ -514,7 +514,10 @@
       .fstage-hero { width: 100%; height: 100svh; }
       /* hero line — flips black/white against whatever colourway is on the
          cloth behind it, sampled from the rendered frame each ~0.26s */
+      /* lives in the overlay layer (a sibling of the canvas), so it paints
+         above the render; the overlay itself is click-through, this is not */
       .fhero-tag { position: absolute; inset: 0; z-index: 5; cursor: pointer;
+        pointer-events: auto;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: 16px; padding: 0 24px; }
       .fhero-tag h1 { margin: 0; text-align: center; font-weight: 700;
@@ -531,9 +534,10 @@
         50% { box-shadow: 0 0 0 6px rgba(211,19,52,0); } }
       @media (prefers-reduced-motion: reduce) { .fmic { animation: none; } }
 
-      /* 620px of lock-on per block: the demo plays through while the
-         container stays put, then hands straight over to the next. */
-      .fblock { height: calc(100svh + 620px); position: relative; }
+      /* 900px of lock-on per block: the demo plays through while the
+         container stays put. The copy occupies the middle ~70% of that,
+         leaving clear fabric-only space either side of every block. */
+      .fblock { height: calc(100svh + 900px); position: relative; }
       /* every section but the last overlaps the one after it, so the
          handoff is instant — no gap where nothing is pinned */
       .fblock:not(:last-child) { margin-bottom: -100svh; }
@@ -572,8 +576,10 @@
       /* ---- wicking motion-graphics overlay (block 01) ----
          Fixed and transformed onto the same rect as the shared canvas, so
          the annotations track the fabric exactly. */
-      .fovl { position: fixed; top: 0; left: 0; z-index: 3; pointer-events: none;
-        will-change: transform; overflow: hidden; }
+      /* sized to the viewport up front so the first frame is correct — the
+         rAF loop then docks it to the active stage */
+      .fovl { position: fixed; top: 0; left: 0; width: 100vw; height: 100svh;
+        z-index: 3; pointer-events: none; will-change: transform; overflow: hidden; }
       .fovl-in { position: absolute; inset: 0; display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 22px; }
       .fovl-ret { width: min(52%, 340px); aspect-ratio: 1 / 1; overflow: visible; }
@@ -639,7 +645,7 @@
         .fstage { order: -1; }
         /* keep the same lock-on maths as desktop — a plain svh height here
            would break the overlap handoff */
-        .fblock { height: calc(100svh + 520px); }
+        .fblock { height: calc(100svh + 760px); }
         .fcopy h2 { font-size: 23px; }
         .fcopy p { margin-bottom: 18px; font-size: 14px; }
         .fmetrics { margin-bottom: 16px; }
