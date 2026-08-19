@@ -637,7 +637,9 @@
         .fcopy { padding: 22px clamp(18px, 5vw, 28px) 0; justify-content: flex-start; }
         .fblock.stage-left .fstage { order: 0; }
         .fstage { order: -1; }
-        .fblock { height: 210svh; }
+        /* keep the same lock-on maths as desktop — a plain svh height here
+           would break the overlap handoff */
+        .fblock { height: calc(100svh + 520px); }
         .fcopy h2 { font-size: 23px; }
         .fcopy p { margin-bottom: 18px; font-size: 14px; }
         .fmetrics { margin-bottom: 16px; }
