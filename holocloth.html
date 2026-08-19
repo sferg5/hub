@@ -496,37 +496,39 @@
       html.blocks-mode, body.blocks-mode { overflow-y: auto; overflow-x: hidden; height: auto; background: #fafafa; }
       .fpage { position: relative; z-index: 1; }
       /* id-strength selector: #canvas-host sets inset:0, which would force
-         the shared canvas to fill the viewport instead of docking */
+         the shared canvas to fill the viewport instead of docking.
+         Square corners, edge to edge — no card, no shadow. */
       #canvas-host.fcanvas { position: fixed; inset: auto; top: 0; left: 0; z-index: 2;
-        border-radius: 20px; overflow: hidden; will-change: transform;
-        box-shadow: 0 18px 60px rgba(0,0,0,0.10); background: #f5f5f5; }
-      #canvas-host.fcanvas canvas { border-radius: 20px; }
+        border-radius: 0; overflow: hidden; will-change: transform; background: #f0f0f0; }
+      #canvas-host.fcanvas canvas { border-radius: 0; }
 
       .fhead { position: relative; z-index: 4; display: flex; align-items: baseline; gap: 14px;
-        padding: 26px clamp(20px, 5vw, 64px) 0; }
+        padding: 26px clamp(20px, 4vw, 56px) 0; }
       .fhead .brand { position: static; }
       .fhead-note { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
 
       /* each block is tall: the extra height is the scroll runway for its demo */
       .fblock { height: 230svh; position: relative; }
-      .fsticky { position: sticky; top: 0; height: 100svh; display: flex; align-items: center;
-        padding: 0 clamp(20px, 5vw, 64px); }
-      .fgrid { width: 100%; max-width: 1240px; margin: 0 auto;
-        display: grid; grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.15fr);
-        gap: clamp(24px, 5vw, 72px); align-items: center; }
-      .fcopy { max-width: 460px; }
+      .fsticky { position: sticky; top: 0; height: 100svh; }
+      /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
+      .fgrid { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr;
+        gap: 0; align-items: stretch; }
+      .fcopy { display: flex; flex-direction: column; justify-content: center;
+        padding: 0 clamp(28px, 5vw, 92px); }
+      .fcopy > * { max-width: 34rem; }
       .feyebrow { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
-        color: var(--accent); font-weight: 700; margin-bottom: 12px; }
-      .fcopy h2 { margin: 0 0 12px; font-size: clamp(26px, 3.4vw, 42px); line-height: 1.1;
-        letter-spacing: -0.025em; color: var(--ink); font-weight: 700; }
-      .fcopy p { margin: 0 0 22px; font-size: 15px; line-height: 1.6; color: var(--muted); max-width: 42ch; }
+        color: var(--faint); font-weight: 600; margin-bottom: 14px; }
+      .fcopy h2 { margin: 0 0 14px; font-size: clamp(26px, 3vw, 40px); line-height: 1.12;
+        letter-spacing: -0.02em; color: var(--ink); font-weight: 700; }
+      .fcopy p { margin: 0 0 26px; font-size: 15px; line-height: 1.6; color: var(--muted); max-width: 40ch; }
 
-      .fmetrics { margin: 0 0 18px; display: flex; flex-direction: column; gap: 1px;
-        background: rgba(0,0,0,0.07); border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; overflow: hidden; }
-      .fmetrics > div { display: flex; align-items: center; justify-content: space-between; gap: 16px;
-        background: #fff; padding: 11px 14px; }
-      .fmetrics dt { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
-      .fmetrics dd { margin: 0; font-size: 13px; font-weight: 650; color: var(--ink);
+      /* hairline rows rather than a card — matches the editorial layout */
+      .fmetrics { margin: 0 0 22px; display: flex; flex-direction: column;
+        border-top: 1px solid rgba(0,0,0,0.12); max-width: 30rem; }
+      .fmetrics > div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+        padding: 11px 0; border-bottom: 1px solid rgba(0,0,0,0.12); }
+      .fmetrics dt { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+      .fmetrics dd { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink);
         font-variant-numeric: tabular-nums; text-align: right; }
 
       .fhint { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);
@@ -537,26 +539,31 @@
       @keyframes fdot { 0%, 100% { box-shadow: 0 0 0 0 rgba(211,19,52,.4); }
         50% { box-shadow: 0 0 0 5px rgba(211,19,52,0); } }
 
-      /* the docking target — all stages are the same size so the shared
-         renderer never resizes while scrolling */
-      .fstage { position: relative; aspect-ratio: 4 / 3; width: 100%; border-radius: 20px;
-        background: linear-gradient(160deg, #f2f2f2, #e8e8e8); }
+      /* the docking target: exactly half the screen, full height, square.
+         Every stage is the same size so the shared renderer never resizes. */
+      .fstage { position: relative; width: 100%; height: 100%; border-radius: 0;
+        background: #f0f0f0; }
       .fstage-idle { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-        font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+        font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+      /* alternate down the page: left, right, left */
+      .fblock.stage-left .fstage { order: -1; }
 
-      .ffoot { position: relative; z-index: 4; text-align: center; padding: 80px 24px 100px; }
-      .ffoot p { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+      .ffoot { position: relative; z-index: 4; padding: 84px clamp(28px, 5vw, 92px) 104px; }
+      .ffoot p { margin: 0 0 14px; font-size: 14px; color: var(--muted); max-width: 46ch; }
       .flink { font-size: 14px; font-weight: 650; color: var(--ink); text-decoration: none;
-        border-bottom: 1px solid rgba(0,0,0,0.2); padding-bottom: 2px; }
+        border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
       .flink:hover { border-color: var(--accent); color: var(--accent); }
 
       @media (max-width: 860px) {
-        .fgrid { grid-template-columns: 1fr; gap: 20px; }
-        .fcopy { max-width: none; order: 2; }
-        .fstage { order: 1; aspect-ratio: 1 / 1; }
+        /* stacked: fabric on top, copy beneath — each still full width */
+        .fgrid { grid-template-columns: 1fr; grid-template-rows: 52svh 1fr; }
+        .fcopy { padding: 22px clamp(18px, 5vw, 28px) 0; justify-content: flex-start; }
+        .fblock.stage-left .fstage { order: 0; }
+        .fstage { order: -1; }
         .fblock { height: 210svh; }
-        .fcopy h2 { font-size: 24px; }
-        .fcopy p { margin-bottom: 16px; }
+        .fcopy h2 { font-size: 23px; }
+        .fcopy p { margin-bottom: 18px; font-size: 14px; }
+        .fmetrics { margin-bottom: 16px; }
       }
     </style>
     <script type="module" crossorigin src="./holocloth.js"></script>
