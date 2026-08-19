@@ -505,13 +505,13 @@
          scroll vertically while horizontal drags still grab the cloth. */
       #canvas-host.fcanvas canvas { border-radius: 0; touch-action: pan-y; }
 
-      .fhead { position: relative; z-index: 4; display: flex; align-items: baseline; gap: 14px;
-        padding: 26px clamp(20px, 4vw, 56px) 0; }
-      .fhead .brand { position: static; }
-      .fhead-note { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+      /* HERO — full-bleed cloth in the wind, no copy */
+      .fhero { height: 165svh; position: relative; }
+      .fstage-hero { width: 100%; height: 100svh; }
 
-      /* each block is tall: the extra height is the scroll runway for its demo */
-      .fblock { height: 230svh; position: relative; }
+      /* each block is tall: the extra height is the scroll runway for its
+         demo. Kept tight so the blocks read back-to-back. */
+      .fblock { height: 150svh; position: relative; }
       .fsticky { position: sticky; top: 0; height: 100svh; }
       /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
       .fgrid { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr;
@@ -534,16 +534,19 @@
       .fmetrics dd { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink);
         font-variant-numeric: tabular-nums; text-align: right; }
 
-      /* colorway picker — circular chips, same language as the pill-menu
-         swatches in the main experience (.sw), scaled up a touch */
-      .fsw { margin: 0 0 22px; }
-      .fsw-lab { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-        color: var(--faint); margin-bottom: 10px; }
-      .fsw-row { display: flex; flex-wrap: wrap; gap: 9px; }
-      .fsw-dot { flex: 0 0 auto; width: 22px; height: 22px; padding: 0; cursor: pointer;
+      /* colorway pill — floats over the blocks, vertical stack. Same
+         language as the main experience: translucent white, blurred,
+         fully-rounded, with circular .sw-style chips inside. */
+      .fswpill { position: fixed; right: clamp(12px, 2vw, 26px); top: 50%; transform: translateY(-50%);
+        z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 9px;
+        padding: 12px 9px; border-radius: 999px;
+        background: rgba(255,255,255,0.55); -webkit-backdrop-filter: blur(14px) saturate(1.1);
+        backdrop-filter: blur(14px) saturate(1.1); border: 1px solid rgba(255,255,255,0.7);
+        box-shadow: 0 6px 26px rgba(0,0,0,0.10); }
+      .fsw-dot { flex: 0 0 auto; width: 20px; height: 20px; padding: 0; cursor: pointer;
         border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
         transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease; }
-      .fsw-dot:hover { transform: scale(1.12); }
+      .fsw-dot:hover { transform: scale(1.14); }
       .fsw-dot.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
 
       /* ---- wicking motion-graphics overlay (block 01) ----
@@ -589,12 +592,12 @@
       /* alternate down the page: left, right, left */
       .fblock.stage-left .fstage { order: -1; }
 
-      .ffoot { position: relative; z-index: 4; padding: 84px clamp(28px, 5vw, 92px) 104px; }
-      .ffoot p { margin: 0 0 14px; font-size: 14px; color: var(--muted); max-width: 46ch; }
-      .flink { font-size: 14px; font-weight: 650; color: var(--ink); text-decoration: none;
-        border-bottom: 1px solid var(--ink); padding-bottom: 2px; }
-      .flink:hover { border-color: var(--accent); color: var(--accent); }
-
+      @media (max-width: 860px) {
+        /* the colorway pill lies down along the bottom on small screens */
+        .fswpill { right: auto; left: 50%; top: auto; bottom: 14px;
+          transform: translateX(-50%); flex-direction: row; padding: 9px 12px;
+          max-width: calc(100vw - 24px); overflow-x: auto; }
+      }
       @media (max-width: 860px) {
         /* stacked: fabric on top, copy beneath — each still full width */
         .fgrid { grid-template-columns: 1fr; grid-template-rows: 52svh 1fr; }
