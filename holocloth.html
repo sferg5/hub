@@ -505,21 +505,38 @@
          scroll vertically while horizontal drags still grab the cloth. */
       #canvas-host.fcanvas canvas { border-radius: 0; touch-action: pan-y; }
 
-      /* HERO — full-bleed cloth in the wind.
-         The runway is only ~480px: the first few hundred pixels of scroll
-         scrub the hero animation, then the property blocks begin. */
-      .fhero { height: calc(100svh + 480px); position: relative; }
+      /* SCROLL LOCK — every section is `viewport + N px`. The sticky child
+         pins for exactly N px (the demo plays while the container is held
+         in view), then the NEXT section pins the instant this one releases:
+         the -100svh margin overlaps the sections so there is no dead scroll
+         between them and the block never drifts out of view mid-demo. */
+      .fhero { height: calc(100svh + 480px); position: relative; margin-bottom: -100svh; }
       .fstage-hero { width: 100%; height: 100svh; }
-      .fhero-tag { position: absolute; inset: 0; z-index: 5; pointer-events: none;
-        display: grid; place-items: center; padding: 0 24px; }
-      .fhero-tag h1 { margin: 0; text-align: center; color: var(--ink); font-weight: 700;
+      /* hero line — flips black/white against whatever colourway is on the
+         cloth behind it, sampled from the rendered frame each ~0.26s */
+      .fhero-tag { position: absolute; inset: 0; z-index: 5; cursor: pointer;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 16px; padding: 0 24px; }
+      .fhero-tag h1 { margin: 0; text-align: center; font-weight: 700;
         font-size: clamp(30px, 5.4vw, 76px); line-height: 1.04; letter-spacing: -0.035em;
-        text-shadow: 0 1px 30px rgba(255,255,255,0.55), 0 1px 3px rgba(255,255,255,0.7); }
+        color: var(--ink); transition: color .5s ease; }
+      .fhero-tag.on-dark h1 { color: #fff; }
+      .fhero-sub { display: inline-flex; align-items: center; gap: 9px; text-align: center;
+        font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+        color: rgba(20,20,20,0.66); transition: color .5s ease; }
+      .fhero-tag.on-dark .fhero-sub { color: rgba(255,255,255,0.82); }
+      .fmic { width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+        animation: fmicpulse 1.7s ease-in-out infinite; flex: 0 0 auto; }
+      @keyframes fmicpulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(211,19,52,.45); }
+        50% { box-shadow: 0 0 0 6px rgba(211,19,52,0); } }
+      @media (prefers-reduced-motion: reduce) { .fmic { animation: none; } }
 
-      /* each block is tall: the extra height is the scroll runway for its
-         demo, plus enough room that one block has fully faded out before
-         the next fades in — no two are ever legible together. */
-      .fblock { height: 215svh; position: relative; }
+      /* 620px of lock-on per block: the demo plays through while the
+         container stays put, then hands straight over to the next. */
+      .fblock { height: calc(100svh + 620px); position: relative; }
+      /* every section but the last overlaps the one after it, so the
+         handoff is instant — no gap where nothing is pinned */
+      .fblock:not(:last-child) { margin-bottom: -100svh; }
       .fsticky { position: sticky; top: 0; height: 100svh; will-change: opacity; }
       .fcopy { will-change: transform; }
       /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
@@ -543,20 +560,14 @@
       .fmetrics dd { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--ink);
         font-variant-numeric: tabular-nums; text-align: right; }
 
-      /* colorway pill — floats over the blocks, vertical stack. Same
-         language as the main experience: translucent white, blurred,
-         fully-rounded, with circular .sw-style chips inside. */
-      .fswpill { position: fixed; right: clamp(12px, 2vw, 26px); top: 50%; transform: translateY(-50%);
-        z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 9px;
-        padding: 12px 9px; border-radius: 999px;
-        background: rgba(255,255,255,0.55); -webkit-backdrop-filter: blur(14px) saturate(1.1);
-        backdrop-filter: blur(14px) saturate(1.1); border: 1px solid rgba(255,255,255,0.7);
-        box-shadow: 0 6px 26px rgba(0,0,0,0.10); }
-      .fsw-dot { flex: 0 0 auto; width: 20px; height: 20px; padding: 0; cursor: pointer;
-        border-radius: 50%; border: 1px solid rgba(0,0,0,0.14);
+      /* colorway row — small circular chips inline in each block's copy,
+         same language as the main experience's .sw swatches */
+      .fsw { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 20px; max-width: 30rem; }
+      .fsw-dot { flex: 0 0 auto; width: 15px; height: 15px; padding: 0; cursor: pointer;
+        border-radius: 50%; border: 1px solid rgba(0,0,0,0.16);
         transition: transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s ease; }
-      .fsw-dot:hover { transform: scale(1.14); }
-      .fsw-dot.on { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ink); }
+      .fsw-dot:hover { transform: scale(1.2); }
+      .fsw-dot.on { box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px var(--ink); }
 
       /* ---- wicking motion-graphics overlay (block 01) ----
          Fixed and transformed onto the same rect as the shared canvas, so
@@ -574,6 +585,25 @@
         50% { opacity: .6; transform: scale(1.14); } }
       .fovl-ret .breathe { transform-origin: 50% 50%; transform-box: view-box;
         animation: fbreathe 2.6s ease-in-out infinite; }
+
+      /* ---- sun flare (block 03) ----
+         screen-blended so it adds light to the render underneath, the way
+         a real lens flare sits on top of the whole frame */
+      .fflare { position: absolute; inset: 0; pointer-events: none;
+        mix-blend-mode: screen; overflow: hidden; }
+      .fflare-core { position: absolute; width: 26%; aspect-ratio: 1;
+        border-radius: 50%; will-change: transform;
+        background: radial-gradient(circle, rgba(255,255,250,0.95) 0%, rgba(255,238,190,0.62) 14%,
+          rgba(255,214,140,0.28) 34%, rgba(255,190,110,0.10) 55%, rgba(255,180,100,0) 72%); }
+      .fflare-streak { position: absolute; width: 116%; height: 2.5px;
+        transform: translate(-50%,-50%);
+        background: linear-gradient(90deg, rgba(255,214,150,0) 0%, rgba(255,226,176,0.34) 26%,
+          rgba(255,248,225,0.72) 50%, rgba(255,226,176,0.34) 74%, rgba(255,214,150,0) 100%);
+        filter: blur(1.5px); }
+      .fflare-ghost { position: absolute; aspect-ratio: 1; border-radius: 50%;
+        transform: translate(-50%,-50%); }
+      .fflare-wash { position: absolute; inset: 0; }
+      @media (prefers-reduced-motion: reduce) { .fflare-streak { filter: none; } }
 
       .fovl-beats { position: relative; width: 100%; height: 56px; }
       .fovl-beat { position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -601,12 +631,6 @@
       /* alternate down the page: left, right, left */
       .fblock.stage-left .fstage { order: -1; }
 
-      @media (max-width: 860px) {
-        /* the colorway pill lies down along the bottom on small screens */
-        .fswpill { right: auto; left: 50%; top: auto; bottom: 14px;
-          transform: translateX(-50%); flex-direction: row; padding: 9px 12px;
-          max-width: calc(100vw - 24px); overflow-x: auto; }
-      }
       @media (max-width: 860px) {
         /* stacked: fabric on top, copy beneath — each still full width */
         .fgrid { grid-template-columns: 1fr; grid-template-rows: 52svh 1fr; }
