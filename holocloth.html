@@ -517,9 +517,11 @@
         text-shadow: 0 1px 30px rgba(255,255,255,0.55), 0 1px 3px rgba(255,255,255,0.7); }
 
       /* each block is tall: the extra height is the scroll runway for its
-         demo. Kept tight so the blocks read back-to-back. */
-      .fblock { height: 150svh; position: relative; }
-      .fsticky { position: sticky; top: 0; height: 100svh; }
+         demo, plus enough room that one block has fully faded out before
+         the next fades in — no two are ever legible together. */
+      .fblock { height: 215svh; position: relative; }
+      .fsticky { position: sticky; top: 0; height: 100svh; will-change: opacity; }
+      .fcopy { will-change: transform; }
       /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
       .fgrid { width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr;
         gap: 0; align-items: stretch; }
