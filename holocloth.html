@@ -5,7 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FABLAB</title>
     <style>
+      /* ---- lululemon Saans ----
+         Two weights ship with the page. The weight RANGES matter: the UI
+         uses 600 and 650 in places, and with only 400/700 available a
+         browser would otherwise synthesise a fake bold. Claiming 600-900
+         for the bold face makes those land on the real bold cut. */
+      @font-face {
+        font-family: 'lululemon Saans';
+        src: url('lululemon-saans-regular.woff2') format('woff2');
+        font-weight: 100 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'lululemon Saans';
+        src: url('lululemon-saans-bold.woff2') format('woff2');
+        font-weight: 600 900;
+        font-style: normal;
+        font-display: swap;
+      }
       :root {
+        --font: 'lululemon Saans', "Helvetica Neue", Helvetica, Arial, sans-serif;
         --ink: #1a1a1a;
         --muted: #6e6e6e;
         --faint: #9a9a9a;
@@ -26,7 +46,9 @@
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
-      body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+      body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: antialiased; }
+      /* form controls do not inherit the page font on their own */
+      input, button, textarea, select { font-family: inherit; }
       #root { width: 100%; height: 100%; }
 
       #canvas-host { position: fixed; inset: 0; z-index: 0; }
@@ -297,7 +319,7 @@
       /* in-AR DOM overlay (WebXR) — identical pill language to the main UI.
          The frosted pills read cleanly over the camera feed. */
       #ar-overlay { position: fixed; inset: 0; z-index: 20; pointer-events: none;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+        font-family: var(--font); }
       #ar-overlay .ar-topbar { position: absolute; top: 22px; left: 26px; right: 26px;
         display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
       #ar-overlay .ar-topbar > * { pointer-events: auto; }
@@ -498,8 +520,13 @@
       /* id-strength selector: #canvas-host sets inset:0, which would force
          the shared canvas to fill the viewport instead of docking.
          Square corners, edge to edge — no card, no shadow. */
-      #canvas-host.fcanvas { position: fixed; inset: auto; top: 0; left: 0; z-index: 2;
-        border-radius: 0; overflow: hidden; will-change: transform; background: #f0f0f0; }
+      /* a fixed full-viewport surface that never moves or resizes — the
+         visible window is cut with clip-path and the fabric slides inside
+         it, so handing from the full-bleed hero to a half-width block is
+         one continuous move instead of a jump */
+      #canvas-host.fcanvas { position: fixed; inset: 0; width: 100vw; height: 100svh;
+        z-index: 2; border-radius: 0; overflow: hidden;
+        will-change: clip-path; background: transparent; }
       /* the base rule sets touch-action:none (good for the full-screen tool,
          fatal here — it swallows touch scrolling). pan-y lets the page
          scroll vertically while horizontal drags still grab the cloth. */
@@ -510,7 +537,11 @@
          in view), then the NEXT section pins the instant this one releases:
          the -100svh margin overlaps the sections so there is no dead scroll
          between them and the block never drifts out of view mid-demo. */
-      .fhero { height: calc(100svh + 480px); position: relative; margin-bottom: -100svh; }
+      /* 480px of scrub, then 520px of clear fabric before block 1 pins —
+         the hero is fully gone and the cloth has settled into its new
+         position well before the first property block arrives */
+      .fhero { height: calc(100svh + 480px); position: relative;
+        margin-bottom: calc(-100svh + 520px); }
       .fstage-hero { width: 100%; height: 100svh; }
       /* hero line — flips black/white against whatever colourway is on the
          cloth behind it, sampled from the rendered frame each ~0.26s */
