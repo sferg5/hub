@@ -559,15 +559,12 @@
         font-size: clamp(30px, 5.4vw, 76px); line-height: 1.06; letter-spacing: -0.025em;
         color: var(--ink); transition: color .5s ease; }
       .fhero-tag.on-dark h1 { color: #fff; }
-      .fhero-sub { display: inline-flex; align-items: center; gap: 9px; text-align: center;
-        font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
-        color: rgba(20,20,20,0.66); transition: color .5s ease; }
-      .fhero-tag.on-dark .fhero-sub { color: rgba(255,255,255,0.82); }
-      .fmic { width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
-        animation: fmicpulse 1.7s ease-in-out infinite; flex: 0 0 auto; }
-      @keyframes fmicpulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(211,19,52,.45); }
-        50% { box-shadow: 0 0 0 6px rgba(211,19,52,0); } }
-      @media (prefers-reduced-motion: reduce) { .fmic { animation: none; } }
+      /* subcopy: Saans at medium (500), sentence case, generous size */
+      .fhero-sub { display: block; text-align: center; max-width: 40ch;
+        font-size: clamp(15px, 1.7vw, 20px); font-weight: 500; line-height: 1.45;
+        letter-spacing: 0; text-transform: none;
+        color: rgba(20,20,20,0.68); transition: color .5s ease; }
+      .fhero-tag.on-dark .fhero-sub { color: rgba(255,255,255,0.85); }
 
       /* 900px of lock-on per block: the demo plays through while the
          container stays put. The copy occupies the middle ~70% of that,
