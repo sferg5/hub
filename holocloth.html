@@ -537,11 +537,13 @@
          in view), then the NEXT section pins the instant this one releases:
          the -100svh margin overlaps the sections so there is no dead scroll
          between them and the block never drifts out of view mid-demo. */
-      /* 480px of scrub, then 520px of clear fabric before block 1 pins —
-         the hero is fully gone and the cloth has settled into its new
-         position well before the first property block arrives */
+      /* Sections sit in NORMAL FLOW. Each pins for its runway, then
+         physically scrolls off screen. The gap below is a full viewport
+         plus a beat, so a section is completely gone before the next one's
+         edge can appear — they are never on screen together, and the shared
+         canvas switches stages while nothing is visible. */
       .fhero { height: calc(100svh + 480px); position: relative;
-        margin-bottom: calc(-100svh + 520px); }
+        margin-bottom: calc(100svh + 160px); }
       .fstage-hero { width: 100%; height: 100svh; }
       /* hero line — flips black/white against whatever colourway is on the
          cloth behind it, sampled from the rendered frame each ~0.26s */
@@ -569,10 +571,9 @@
          container stays put. The copy occupies the middle ~70% of that,
          leaving clear fabric-only space either side of every block. */
       .fblock { height: calc(100svh + 900px); position: relative; }
-      /* 460px of clear scroll between blocks: the cloth fades out, is moved
-         while invisible, and fades back in — so no two components are ever
-         on screen together and none is caught sharing a fabric */
-      .fblock:not(:last-child) { margin-bottom: calc(-100svh + 460px); }
+      /* same full-viewport gap between blocks — each scrolls all the way
+         off before the next scrolls on */
+      .fblock:not(:last-child) { margin-bottom: calc(100svh + 160px); }
       .fsticky { position: sticky; top: 0; height: 100svh; will-change: opacity; }
       .fcopy { will-change: transform; }
       /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
