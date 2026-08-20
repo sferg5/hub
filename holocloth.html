@@ -360,7 +360,7 @@
         border: 1px solid rgba(255,255,255,0.55); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
       .info.hidden { display: none; }
       .info .close { position: absolute; top: 14px; right: 14px; border: 0; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; }
-      .info h2 { margin: 0 0 3px; font-size: 25px; font-weight: 700; letter-spacing: -0.01em; }
+      .info h2 { margin: 0 0 3px; font-size: 25px; font-weight: 400; letter-spacing: -0.01em; }
       .info .meaning { color: var(--muted); font-weight: 500; margin: 0 0 12px; font-size: 13.5px; }
       .info .feel { color: var(--ink); font-size: 14px; margin: 0 0 16px; line-height: 1.5; }
       .info h4 { margin: 18px 0 9px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
@@ -387,7 +387,7 @@
       .scrim { position: absolute; inset: 0; background: rgba(245,245,245,.72); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 20px; }
       .modal { width: 540px; max-width: 100%; max-height: calc(100vh - 40px); overflow: auto; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,.16); }
       .modal .close { float: right; border: 0; background: transparent; color: var(--muted); font-size: 22px; }
-      .modal h3 { margin: 0 0 4px; font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+      .modal h3 { margin: 0 0 4px; font-size: 24px; font-weight: 400; letter-spacing: -0.01em; }
       .modal .sub { color: var(--muted); margin: 0 0 8px; font-size: 14px; }
       .q { padding: 16px 0; border-top: 1px solid var(--line); }
       .q .prompt { font-weight: 600; margin-bottom: 11px; font-size: 15px; }
@@ -400,7 +400,7 @@
       .opt.sel .hint { color: rgba(255,255,255,.7); }
       .match { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 18px; }
       .match .rlabel { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--faint); }
-      .match h4 { margin: 5px 0 6px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+      .match h4 { margin: 5px 0 6px; font-size: 24px; font-weight: 400; letter-spacing: -.01em; }
       .match .why { color: var(--muted); font-size: 13.5px; margin: 0 0 14px; line-height: 1.5; }
 
       /* conversation — the stream floats above the chat pill when open */
@@ -471,7 +471,7 @@
       .seyebrow { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
         color: var(--accent); font-weight: 700; margin-bottom: 10px; }
       .scard h2 { margin: 0 0 10px; font-size: clamp(22px, 2.6vw, 32px); line-height: 1.14;
-        letter-spacing: -0.02em; color: var(--ink); font-weight: 700; }
+        letter-spacing: -0.02em; color: var(--ink); font-weight: 400; }
       .scard p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--muted); }
 
       /* chapter rail */
@@ -553,8 +553,10 @@
         pointer-events: auto;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: 16px; padding: 0 24px; }
-      .fhero-tag h1 { margin: 0; text-align: center; font-weight: 700;
-        font-size: clamp(30px, 5.4vw, 76px); line-height: 1.04; letter-spacing: -0.035em;
+      /* display type runs in the LIGHT cut — weight 400 resolves to the
+         thinner Saans face; only UI/labels keep the bold */
+      .fhero-tag h1 { margin: 0; text-align: center; font-weight: 400;
+        font-size: clamp(30px, 5.4vw, 76px); line-height: 1.06; letter-spacing: -0.025em;
         color: var(--ink); transition: color .5s ease; }
       .fhero-tag.on-dark h1 { color: #fff; }
       .fhero-sub { display: inline-flex; align-items: center; gap: 9px; text-align: center;
@@ -584,8 +586,8 @@
       .fcopy > * { max-width: 34rem; }
       .feyebrow { display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
         color: var(--faint); font-weight: 600; margin-bottom: 14px; }
-      .fcopy h2 { margin: 0 0 14px; font-size: clamp(26px, 3vw, 40px); line-height: 1.12;
-        letter-spacing: -0.02em; color: var(--ink); font-weight: 700; }
+      .fcopy h2 { margin: 0 0 14px; font-size: clamp(26px, 3vw, 40px); line-height: 1.14;
+        letter-spacing: -0.015em; color: var(--ink); font-weight: 400; }
       .fcopy p { margin: 0 0 26px; font-size: 15px; line-height: 1.6; color: var(--muted); max-width: 40ch; }
 
       /* hairline rows rather than a card — matches the editorial layout */
