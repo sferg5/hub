@@ -520,13 +520,13 @@
       /* id-strength selector: #canvas-host sets inset:0, which would force
          the shared canvas to fill the viewport instead of docking.
          Square corners, edge to edge — no card, no shadow. */
-      /* a fixed full-viewport surface that never moves or resizes — the
-         visible window is cut with clip-path and the fabric slides inside
-         it, so handing from the full-bleed hero to a half-width block is
-         one continuous move instead of a jump */
-      #canvas-host.fcanvas { position: fixed; inset: 0; width: 100vw; height: 100svh;
+      /* Docked to the active stage — so on a block layout the renderer only
+         covers HALF the viewport, not all of it. That halving is the other
+         big performance saving. Every reposition/resize happens while the
+         cloth is at zero opacity, so it is never seen moving. */
+      #canvas-host.fcanvas { position: fixed; inset: auto; top: 0; left: 0;
         z-index: 2; border-radius: 0; overflow: hidden;
-        will-change: clip-path; background: transparent; }
+        will-change: transform, opacity; background: transparent; }
       /* the base rule sets touch-action:none (good for the full-screen tool,
          fatal here — it swallows touch scrolling). pan-y lets the page
          scroll vertically while horizontal drags still grab the cloth. */
@@ -569,9 +569,10 @@
          container stays put. The copy occupies the middle ~70% of that,
          leaving clear fabric-only space either side of every block. */
       .fblock { height: calc(100svh + 900px); position: relative; }
-      /* every section but the last overlaps the one after it, so the
-         handoff is instant — no gap where nothing is pinned */
-      .fblock:not(:last-child) { margin-bottom: -100svh; }
+      /* 460px of clear scroll between blocks: the cloth fades out, is moved
+         while invisible, and fades back in — so no two components are ever
+         on screen together and none is caught sharing a fabric */
+      .fblock:not(:last-child) { margin-bottom: calc(-100svh + 460px); }
       .fsticky { position: sticky; top: 0; height: 100svh; will-change: opacity; }
       .fcopy { will-change: transform; }
       /* exact halves, full bleed — the fabric occupies 50vw, the copy 50vw */
