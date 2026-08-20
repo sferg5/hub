@@ -566,6 +566,11 @@
         color: rgba(20,20,20,0.68); transition: color .5s ease; }
       .fhero-tag.on-dark .fhero-sub { color: rgba(255,255,255,0.85); }
 
+      /* block 2's drag-to-load surface — lives in the overlay layer, so it
+         must re-enable pointer events; vertical touch scroll stays free */
+      .fdrag { position: absolute; inset: 0; pointer-events: auto;
+        cursor: ew-resize; touch-action: pan-y; }
+
       /* 900px of lock-on per block: the demo plays through while the
          container stays put. The copy occupies the middle ~70% of that,
          leaving clear fabric-only space either side of every block. */
