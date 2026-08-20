@@ -552,19 +552,23 @@
       .fhero-tag { position: absolute; inset: 0; z-index: 5; cursor: pointer;
         pointer-events: auto;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 16px; padding: 0 24px; }
-      /* display type runs in the LIGHT cut — weight 400 resolves to the
-         thinner Saans face; only UI/labels keep the bold */
+        gap: 12px; padding: 0 24px; }
+      .fhero-tag .fhero-sub { margin-top: 6px; }
+      /* Hero text colours are DERIVED from the current dye (see inkFor) and
+         set inline — this transition runs on the SAME clock as the engine's
+         dye tween (0.5s, cubic in-out), so the type re-dyes in step with
+         the cloth. Display type runs in the light Saans cut. */
+      .fhero-tag h1, .fhero-name, .fhero-sub {
+        transition: color .5s cubic-bezier(.65, 0, .35, 1); }
       .fhero-tag h1 { margin: 0; text-align: center; font-weight: 400;
-        font-size: clamp(30px, 5.4vw, 76px); line-height: 1.06; letter-spacing: -0.025em;
-        color: var(--ink); transition: color .5s ease; }
-      .fhero-tag.on-dark h1 { color: #fff; }
-      /* subcopy: Saans at medium (500), sentence case, generous size */
-      .fhero-sub { display: block; text-align: center; max-width: 40ch;
-        font-size: clamp(15px, 1.7vw, 20px); font-weight: 500; line-height: 1.45;
-        letter-spacing: 0; text-transform: none;
-        color: rgba(20,20,20,0.68); transition: color .5s ease; }
-      .fhero-tag.on-dark .fhero-sub { color: rgba(255,255,255,0.85); }
+        font-size: clamp(30px, 5.4vw, 76px); line-height: 1.06; letter-spacing: -0.025em; }
+      /* always up: the fabric and colourway on the cloth right now */
+      .fhero-name { display: block; text-align: center; font-weight: 500;
+        font-size: clamp(17px, 2vw, 24px); letter-spacing: 0; }
+      /* quiet guidance below */
+      .fhero-sub { display: block; text-align: center; max-width: 44ch;
+        font-size: clamp(12px, 1.15vw, 13.5px); font-weight: 500; line-height: 1.45;
+        letter-spacing: .01em; text-transform: none; }
 
       /* block 2's drag-to-load surface — lives in the overlay layer, so it
          must re-enable pointer events; vertical touch scroll stays free */
