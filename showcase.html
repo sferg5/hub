@@ -77,9 +77,19 @@
      usual way to survive that — but it thickens the type, closes the counters at
      this size, and on a white name over a navy room it draws a dark seam round
      every stroke. White at full value carries itself over the lines instead. */
+  /* Set exactly as the field in the panel sets it: Saans at the body weight,
+     no tracking, and — the point of this — no transform. `text-transform:
+     uppercase` meant the field and the mark could never agree: you could type
+     lower case and the page would shout it back, and there was no way to ask
+     for anything else. The case is now whatever you typed, which makes the row
+     in the dials a preview of the name rather than a source for it.
+
+     The tracking went with it. A twelfth of an em is an all-caps convention —
+     it opens up letterforms that have no ascenders or descenders to separate
+     them — and on mixed case it reads as a name being pulled apart. */
   .callouts text{font-family:var(--sans);font-weight:var(--weight-body);
-    font-size:var(--co-size);letter-spacing:.12em;
-    text-transform:uppercase;fill:var(--co-ink);stroke:none}
+    font-size:var(--co-size);letter-spacing:0;
+    text-transform:none;fill:var(--co-ink);stroke:none}
   .callouts polygon{fill:var(--co-ink);stroke:none}
   /* Opacity is driven per frame from JS — a group has to fade for two reasons
      at once (it turned away, and the camera crossed into the other mode) and a
