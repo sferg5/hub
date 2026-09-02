@@ -641,12 +641,12 @@
     display:grid;place-items:center;padding:var(--gutter);
     transition:opacity .5s var(--ease-out-quad)}
   .lock.gone{opacity:0;pointer-events:none}
-  .lock__card{display:grid;justify-items:center;gap:var(--sp-3);width:min(320px,100%)}
-  .lock__mark{font-family:var(--sans);font-size:21px;font-style:italic;
-    text-transform:lowercase;letter-spacing:.005em;color:rgba(242,237,232,1)}
-  .lock__note{font-family:var(--mono);font-size:10px;letter-spacing:.18em;
-    text-transform:uppercase;color:rgba(242,237,232,.52)}
-  .lock__form{display:flex;gap:8px;width:100%;margin-top:var(--sp-2)}
+  /* The wordmark and the line under it are gone. A door does not need to
+     introduce the room: whoever has the link already knows what is behind it,
+     and whoever does not is not going to be told by the lock screen. What is
+     left is the one thing there is to do here. */
+  .lock__card{display:grid;justify-items:center;gap:var(--sp-2);width:min(320px,100%)}
+  .lock__form{display:flex;gap:8px;width:100%}
   .lock__form input{flex:1;min-width:0;height:38px;padding:0 12px;
     border:1px solid rgba(242,237,232,.24);border-radius:9px;background:none;
     color:rgba(242,237,232,1);font-family:var(--mono);font-size:12px;letter-spacing:.04em}
@@ -693,8 +693,6 @@
        script that never loads leaves the page shut rather than open. -->
   <div class="lock" id="lock">
     <div class="lock__card">
-      <div class="lock__mark">fast and free</div>
-      <p class="lock__note">A private preview.</p>
       <form class="lock__form" id="lockForm">
         <input id="lockPw" type="password" autocomplete="current-password" spellcheck="false"
                aria-label="Password" placeholder="Password" />
