@@ -105,9 +105,19 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .chip .ph{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8B8580;text-align:center;line-height:1.3}
 @media (prefers-reduced-motion:reduce){.screen *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
+/* ---------- studio: cyclorama + shadows ---------- */
+.cyc{background:
+  radial-gradient(120% 72% at 50% -4%, #FFFFFF 0%, rgba(255,255,255,0) 62%),
+  linear-gradient(180deg,#FAFAF9 0%,#F3F3F1 52%,#E4E4E1 80%,#EBEBE8 100%)}
+.fig{filter:drop-shadow(0 8px 12px rgba(20,20,20,.13)) drop-shadow(0 28px 34px rgba(20,20,20,.09))}
+.ground{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.26) 0%, rgba(20,20,20,.12) 38%, rgba(20,20,20,0) 72%);
+  width:160px;height:30px;bottom:0px;opacity:0;transition:opacity .6s,width 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),bottom 1s cubic-bezier(.65,0,.15,1)}
+.ground.full{width:210px;height:40px;bottom:112px}
+
 /* ---------- Baseline ---------- */
 .b .confirm{position:absolute;inset:0;transition:opacity .4s}
-.b .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
+.b .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
 .b .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .6s}
 .b .pcard img.cut{object-fit:contain;padding:6% 0 0;opacity:0}
 .b .pcard .scan{position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 70%,rgba(255,255,255,0) 100%);mix-blend-mode:screen;opacity:0;transition:opacity .5s}
@@ -126,12 +136,17 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b.s1 .loading>*,.b.s2 .loading>*{opacity:1}
 .b.s1 .confirm .title,.b.s1 .confirm .tips,.b.s1 .confirm .acts,.b.s2 .confirm .title,.b.s2 .confirm .tips,.b.s2 .confirm .acts,.b.s3 .confirm .title,.b.s3 .confirm .tips,.b.s3 .confirm .acts{opacity:0;pointer-events:none}
 .b.s1 .pcard,.b.s2 .pcard,.b.s3 .pcard{left:78px;right:78px;top:96px;height:520px;border-radius:26px}
-.b.s3b .pcard{left:0;right:0;top:0;height:852px;border-radius:0;background:#fff;transition:left 1s cubic-bezier(.65,0,.15,1),right 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),border-radius 1s cubic-bezier(.65,0,.15,1),background .6s}
+.b.s3b .pcard{left:0;right:0;top:0;height:852px;border-radius:0;transition:left 1s cubic-bezier(.65,0,.15,1),right 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),border-radius 1s cubic-bezier(.65,0,.15,1),background .6s}
 .b .pcard img.fin{padding:6% 0 0;transition:opacity .7s ease-in-out,padding 1s cubic-bezier(.65,0,.15,1)}
 .b.s3b .pcard img.fin{padding:96px 0 120px}
 .b.s3 .pcard img.cut,.b.s3 .pcard img.raw{opacity:0;transition:opacity .7s ease-in-out}
 .b .pcard img.fin{opacity:0;object-fit:contain}
 .b.s3 .pcard img.fin{opacity:1}
+.b.s2 .ground,.b.s3 .ground{opacity:1}
+.b .pcard{background:var(--phone-card)}
+.b.s2 .pcard,.b.s3 .pcard{background:
+  radial-gradient(120% 72% at 50% -4%, #FFFFFF 0%, rgba(255,255,255,0) 62%),
+  linear-gradient(180deg,#FAFAF9 0%,#F3F3F1 52%,#E4E4E1 80%,#EBEBE8 100%)}
 .b .orbit{position:absolute;inset:0;opacity:0;transition:opacity .5s;pointer-events:none}
 .b.s2 .orbit{opacity:1}
 .b .orbit .chip{left:0;top:0;transition:opacity .4s}
@@ -156,7 +171,10 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a.s1 .confirm .title,.a.s1 .confirm .tips,.a.s1 .confirm .acts,.a.s2 .confirm .title,.a.s2 .confirm .tips,.a.s2 .confirm .acts,.a.s3 .confirm .title,.a.s3 .confirm .tips,.a.s3 .confirm .acts{opacity:0;pointer-events:none}
 .a.s1 .pcard,.a.s2 .pcard{left:96px;right:96px;top:106px;height:388px;border-radius:24px}
 .a.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
-.a.s3 .face.front img{object-fit:contain;padding:96px 0 120px;background:#fff}
+.a.s3 .face.front img{object-fit:contain;padding:96px 0 120px}
+.a .face.back .ground{width:120px;height:22px;bottom:0}
+.a.s2 .face.back .ground{opacity:1}
+.a.s3 .face.front .ground{opacity:1;width:210px;height:40px;bottom:112px;transition-delay:.45s}
 .a .prog{position:absolute;left:96px;right:96px;top:508px;height:2px;background:var(--phone-line);border-radius:1px;overflow:hidden;opacity:0;transition:opacity .4s}
 .a .prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--phone-ink)}
 .a.s1 .prog,.a.s2 .prog{opacity:1}
@@ -184,9 +202,11 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 /* ---------- Variant B : Contact Sheet ---------- */
 .c .confirm{position:absolute;inset:0;transition:opacity .4s}
 .c .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
-.c .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.c .pcard img.contain{object-fit:contain;padding-top:6%}
-.c .pcard img.l3{object-fit:contain;background:#fff}
+.c .pcard .layer{position:absolute;inset:0;width:100%;height:100%}
+.c .pcard img.layer{object-fit:cover}
+.c .pcard .layer img.contain{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6% 0 0;transition:padding .9s cubic-bezier(.4,0,.2,1)}
+.c .pcard .layer .ground{width:170px;height:30px;bottom:2px}
+.c .pcard .l2.wipe .ground,.c .pcard .l3.wipe .ground{opacity:1;transition-delay:1s}
 .c .pcard .l2,.c .pcard .l3{clip-path:inset(0 0 100% 0)}
 .c .pcard .raw{transition:opacity .2s 1.6s}
 .c.s2 .pcard .raw,.c.s3 .pcard .raw{opacity:0}
@@ -204,8 +224,9 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c .acts .imgbtn img{height:45px}.c .acts .imgbtn:last-child{flex:1}.c .acts .imgbtn:last-child img{width:100%;height:auto}
 .c.s1 .confirm .title,.c.s1 .confirm .tips,.c.s1 .confirm .acts,.c.s2 .confirm .title,.c.s2 .confirm .tips,.c.s2 .confirm .acts,.c.s3 .confirm .title,.c.s3 .confirm .tips,.c.s3 .confirm .acts{opacity:0;pointer-events:none}
 .c.s1 .pcard,.c.s2 .pcard{left:24px;right:140px;top:110px;height:610px;border-radius:14px}
-.c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0;background:#fff}
-.c.s3 .pcard img.l3{object-fit:contain;padding:96px 0 120px;transition:padding .9s cubic-bezier(.4,0,.2,1)}
+.c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
+.c.s3 .pcard .l3 img.contain{padding:96px 0 120px}
+.c.s3 .pcard .l3 .ground{width:210px;height:40px;bottom:112px;transition-delay:0s}
 .c .strip{position:absolute;right:24px;top:110px;width:102px;height:610px;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transform:translateX(10px);transition:opacity .5s .2s,transform .5s .2s}
 .c.s1 .strip,.c.s2 .strip{opacity:1;transform:none}
 .c .cell{height:190px;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--phone-line);padding-top:8px}
@@ -270,7 +291,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
         <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
-        <p>Every image is shown exactly as delivered — the only things animating are containers, opacity and copy.</p>
+        <p>Every image is shown exactly as delivered — the studio backdrop, the pooled shadow under the feet and the soft figure shadow are layers behind and beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
         <div class="eyebrow">A · Fitting Room</div>
@@ -327,8 +348,9 @@ const PROTOS={
     <div class="confirm">
       <div class="pcard">
         ${selfieHTML()}
-        <img class="layer cut" src="${ASSET.cutout}" alt="">
-        <img class="layer fin" src="${ASSET.final}" alt="">
+        <div class="ground"></div>
+        <img class="layer cut fig" src="${ASSET.cutout}" alt="">
+        <img class="layer fin fig" src="${ASSET.final}" alt="">
         <div class="scan"></div>
       </div>
       ${confirmBlock}
@@ -369,6 +391,7 @@ const PROTOS={
     if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}else{cut.style.opacity='';raw.style.opacity=''}
     // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
     root.classList.toggle('s3b',stage>=3&&t>T2+700);
+    root.querySelector('.ground').classList.toggle('full',stage>=3&&t>T2+700);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1700)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+1900);
   }
@@ -379,7 +402,7 @@ const PROTOS={
     <div class="confirm">
       <div class="stagebox"><div class="pcard">
         <div class="face front">${selfieHTML()}</div>
-        <div class="face back"><img class="contain" src="${ASSET.cutout}" alt=""></div>
+        <div class="face back cyc"><div class="ground back-ground"></div><img class="contain fig" src="${ASSET.cutout}" alt=""></div>
       </div></div>
       ${confirmBlock}
     </div>
@@ -396,8 +419,8 @@ const PROTOS={
     box.classList.toggle('flip2',stage>=3);
     // when flipping to final, swap the front face to the final render while it is hidden (back is showing)
     const front=root.querySelector('.face.front');
-    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<img class="contain" src="${ASSET.final}" alt="">`;front.style.background='#fff'}
-    if(stage<3&&front.dataset.fin){delete front.dataset.fin;front.innerHTML=selfieHTML();front.style.background=''}
+    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<div class="ground"></div><img class="contain fig" src="${ASSET.final}" alt="">`;front.classList.add('cyc')}
+    if(stage<3&&front.dataset.fin){delete front.dataset.fin;front.innerHTML=selfieHTML();front.classList.remove('cyc')}
     root.querySelector('.prog i').style.width=stage===1?`${(t/T1)*100}%`:stage===2?`${((t-T1)/(T2-T1))*100}%`:'100%';
     const rows=root.querySelectorAll('.row');const per=(T2-T1)/3;
     rows.forEach((r,i)=>{const start=T1+i*per,end=start+per;
@@ -418,8 +441,8 @@ const PROTOS={
     <div class="confirm">
       <div class="pcard">
         ${selfieHTML()}
-        <img class="layer contain l2" src="${ASSET.cutout}" alt="">
-        <img class="layer l3" src="${ASSET.final}" alt="">
+        <div class="layer l2 cyc"><div class="ground"></div><img class="contain fig" src="${ASSET.cutout}" alt=""></div>
+        <div class="layer l3 cyc"><div class="ground"></div><img class="contain fig" src="${ASSET.final}" alt=""></div>
         <div class="edge e2"></div><div class="edge e3"></div>
         <div class="scanline"></div>
       </div>
