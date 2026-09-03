@@ -105,14 +105,14 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 
 /* ---------- Baseline ---------- */
 .b .confirm{position:absolute;inset:0;transition:opacity .4s}
-.b .pcard{position:absolute;left:67px;right:67px;top:116px;height:460px;border-radius:22px;overflow:hidden;background:var(--phone-card);transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
+.b .pcard{position:absolute;left:73px;right:73px;top:164px;height:438px;border-radius:22px;overflow:hidden;background:var(--phone-card);transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
 .b .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .6s}
 .b .pcard img.cut{object-fit:contain;padding:6% 0 0;opacity:0}
 .b .pcard .scan{position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 70%,rgba(255,255,255,0) 100%);mix-blend-mode:screen;opacity:0;transition:opacity .5s}
 .b .pcard .scan.on{opacity:1;animation:scanB 3.2s ease-in-out infinite}
 @keyframes scanB{0%{top:-40%}100%{top:105%}}
-.b .title{position:absolute;left:24px;right:24px;top:606px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
-.b .tips{position:absolute;left:24px;right:24px;top:654px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.b .title{position:absolute;left:24px;right:24px;top:114px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
+.b .tips{position:absolute;left:24px;right:24px;top:640px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .b .tips img{display:block;height:22px}
 .b .tips img.h{height:12px;opacity:.9}
 .b .acts{position:absolute;left:24px;right:24px;bottom:44px;display:flex;gap:14px;align-items:center}
@@ -139,7 +139,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 
 /* ---------- Variant A : Fitting Room ---------- */
 .a .confirm{position:absolute;inset:0;transition:opacity .4s}
-.a .pcard{position:absolute;left:67px;right:67px;top:116px;height:460px;border-radius:22px;background:var(--phone-card);transform-style:preserve-3d;transition:transform .9s cubic-bezier(.6,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
+.a .pcard{position:absolute;left:73px;right:73px;top:164px;height:438px;border-radius:22px;background:var(--phone-card);transform-style:preserve-3d;transition:transform .9s cubic-bezier(.6,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
 .a .stagebox{position:absolute;inset:0;perspective:1400px}
 .a .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden;backface-visibility:hidden;background:var(--phone-card)}
 .a .face.back{transform:rotateY(180deg)}
@@ -147,8 +147,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a .face img.contain{object-fit:contain;padding-top:6%}
 .a .flip1 .pcard{transform:rotateY(180deg)}
 .a .flip2 .pcard{transform:rotateY(360deg)}
-.a .title{position:absolute;left:24px;right:24px;top:606px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
-.a .tips{position:absolute;left:24px;right:24px;top:654px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.a .title{position:absolute;left:24px;right:24px;top:114px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
+.a .tips{position:absolute;left:24px;right:24px;top:640px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .a .tips img{display:block;height:22px}.a .tips img.h{height:12px}
 .a .acts{position:absolute;left:24px;right:24px;bottom:44px;display:flex;gap:14px;align-items:center}
 .a .acts .imgbtn:last-child{flex:1}.a .acts .imgbtn:last-child img{width:100%;height:auto}
@@ -182,7 +182,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 
 /* ---------- Variant B : Contact Sheet ---------- */
 .c .confirm{position:absolute;inset:0;transition:opacity .4s}
-.c .pcard{position:absolute;left:67px;right:67px;top:116px;height:460px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
+.c .pcard{position:absolute;left:73px;right:73px;top:164px;height:438px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
 .c .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .c .pcard img.contain{object-fit:contain;padding-top:6%}
 .c .pcard img.l3{object-fit:contain;background:#fff}
@@ -196,8 +196,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c .pcard .scanline{position:absolute;left:0;right:0;height:1px;background:var(--phone-ink);opacity:0;top:0}
 .c .pcard .scanline.on{opacity:.5;animation:scanC 8s linear forwards}
 @keyframes scanC{from{top:0}to{top:100%}}
-.c .title{position:absolute;left:24px;right:24px;top:606px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
-.c .tips{position:absolute;left:24px;right:24px;top:654px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.c .title{position:absolute;left:24px;right:24px;top:114px;font-size:22px;font-weight:400;letter-spacing:-.01em;text-align:center}
+.c .tips{position:absolute;left:24px;right:24px;top:640px;display:flex;flex-direction:column;align-items:center;gap:10px}
 .c .tips img{display:block;height:22px}.c .tips img.h{height:12px}
 .c .acts{position:absolute;left:24px;right:24px;bottom:44px;display:flex;gap:14px;align-items:center}
 .c .acts .imgbtn:last-child{flex:1}.c .acts .imgbtn:last-child img{width:100%;height:auto}
