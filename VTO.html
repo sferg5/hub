@@ -125,18 +125,18 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b .loading>*{opacity:0;transition:opacity .45s}
 .b.s1 .loading>*,.b.s2 .loading>*{opacity:1}
 .b.s1 .confirm .title,.b.s1 .confirm .tips,.b.s1 .confirm .acts,.b.s2 .confirm .title,.b.s2 .confirm .tips,.b.s2 .confirm .acts,.b.s3 .confirm .title,.b.s3 .confirm .tips,.b.s3 .confirm .acts{opacity:0;pointer-events:none}
-.b.s1 .pcard,.b.s2 .pcard{left:78px;right:78px;top:96px;height:520px;border-radius:26px}
-.b.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0;background:#fff}
-.b.s3 .pcard img.fin{padding:96px 0 120px;transition:opacity .6s,padding .8s}
-.b.s3 .pcard img.cut,.b.s3 .pcard img.raw{opacity:0}
-.b .pcard img.fin{opacity:0;object-fit:contain;background:#fff}
+.b.s1 .pcard,.b.s2 .pcard,.b.s3 .pcard{left:78px;right:78px;top:96px;height:520px;border-radius:26px}
+.b.s3b .pcard{left:0;right:0;top:0;height:852px;border-radius:0;background:#fff;transition:left 1s cubic-bezier(.65,0,.15,1),right 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),border-radius 1s cubic-bezier(.65,0,.15,1),background .6s}
+.b .pcard img.fin{padding:6% 0 0;transition:opacity .7s ease-in-out,padding 1s cubic-bezier(.65,0,.15,1)}
+.b.s3b .pcard img.fin{padding:96px 0 120px}
+.b.s3 .pcard img.cut,.b.s3 .pcard img.raw{opacity:0;transition:opacity .7s ease-in-out}
+.b .pcard img.fin{opacity:0;object-fit:contain}
 .b.s3 .pcard img.fin{opacity:1}
-.b .pcard.shrink{transform:scale(.78)}
 .b .orbit{position:absolute;inset:0;opacity:0;transition:opacity .5s;pointer-events:none}
 .b.s2 .orbit{opacity:1}
 .b .orbit .chip{left:0;top:0;transition:opacity .4s}
-.b.s3 .orbit{opacity:0;transition:opacity .3s}
-.b.s3 .orbit .chip{transition:transform .35s cubic-bezier(.6,0,.8,.4)}
+.b.s3 .orbit{opacity:0;transition:opacity .45s}
+.b.s3 .orbit .chip{transition:transform .45s cubic-bezier(.6,0,.8,.4)}
 
 /* ---------- Variant A : Fitting Room ---------- */
 .a .confirm{position:absolute;inset:0;transition:opacity .4s}
@@ -269,7 +269,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips collapse, the card dips, then snaps out to full-bleed on the final render and “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the only things animating are containers, opacity and copy.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -366,13 +366,11 @@ const PROTOS={
       ch.style.opacity=1; ch.style.zIndex=3;
     });
     const cut=root.querySelector('.cut'),raw=root.querySelector('.raw');
-    if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}
-    // reveal choreography: dip then snap
-    const card=root.querySelector('.pcard');
-    if(stage>=3){ if(t<T2+420){card.classList.add('shrink')} else {card.classList.remove('shrink')} }
-    else card.classList.remove('shrink');
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1300)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+1500);
+    if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}else{cut.style.opacity='';raw.style.opacity=''}
+    // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
+    root.classList.toggle('s3b',stage>=3&&t>T2+700);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1700)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+1900);
   }
  },
  a:{
