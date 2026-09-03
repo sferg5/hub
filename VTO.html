@@ -75,6 +75,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .sb{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:30;transition:opacity .4s}
 .sb img{width:100%;display:block}
 .sb .x{position:absolute;top:59px;right:21px;width:44px;height:44px;pointer-events:auto;background:#fff;border:0;cursor:pointer;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.03)}
+.b.s1 .sb .x,.b.s2 .sb .x,.a.s1 .sb .x,.a.s2 .sb .x,.c.s1 .sb .x,.c.s2 .sb .x{opacity:0;pointer-events:none}
+.sb .x{transition:opacity .4s}
 .sb .x i{position:absolute;left:50%;top:50%;width:16px;height:1.5px;background:var(--phone-ink);transform:translate(-50%,-50%) rotate(45deg)}.sb .x i:last-child{transform:translate(-50%,-50%) rotate(-45deg)}
 .pill-img{display:block;height:44px}
 .imgbtn{border:0;background:transparent;padding:0;cursor:pointer;display:block;transition:transform .15s}
@@ -267,7 +269,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products drift slowly around it below the shoulder line (the Rotate3d “Omni” layer), never crossing the face. At 16s the chips collapse, the card dips, then snaps out to full-bleed on the final render and “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips collapse, the card dips, then snaps out to full-bleed on the final render and “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the only things animating are containers, opacity and copy.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -343,15 +345,25 @@ const PROTOS={
     const idx=stage>=3?-1:Math.min(COPY.length-1,Math.floor(t/(T2/COPY.length)));
     spans.forEach((s,i)=>s.classList.toggle('on',i===idx));
     root.querySelector('.scan').classList.toggle('on',stage===1||stage===2);
-    // products orbit the cut-out on an ellipse (the ProtoPie Rotate3d 'Omni' layer)
-    const cx=196,cy=356,rx=126,ry=160,yoff=80,w=104; // orbit sits below the shoulders so nothing crosses the face
+    // products ride the edge of the image container — a rounded-rect path hugging the card (the ProtoPie Rotate3d 'Omni' layer)
+    const cx=196,cy=356,hw=118,hh=260,r=26,w=104;           // card: 237×520 centred at (196,356), corner radius 26
+    const straightW=2*(hw-r), straightH=2*(hh-r), arc=Math.PI*r/2, P=2*straightW+2*straightH+4*arc;
+    const onPath=d=>{ d=((d%P)+P)%P; let x,y;
+      if(d<straightW){x=-hw+r+d;y=-hh}
+      else if((d-=straightW)<arc){const a=d/r;x=hw-r+Math.sin(a)*r;y=-hh+r-Math.cos(a)*r}
+      else if((d-=arc)<straightH){x=hw;y=-hh+r+d}
+      else if((d-=straightH)<arc){const a=d/r;x=hw-r+Math.cos(a)*r;y=hh-r+Math.sin(a)*r}
+      else if((d-=arc)<straightW){x=hw-r-d;y=hh}
+      else if((d-=straightW)<arc){const a=d/r;x=-hw+r-Math.sin(a)*r;y=hh-r+Math.cos(a)*r}
+      else if((d-=arc)<straightH){x=-hw;y=hh-r-d}
+      else {d-=straightH;const a=d/r;x=-hw+r-Math.cos(a)*r;y=-hh+r-Math.sin(a)*r}
+      return [cx+x,cy+y]};
     root.querySelectorAll('.orbit .chip').forEach((ch,i)=>{
       if(stage>=3){ch.style.transform=`translate(${cx-w/2}px,${cy-w/2}px) scale(0)`;return}
-      const a=(i*2*Math.PI/3)+((t-T1)/32000)*2*Math.PI;
-      const x=cx+rx*Math.sin(a), y=cy+yoff-ry*Math.cos(a), z=Math.cos(a+Math.PI/2);
-      const sc=0.82+0.18*(z+1)/2;
-      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px) scale(${sc.toFixed(3)})`;
-      ch.style.opacity=(0.7+0.3*(z+1)/2).toFixed(2); ch.style.zIndex=z>0?3:1;
+      const d=(i/3)*P+((t-T1)/36000)*P;                      // one lap every 36s, three chips evenly spaced
+      const [x,y]=onPath(d);
+      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px)`;
+      ch.style.opacity=1; ch.style.zIndex=3;
     });
     const cut=root.querySelector('.cut'),raw=root.querySelector('.raw');
     if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}
