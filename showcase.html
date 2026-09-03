@@ -786,9 +786,9 @@
 
     <details class="grp">
       <summary>Thermal camera</summary>
-      <p class="note">Yellow&nbsp;at is where the ramp leaves purple, so it sets how much of the garment reads as hot.</p>
+      <p class="note">Yellow&nbsp;at is where the ramp leaves purple, so it sets how much of the garment reads as hot. Past 100 nothing reaches yellow at all and the hottest reading tops out in the reds.</p>
       <div class="ctl"><label>Strength <span class="val" id="v-therm">100</span></label><input type="range" id="s-therm" min="0" max="100" value="100" /></div>
-      <div class="ctl"><label>Yellow at <span class="val" id="v-hot">80</span></label><input type="range" id="s-hot" min="20" max="100" value="80" /></div>
+      <div class="ctl"><label>Yellow at <span class="val" id="v-hot">80</span></label><input type="range" id="s-hot" min="20" max="200" value="80" /></div>
       <div class="ctl"><label>Shading <span class="val" id="v-form">55</span></label><input type="range" id="s-form" min="0" max="100" value="55" /></div>
     </details>
 
@@ -4984,9 +4984,16 @@ ${jA}
      garment from sitting flat in the oranges. The ramp itself is untouched \u2014
      the input is rescaled so uHotAt lands exactly on the yellow stop and the
      range above it is compressed into the white. */
+  /* Past one, yellow is past the top of the scale: nothing in frame reaches
+     it and the hottest reading tops out in the reds and magentas. That is a
+     real setting on a real camera \u2014 a span wider than the scene \u2014 and the dial
+     goes there now. The second branch is only reached when h < 1, so it cannot
+     divide by zero; above one the first branch covers the whole input. Capped
+     at three, where the whole garment sits in the blues and violets and there
+     is nothing further to take away. */
   float hotRemap(float x){
-    float h = clamp(uHotAt, 0.05, 0.98);
-    return x < h ? x / h * 0.82 : 0.82 + (x - h) / (1.0 - h) * 0.18;
+    float h = clamp(uHotAt, 0.05, 3.0);
+    return x < h ? x / h * 0.82 : 0.82 + (x - h) / max(1.0 - h, 1e-4) * 0.18;
   }
   vec3 iron(float t0){
     float t = hotRemap(clamp(t0, 0.0, 1.0));
@@ -5220,9 +5227,9 @@ varying vec3 vRawP;
   varying float vT, vId, vThru, vRank, vHeat;
   /* Same remap as the garment's copy, so the dial moves both together. */
   vec3 iron(float x0){
-    float h = clamp(uHotAt, 0.05, 0.98);
+    float h = clamp(uHotAt, 0.05, 3.0);   /* same ceiling as the garment's copy */
     float xr = clamp(x0, 0.0, 1.0);
-    float x = xr < h ? xr / h * 0.82 : 0.82 + (xr - h) / (1.0 - h) * 0.18;
+    float x = xr < h ? xr / h * 0.82 : 0.82 + (xr - h) / max(1.0 - h, 1e-4) * 0.18;
     /* The cold end is a blue, not a black. A true ironbow bottoms out at zero
        and it is the right palette for a camera with a dynamic range to spend \u2014
        but here the coldest thing in frame is a garment that has just been
