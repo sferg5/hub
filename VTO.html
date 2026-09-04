@@ -386,7 +386,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .g .pcard .layer.l2,.g .pcard .layer.l3{opacity:1;clip-path:inset(0 100% 0 0)}
 .g .pcard .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;z-index:3;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.08);left:6%;opacity:0;transition:opacity .3s}
 .g .pcard .divider.on{opacity:1}
-.g .pcard .divider .knob{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;cursor:grab;touch-action:none;pointer-events:auto;border-radius:50%;background:#fff;box-shadow:0 4px 14px -4px rgba(0,0,0,.35),0 0 0 .5px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:4px}
+.g .pcard .divider .knob{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;cursor:grab;touch-action:none;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .35s,transform .45s cubic-bezier(.2,1.2,.4,1);border-radius:50%;background:#fff;box-shadow:0 4px 14px -4px rgba(0,0,0,.35),0 0 0 .5px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:4px}
+.g .pcard .divider.grab .knob{pointer-events:auto;opacity:1;transform:none}
 .g .pcard .divider .knob i{width:5px;height:5px;border-top:1.5px solid var(--phone-ink);border-left:1.5px solid var(--phone-ink);transform:rotate(-45deg)}
 .g .pcard .divider .knob i:last-child{transform:rotate(135deg)}
 .g .tags{position:absolute;left:24px;right:24px;top:20px;display:flex;justify-content:center;gap:8px}
@@ -570,7 +571,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card hidden-panel" id="note-g">
         <div class="eyebrow">F · Before / After</div>
         <h2>The compare slider everyone already knows — and it works</h2>
-        <p>Try-on is a before-and-after, so the wait borrows the compare slider. A white divider with a handle creeps across the photo while the background is removed — the handle's position is the progress. When the cut-out arrives the handle sweeps across in under a second, revealing the new image behind it like a compare view; then it creeps across again through the second wait as the three product tags appear beneath the card and take their ring when fitted. At 16s the same sweep reveals the finished look. And the handle is live: drag it at any point to compare what's on either side — photo against cut-out, cut-out against look — and it eases back to its place when you let go.</p>
+        <p>Try-on is a before-and-after, so the wait borrows the compare slider. A plain white scan line creeps across the photo while the background is removed — its position is the progress. When the cut-out arrives the line gains its handle and sweeps across in under a second, revealing the new image behind it like a compare view; then it creeps across again through the second wait as the three product tags appear beneath the card and take their ring when fitted. At 16s the same sweep reveals the finished look. And the handle is live: drag it at any point to compare what's on either side — photo against cut-out, cut-out against look — and it eases back to its place when you let go.</p>
       </div>
       <div class="card hidden-panel" id="note-h">
         <div class="eyebrow">G · Tailor’s Eye</div>
@@ -857,7 +858,7 @@ const PROTOS={
     // the handle is draggable: bind once per mount
     if(!root._drag){const d=root._drag={x:null,rel:0,relX:0};const card=root.querySelector('.pcard'),knob=root.querySelector('.knob');
       const pos=e=>{const r=card.getBoundingClientRect();return Math.min(100,Math.max(0,(e.clientX-r.left)/r.width*100))};
-      knob.addEventListener('pointerdown',e=>{d.x=pos(e);d.rel=0;knob.setPointerCapture(e.pointerId);e.preventDefault()});
+      knob.addEventListener('pointerdown',e=>{if(!root.querySelector('.divider').classList.contains('grab'))return;d.x=pos(e);d.rel=0;knob.setPointerCapture(e.pointerId);e.preventDefault()});
       knob.addEventListener('pointermove',e=>{if(d.x!==null)d.x=pos(e)});
       const up=()=>{if(d.x!==null){d.relX=d.x;d.rel=performance.now();d.x=null}};knob.addEventListener('pointerup',up);knob.addEventListener('pointercancel',up)}
     const drag=root._drag;
@@ -872,6 +873,8 @@ const PROTOS={
     if(dragging) x=drag.x; else if(held){const u=ease((performance.now()-drag.rel)/500);x=drag.relX+(x-drag.relX)*u}
     root.querySelector('.divider').style.left=x+'%';
     root.querySelector('.divider').classList.toggle('on',running&&!(stage>=3&&t>=T2+900));
+    // stage 1 is a plain scan line; the handle appears with the second image, when there is something to compare
+    root.querySelector('.divider').classList.toggle('grab',stage>=2);
     // while held, the divider is a true compare: photo | cut-out in stage 2, cut-out | look in stage 3
     root.querySelector('.l2').style.clipPath=(stage===2&&(t<T1+900||held))?`inset(0 ${100-x}% 0 0)`:stage>=2?'inset(0 0 0 0)':'inset(0 100% 0 0)';
     root.querySelector('.l3').style.clipPath=(stage>=3&&(t<T2+900||held)&&t<T2+1100)?`inset(0 ${100-x}% 0 0)`:stage>=3?'inset(0 0 0 0)':'inset(0 100% 0 0)';
