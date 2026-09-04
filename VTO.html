@@ -111,13 +111,15 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .fg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .fig{filter:drop-shadow(0 5px 8px rgba(20,20,20,.10))}
 /* cast shadow: the figure duplicated, blacked out, blurred, laid onto the floor plane from the feet and faded with distance */
-.cast{pointer-events:none;transform-origin:50% 100%;backface-visibility:hidden;
-  -webkit-mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%);mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%)}
-.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1.08,1.4);opacity:.32}
-.cast.c2{filter:brightness(0) blur(12px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.16,1.52);opacity:.16}
+.cast{pointer-events:none;transform-origin:50% var(--sole,98.8%);backface-visibility:hidden;
+  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) calc(100% - var(--sole,98.8%) + 2%),#000 calc(100% - var(--sole,98.8%) + 6.5%),rgba(0,0,0,.75) 42%,rgba(0,0,0,.2) 100%);
+  mask-image:linear-gradient(to top,rgba(0,0,0,0) calc(100% - var(--sole,98.8%) + 2%),#000 calc(100% - var(--sole,98.8%) + 6.5%),rgba(0,0,0,.75) 42%,rgba(0,0,0,.2) 100%)}
+.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1,1.4);opacity:.34}
+.cast.c2{filter:brightness(0) blur(10px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.06,1.5);opacity:.16}
+.fg.cut-img{--sole:97%}.fg.fin-img{--sole:98.8%}
 /* contact shadow pooled under the soles — sized from the group's height so it scales with the figure */
-.ground{position:absolute;left:50%;bottom:-2.4%;height:5.2%;aspect-ratio:5.4/1;transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.22) 0%, rgba(20,20,20,.09) 40%, rgba(20,20,20,0) 72%)}
+.ground{position:absolute;left:50%;bottom:calc(100% - var(--sole,98.8%) - 1.4%);height:3.6%;aspect-ratio:6/1;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 60%, rgba(20,20,20,.20) 0%, rgba(20,20,20,.08) 40%, rgba(20,20,20,0) 72%)}
 /* the room: a warm seamless wall meeting a flat floor; the cove sits at knee height because it is measured against the group */
 .room{position:absolute;left:-150%;right:-150%;top:-120%;bottom:-40%;pointer-events:none;background:
   radial-gradient(90% 50% at 50% 30%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%),
@@ -352,9 +354,9 @@ const PROTOS={
       <div class="pcard">
         <div class="flipper">
           <div class="face front">${selfieHTML()}<div class="scan"></div></div>
-          <div class="face back wall"><div class="fg cut">${figure(ASSET.cutout)}</div></div>
+          <div class="face back wall"><div class="fg cut cut-img">${figure(ASSET.cutout)}</div></div>
         </div>
-        <div class="face final wall"><div class="fg fin">${figure(ASSET.final)}</div></div>
+        <div class="face final wall"><div class="fg fin fin-img">${figure(ASSET.final)}</div></div>
       </div>
       ${confirmBlock}
     </div>
@@ -406,7 +408,7 @@ const PROTOS={
     <div class="confirm">
       <div class="stagebox"><div class="pcard">
         <div class="face front">${selfieHTML()}</div>
-        <div class="face back wall"><div class="fg">${figure(ASSET.cutout)}</div></div>
+        <div class="face back wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
       </div></div>
       ${confirmBlock}
     </div>
@@ -423,7 +425,7 @@ const PROTOS={
     box.classList.toggle('flip2',stage>=3);
     // when flipping to final, swap the front face to the final render while it is hidden (back is showing)
     const front=root.querySelector('.face.front');
-    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<div class="fg full">${figure(ASSET.final)}</div>`;front.classList.add('wall')}
+    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<div class="fg full fin-img">${figure(ASSET.final)}</div>`;front.classList.add('wall')}
     if(stage<3&&front.dataset.fin){delete front.dataset.fin;front.innerHTML=selfieHTML();front.classList.remove('wall')}
     root.querySelector('.prog i').style.width=stage===1?`${(t/T1)*100}%`:stage===2?`${((t-T1)/(T2-T1))*100}%`:'100%';
     const rows=root.querySelectorAll('.row');const per=(T2-T1)/3;
@@ -445,8 +447,8 @@ const PROTOS={
     <div class="confirm">
       <div class="pcard">
         ${selfieHTML()}
-        <div class="layer l2 wall"><div class="fg">${figure(ASSET.cutout)}</div></div>
-        <div class="layer l3 wall"><div class="fg">${figure(ASSET.final)}</div></div>
+        <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
+        <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
         <div class="edge e2"></div><div class="edge e3"></div>
         <div class="scanline"></div>
       </div>
