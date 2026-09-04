@@ -112,11 +112,11 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .fig{filter:drop-shadow(0 5px 8px rgba(20,20,20,.10))}
 /* cast shadow: the figure duplicated, blacked out, blurred, skewed back-left from the feet and faded with distance */
 .cast{pointer-events:none;transform-origin:50% 100%;opacity:0;backface-visibility:hidden;
-  -webkit-mask-image:linear-gradient(to top,#000 10%,rgba(0,0,0,.7) 45%,rgba(0,0,0,.18) 100%);mask-image:linear-gradient(to top,#000 10%,rgba(0,0,0,.7) 45%,rgba(0,0,0,.18) 100%)}
-.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(64deg) skewX(22deg) scale(1,1.25)}
-.cast.c2{filter:brightness(0) blur(11px);transform:rotateX(66deg) skewX(30deg) scale(1.08,1.3)}
-.cast.on.c1{opacity:.30}.cast.on.c2{opacity:.14}
-.b .pcard,.a .face,.c .pcard .layer{perspective:640px;perspective-origin:50% 45%}
+  -webkit-mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%);mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%)}
+.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1.08,1.4)}
+.cast.c2{filter:brightness(0) blur(12px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.16,1.52)}
+.cast.on.c1{opacity:.32}.cast.on.c2{opacity:.16}
+.b .pcard,.a .face,.c .pcard .layer{perspective:2400px;perspective-origin:50% 30%}
 .cast.full{transform-origin:50% calc(100% - 120px)}
 .ground{background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.22) 0%, rgba(20,20,20,.09) 40%, rgba(20,20,20,0) 72%)}
 .ground{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;
