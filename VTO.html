@@ -160,7 +160,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .b .face.back{transform:rotateY(180deg)}
 .b .face.final{opacity:0;transition:opacity .7s ease-in-out;pointer-events:none}
-.b.s3 .face.final{opacity:1}
+.b.s3f .face.final{opacity:1}
 .b .pcard .scan{position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 70%,rgba(255,255,255,0) 100%);mix-blend-mode:screen;opacity:0;transition:opacity .5s}
 .b .pcard .scan.on{opacity:1;animation:scanB 3.2s ease-in-out infinite}
 @keyframes scanB{0%{top:-40%}100%{top:105%}}
@@ -184,8 +184,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b .orbit{position:absolute;inset:0;opacity:0;pointer-events:none}
 .b.s2 .orbit{opacity:1}
 .b .orbit .chip{left:0;top:0;transition:opacity .4s}
-.b.s3 .orbit{opacity:0;transition:opacity .45s}
-.b.s3 .orbit .chip{transition:transform .45s cubic-bezier(.6,0,.8,.4)}
+.b.s3 .orbit{opacity:1}
 
 /* ---------- Variant A : Fitting Room ---------- */
 .a .confirm{position:absolute;inset:0;transition:opacity .4s}
@@ -406,7 +405,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in one after another and ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop into three equidistant seats along the card's edge — right, bottom, left — and sway gently in place (the Rotate3d “Omni” layer), never crossing the figure. At 16s each piece flies to its place on the body — tee to the chest, leggings to the hips, shoes to the feet — and settles into it as the look fades in; the card then grows to full-bleed before “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the studio backdrop, the cast shadow is a layer beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -507,23 +506,35 @@ const PROTOS={
       else if((d-=arc)<straightH){x=-hw;y=hh-r-d}
       else {d-=straightH;const a=d/r;x=-hw+r-Math.cos(a)*r;y=-hh+r-Math.sin(a)*r}
       return [cx+x,cy+y]};
+    // three seats, equidistant along the U of the card edge (right side · bottom · left side), gently swaying in place —
+    // the top edge is never used, so nothing crosses the head
+    const seats=[straightW+arc+straightH*0.5, straightW+arc+straightH+arc+straightW*0.5, straightW+arc+straightH+arc+straightW+arc+straightH*0.5];
+    const sway=tt=>52*Math.sin((tt-T1)/14000*2*Math.PI);
+    // where each piece lands on the body before the look arrives: tee → chest, leggings → hips, shoes → feet
+    const figTop=96+520*0.06, figH=520*0.94;
+    const targets=[[cx,figTop+figH*0.30],[cx,figTop+figH*0.62],[cx,figTop+figH*0.955]];
+    const ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
     root.querySelectorAll('.orbit .chip').forEach((ch,i)=>{
-      if(stage>=3){ch.style.transform=`translate(${cx-w/2}px,${cy-w/2}px) scale(0)`;return}
-      // start on the right side at shoulder height, mid-bottom, and low on the left; the path runs clockwise,
-      // so at 80s per lap no chip gets within reach of the head during the 8s stage
-      const starts=[straightW+arc+straightH*0.42, straightW+arc+straightH+arc+straightW*0.5, straightW+arc+straightH+arc+straightW+arc+straightH*0.2];
-      const d=starts[i]+((t-T1)/80000)*P;
-      const [x,y]=onPath(d);
-      // pop in one at a time once the card has finished flipping (flip = 1s), 260ms apart, with a little overshoot
+      const tt=Math.min(t,T2), d=seats[i]+sway(tt);
+      const [x0,y0]=onPath(d);
+      // pop in one at a time once the card has finished flipping, with a little overshoot
       const appear=T1+1000+i*340, u=Math.min(1,Math.max(0,(t-appear)/720)), c1=1.70158, c3=c1+1;
-      const pop=u<=0?0:1+c3*Math.pow(u-1,3)+c1*Math.pow(u-1,2);
-      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px) scale(${pop.toFixed(3)})`;
+      let pop=u<=0?0:1+c3*Math.pow(u-1,3)+c1*Math.pow(u-1,2), x=x0, y=y0;
+      if(stage>=3){
+        // travel to the garment's place on the body (0.75s, staggered), then settle onto it and shrink away
+        const v=ease(Math.min(1,Math.max(0,(t-(T2+i*140))/750)));
+        x=x0+(targets[i][0]-x0)*v; y=y0+(targets[i][1]-y0)*v;
+        const shrink=Math.min(1,Math.max(0,(t-(T2+i*140+750))/380));
+        pop=(1-0.35*v)*(1-shrink);
+      }
+      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px) scale(${Math.max(0,pop).toFixed(3)})`;
       ch.style.opacity=1; ch.style.zIndex=3;
     });
-    // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
-    root.classList.toggle('s3b',stage>=3&&t>T2+700);
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1700)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+1900);
+    // reveal choreography: pieces fly onto the body (0–1.1s) as the look fades in (0.7–1.5s), then the card grows to full-bleed (1.5–2.5s), then the CTA
+    root.classList.toggle('s3f',stage>=3&&t>T2+700);
+    root.classList.toggle('s3b',stage>=3&&t>T2+1500);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2500)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2700);
   }
  },
  a:{
