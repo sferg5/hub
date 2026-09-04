@@ -954,7 +954,7 @@ function snap(){const cam=screen.querySelector('.camera');if(!cam||cam.classList
   setTimeout(()=>{screen.classList.remove('cam');camOpen=false;paint()},620);
   setTimeout(()=>cam.remove(),1050)}
 function mount(p){
-  cur=p;screen.innerHTML=PROTOS[p].html()+cameraHTML;running=false;t=0;camOpen=true;screen.classList.add('cam');
+  cancelAnimationFrame(raf);cur=p;screen.innerHTML=PROTOS[p].html()+cameraHTML;running=false;t=0;camOpen=true;screen.classList.add('cam');
   screen.querySelector('.shutter').addEventListener('click',snap);
   screen.querySelector('.cam-x').addEventListener('click',()=>mount(cur));
   screen.querySelector('.use').addEventListener('click',start);
@@ -966,11 +966,11 @@ function mount(p){
   paint();
 }
 function start(){if(running)return;running=true;t=0;last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
-function loop(now){const dt=(now-last)*speed;last=now;t+=dt;paint();if(t<TEND+2000)raf=requestAnimationFrame(loop)}
+function loop(now){if(!running)return;const dt=(now-last)*speed;last=now;t+=dt;paint();if(t<TEND+2000)raf=requestAnimationFrame(loop)}
 function stageOf(t){return !running?0:t<T1?1:t<T2?2:3}
 function paint(){
   const st=stageOf(t);
-  PROTOS[cur].tick(screen,t,st);
+  PROTOS[cur].tick(screen,running?t:0,st);   // no clock until the photo is in use
   const pct=Math.min(1,t/TEND)*100;
   $('#fill').style.width=running?pct+'%':'0%';$('#head').style.left=running?pct+'%':'0%';
   $('#ro-t').textContent=(running?t/1000:0).toFixed(1)+'s';
