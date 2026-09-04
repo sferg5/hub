@@ -177,10 +177,11 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a.s1 .confirm .title,.a.s1 .confirm .tips,.a.s1 .confirm .acts,.a.s2 .confirm .title,.a.s2 .confirm .tips,.a.s2 .confirm .acts,.a.s3 .confirm .title,.a.s3 .confirm .tips,.a.s3 .confirm .acts{opacity:0;pointer-events:none}
 .a.s1 .pcard,.a.s2 .pcard{left:96px;right:96px;top:106px;height:388px;border-radius:24px}
 .a.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
-.a .prog{position:absolute;left:96px;right:96px;top:508px;height:2px;background:var(--phone-line);border-radius:1px;overflow:hidden;opacity:0;transition:opacity .4s}
+.a.s3 .ticket,.a.s3 .prog,.a.s3 .copy{transform:translateY(400px);opacity:0}
+.a .prog{position:absolute;left:96px;right:96px;top:508px;height:2px;background:var(--phone-line);border-radius:1px;overflow:hidden;opacity:0;transform:translateY(400px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
 .a .prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--phone-ink)}
-.a.s1 .prog,.a.s2 .prog{opacity:1}
-.a .ticket{position:absolute;left:24px;right:24px;top:528px;opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s}
+.a.s1 .prog,.a.s2 .prog{opacity:1;transform:none}
+.a .ticket{position:absolute;left:24px;right:24px;top:528px;opacity:0;transform:translateY(400px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
 .a.s1 .ticket,.a.s2 .ticket{opacity:1;transform:none}
 .a .row{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:14px;padding:9px 0;border-top:1px solid var(--phone-line);color:var(--phone-mute);transition:color .4s}
 .a .row:last-child{border-bottom:1px solid var(--phone-line)}
@@ -196,8 +197,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a .row .tick{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--phone-ink);vertical-align:-3px;position:relative;transform:scale(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
 .a .row .tick:after{content:"";position:absolute;left:5px;top:3px;width:4px;height:7px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
 .a .row.done .tick{transform:scale(1)}
-.a .copy{top:796px;font-size:14px;color:var(--phone-mute);opacity:0;transition:opacity .4s}
-.a.s1 .copy,.a.s2 .copy{opacity:1}
+.a .copy{top:796px;font-size:14px;color:var(--phone-mute);opacity:0;transform:translateY(400px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
+.a.s1 .copy,.a.s2 .copy{opacity:1;transform:none}
 .a .veil{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
 .a.s1 .veil{opacity:0}
 
