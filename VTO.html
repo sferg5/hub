@@ -424,17 +424,27 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .h.s1 .pcard .raw{transform:scale(1.06)}
 .h.s2 .pcard .l2,.h.s3 .pcard .l2{opacity:1}
 .h.s3 .pcard .l3{opacity:1}
-.h .pcard .l2 .fg{transform-origin:50% 30%;transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.65,0,.15,1),transform-origin 1.1s cubic-bezier(.65,0,.15,1)}
-.h .pcard .l2 .fg.z0{transform-origin:50% 30%;transform:scale(1.5)}
-.h .pcard .l2 .fg.z1{transform-origin:50% 62%;transform:scale(1.5)}
-.h .pcard .l2 .fg.z2{transform-origin:50% 92%;transform:scale(1.55)}
-.h .pcard .l2 .fg.zo{transform:scale(1)}
+.h .pcard .l2 .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.65,0,.15,1),transform-origin 1.1s cubic-bezier(.65,0,.15,1)}
+.h .pcard .l2 .fg.zoom{transform:scale(1.12)}
+/* spotlight: everything outside the zone recedes; the hole is a soft rounded window driven from the tick */
+.h .pcard .dim{position:absolute;inset:0;pointer-events:none;background:rgba(241,240,238,.72);opacity:0;transition:opacity .6s;
+  -webkit-mask-image:radial-gradient(ellipse var(--w,60%) var(--h,30%) at var(--x,50%) var(--y,30%),transparent 0,transparent 58%,#000 100%);mask-image:radial-gradient(ellipse var(--w,60%) var(--h,30%) at var(--x,50%) var(--y,30%),transparent 0,transparent 58%,#000 100%)}
+.h .pcard .dim.on{opacity:1}
+/* focus frame: a hairline box with corner ticks */
+.h .pcard .frame{position:absolute;left:var(--l);top:var(--t);width:var(--fw);height:var(--fh);border-radius:14px;pointer-events:none;opacity:0;transition:left 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),width 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),opacity .4s}
+.h .pcard .frame.on{opacity:1}
+.h .pcard .frame i{position:absolute;width:14px;height:14px;border:1.6px solid var(--phone-ink);opacity:.9}
+.h .pcard .frame i:nth-child(1){left:-1px;top:-1px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+.h .pcard .frame i:nth-child(2){right:-1px;top:-1px;border-left:0;border-bottom:0;border-radius:0 6px 0 0}
+.h .pcard .frame i:nth-child(3){right:-1px;bottom:-1px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+.h .pcard .frame i:nth-child(4){left:-1px;bottom:-1px;border-right:0;border-top:0;border-radius:0 0 0 6px}
 .h .lens{position:absolute;left:96px;right:96px;top:106px;height:388px;pointer-events:none}
-.h .lens .pk{position:absolute;right:-72px;width:56px;height:56px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 10px 22px -12px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(12px);transition:opacity .35s,transform .5s cubic-bezier(.65,0,.15,1)}
-.h .lens .pk img{width:78%;height:78%;object-fit:contain}
+.h .lens .pk{position:absolute;right:-84px;top:var(--py);margin-top:-34px;width:68px;height:68px;border-radius:20px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 12px 26px -14px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(12px);transition:opacity .35s,transform .5s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1)}
+.h .lens .pk img{width:80%;height:80%;object-fit:contain}
 .h .lens .pk.on{opacity:1;transform:none}
-.h .lens .pk.k0{top:calc(50% - 28px)}.h .lens .pk.k1{top:calc(50% - 28px)}.h .lens .pk.k2{top:calc(50% - 28px)}
-.h .copy{top:640px}
+.h .lens .lab{position:absolute;right:-84px;top:var(--py);margin-top:40px;width:68px;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--phone-mute);opacity:0;transition:opacity .35s,top 1s cubic-bezier(.65,0,.15,1)}
+.h .lens .lab.on{opacity:1}
+.h .copy{top:660px}
 /* ---------- Variant B : Contact Sheet ---------- */
 .c .confirm{position:absolute;inset:0;transition:opacity .4s}
 .c .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
@@ -564,8 +574,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       </div>
       <div class="card hidden-panel" id="note-h">
         <div class="eyebrow">G · Tailor’s Eye</div>
-        <h2>The camera pushes in on each piece as it's fitted</h2>
-        <p>What a tailor does: looks closely at one part at a time. The photo drifts in slightly while the background is removed. When the cut-out lands, the view pushes in on the torso as the tee is pinned, glides down to the legs as the leggings are hemmed, then to the feet as the shoes are laced — a single product chip appears beside the frame for whichever piece is in hand. Just before the look arrives the camera pulls back to see her whole, and the final render dissolves in. The zoom is a transform on the figure group, so the studio and the shadow move with her.</p>
+        <h2>A spotlight on each piece as it's fitted</h2>
+        <p>What a tailor does: looks at one part at a time. The photo drifts in slightly while the background is removed. When the cut-out lands, a soft spotlight isolates the torso — everything outside it recedes into the studio — with a hairline focus frame and corner ticks around the zone and the tee beside it. The spotlight glides down to the hips for the leggings, then to the feet for the shoes, with a gentle push-in toward each. It opens back up to see her whole just before the look dissolves in. The studio and shadow are untouched; only an overlay dims and a frame moves.
       </div>
       <div class="card hidden-panel" id="note-c">
         <div class="eyebrow">B · Contact Sheet</div>
@@ -880,10 +890,12 @@ const PROTOS={
         ${selfieHTML()}
         <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
         <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
+        <div class="dim"></div>
+        <div class="frame"><i></i><i></i><i></i><i></i></div>
       </div>
       ${confirmBlock}
     </div>
-    <div class="lens">${PRODUCTS.map((p,i)=>`<div class="pk k${i}">${chipInner(p.k)}</div>`).join('')}</div>
+    <div class="lens">${PRODUCTS.map((p,i)=>`<div class="pk k${i}">${chipInner(p.k)}</div>`).join('')}<div class="lab"></div></div>
     <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>stepping back...</span></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
@@ -892,12 +904,21 @@ const PROTOS={
     const root=el.firstElementChild;
     root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+900);
     if(stage>=3&&t<=T2+900)root.classList.add('s2');
-    const per=(T2-T1)/3, fg=root.querySelector('.l2 .fg');
-    // the tailor's eye: push in on the torso, the legs, then the feet as each piece is fitted; pull back before the look
-    const zone=stage===2?(t<T1+900?-1:t>T2-1100?-2:Math.min(2,Math.floor((t-T1-900)/((T2-T1-2000)/3)))):-1;
-    ['z0','z1','z2','zo'].forEach(c=>fg.classList.remove(c));
-    if(zone>=0)fg.classList.add('z'+zone); else if(zone===-2||stage>=3)fg.classList.add('zo');
-    root.querySelectorAll('.pk').forEach((pk,i)=>pk.classList.toggle('on',zone===i));
+    const fg=root.querySelector('.l2 .fg'), dim=root.querySelector('.dim'), frame=root.querySelector('.frame'), lab=root.querySelector('.lab');
+    // zones in card % (the figure fills 6%–100% of the card height): chest · hips · feet
+    const Z=[{x:50,y:29,w:62,h:30,l:19,t:14,fw:62,fh:30,n:'Tee'},{x:50,y:60,w:56,h:36,l:22,t:42,fw:56,fh:36,n:'Leggings'},{x:50,y:92,w:64,h:16,l:18,t:84,fw:64,fh:16,n:'Shoes'}];
+    const per=(T2-T1-2000)/3;
+    const zone=stage===2?(t<T1+900?-1:t>T2-1100?-2:Math.min(2,Math.floor((t-T1-900)/per))):-1;
+    const z=zone>=0?Z[zone]:null;
+    // ease the spotlight between zones from the tick (masks can't transition)
+    const cur=root._spot||(root._spot={x:50,y:29,w:62,h:30}); const k=z?0.12:0.2; const tgt=z||{x:50,y:50,w:140,h:140};
+    for(const key of ['x','y','w','h'])cur[key]+=(tgt[key]-cur[key])*k;
+    dim.style.setProperty('--x',cur.x+'%');dim.style.setProperty('--y',cur.y+'%');dim.style.setProperty('--w',cur.w+'%');dim.style.setProperty('--h',cur.h+'%');
+    dim.classList.toggle('on',!!z); frame.classList.toggle('on',!!z);
+    if(z){frame.style.setProperty('--l',z.l+'%');frame.style.setProperty('--t',z.t+'%');frame.style.setProperty('--fw',z.fw+'%');frame.style.setProperty('--fh',z.fh+'%');lab.textContent=z.n}
+    fg.classList.toggle('zoom',!!z); fg.style.transformOrigin=z?`${z.x}% ${z.y}%`:'50% 50%';
+    root.querySelectorAll('.pk').forEach((pk,i)=>{pk.classList.toggle('on',zone===i);pk.style.setProperty('--py',(z?z.y:50)+'%')});
+    lab.classList.toggle('on',!!z); lab.style.setProperty('--py',(z?z.y:50)+'%');
     const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?(zone>=0?1+zone:zone===-2?4:0):-1;
     setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1900)?0:1;
