@@ -127,6 +127,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .camera .shutter:active span{transform:scale(.86)}
 .camera .flip{position:absolute;right:34px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.28);border:1.6px solid #fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
 .camera .flip svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* nothing that is invisible on the confirm screen may intercept its taps */
+.disc,.copy,.foot,.segs,.strip,.chat,.rail,.ticket,.prog,.loading,.orbit,.callouts{pointer-events:none}
 /* the confirm UI waits for the photo to land, then rises in */
 .confirm .title,.confirm .tips,.confirm .acts{transition:opacity .45s,transform .6s cubic-bezier(.2,.8,.2,1)}
 .screen.cam .confirm .title,.screen.cam .confirm .tips,.screen.cam .confirm .acts{opacity:0;transform:translateY(14px)}
