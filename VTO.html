@@ -75,7 +75,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .sb{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:30;transition:opacity .4s}
 .sb img{width:100%;display:block}
 .sb .x{position:absolute;top:59px;right:21px;width:44px;height:44px;pointer-events:auto;background:#fff;border:0;cursor:pointer;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.03)}
-.b.s1 .sb .x,.b.s2 .sb .x,.a.s1 .sb .x,.a.s2 .sb .x,.c.s1 .sb .x,.c.s2 .sb .x{opacity:0;pointer-events:none}
+.b.s1 .sb .x,.b.s2 .sb .x,.a.s1 .sb .x,.a.s2 .sb .x,.c.s1 .sb .x,.c.s2 .sb .x,.d.s1 .sb .x,.d.s2 .sb .x,.e.s1 .sb .x,.e.s2 .sb .x{opacity:0;pointer-events:none}
 .sb .x{transition:opacity .4s}
 .sb .x i{position:absolute;left:50%;top:50%;width:16px;height:1.5px;background:var(--phone-ink);transform:translate(-50%,-50%) rotate(45deg)}.sb .x i:last-child{transform:translate(-50%,-50%) rotate(-45deg)}
 .pill-img{display:block;height:44px}
@@ -202,6 +202,87 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a .veil{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
 .a.s1 .veil{opacity:0}
 
+/* ---------- Variant C : Lookbook ---------- */
+.d .confirm{position:absolute;inset:0;transition:opacity .4s}
+.d .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
+.d .pcard .layer{position:absolute;inset:0;overflow:hidden;transition:transform .9s cubic-bezier(.7,0,.2,1)}
+.d .pcard img.layer{width:100%;height:100%;object-fit:cover}
+.d .pcard .layer.l2,.d .pcard .layer.l3{transform:translateX(102%)}
+.d .pcard .layer .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
+.d.s2 .pcard .raw{transform:translateX(-102%)}
+.d.s2 .pcard .l2{transform:none}
+.d.s3 .pcard .raw,.d.s3 .pcard .l2{transform:translateX(-102%)}
+.d.s3 .pcard .l3{transform:none}
+.d .title{position:absolute;left:16px;right:16px;top:138px;font-size:33px;line-height:1.2;font-weight:400;letter-spacing:-.025em;text-align:center;white-space:nowrap}
+.d .tips{position:absolute;left:24px;right:24px;top:630px;display:flex;flex-direction:column;align-items:center;gap:0;font-size:18px;line-height:25px;letter-spacing:-.01em;color:var(--phone-ink)}
+.d .tips .h{color:var(--phone-mute);margin-bottom:6px}
+.d .acts{position:absolute;left:20px;right:20px;bottom:35px;display:flex;gap:15px;align-items:center}
+.d .acts .imgbtn img{height:45px}.d .acts .imgbtn:last-child{flex:1}.d .acts .imgbtn:last-child img{width:100%;height:auto}
+.d.s1 .confirm .title,.d.s1 .confirm .tips,.d.s1 .confirm .acts,.d.s2 .confirm .title,.d.s2 .confirm .tips,.d.s2 .confirm .acts,.d.s3 .confirm .title,.d.s3 .confirm .tips,.d.s3 .confirm .acts{opacity:0;pointer-events:none}
+.d.s1 .pcard,.d.s2 .pcard{left:0;right:0;top:0;height:530px;border-radius:0 0 30px 30px}
+.d.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
+.d.s3 .pcard .l3 .fg{top:96px;bottom:120px}
+.d .tray{position:absolute;left:0;right:0;top:556px;height:150px;display:flex;justify-content:center;gap:16px;align-items:center;transform:translateY(360px);transition:transform .8s cubic-bezier(.4,0,.2,1)}
+.d.s1 .tray,.d.s2 .tray{transform:none}
+.d.s3 .tray{transform:translateY(360px);transition-delay:.5s}
+.d .tile{position:relative;width:104px;height:104px;border-radius:26px;background:#FAFAFA;box-shadow:0 10px 26px -12px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;overflow:visible;transition:transform .5s cubic-bezier(.2,1.2,.4,1),opacity .4s}
+.d .tile img{width:80%;height:80%;object-fit:contain}
+.d .tile .tick{position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;background:var(--phone-ink);transform:scale(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
+.d .tile .tick:after{content:"";position:absolute;left:8px;top:5px;width:4px;height:8px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
+.d .tile.live{transform:translateY(-10px) scale(1.06)}
+.d .tile.done .tick{transform:scale(1)}
+.d .tile.done{transform:none}
+.d.s3 .tile{transform:translateY(-260px) scale(0);opacity:0;transition:transform .6s cubic-bezier(.6,0,.3,1),opacity .4s .2s}
+.d.s3 .tile:nth-child(2){transition-delay:.08s}.d.s3 .tile:nth-child(3){transition-delay:.16s}
+.d .copy{top:736px;opacity:0;transform:translateY(360px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
+.d.s1 .copy,.d.s2 .copy{opacity:1;transform:none}
+.d .disc{top:780px;opacity:0;transform:translateY(360px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
+.d.s1 .disc,.d.s2 .disc{opacity:1;transform:none}
+@keyframes trayDrift{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+.d.s1 .tray>.drift{animation:trayDrift 6s ease-in-out infinite}
+
+/* ---------- Variant D : Process Rail ---------- */
+.e .confirm{position:absolute;inset:0;transition:opacity .4s}
+.e .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
+.e .pcard .layer{position:absolute;inset:0;opacity:0;transition:opacity .8s ease-in-out}
+.e .pcard img.layer{width:100%;height:100%;object-fit:cover;opacity:1}
+.e .pcard .layer .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
+.e.s2 .pcard .l2{opacity:1}
+.e.s3 .pcard .l3{opacity:1}
+.e.s3 .pcard .l2{transition-delay:.5s}
+.e .title{position:absolute;left:16px;right:16px;top:138px;font-size:33px;line-height:1.2;font-weight:400;letter-spacing:-.025em;text-align:center;white-space:nowrap}
+.e .tips{position:absolute;left:24px;right:24px;top:630px;display:flex;flex-direction:column;align-items:center;gap:0;font-size:18px;line-height:25px;letter-spacing:-.01em;color:var(--phone-ink)}
+.e .tips .h{color:var(--phone-mute);margin-bottom:6px}
+.e .acts{position:absolute;left:20px;right:20px;bottom:35px;display:flex;gap:15px;align-items:center}
+.e .acts .imgbtn img{height:45px}.e .acts .imgbtn:last-child{flex:1}.e .acts .imgbtn:last-child img{width:100%;height:auto}
+.e.s1 .confirm .title,.e.s1 .confirm .tips,.e.s1 .confirm .acts,.e.s2 .confirm .title,.e.s2 .confirm .tips,.e.s2 .confirm .acts,.e.s3 .confirm .title,.e.s3 .confirm .tips,.e.s3 .confirm .acts{opacity:0;pointer-events:none}
+.e.s1 .pcard,.e.s2 .pcard{left:104px;right:24px;top:110px;height:590px;border-radius:18px}
+.e.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
+.e.s3 .pcard .l3 .fg{top:96px;bottom:120px}
+.e .rail{position:absolute;left:24px;top:110px;width:56px;height:590px;transform:translateX(-120px);opacity:0;transition:transform .8s cubic-bezier(.4,0,.2,1),opacity .3s}
+.e.s1 .rail,.e.s2 .rail{transform:none;opacity:1}
+.e.s3 .rail{transform:translateX(-120px);opacity:0}
+.e .rail .line{position:absolute;left:27px;top:24px;bottom:24px;width:2px;background:var(--phone-line)}
+.e .rail .line i{position:absolute;left:0;top:0;width:100%;height:0;background:var(--phone-ink);transition:height .3s}
+.e .node{position:absolute;left:0;width:56px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.e .node.n1{top:0}.e .node.n2{top:243px}.e .node.n3{top:486px}
+.e .node .ring{width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--phone-ink) calc(var(--p,0)*1%),var(--phone-line) 0);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.e .node .ring:before{content:"";width:40px;height:40px;border-radius:50%;background:#fff;position:absolute}
+.e .node .ring span{position:relative;font-family:var(--mono);font-size:11px;color:var(--phone-mute)}
+.e .node.done .ring{background:var(--phone-ink)}
+.e .node.done .ring:before{display:none}
+.e .node.done .ring span{color:#fff}
+.e .node .lab{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--phone-mute);text-align:center;line-height:1.2}
+.e .node.live .lab{color:var(--phone-ink)}
+.e .rail .picks{position:absolute;left:4px;top:318px;display:flex;flex-direction:column;gap:8px}
+.e .pick{width:48px;height:48px;border-radius:12px;background:#fff;box-shadow:0 0 0 1px var(--phone-line);display:flex;align-items:center;justify-content:center;transform:translateX(-80px);opacity:0;transition:transform .5s cubic-bezier(.2,1.1,.4,1),opacity .3s}
+.e .pick img{width:78%;height:78%;object-fit:contain}
+.e .pick.on{transform:none;opacity:1}
+.e .copy{top:732px;font-size:15px;opacity:0;transition:opacity .4s}
+.e.s1 .copy,.e.s2 .copy{opacity:1}
+.e .disc{top:784px;opacity:0;transition:opacity .4s}
+.e.s1 .disc,.e.s2 .disc{opacity:1}
+
 /* ---------- Variant B : Contact Sheet ---------- */
 .c .confirm{position:absolute;inset:0;transition:opacity .4s}
 .c .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
@@ -224,34 +305,40 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c .acts{position:absolute;left:20px;right:20px;bottom:35px;display:flex;gap:15px;align-items:center}
 .c .acts .imgbtn img{height:45px}.c .acts .imgbtn:last-child{flex:1}.c .acts .imgbtn:last-child img{width:100%;height:auto}
 .c.s1 .confirm .title,.c.s1 .confirm .tips,.c.s1 .confirm .acts,.c.s2 .confirm .title,.c.s2 .confirm .tips,.c.s2 .confirm .acts,.c.s3 .confirm .title,.c.s3 .confirm .tips,.c.s3 .confirm .acts{opacity:0;pointer-events:none}
-.c.s1 .pcard,.c.s2 .pcard{left:24px;right:140px;top:110px;height:610px;border-radius:14px}
+.c.s1 .pcard,.c.s2 .pcard{left:24px;right:140px;top:110px;height:556px;border-radius:14px}
 .c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
 .c.s3 .pcard .l3 .fg{top:96px;bottom:120px}
-.c .strip{position:absolute;right:24px;top:110px;width:102px;height:610px;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transform:translateX(10px);transition:opacity .5s .2s,transform .5s .2s}
+.c .strip{position:absolute;right:24px;top:110px;width:102px;height:556px;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transform:translateX(10px);transition:opacity .5s .2s,transform .5s .2s}
 .c.s1 .strip,.c.s2 .strip{opacity:1;transform:none}
-.c .cell{height:190px;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--phone-line);padding-top:8px}
+.c .cell{height:172px;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--phone-line);padding-top:8px}
 .c .cell:last-child{border-bottom:1px solid var(--phone-line);padding-bottom:8px}
 .c .cell .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--phone-mute)}
 .c .cell .fr{flex:1;margin:8px 0;display:flex;align-items:center;justify-content:center;background:var(--phone-card);border-radius:6px;overflow:hidden;opacity:.35;transform:scale(.92);transition:opacity .5s,transform .5s}
 .c .cell.on .fr{opacity:1;transform:none}
 .c .cell .fr img{width:80%;height:80%;object-fit:contain}
 .c .cell .fr .ph{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#A8A29B;text-align:center;line-height:1.2}
-.c .foot{position:absolute;left:24px;right:24px;top:744px;display:flex;justify-content:space-between;align-items:baseline;opacity:0;transition:opacity .4s;font-size:14px}
+.c .foot{position:absolute;left:24px;right:24px;top:686px;display:flex;justify-content:space-between;align-items:baseline;opacity:0;transition:opacity .4s;font-size:14px}
 .c.s1 .foot,.c.s2 .foot{opacity:1}
 .c .foot .t{font-family:var(--mono);font-size:13px;color:var(--phone-mute);font-variant-numeric:tabular-nums}
 .c .foot .msg{color:var(--phone-ink)}
-.c .disc{top:790px;opacity:0;transition:opacity .4s}
+.c .disc{top:764px;opacity:0;transition:opacity .4s}
+.c .segs{position:absolute;left:24px;right:24px;top:722px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;opacity:0;transition:opacity .4s}
+.c.s1 .segs,.c.s2 .segs{opacity:1}
+.c .seg{height:3px;border-radius:2px;background:var(--phone-line);overflow:hidden}
+.c .seg i{display:block;height:100%;width:0;background:var(--phone-ink)}
 .c.s1 .disc,.c.s2 .disc{opacity:1}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>VTO <small>Try-On Loader · iPhone 16 · 393×852 · backend cadence 8s + 8s</small></h1>
+    <h1>VTO <small>Try-On Loader · iPhone 16 · 393×852 · backend cadence 8s + 8s · 5 concepts</small></h1>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-p="b"><b>00</b>Baseline</button>
       <button class="tab" role="tab" aria-selected="false" data-p="a"><b>A</b>Fitting Room</button>
       <button class="tab" role="tab" aria-selected="false" data-p="c"><b>B</b>Contact Sheet</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="d"><b>C</b>Lookbook</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="e"><b>D</b>Process Rail</button>
     </div>
   </header>
 
@@ -298,10 +385,20 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <h2>A ticket that fills in, and a mirror that turns</h2>
         <p>The wait is reframed as a fitting: a hairline progress rule under the card counts the first 8s while the copy says what the backend is actually doing. When the cut-out arrives the card flips like a mirror turning (the cut-out is the card’s back face — no image is touched). The three products sit in a ticket below and light up one at a time across the second 8s, each with its own line of copy, so the user reads the wait as three small steps rather than one long one. The final render arrives with a second flip, and the ticket becomes “Shop this look”.</p>
       </div>
+      <div class="card hidden-panel" id="note-d">
+        <div class="eyebrow">C · Lookbook</div>
+        <h2>A page in two halves: the look above, the pieces below</h2>
+        <p>The photo becomes a full-width panel with a rounded lower edge, like the top of a lookbook spread, and the three products sit in a tray beneath it, drifting gently side to side. At 8s the cut-out pushes the photo out horizontally — the panel becomes a window onto the studio. During the second wait each product in the tray is “taken” in turn: it lifts, gets its check, and settles. At 16s the pieces fly up into the figure as the final render pushes in, the tray folds away, and the panel opens to full-bleed.</p>
+      </div>
+      <div class="card hidden-panel" id="note-e">
+        <div class="eyebrow">D · Process Rail</div>
+        <h2>Three nodes, three rings — progress you can read</h2>
+        <p>A vertical rail on the left names the backend's three steps — photo, cut-out, look — as nodes on a line. Each node's ring fills as its step runs, so the wait always shows what is happening and how far along it is, with no clock. The stage to the right shows the current image and dissolves to the next as each ring completes; the three products slide onto the rail between nodes two and three as they're applied. On the last ring the rail glides off and the final render opens to full-bleed.</p>
+      </div>
       <div class="card hidden-panel" id="note-c">
         <div class="eyebrow">B · Contact Sheet</div>
-        <h2>One tall frame, a wipe, and a darkroom timer</h2>
-        <p>Editorial and quiet: the photo becomes a tall 4:5 frame with the three products in a thin contact-sheet strip at its right edge, labelled by slot. A single hairline scans down the photo during background removal; when the cut-out lands it is revealed by a top-to-bottom wipe (a clip-path on the new layer over the old one — pixels untouched). Products in the strip come alive as the second stage runs, and the final render wipes down the same way before the frame expands to full-bleed. A tabular-number timer at the foot gives the wait a fixed, honest length.</p>
+        <h2>One tall frame, a wipe, and a three-step rule</h2>
+        <p>Editorial and quiet: the photo becomes a tall 4:5 frame with the three products in a thin contact-sheet strip at its right edge, labelled by slot. A single hairline scans down the photo during background removal; when the cut-out lands it is revealed by a top-to-bottom wipe (a clip-path on the new layer over the old one — pixels untouched). Products in the strip come alive as the second stage runs, and the final render wipes down the same way before the frame expands to full-bleed. A three-segment rule at the foot fills with the backend's own steps — background, products, finish — so it reads as progress rather than elapsed time.</p>
       </div>
 
       <div class="card" id="slots">
@@ -436,6 +533,71 @@ const PROTOS={
     root.querySelector('.shop').classList.toggle('on',t>T2+1400);
   }
  },
+ d:{
+  html(){return `<div class="d">
+    ${statusbar}
+    <div class="confirm">
+      <div class="pcard">
+        ${selfieHTML()}
+        <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
+        <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
+      </div>
+      ${confirmBlock}
+    </div>
+    <div class="tray"><div class="drift" style="display:flex;gap:16px">${PRODUCTS.map(p=>`<div class="tile" data-k="${p.k}">${chipInner(p.k)}<span class="tick"></span></div>`).join('')}</div></div>
+    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}</div>
+    <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
+    <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
+  </div>`},
+  tick(el,t,stage){
+    const root=el.firstElementChild;
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3);
+    const per=(T2-T1)/3;
+    root.querySelectorAll('.tile').forEach((tl,i)=>{const st=T1+i*per,en=st+per;tl.classList.toggle('live',stage===2&&t>=st&&t<en);tl.classList.toggle('done',stage>=2&&t>=en)});
+    const spans=root.querySelectorAll('.copy span');const idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):-1;
+    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1500)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+1700);
+  }
+ },
+ e:{
+  html(){return `<div class="e">
+    ${statusbar}
+    <div class="confirm">
+      <div class="pcard">
+        ${selfieHTML()}
+        <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
+        <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
+      </div>
+      ${confirmBlock}
+    </div>
+    <div class="rail">
+      <div class="line"><i></i></div>
+      <div class="node n1"><div class="ring"><span>1</span></div><div class="lab">Photo</div></div>
+      <div class="node n2"><div class="ring"><span>2</span></div><div class="lab">Cut-out</div></div>
+      <div class="picks">${PRODUCTS.map(p=>`<div class="pick" data-k="${p.k}">${chipInner(p.k)}</div>`).join('')}</div>
+      <div class="node n3"><div class="ring"><span>3</span></div><div class="lab">Look</div></div>
+    </div>
+    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>finishing the look...</span></div>
+    <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
+    <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
+  </div>`},
+  tick(el,t,stage){
+    const root=el.firstElementChild;
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3);
+    const per=(T2-T1)/3;
+    // rings fill with the backend's own steps; the line between nodes fills as each completes
+    const p1=Math.min(1,t/T1), p2=Math.min(1,Math.max(0,(t-T1)/(T2-T1))), p3=stage>=3?Math.min(1,(t-T2)/700):0;
+    const nodes=root.querySelectorAll('.node');
+    [p1,p2,p3].forEach((p,i)=>{nodes[i].style.setProperty('--p',(p*100).toFixed(1));nodes[i].classList.toggle('done',p>=1);nodes[i].classList.toggle('live',p>0&&p<1)});
+    root.querySelector('.line i').style.height=`${(p1>=1?50:p1*50)+(p2>=1?50:p2*50)}%`;
+    root.querySelectorAll('.pick').forEach((pk,i)=>pk.classList.toggle('on',stage>=2&&t>=T1+i*per+300));
+    const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+800)idx=-1;
+    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1500)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+1700);
+  }
+ },
  c:{
   html(){return `<div class="c">
     ${statusbar}
@@ -450,7 +612,8 @@ const PROTOS={
       ${confirmBlock}
     </div>
     <div class="strip">${PRODUCTS.map(p=>`<div class="cell" data-k="${p.k}"><div class="lab">${p.c}</div><div class="fr">${chipInner(p.k)}</div></div>`).join('')}</div>
-    <div class="foot"><span class="msg"></span><span class="t">00:00</span></div>
+    <div class="foot"><span class="msg"></span><span class="t">Step 1 of 3</span></div>
+    <div class="segs"><div class="seg"><i></i></div><div class="seg"><i></i></div><div class="seg"><i></i></div></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
@@ -466,8 +629,10 @@ const PROTOS={
     if(stage>=3&&t<=T2+1500){root.classList.add('s2')}
     const per=(T2-T1)/3;
     root.querySelectorAll('.cell').forEach((c,i)=>c.classList.toggle('on',stage>=2&&t>=T1+i*per));
-    const s=Math.min(16,Math.floor(t/1000));
-    root.querySelector('.foot .t').textContent=`00:${String(s).padStart(2,'0')}`;
+    // segmented progress: background removal · products · finish — fills with the backend, never counts time
+    const segs=root.querySelectorAll('.seg i');
+    segs[0].style.width=`${Math.min(1,t/T1)*100}%`;segs[1].style.width=`${Math.min(1,Math.max(0,(t-T1)/(T2-T1)))*100}%`;segs[2].style.width=stage>=3?'100%':'0%';
+    root.querySelector('.foot .t').textContent=stage===1?'Step 1 of 3':stage===2?'Step 2 of 3':'Step 3 of 3';
     root.querySelector('.foot .msg').textContent=stage===1?'Removing the background':stage===2?`Applying ${PRODUCTS[Math.min(2,Math.floor((t-T1)/per))].c.toLowerCase()}`:'Finishing';
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2400)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+2600);
