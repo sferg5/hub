@@ -331,10 +331,12 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c .acts .imgbtn img{height:45px}.c .acts .imgbtn:last-child{flex:1}.c .acts .imgbtn:last-child img{width:100%;height:auto}
 .c.s1 .confirm .title,.c.s1 .confirm .tips,.c.s1 .confirm .acts,.c.s2 .confirm .title,.c.s2 .confirm .tips,.c.s2 .confirm .acts,.c.s3 .confirm .title,.c.s3 .confirm .tips,.c.s3 .confirm .acts{opacity:0;pointer-events:none}
 .c.s1 .pcard,.c.s2 .pcard{left:24px;right:140px;top:110px;height:556px;border-radius:14px}
-.c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
-.c.s3 .pcard .l3 .fg{top:96px;bottom:120px}
+.c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0;transition:left 1.2s cubic-bezier(.65,0,.15,1),right 1.2s cubic-bezier(.65,0,.15,1),top 1.2s cubic-bezier(.65,0,.15,1),height 1.2s cubic-bezier(.65,0,.15,1),border-radius 1.2s cubic-bezier(.65,0,.15,1)}
+.c.s3 .pcard .l3 .fg{top:96px;bottom:120px;transition:top 1.2s cubic-bezier(.65,0,.15,1),bottom 1.2s cubic-bezier(.65,0,.15,1)}
 .c .strip{position:absolute;right:24px;top:110px;width:102px;height:556px;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transform:translateX(10px);transition:opacity .5s .2s,transform .5s .2s}
 .c.s1 .strip,.c.s2 .strip{opacity:1;transform:none}
+.c.s3 .strip{opacity:0;transform:translateX(140px);transition:opacity .6s,transform 1.2s cubic-bezier(.65,0,.15,1)}
+.c.s3 .foot,.c.s3 .segs,.c.s3 .disc{transition:opacity .35s}
 .c .cell{height:172px;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--phone-line);padding-top:8px}
 .c .cell:last-child{border-bottom:1px solid var(--phone-line);padding-bottom:8px}
 .c .cell .lab{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--phone-mute)}
@@ -674,8 +676,9 @@ const PROTOS={
     l2.classList.toggle('wipe',stage>=2);e2.classList.toggle('go',stage>=2);
     l3.classList.toggle('wipe',stage>=3);e3.classList.toggle('go',stage>=3);
     // delay the full-bleed expansion until the final wipe has landed
-    root.classList.toggle('s3',stage>=3&&t>T2+1500);
-    if(stage>=3&&t<=T2+1500){root.classList.add('s2')}
+    // open to full-bleed as the final wipe lands (wipe = 1.6s), so the two read as one motion
+    root.classList.toggle('s3',stage>=3&&t>T2+1200);
+    if(stage>=3&&t<=T2+1200){root.classList.add('s2')}
     const per=(T2-T1)/3;
     root.querySelectorAll('.cell').forEach((c,i)=>c.classList.toggle('on',stage>=2&&t>=T1+i*per));
     // segmented progress: background removal · products · finish — fills with the backend, never counts time
@@ -683,8 +686,8 @@ const PROTOS={
     segs[0].style.width=`${Math.min(1,t/T1)*100}%`;segs[1].style.width=`${Math.min(1,Math.max(0,(t-T1)/(T2-T1)))*100}%`;segs[2].style.width=stage>=3?'100%':'0%';
     root.querySelector('.foot .t').textContent=stage===1?'Step 1 of 3':stage===2?'Step 2 of 3':'Step 3 of 3';
     root.querySelector('.foot .msg').textContent=stage===1?'Removing the background':stage===2?`Applying ${PRODUCTS[Math.min(2,Math.floor((t-T1)/per))].c.toLowerCase()}`:'Finishing';
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2400)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+2600);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2300)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2500);
   }
  }
 };
