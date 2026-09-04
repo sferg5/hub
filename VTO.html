@@ -310,7 +310,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .e .dk .tick{position:absolute;right:-5px;top:-5px;width:20px;height:20px;border-radius:50%;background:var(--phone-ink);transform:scale(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
 .e .dk .tick:after{content:"";position:absolute;left:7px;top:4px;width:4px;height:8px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
 .e .dk.done .tick{transform:scale(1)}
-.e .copy{top:660px}
+
 .f .confirm{position:absolute;inset:0;transition:opacity .4s}
 .f .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
 .f .pcard .layer{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .9s ease-in-out}
@@ -333,16 +333,25 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .f.s1 .below,.f.s2 .below{transform:none;opacity:1}
 .f.s3 .below{transform:translateY(380px);opacity:0;transition:transform .7s cubic-bezier(.4,0,.2,1),opacity .35s}
 
-/* ---------- Variant E : Halftone ---------- */
-.f .pcard .screen-dots{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background-image:radial-gradient(circle,rgba(255,255,255,.38) 1px,transparent 1.5px);background-size:9px 9px;mix-blend-mode:screen}
-.f.s1 .pcard .screen-dots{opacity:1;animation:dotsDrift 8s linear infinite}
-@keyframes dotsDrift{from{background-position:0 0}to{background-position:0 90px}}
-.f .pcard .layer.l2,.f .pcard .layer.l3{opacity:1;-webkit-mask-image:radial-gradient(circle,#000 var(--r,0px),transparent calc(var(--r,0px) + .6px));mask-image:radial-gradient(circle,#000 var(--r,0px),transparent calc(var(--r,0px) + .6px));-webkit-mask-size:16px 16px;mask-size:16px 16px;-webkit-mask-position:center;mask-position:center;transition:none}
-.f .dock{position:absolute;left:24px;right:24px;top:24px;display:flex;justify-content:center;gap:14px}
-.f .dk{width:76px;height:76px;border-radius:22px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;transform:translateY(24px) scale(.9);opacity:0;transition:transform .6s cubic-bezier(.65,0,.15,1),opacity .4s}
-.f .dk.on{transform:none;opacity:1}
-.f .dk img{width:78%;height:78%;object-fit:contain;-webkit-mask-image:radial-gradient(circle,#000 var(--r,0px),transparent calc(var(--r,0px) + .6px));mask-image:radial-gradient(circle,#000 var(--r,0px),transparent calc(var(--r,0px) + .6px));-webkit-mask-size:8px 8px;mask-size:8px 8px}
-.f .copy{top:660px}
+/* ---------- Variant E : Mirror ---------- */
+.f.s2 .pcard .l2{opacity:1}
+.f.s3 .pcard .l3{opacity:1}
+.f .pcard{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 18px 40px -24px rgba(0,0,0,.35)}
+.f .pcard .gloss{position:absolute;top:-20%;bottom:-20%;left:-60%;width:55%;pointer-events:none;background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.28) 45%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.28) 55%,rgba(255,255,255,0) 100%);transform:translateX(0) skewX(-8deg);opacity:0}
+.f .pcard .gloss.go{opacity:1;animation:gloss 1.1s cubic-bezier(.65,0,.15,1) forwards}
+@keyframes gloss{from{transform:translateX(0) skewX(-8deg)}to{transform:translateX(320%) skewX(-8deg)}}
+.f .pcard .gloss.idle{opacity:1;animation:glossIdle 8s ease-in-out infinite}
+@keyframes glossIdle{0%{transform:translateX(0) skewX(-8deg);opacity:.35}50%{transform:translateX(320%) skewX(-8deg);opacity:.35}100%{transform:translateX(320%) skewX(-8deg);opacity:0}}
+.f .sw{position:absolute;left:96px;right:96px;top:36px;height:44px}
+.f .sw .line{position:absolute;left:0;right:0;top:22px;height:1px;background:var(--phone-line)}
+.f .sw .line i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--phone-ink)}
+.f .swatch{position:absolute;top:0;width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--phone-line);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:box-shadow .4s,transform .45s cubic-bezier(.65,0,.15,1)}
+.f .swatch img{width:66%;height:66%;object-fit:contain;filter:grayscale(1);opacity:.45;transition:filter .5s,opacity .5s}
+.f .swatch.w0{left:0}.f .swatch.w1{left:50%;margin-left:-22px}.f .swatch.w2{right:0}
+.f .swatch.live{transform:scale(1.12);box-shadow:0 0 0 1.5px var(--phone-ink)}
+.f .swatch.live img,.f .swatch.done img{filter:none;opacity:1}
+.f .swatch.done{box-shadow:0 0 0 1.5px var(--phone-ink)}
+.f .copy{top:640px}
 
 .g .confirm{position:absolute;inset:0;transition:opacity .4s}
 .g .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
@@ -366,23 +375,20 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .g.s1 .below,.g.s2 .below{transform:none;opacity:1}
 .g.s3 .below{transform:translateY(380px);opacity:0;transition:transform .7s cubic-bezier(.4,0,.2,1),opacity .35s}
 
-/* ---------- Variant F : Zones ---------- */
-.g.s2 .pcard .l2{opacity:1}
-.g .pcard .l3{opacity:1;clip-path:inset(100% 0 0 0)}
-.g .pcard .l3.z1{clip-path:inset(0 0 0 0);transition:clip-path .55s cubic-bezier(.65,0,.15,1)}
-.g .pcard .band{position:absolute;left:-30%;right:100%;height:var(--h);top:var(--y);background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));opacity:0;pointer-events:none}
-.g .pcard .band.go{animation:bandSweep .9s cubic-bezier(.4,0,.2,1) forwards}
-@keyframes bandSweep{0%{left:-40%;right:100%;opacity:1}100%{left:100%;right:-40%;opacity:1}}
-.g .guides{position:absolute;left:96px;right:96px;top:106px;height:388px;pointer-events:none}
-.g .guide{position:absolute;left:-8px;right:-8px;top:var(--y);height:1px;background:var(--phone-ink);opacity:0;transform:scaleX(0);transform-origin:left center;transition:opacity .3s,transform .7s cubic-bezier(.65,0,.15,1)}
-.g .guide.on{opacity:.35;transform:none}
-.g .guide .lab{position:absolute;right:-64px;top:-7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--phone-mute);width:56px;text-align:left}
-.g .zk{position:absolute;left:100%;margin-left:14px;top:calc(var(--y) - 28px);width:56px;height:56px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 10px 22px -12px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(16px);transition:opacity .4s,transform .55s cubic-bezier(.65,0,.15,1)}
-.g .zk img{width:78%;height:78%;object-fit:contain}
-.g .zk.on{opacity:1;transform:none}
-.g .zk.done:after{content:"";position:absolute;right:-4px;top:-4px;width:16px;height:16px;border-radius:50%;background:var(--phone-ink);box-shadow:0 0 0 2px #fff}
-.g.s3 .guides{opacity:0;transition:opacity .35s}
-.g .copy{top:700px}
+/* ---------- Variant F : Before / After ---------- */
+.g .pcard .layer.l2,.g .pcard .layer.l3{opacity:1;clip-path:inset(0 100% 0 0)}
+.g .pcard .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 .5px rgba(0,0,0,.08);left:6%;opacity:0;transition:opacity .3s}
+.g .pcard .divider.on{opacity:1}
+.g .pcard .divider .knob{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:#fff;box-shadow:0 4px 14px -4px rgba(0,0,0,.35),0 0 0 .5px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:4px}
+.g .pcard .divider .knob i{width:5px;height:5px;border-top:1.5px solid var(--phone-ink);border-left:1.5px solid var(--phone-ink);transform:rotate(-45deg)}
+.g .pcard .divider .knob i:last-child{transform:rotate(135deg)}
+.g .tags{position:absolute;left:24px;right:24px;top:20px;display:flex;justify-content:center;gap:8px}
+.g .tag{display:flex;align-items:center;gap:7px;height:32px;padding:0 11px 0 4px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px var(--phone-line);font-size:12.5px;color:var(--phone-ink);opacity:0;transform:translateY(8px);transition:opacity .35s,transform .45s cubic-bezier(.65,0,.15,1),box-shadow .3s}
+.g .tag .th{width:24px;height:24px;border-radius:50%;background:var(--phone-card);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.g .tag .th img{width:76%;height:76%;object-fit:contain}
+.g .tag.on{opacity:1;transform:none}
+.g .tag.done{box-shadow:0 0 0 1.5px var(--phone-ink)}
+.g .copy{top:640px}
 
 .h .confirm{position:absolute;inset:0;transition:opacity .4s}
 .h .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
@@ -406,28 +412,22 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .h.s1 .below,.h.s2 .below{transform:none;opacity:1}
 .h.s3 .below{transform:translateY(380px);opacity:0;transition:transform .7s cubic-bezier(.4,0,.2,1),opacity .35s}
 
-/* ---------- Variant G : Curtain ---------- */
-.h.s2 .pcard .l2{opacity:1;transition:none}
-.h.s3 .pcard .l3{opacity:1;transition:none}
-.h .pcard .drape{position:absolute;top:0;bottom:0;width:52%;pointer-events:none;background:
-  repeating-linear-gradient(90deg,#EFEDEA 0 6px,#E6E4E0 6px 11px,#F3F2EF 11px 18px,#E9E7E3 18px 26px);
-  box-shadow:0 0 30px rgba(0,0,0,.12);transition:transform .55s cubic-bezier(.7,0,.3,1)}
-.h .pcard .drape.l{left:0;transform:translateX(-104%);border-radius:0 6px 6px 0}
-.h .pcard .drape.r{right:0;transform:translateX(104%);border-radius:6px 0 0 6px}
-.h .pcard.closed .drape.l,.h .pcard.closed .drape.r{transform:none}
-.h.s1 .pcard,.h.s2 .pcard{left:96px;right:96px;top:196px;height:298px;border-radius:24px}
-.h .rail{position:absolute;left:96px;right:96px;top:196px;height:298px;pointer-events:none;opacity:0;transition:opacity .4s}
-.h.s1 .rail,.h.s2 .rail{opacity:1}
-.h .rail .bar{position:absolute;left:-14px;right:-14px;top:-92px;height:3px;border-radius:2px;background:var(--phone-ink);opacity:.85}
-.h .hang{position:absolute;top:-90px;width:64px;transform-origin:50% 0;animation:swing 3.4s ease-in-out infinite;transition:transform .7s cubic-bezier(.6,0,.3,1),opacity .4s}
-.h .hang .hook{width:1.5px;height:22px;background:var(--phone-ink);margin:0 auto}
-.h .hang .card{width:64px;height:64px;border-radius:18px;background:#fff;box-shadow:0 10px 22px -12px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;padding:0}
-.h .hang .card img{width:78%;height:78%;object-fit:contain}
-.h .hang.h0{left:6px}.h .hang.h1{left:50%;margin-left:-32px;animation-delay:-1.1s}.h .hang.h2{right:6px;animation-delay:-2.2s}
-@keyframes swing{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
-.h .hang.drop{animation:none;transform:translateY(260px) scale(.6);opacity:0}
-.h .copy{top:700px}
-
+/* ---------- Variant G : Tailor's Eye ---------- */
+.h .pcard .raw{transform-origin:50% 40%;transition:transform 8s linear}
+.h.s1 .pcard .raw{transform:scale(1.06)}
+.h.s2 .pcard .l2,.h.s3 .pcard .l2{opacity:1}
+.h.s3 .pcard .l3{opacity:1}
+.h .pcard .l2 .fg{transform-origin:50% 30%;transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1),transform 1.1s cubic-bezier(.65,0,.15,1),transform-origin 1.1s cubic-bezier(.65,0,.15,1)}
+.h .pcard .l2 .fg.z0{transform-origin:50% 30%;transform:scale(1.5)}
+.h .pcard .l2 .fg.z1{transform-origin:50% 62%;transform:scale(1.5)}
+.h .pcard .l2 .fg.z2{transform-origin:50% 92%;transform:scale(1.55)}
+.h .pcard .l2 .fg.zo{transform:scale(1)}
+.h .lens{position:absolute;left:96px;right:96px;top:106px;height:388px;pointer-events:none}
+.h .lens .pk{position:absolute;right:-72px;width:56px;height:56px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 10px 22px -12px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(12px);transition:opacity .35s,transform .5s cubic-bezier(.65,0,.15,1)}
+.h .lens .pk img{width:78%;height:78%;object-fit:contain}
+.h .lens .pk.on{opacity:1;transform:none}
+.h .lens .pk.k0{top:calc(50% - 28px)}.h .lens .pk.k1{top:calc(50% - 28px)}.h .lens .pk.k2{top:calc(50% - 28px)}
+.h .copy{top:640px}
 /* ---------- Variant B : Contact Sheet ---------- */
 .c .confirm{position:absolute;inset:0;transition:opacity .4s}
 .c .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
@@ -486,9 +486,9 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <button class="tab" role="tab" aria-selected="false" data-p="c"><b>B</b>Contact Sheet</button>
       <button class="tab" role="tab" aria-selected="false" data-p="d"><b>C</b>Stylist Chat</button>
       <button class="tab" role="tab" aria-selected="false" data-p="e"><b>D</b>Stepper</button>
-      <button class="tab" role="tab" aria-selected="false" data-p="f"><b>E</b>Halftone</button>
-      <button class="tab" role="tab" aria-selected="false" data-p="g"><b>F</b>Zones</button>
-      <button class="tab" role="tab" aria-selected="false" data-p="h"><b>G</b>Curtain</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="f"><b>E</b>Mirror</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="g"><b>F</b>Before / After</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="h"><b>G</b>Tailor’s Eye</button>
     </div>
   </header>
 
@@ -546,19 +546,19 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <p>The honest-progress idea from Process Rail, executed under the card instead of beside it. Three labelled tracks — Photo, Cut-out, Look — fill with their own backend step and show a live percentage; the card dissolves to the next image as each track completes. Below them the three products wait in a dock, greyed out, and each one lifts, comes into colour and gets its check as it is applied. The whole strip slides away when the look opens to full-bleed.</p>
       </div>
       <div class="card hidden-panel" id="note-f">
-        <div class="eyebrow">E · Halftone</div>
-        <h2>Images print in, dot by dot</h2>
-        <p>A print-shop take on the wait. A fine dot screen drifts over the photo while the background is removed. When the cut-out arrives it prints in as a halftone — a dot mask on the new layer whose dots swell from nothing until they merge into a solid image, so the backend's result appears to be inked onto the page (pixels untouched; only the mask animates). The products print in the same way beneath the card as they're applied, and the look prints over the cut-out at 16s before the card opens up.</p>
+        <div class="eyebrow">E · Mirror</div>
+        <h2>A fitting-room mirror with three swatches beneath it</h2>
+        <p>The card is treated as glass: a hairline rim, a soft glow, and a slow sheen of light that drifts across it while the backend works. Each hand-off — cut-out, then the look — arrives with a decisive sweep of light across the glass as the image dissolves behind it, the way a mirror catches light when you turn. Below, a single hairline carries three round swatches of the products; the line fills across the second wait and each swatch comes into colour and takes a dark ring as its piece is fitted. Quiet, and entirely in the language of a fitting room.</p>
       </div>
       <div class="card hidden-panel" id="note-g">
-        <div class="eyebrow">F · Zones</div>
-        <h2>Top, bottom, shoes — the body mapped into three</h2>
-        <p>The figure is read as three zones. During background removal two guide lines draw across the card, dividing it at the waist and the ankles and labelling the zones. When the cut-out lands each product docks beside its own zone; as it is applied, a soft band of light sweeps across that part of the body and the chip gets its mark. The final look is then revealed zone by zone — top first, then bottom, then shoes — each a quick clip-path reveal, so you watch the outfit assemble on her from the shoulders down before the card opens to full-bleed.</p>
+        <div class="eyebrow">F · Before / After</div>
+        <h2>The compare slider everyone already knows</h2>
+        <p>Try-on is a before-and-after, so the wait borrows the compare slider. A white divider with a handle creeps across the photo while the background is removed — the handle's position is the progress. When the cut-out arrives the handle sweeps across in under a second, revealing the new image behind it like a compare view; then it creeps across again through the second wait as the three product tags appear beneath the card and take their ring when fitted. At 16s the same sweep reveals the finished look. One familiar control tells the whole story.</p>
       </div>
       <div class="card hidden-panel" id="note-h">
-        <div class="eyebrow">G · Curtain</div>
-        <h2>A fitting-room curtain and three hangers</h2>
-        <p>The card is a changing room. The three products hang from a rail above it from the start, swaying gently on their hooks. Just before each hand-off from the backend the curtain draws closed across the card, the image behind it changes, and the curtain opens on the result — first the cut-out, later the finished look. Through the second wait the hangers drop one by one into the room as each piece is applied. The curtain does the work a crossfade usually does, and it makes the wait feel like something happening behind a door rather than a spinner.</p>
+        <div class="eyebrow">G · Tailor’s Eye</div>
+        <h2>The camera pushes in on each piece as it's fitted</h2>
+        <p>What a tailor does: looks closely at one part at a time. The photo drifts in slightly while the background is removed. When the cut-out lands, the view pushes in on the torso as the tee is pinned, glides down to the legs as the leggings are hemmed, then to the feet as the shoes are laced — a single product chip appears beside the frame for whichever piece is in hand. Just before the look arrives the camera pulls back to see her whole, and the final render dissolves in. The zoom is a transform on the figure group, so the studio and the shadow move with her.</p>
       </div>
       <div class="card hidden-panel" id="note-c">
         <div class="eyebrow">B · Contact Sheet</div>
@@ -790,28 +790,29 @@ const PROTOS={
         ${selfieHTML()}
         <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
         <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
-        <div class="screen-dots"></div>
+        <div class="gloss"></div>
       </div>
       ${confirmBlock}
     </div>
-    <div class="below"><div class="dock">${PRODUCTS.map(p=>`<div class="dk" data-k="${p.k}">${chipInner(p.k)}</div>`).join('')}</div></div>
-    <div class="copy">${COPY.map(c=>`<span>${c}</span>`).join('')}</div>
+    <div class="below"><div class="sw"><div class="line"><i></i></div>${PRODUCTS.map((p,i)=>`<div class="swatch w${i}">${chipInner(p.k)}</div>`).join('')}</div></div>
+    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>finishing the look...</span></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
   tick(el,t,stage){
     const root=el.firstElementChild;
-    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+1300);
-    if(stage>=3&&t<=T2+1300)root.classList.add('s2');
-    const ease=u=>1-Math.pow(1-u,3), per=(T2-T1)/3;
-    // halftone grow: dots swell from nothing to a solid field (radius past half the cell) over 1.3s
-    const r2=stage>=2?ease(Math.min(1,(t-T1)/1300))*12:0, r3=stage>=3?ease(Math.min(1,(t-T2)/1300))*12:0;
-    root.querySelector('.l2').style.setProperty('--r',r2.toFixed(2)+'px'); root.querySelector('.l3').style.setProperty('--r',r3.toFixed(2)+'px');
-    root.querySelectorAll('.dk').forEach((d,i)=>{const at=T1+600+i*per;d.classList.toggle('on',stage>=2&&t>=at);const r=stage>=2?ease(Math.min(1,Math.max(0,(t-at)/900)))*6:0;d.querySelector('img').style.setProperty('--r',r.toFixed(2)+'px')});
-    const spans=root.querySelectorAll('.copy span');const idx=stage>=3?-1:Math.min(COPY.length-1,Math.floor(t/(T2/COPY.length)));
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+900);
+    if(stage>=3&&t<=T2+900)root.classList.add('s2');
+    const per=(T2-T1)/3, g=root.querySelector('.gloss');
+    // the glass: a slow idle sweep while working, a decisive sweep on each hand-off
+    g.classList.toggle('idle',stage===1&&t<T1-300);
+    g.classList.toggle('go',(t>=T1-300&&t<T1+900)||(stage>=3&&t<T2+1000));
+    root.querySelector('.sw .line i').style.width=`${Math.min(1,Math.max(0,(t-T1)/(T2-T1)))*100}%`;
+    root.querySelectorAll('.swatch').forEach((w,i)=>{const at=T1+i*per;w.classList.toggle('live',stage===2&&t>=at&&t<at+per);w.classList.toggle('done',stage>=2&&t>=at+per)});
+    const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+900)idx=-1;
     spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2300)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+2500);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1900)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2100);
   }
  },
  g:{
@@ -822,37 +823,35 @@ const PROTOS={
         ${selfieHTML()}
         <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
         <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
-        <div class="band b0" style="--y:6%;--h:44%"></div><div class="band b1" style="--y:50%;--h:36%"></div><div class="band b2" style="--y:86%;--h:14%"></div>
+        <div class="divider"><div class="knob"><i></i><i></i></div></div>
       </div>
       ${confirmBlock}
     </div>
-    <div class="guides">
-      <div class="guide g0" style="--y:50%"><span class="lab">Top</span></div>
-      <div class="guide g1" style="--y:86%"><span class="lab">Bottom</span></div>
-      <div class="zk k0" style="--y:28%">${chipInner('shirt')}</div>
-      <div class="zk k1" style="--y:68%">${chipInner('pants')}</div>
-      <div class="zk k2" style="--y:93%">${chipInner('shoes')}</div>
-    </div>
-    <div class="copy"><span>mapping the zones...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}</div>
+    <div class="below"><div class="tags">${PRODUCTS.map((p,i)=>`<div class="tag t${i}"><span class="th">${chipInner(p.k)}</span>${p.c}</div>`).join('')}</div></div>
+    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>finishing the look...</span></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
   tick(el,t,stage){
     const root=el.firstElementChild;
-    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+1400);
-    if(stage>=3&&t<=T2+1400)root.classList.add('s2');
-    const per=(T2-T1)/3;
-    root.querySelector('.g0').classList.toggle('on',t>=1200);root.querySelector('.g1').classList.toggle('on',t>=2200);
-    root.querySelectorAll('.zk').forEach((z,i)=>{const at=T1+500+i*per;z.classList.toggle('on',stage>=2&&t>=at);z.classList.toggle('done',stage>=2&&t>=at+per*.7)});
-    root.querySelectorAll('.band').forEach((bd,i)=>bd.classList.toggle('go',stage===2&&t>=T1+500+i*per+300));
-    // the look arrives zone by zone: top, bottom, shoes
-    const l3=root.querySelector('.l3');const zi=stage>=3?Math.min(3,Math.floor((t-T2)/420)+1):0;
-    const clips=['inset(100% 0 0 0)','inset(0 0 50% 0)','inset(0 0 14% 0)','inset(0 0 0 0)'];
-    l3.style.transition=stage>=3?'clip-path .42s cubic-bezier(.65,0,.15,1)':'none'; l3.style.clipPath=clips[zi];
-    const spans=root.querySelectorAll('.copy span');const idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):-1;
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+1100);
+    if(stage>=3&&t<=T2+1100)root.classList.add('s2');
+    const per=(T2-T1)/3, ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+    // the handle: creeps across as progress during each wait; sweeps across in 0.9s to reveal each new image
+    let x;
+    if(stage===1) x=6+88*(t/T1);
+    else if(stage===2) x=t<T1+900?100*ease((t-T1)/900):6+88*((t-T1-900)/(T2-T1-900));
+    else x=t<T2+900?100*ease((t-T2)/900):100;
+    x=Math.min(100,Math.max(0,x));
+    root.querySelector('.divider').style.left=x+'%';
+    root.querySelector('.divider').classList.toggle('on',running&&!(stage>=3&&t>=T2+900));
+    root.querySelector('.l2').style.clipPath=stage===2&&t<T1+900?`inset(0 ${100-x}% 0 0)`:stage>=2?'inset(0 0 0 0)':'inset(0 100% 0 0)';
+    root.querySelector('.l3').style.clipPath=stage>=3&&t<T2+900?`inset(0 ${100-x}% 0 0)`:stage>=3?'inset(0 0 0 0)':'inset(0 100% 0 0)';
+    root.querySelectorAll('.tag').forEach((tg,i)=>{const at=T1+900+i*per;tg.classList.toggle('on',stage>=2&&t>=at);tg.classList.toggle('done',stage>=2&&t>=at+per*.85)});
+    const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+1100)idx=-1;
     spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2400)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+2600);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2100)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2300);
   }
  },
  h:{
@@ -863,30 +862,28 @@ const PROTOS={
         ${selfieHTML()}
         <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
         <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
-        <div class="drape l"></div><div class="drape r"></div>
       </div>
       ${confirmBlock}
     </div>
-    <div class="rail"><div class="bar"></div>${PRODUCTS.map((p,i)=>`<div class="hang h${i}"><div class="hook"></div><div class="card">${chipInner(p.k)}</div></div>`).join('')}</div>
-    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>drawing the curtain...</span></div>
+    <div class="lens">${PRODUCTS.map((p,i)=>`<div class="pk k${i}">${chipInner(p.k)}</div>`).join('')}</div>
+    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}<span>stepping back...</span></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
   tick(el,t,stage){
     const root=el.firstElementChild;
-    root.classList.toggle('s1',stage===1);
-    // the curtain closes 0.55s before each hand-off and opens on the new image
-    const closing=(stage===1&&t>=T1-550)||(stage>=3&&t<T2+550)||(stage===2&&t<T1+550&&false);
-    const card=root.querySelector('.pcard');
-    const closed=(t>=T1-550&&t<T1+550)||(t>=T2-550&&t<T2+550);
-    card.classList.toggle('closed',running&&closed);
-    root.classList.toggle('s2',stage===2||(stage>=3&&t<T2+1200));root.classList.toggle('s3',stage>=3&&t>=T2+1200);
-    const per=(T2-T1)/3;
-    root.querySelectorAll('.hang').forEach((hg,i)=>hg.classList.toggle('drop',stage>=2&&t>=T1+800+i*per));
-    const spans=root.querySelectorAll('.copy span');let idx=stage===1?(t>=T1-550?4:0):stage===2?1+Math.min(2,Math.floor((t-T1)/per)):-1;
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+900);
+    if(stage>=3&&t<=T2+900)root.classList.add('s2');
+    const per=(T2-T1)/3, fg=root.querySelector('.l2 .fg');
+    // the tailor's eye: push in on the torso, the legs, then the feet as each piece is fitted; pull back before the look
+    const zone=stage===2?(t<T1+900?-1:t>T2-1100?-2:Math.min(2,Math.floor((t-T1-900)/((T2-T1-2000)/3)))):-1;
+    ['z0','z1','z2','zo'].forEach(c=>fg.classList.remove(c));
+    if(zone>=0)fg.classList.add('z'+zone); else if(zone===-2||stage>=3)fg.classList.add('zo');
+    root.querySelectorAll('.pk').forEach((pk,i)=>pk.classList.toggle('on',zone===i));
+    const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?(zone>=0?1+zone:zone===-2?4:0):-1;
     spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2200)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+2400);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1900)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2100);
   }
  },
  c:{
