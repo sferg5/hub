@@ -105,33 +105,35 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .chip .ph{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8B8580;text-align:center;line-height:1.3}
 @media (prefers-reduced-motion:reduce){.screen *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
-/* ---------- studio: cyclorama + shadows ---------- */
-.cyc{background:
-  radial-gradient(140% 55% at 50% -6%, #FFFFFF 0%, rgba(255,255,255,0) 66%),
-  linear-gradient(180deg,#FCFCFB 0%,#F7F7F5 44%,#EDEDEA 58%,#E3E3E0 66%,#E6E6E3 84%,#EAEAE7 100%)}
+/* ---------- studio: figure group (room + floor shadow + casts + figure move as one) ---------- */
+.fg{position:absolute;left:0;right:0;top:6%;bottom:0;perspective:2400px;perspective-origin:50% 30%}
+.fg.full{top:96px;bottom:120px}
+.fg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .fig{filter:drop-shadow(0 5px 8px rgba(20,20,20,.10))}
-/* cast shadow: the figure duplicated, blacked out, blurred, skewed back-left from the feet and faded with distance */
-.cast{pointer-events:none;transform-origin:50% 100%;opacity:0;backface-visibility:hidden;
+/* cast shadow: the figure duplicated, blacked out, blurred, laid onto the floor plane from the feet and faded with distance */
+.cast{pointer-events:none;transform-origin:50% 100%;backface-visibility:hidden;
   -webkit-mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%);mask-image:linear-gradient(to top,#000 8%,rgba(0,0,0,.75) 40%,rgba(0,0,0,.2) 100%)}
-.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1.08,1.4)}
-.cast.c2{filter:brightness(0) blur(12px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.16,1.52)}
-.cast.on.c1{opacity:.32}.cast.on.c2{opacity:.16}
-.b .pcard,.a .face,.c .pcard .layer{perspective:2400px;perspective-origin:50% 30%}
-.cast.full{transform-origin:50% calc(100% - 120px)}
-.ground{background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.22) 0%, rgba(20,20,20,.09) 40%, rgba(20,20,20,0) 72%)}
-.ground{position:absolute;left:50%;transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.26) 0%, rgba(20,20,20,.12) 38%, rgba(20,20,20,0) 72%);
-  width:160px;height:30px;bottom:0px;opacity:0;transition:opacity .6s,width 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),bottom 1s cubic-bezier(.65,0,.15,1)}
-.ground.full{width:210px;height:40px;bottom:112px}
+.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1.08,1.4);opacity:.32}
+.cast.c2{filter:brightness(0) blur(12px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.16,1.52);opacity:.16}
+/* contact shadow pooled under the soles — sized from the group's height so it scales with the figure */
+.ground{position:absolute;left:50%;bottom:-2.4%;height:5.2%;aspect-ratio:5.4/1;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, rgba(20,20,20,.22) 0%, rgba(20,20,20,.09) 40%, rgba(20,20,20,0) 72%)}
+/* the room: a warm seamless wall meeting a flat floor; the cove sits at knee height because it is measured against the group */
+.room{position:absolute;left:-150%;right:-150%;top:-120%;bottom:-40%;pointer-events:none;background:
+  radial-gradient(90% 50% at 50% 30%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%),
+  radial-gradient(150% 110% at 50% 62%, rgba(0,0,0,0) 62%, rgba(0,0,0,.045) 100%),
+  linear-gradient(180deg,#F3F2F0 0%,#F1F0EE 54%,#EBEAE7 70%,#E4E3DF 73.2%,#E0DFDB 74.4%,#E9E8E5 76.6%,#EEEDEA 86%,#F1F0ED 100%)}
+.wall{background:#F1F0EE}
 
 /* ---------- Baseline ---------- */
 .b .confirm{position:absolute;inset:0;transition:opacity .4s}
 .b .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
 .b .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .6s}
-.b .pcard img.cut{object-fit:contain;padding:6% 0 0;opacity:0}
-.b .pcard img.cast{transition:opacity .7s ease-in-out,transform 1s cubic-bezier(.65,0,.15,1),transform-origin 1s cubic-bezier(.65,0,.15,1)}
-.b.s2 .pcard img.cut.cast.c1{opacity:.30}.b.s2 .pcard img.cut.cast.c2{opacity:.14}
-.b.s3 .pcard img.fin.cast.c1{opacity:.30}.b.s3 .pcard img.fin.cast.c2{opacity:.14}
+.b .fg{opacity:0;transition:opacity .7s ease-in-out,top 1s cubic-bezier(.65,0,.15,1),bottom 1s cubic-bezier(.65,0,.15,1)}
+.b.s2 .fg.cut{opacity:1}
+.b.s3 .fg.fin{opacity:1}
+.b.s3 .fg.cut{opacity:0!important;transition-delay:.4s}
+.b.s3b .fg{top:96px;bottom:120px}
 .b .pcard .scan{position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 70%,rgba(255,255,255,0) 100%);mix-blend-mode:screen;opacity:0;transition:opacity .5s}
 .b .pcard .scan.on{opacity:1;animation:scanB 3.2s ease-in-out infinite}
 @keyframes scanB{0%{top:-40%}100%{top:105%}}
@@ -149,17 +151,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b.s1 .confirm .title,.b.s1 .confirm .tips,.b.s1 .confirm .acts,.b.s2 .confirm .title,.b.s2 .confirm .tips,.b.s2 .confirm .acts,.b.s3 .confirm .title,.b.s3 .confirm .tips,.b.s3 .confirm .acts{opacity:0;pointer-events:none}
 .b.s1 .pcard,.b.s2 .pcard,.b.s3 .pcard{left:78px;right:78px;top:96px;height:520px;border-radius:26px}
 .b.s3b .pcard{left:0;right:0;top:0;height:852px;border-radius:0;transition:left 1s cubic-bezier(.65,0,.15,1),right 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),border-radius 1s cubic-bezier(.65,0,.15,1),background .6s}
-.b .pcard img.fin{padding:6% 0 0;transition:opacity .7s ease-in-out,padding 1s cubic-bezier(.65,0,.15,1)}
-.b.s3b .pcard img.fin{padding:96px 0 120px}
-.b.s3 .pcard img.cut,.b.s3 .pcard img.raw{opacity:0!important;transition:opacity .7s ease-in-out}
-.b.s3b .pcard img.cast{transform-origin:50% calc(100% - 120px)}
-.b .pcard img.fin{opacity:0;object-fit:contain}
-.b.s3 .pcard img.fin.fig{opacity:1}
-.b.s2 .ground,.b.s3 .ground{opacity:1}
-.b .pcard{background:var(--phone-card)}
-.b.s2 .pcard,.b.s3 .pcard{background:
-  radial-gradient(140% 55% at 50% -6%, #FFFFFF 0%, rgba(255,255,255,0) 66%),
-  linear-gradient(180deg,#FCFCFB 0%,#F7F7F5 44%,#EDEDEA 58%,#E3E3E0 66%,#E6E6E3 84%,#EAEAE7 100%)}
+.b.s3 .pcard img.raw{opacity:0!important;transition:opacity .7s ease-in-out}
+.b .pcard{background:#F1F0EE}
 .b .orbit{position:absolute;inset:0;opacity:0;transition:opacity .5s;pointer-events:none}
 .b.s2 .orbit{opacity:1}
 .b .orbit .chip{left:0;top:0;transition:opacity .4s}
@@ -172,8 +165,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a .stagebox{position:absolute;inset:0;perspective:1400px}
 .a .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden;backface-visibility:hidden;background:var(--phone-card)}
 .a .face.back{transform:rotateY(180deg)}
-.a .face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.a .face img.contain{object-fit:contain;padding-top:6%}
+.a .face>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .a .flip1 .pcard{transform:rotateY(180deg)}
 .a .flip2 .pcard{transform:rotateY(360deg)}
 .a .title{position:absolute;left:16px;right:16px;top:138px;font-size:33px;line-height:1.2;font-weight:400;letter-spacing:-.025em;text-align:center;white-space:nowrap}
@@ -184,13 +176,6 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a.s1 .confirm .title,.a.s1 .confirm .tips,.a.s1 .confirm .acts,.a.s2 .confirm .title,.a.s2 .confirm .tips,.a.s2 .confirm .acts,.a.s3 .confirm .title,.a.s3 .confirm .tips,.a.s3 .confirm .acts{opacity:0;pointer-events:none}
 .a.s1 .pcard,.a.s2 .pcard{left:96px;right:96px;top:106px;height:388px;border-radius:24px}
 .a.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
-.a.s3 .face.front img{object-fit:contain;padding:96px 0 120px}
-.a .face.back .ground{width:120px;height:22px;bottom:0}
-.a.s2 .face.back .ground{opacity:1}
-.a .face img.cast{transition:opacity .6s}
-.a.s2 .face.back img.cast.c1,.a.s3 .face.front img.cast.c1{opacity:.30}
-.a.s2 .face.back img.cast.c2,.a.s3 .face.front img.cast.c2{opacity:.14}
-.a.s3 .face.front .ground{opacity:1;width:210px;height:40px;bottom:112px;transition-delay:.45s}
 .a .prog{position:absolute;left:96px;right:96px;top:508px;height:2px;background:var(--phone-line);border-radius:1px;overflow:hidden;opacity:0;transition:opacity .4s}
 .a .prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--phone-ink)}
 .a.s1 .prog,.a.s2 .prog{opacity:1}
@@ -220,11 +205,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);transition:left .9s cubic-bezier(.4,0,.2,1),right .9s cubic-bezier(.4,0,.2,1),top .9s cubic-bezier(.4,0,.2,1),height .9s cubic-bezier(.4,0,.2,1),border-radius .9s}
 .c .pcard .layer{position:absolute;inset:0;width:100%;height:100%}
 .c .pcard img.layer{object-fit:cover}
-.c .pcard .layer img.contain{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6% 0 0;transition:padding .9s cubic-bezier(.4,0,.2,1)}
-.c .pcard .layer .ground{width:170px;height:30px;bottom:2px}
-.c .pcard .l2.wipe .ground,.c .pcard .l3.wipe .ground{opacity:1;transition-delay:1s}
-.c .pcard .layer img.cast{transition:opacity .6s,transform .9s cubic-bezier(.4,0,.2,1),transform-origin .9s cubic-bezier(.4,0,.2,1)}
-.c .pcard .layer.wipe img.cast.c1{opacity:.30}.c .pcard .layer.wipe img.cast.c2{opacity:.14}
+.c .pcard .layer .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
 .c .pcard .l2,.c .pcard .l3{clip-path:inset(0 0 100% 0)}
 .c .pcard .raw{transition:opacity .2s 1.6s}
 .c.s2 .pcard .raw,.c.s3 .pcard .raw{opacity:0}
@@ -243,9 +224,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .c.s1 .confirm .title,.c.s1 .confirm .tips,.c.s1 .confirm .acts,.c.s2 .confirm .title,.c.s2 .confirm .tips,.c.s2 .confirm .acts,.c.s3 .confirm .title,.c.s3 .confirm .tips,.c.s3 .confirm .acts{opacity:0;pointer-events:none}
 .c.s1 .pcard,.c.s2 .pcard{left:24px;right:140px;top:110px;height:610px;border-radius:14px}
 .c.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
-.c.s3 .pcard .l3 img.contain{padding:96px 0 120px}
-.c.s3 .pcard .l3 img.cast{transform-origin:50% calc(100% - 120px)}
-.c.s3 .pcard .l3 .ground{width:210px;height:40px;bottom:112px;transition-delay:0s}
+.c.s3 .pcard .l3 .fg{top:96px;bottom:120px}
 .c .strip{position:absolute;right:24px;top:110px;width:102px;height:610px;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transform:translateX(10px);transition:opacity .5s .2s,transform .5s .2s}
 .c.s1 .strip,.c.s2 .strip{opacity:1;transform:none}
 .c .cell{height:190px;display:flex;flex-direction:column;justify-content:space-between;border-top:1px solid var(--phone-line);padding-top:8px}
@@ -356,6 +335,7 @@ const confirmBlock=`
   <div class="title">Happy with your photo?</div>
   <div class="tips"><span class="h">For best results</span><span>Just you, showing full body</span><span>Fitted clothes, no hands in pockets</span><span>Good lighting</span></div>
   <div class="acts"><button class="imgbtn retake"><img src="${ASSET.retake}" alt="Retake"></button><button class="imgbtn use"><img src="${ASSET.usephoto}" alt="Use this photo"></button></div>`;
+const figure=src=>`<div class="room"></div><div class="ground"></div><img class="cast c2" src="${src}" alt=""><img class="cast c1" src="${src}" alt=""><img class="fig" src="${src}" alt="">`;
 const spinner=`<div class="spinner">${Array.from({length:8},(_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${(0.15+i*0.11).toFixed(2)}"></i>`).join('')}</div>`;
 const copyBlock=`<div class="copy">${COPY.map(c=>`<span>${c}</span>`).join('')}</div>`;
 
@@ -367,11 +347,8 @@ const PROTOS={
     <div class="confirm">
       <div class="pcard">
         ${selfieHTML()}
-        <div class="ground"></div>
-        <img class="layer cut cast c2" src="${ASSET.cutout}" alt=""><img class="layer cut cast c1" src="${ASSET.cutout}" alt="">
-        <img class="layer cut fig" src="${ASSET.cutout}" alt="">
-        <img class="layer fin cast c2" src="${ASSET.final}" alt=""><img class="layer fin cast c1" src="${ASSET.final}" alt="">
-        <img class="layer fin fig" src="${ASSET.final}" alt="">
+        <div class="fg cut">${figure(ASSET.cutout)}</div>
+        <div class="fg fin">${figure(ASSET.final)}</div>
         <div class="scan"></div>
       </div>
       ${confirmBlock}
@@ -408,7 +385,7 @@ const PROTOS={
       ch.style.transform=`translate(${x-w/2}px,${y-w/2}px)`;
       ch.style.opacity=1; ch.style.zIndex=3;
     });
-    const cut=root.querySelector('img.cut.fig'),raw=root.querySelector('.raw');
+    const cut=root.querySelector('.fg.cut'),raw=root.querySelector('.raw');
     if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}else{cut.style.opacity='';raw.style.opacity=''}
     // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
     root.classList.toggle('s3b',stage>=3&&t>T2+700);
@@ -423,7 +400,7 @@ const PROTOS={
     <div class="confirm">
       <div class="stagebox"><div class="pcard">
         <div class="face front">${selfieHTML()}</div>
-        <div class="face back cyc"><div class="ground back-ground"></div><img class="contain cast c2" src="${ASSET.cutout}" alt=""><img class="contain cast c1" src="${ASSET.cutout}" alt=""><img class="contain fig" src="${ASSET.cutout}" alt=""></div>
+        <div class="face back wall"><div class="fg">${figure(ASSET.cutout)}</div></div>
       </div></div>
       ${confirmBlock}
     </div>
@@ -440,8 +417,8 @@ const PROTOS={
     box.classList.toggle('flip2',stage>=3);
     // when flipping to final, swap the front face to the final render while it is hidden (back is showing)
     const front=root.querySelector('.face.front');
-    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<div class="ground"></div><img class="contain cast c2 full" src="${ASSET.final}" alt=""><img class="contain cast c1 full" src="${ASSET.final}" alt=""><img class="contain fig" src="${ASSET.final}" alt="">`;front.classList.add('cyc')}
-    if(stage<3&&front.dataset.fin){delete front.dataset.fin;front.innerHTML=selfieHTML();front.classList.remove('cyc')}
+    if(stage>=3&&!front.dataset.fin){front.dataset.fin=1;front.innerHTML=`<div class="fg full">${figure(ASSET.final)}</div>`;front.classList.add('wall')}
+    if(stage<3&&front.dataset.fin){delete front.dataset.fin;front.innerHTML=selfieHTML();front.classList.remove('wall')}
     root.querySelector('.prog i').style.width=stage===1?`${(t/T1)*100}%`:stage===2?`${((t-T1)/(T2-T1))*100}%`:'100%';
     const rows=root.querySelectorAll('.row');const per=(T2-T1)/3;
     rows.forEach((r,i)=>{const start=T1+i*per,end=start+per;
@@ -462,8 +439,8 @@ const PROTOS={
     <div class="confirm">
       <div class="pcard">
         ${selfieHTML()}
-        <div class="layer l2 cyc"><div class="ground"></div><img class="contain cast c2" src="${ASSET.cutout}" alt=""><img class="contain cast c1" src="${ASSET.cutout}" alt=""><img class="contain fig" src="${ASSET.cutout}" alt=""></div>
-        <div class="layer l3 cyc"><div class="ground"></div><img class="contain cast c2" src="${ASSET.final}" alt=""><img class="contain cast c1" src="${ASSET.final}" alt=""><img class="contain fig" src="${ASSET.final}" alt=""></div>
+        <div class="layer l2 wall"><div class="fg">${figure(ASSET.cutout)}</div></div>
+        <div class="layer l3 wall"><div class="fg">${figure(ASSET.final)}</div></div>
         <div class="edge e2"></div><div class="edge e3"></div>
         <div class="scanline"></div>
       </div>
