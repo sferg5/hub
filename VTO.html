@@ -109,17 +109,12 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .fg{position:absolute;left:0;right:0;top:6%;bottom:0;perspective:2400px;perspective-origin:50% 30%}
 .fg.full{top:96px;bottom:120px}
 .fg>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-.fig{filter:drop-shadow(0 5px 8px rgba(20,20,20,.10))}
 /* cast shadow: the figure duplicated, blacked out, blurred, laid onto the floor plane from the feet and faded with distance */
 .cast{pointer-events:none;transform-origin:50% var(--sole,98.8%);backface-visibility:hidden;
   -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0) calc(100% - var(--sole,98.8%) + 2%),#000 calc(100% - var(--sole,98.8%) + 6.5%),rgba(0,0,0,.75) 42%,rgba(0,0,0,.2) 100%);
   mask-image:linear-gradient(to top,rgba(0,0,0,0) calc(100% - var(--sole,98.8%) + 2%),#000 calc(100% - var(--sole,98.8%) + 6.5%),rgba(0,0,0,.75) 42%,rgba(0,0,0,.2) 100%)}
-.cast.c1{filter:brightness(0) blur(3px);transform:rotateX(74deg) rotateZ(-13deg) scale(1,1.4);opacity:.34}
-.cast.c2{filter:brightness(0) blur(10px);transform:rotateX(74deg) rotateZ(-15deg) scale(1.06,1.5);opacity:.16}
+.cast.c1{filter:brightness(0) blur(3.5px);transform:rotateX(74deg) rotateZ(-13deg) scale(1,1.4);opacity:.36}
 .fg.cut-img{--sole:97%}.fg.fin-img{--sole:98.8%}
-/* contact shadow pooled under the soles — sized from the group's height so it scales with the figure */
-.ground{position:absolute;left:50%;bottom:calc(100% - var(--sole,98.8%) - 1.4%);height:3.6%;aspect-ratio:6/1;transform:translateX(-50%);pointer-events:none;
-  background:radial-gradient(ellipse at 50% 60%, rgba(20,20,20,.20) 0%, rgba(20,20,20,.08) 40%, rgba(20,20,20,0) 72%)}
 /* the room: a warm seamless wall meeting a flat floor; the cove sits at knee height because it is measured against the group */
 .room{position:absolute;left:-150%;right:-150%;top:-120%;bottom:-40%;pointer-events:none;background:
   radial-gradient(90% 50% at 50% 30%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 70%),
@@ -295,7 +290,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
         <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in one after another and ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
-        <p>Every image is shown exactly as delivered — the studio backdrop, the pooled shadow under the feet and the soft figure shadow are layers behind and beneath the image, not edits to it.</p>
+        <p>Every image is shown exactly as delivered — the studio backdrop, the cast shadow is a layer beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
         <div class="eyebrow">A · Fitting Room</div>
@@ -341,7 +336,7 @@ const confirmBlock=`
   <div class="title">Happy with your photo?</div>
   <div class="tips"><span class="h">For best results</span><span>Just you, showing full body</span><span>Fitted clothes, no hands in pockets</span><span>Good lighting</span></div>
   <div class="acts"><button class="imgbtn retake"><img src="${ASSET.retake}" alt="Retake"></button><button class="imgbtn use"><img src="${ASSET.usephoto}" alt="Use this photo"></button></div>`;
-const figure=src=>`<div class="room"></div><div class="ground"></div><img class="cast c2" src="${src}" alt=""><img class="cast c1" src="${src}" alt=""><img class="fig" src="${src}" alt="">`;
+const figure=src=>`<div class="room"></div><img class="cast c1" src="${src}" alt=""><img class="fig" src="${src}" alt="">`;
 const spinner=`<div class="spinner">${Array.from({length:8},(_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${(0.15+i*0.11).toFixed(2)}"></i>`).join('')}</div>`;
 const copyBlock=`<div class="copy">${COPY.map(c=>`<span>${c}</span>`).join('')}</div>`;
 
@@ -397,7 +392,6 @@ const PROTOS={
     });
     // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
     root.classList.toggle('s3b',stage>=3&&t>T2+700);
-    root.querySelector('.ground').classList.toggle('full',stage>=3&&t>T2+700);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1700)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+1900);
   }
