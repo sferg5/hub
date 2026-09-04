@@ -127,13 +127,16 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 
 /* ---------- Baseline ---------- */
 .b .confirm{position:absolute;inset:0;transition:opacity .4s}
-.b .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
+.b .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;perspective:1400px;transform-origin:50% 50%;transition:transform .8s cubic-bezier(.4,0,.2,1),left .8s,right .8s,top .8s,height .8s,border-radius .8s}
 .b .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .6s}
-.b .fg{opacity:0;transition:opacity .7s ease-in-out,top 1s cubic-bezier(.65,0,.15,1),bottom 1s cubic-bezier(.65,0,.15,1)}
-.b.s2 .fg.cut{opacity:1}
-.b.s3 .fg.fin{opacity:1}
-.b.s3 .fg.cut{opacity:0!important;transition-delay:.4s}
+.b .fg{transition:top 1s cubic-bezier(.65,0,.15,1),bottom 1s cubic-bezier(.65,0,.15,1)}
 .b.s3b .fg{top:96px;bottom:120px}
+.b .flipper{position:absolute;inset:0;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.7,0,.25,1)}
+.b.s2 .flipper,.b.s3 .flipper{transform:rotateY(180deg)}
+.b .face{position:absolute;inset:0;border-radius:inherit;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.b .face.back{transform:rotateY(180deg)}
+.b .face.final{opacity:0;transition:opacity .7s ease-in-out;pointer-events:none}
+.b.s3 .face.final{opacity:1}
 .b .pcard .scan{position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 70%,rgba(255,255,255,0) 100%);mix-blend-mode:screen;opacity:0;transition:opacity .5s}
 .b .pcard .scan.on{opacity:1;animation:scanB 3.2s ease-in-out infinite}
 @keyframes scanB{0%{top:-40%}100%{top:105%}}
@@ -152,8 +155,9 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .b.s1 .pcard,.b.s2 .pcard,.b.s3 .pcard{left:78px;right:78px;top:96px;height:520px;border-radius:26px}
 .b.s3b .pcard{left:0;right:0;top:0;height:852px;border-radius:0;transition:left 1s cubic-bezier(.65,0,.15,1),right 1s cubic-bezier(.65,0,.15,1),top 1s cubic-bezier(.65,0,.15,1),height 1s cubic-bezier(.65,0,.15,1),border-radius 1s cubic-bezier(.65,0,.15,1),background .6s}
 .b.s3 .pcard img.raw{opacity:0!important;transition:opacity .7s ease-in-out}
-.b .pcard{background:#F1F0EE}
-.b .orbit{position:absolute;inset:0;opacity:0;transition:opacity .5s;pointer-events:none}
+.b .pcard{background:transparent}
+.b .face.front{background:var(--phone-card)}
+.b .orbit{position:absolute;inset:0;opacity:0;pointer-events:none}
 .b.s2 .orbit{opacity:1}
 .b .orbit .chip{left:0;top:0;transition:opacity .4s}
 .b.s3 .orbit{opacity:0;transition:opacity .45s}
@@ -288,7 +292,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the raw photo crossfades to the background-removed cut-out on the grey card and the three products ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in one after another and ride slowly along the edge of the card (the Rotate3d “Omni” layer), never crossing the figure. At 16s the chips slip away, the cut-out crossfades to the final render inside the card, and the card then grows to full-bleed before “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the studio backdrop, the pooled shadow under the feet and the soft figure shadow are layers behind and beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -346,10 +350,11 @@ const PROTOS={
     ${statusbar}
     <div class="confirm">
       <div class="pcard">
-        ${selfieHTML()}
-        <div class="fg cut">${figure(ASSET.cutout)}</div>
-        <div class="fg fin">${figure(ASSET.final)}</div>
-        <div class="scan"></div>
+        <div class="flipper">
+          <div class="face front">${selfieHTML()}<div class="scan"></div></div>
+          <div class="face back wall"><div class="fg cut">${figure(ASSET.cutout)}</div></div>
+        </div>
+        <div class="face final wall"><div class="fg fin">${figure(ASSET.final)}</div></div>
       </div>
       ${confirmBlock}
     </div>
@@ -382,11 +387,12 @@ const PROTOS={
       if(stage>=3){ch.style.transform=`translate(${cx-w/2}px,${cy-w/2}px) scale(0)`;return}
       const d=(i/3)*P+((t-T1)/36000)*P;                      // one lap every 36s, three chips evenly spaced
       const [x,y]=onPath(d);
-      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px)`;
+      // pop in one at a time once the card has finished flipping (flip = 1s), 260ms apart, with a little overshoot
+      const appear=T1+1000+i*260, u=Math.min(1,Math.max(0,(t-appear)/520)), c1=1.70158, c3=c1+1;
+      const pop=u<=0?0:1+c3*Math.pow(u-1,3)+c1*Math.pow(u-1,2);
+      ch.style.transform=`translate(${x-w/2}px,${y-w/2}px) scale(${pop.toFixed(3)})`;
       ch.style.opacity=1; ch.style.zIndex=3;
     });
-    const cut=root.querySelector('.fg.cut'),raw=root.querySelector('.raw');
-    if(stage===2){cut.style.opacity=1;raw.style.opacity=0}else if(stage<2){cut.style.opacity=0;raw.style.opacity=1}else{cut.style.opacity='';raw.style.opacity=''}
     // reveal choreography: chips out + in-card crossfade (0–0.7s), then the card grows to full-bleed (0.7–1.7s), then the CTA
     root.classList.toggle('s3b',stage>=3&&t>T2+700);
     root.querySelector('.ground').classList.toggle('full',stage>=3&&t>T2+700);
