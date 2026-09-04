@@ -405,7 +405,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop into three equidistant seats along the card's edge — right, bottom, left — and sway gently in place (the Rotate3d “Omni” layer), never crossing the figure. At 16s each piece flies to its place on the body — tee to the chest, leggings to the hips, shoes to the feet — and settles into it as the look fades in; the card then grows to full-bleed before “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in a third of the perimeter apart and drift slowly around the whole edge of the card (the Rotate3d “Omni” layer). At 16s each piece flies to its place on the body — tee to the chest, leggings to the hips, shoes to the feet — and settles into it as the look fades in; the card then grows to full-bleed before “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the studio backdrop, the cast shadow is a layer beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -506,10 +506,9 @@ const PROTOS={
       else if((d-=arc)<straightH){x=-hw;y=hh-r-d}
       else {d-=straightH;const a=d/r;x=-hw+r-Math.cos(a)*r;y=-hh+r-Math.sin(a)*r}
       return [cx+x,cy+y]};
-    // three seats, equidistant along the U of the card edge (right side · bottom · left side), gently swaying in place —
-    // the top edge is never used, so nothing crosses the head
-    const seats=[straightW+arc+straightH*0.5, straightW+arc+straightH+arc+straightW*0.5, straightW+arc+straightH+arc+straightW+arc+straightH*0.5];
-    const sway=tt=>52*Math.sin((tt-T1)/14000*2*Math.PI);
+    // three chips spaced exactly a third of the perimeter apart, drifting slowly around the whole card edge
+    const seats=[straightW+arc+straightH*0.5, straightW+arc+straightH*0.5+P/3, straightW+arc+straightH*0.5+2*P/3];
+    const sway=tt=>((tt-T1)/60000)*P;   // one full lap every 60s
     // where each piece lands on the body before the look arrives: tee → chest, leggings → hips, shoes → feet
     const figTop=96+520*0.06, figH=520*0.94;
     const targets=[[cx,figTop+figH*0.30],[cx,figTop+figH*0.62],[cx,figTop+figH*0.955]];
