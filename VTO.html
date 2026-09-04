@@ -94,8 +94,9 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{animation:spin 1s steps(8) infinite}
 .copy{position:absolute;left:24px;right:24px;text-align:center;font-size:15px;color:var(--phone-ink);height:22px}
-.copy span{position:absolute;left:0;right:0;transition:opacity .35s,transform .35s;opacity:0;transform:translateY(6px)}
+.copy span{position:absolute;left:0;right:0;transition:opacity .32s,transform .4s cubic-bezier(.3,.7,.3,1);opacity:0;transform:translateY(12px)}
 .copy span.on{opacity:1;transform:none}
+.copy span.was{opacity:0;transform:translateY(-12px)}
 .shop{position:absolute;left:20px;right:20px;bottom:38px;transform:translateY(120px);opacity:0;transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .shop img{width:100%;display:block}
 .shop.on{transform:none;opacity:1}
@@ -600,6 +601,7 @@ const confirmBlock=`
   <div class="tips"><span class="h">For best results</span><span>Just you, showing full body</span><span>Fitted clothes, no hands in pockets</span><span>Good lighting</span></div>
   <div class="acts"><button class="imgbtn retake"><img src="${ASSET.retake}" alt="Retake"></button><button class="imgbtn use"><img src="${ASSET.usephoto}" alt="Use this photo"></button></div>`;
 const figure=src=>`<div class="room"></div><img class="cast c1" src="${src}" alt=""><img class="fig" src="${src}" alt="">`;
+const setCopy=(spans,idx)=>spans.forEach((sp,i)=>{const seen=sp.classList.contains('on')||sp.classList.contains('was');sp.classList.toggle('on',i===idx);sp.classList.toggle('was',idx===-1?seen:i<idx)});
 const spinner=`<div class="spinner">${Array.from({length:8},(_,i)=>`<i style="transform:rotate(${i*45}deg);opacity:${(0.15+i*0.11).toFixed(2)}"></i>`).join('')}</div>`;
 const copyBlock=`<div class="copy">${COPY.map(c=>`<span>${c}</span>`).join('')}</div>`;
 
@@ -628,7 +630,7 @@ const PROTOS={
     // copy rotation across 16s
     const spans=root.querySelectorAll('.copy span');
     const idx=stage>=3?-1:Math.min(COPY.length-1,Math.floor(t/(T2/COPY.length)));
-    spans.forEach((s,i)=>s.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.scan').classList.toggle('on',stage===1||stage===2);
     // products ride the edge of the image container — a rounded-rect path hugging the card (the ProtoPie Rotate3d 'Omni' layer)
     const cx=196,cy=356,hw=118,hh=260,r=26,w=104;           // card: 237×520 centred at (196,356), corner radius 26
@@ -708,7 +710,7 @@ const PROTOS={
     const spans=root.querySelectorAll('.copy span');
     let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;
     if(stage>=3)idx=-1;
-    spans.forEach((s,i)=>s.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1300)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+1400);
   }
@@ -777,7 +779,7 @@ const PROTOS={
     root.querySelectorAll('.step').forEach((st,i)=>{st.querySelector('.track i').style.width=(p[i]*100)+'%';st.querySelector('.pct').textContent=Math.round(p[i]*100)+'%';st.classList.toggle('live',p[i]>0&&p[i]<1);st.classList.toggle('done',p[i]>=1)});
     root.querySelectorAll('.dk').forEach((d,i)=>{const at=T1+i*per;d.classList.toggle('live',stage===2&&t>=at&&t<at+per);d.classList.toggle('done',stage>=2&&t>=at+per)});
     const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+600)idx=-1;
-    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1600)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+1800);
   }
@@ -810,7 +812,7 @@ const PROTOS={
     root.querySelector('.sw .line i').style.width=`${Math.min(1,Math.max(0,(t-T1)/(T2-T1)))*100}%`;
     root.querySelectorAll('.swatch').forEach((w,i)=>{const at=T1+i*per;w.classList.toggle('live',stage===2&&t>=at&&t<at+per);w.classList.toggle('done',stage>=2&&t>=at+per)});
     const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+900)idx=-1;
-    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1900)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+2100);
   }
@@ -849,7 +851,7 @@ const PROTOS={
     root.querySelector('.l3').style.clipPath=stage>=3&&t<T2+900?`inset(0 ${100-x}% 0 0)`:stage>=3?'inset(0 0 0 0)':'inset(0 100% 0 0)';
     root.querySelectorAll('.tag').forEach((tg,i)=>{const at=T1+900+i*per;tg.classList.toggle('on',stage>=2&&t>=at);tg.classList.toggle('done',stage>=2&&t>=at+per*.85)});
     const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):4;if(stage>=3&&t>T2+1100)idx=-1;
-    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+2100)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+2300);
   }
@@ -881,7 +883,7 @@ const PROTOS={
     if(zone>=0)fg.classList.add('z'+zone); else if(zone===-2||stage>=3)fg.classList.add('zo');
     root.querySelectorAll('.pk').forEach((pk,i)=>pk.classList.toggle('on',zone===i));
     const spans=root.querySelectorAll('.copy span');let idx=stage===1?0:stage===2?(zone>=0?1+zone:zone===-2?4:0):-1;
-    spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
+    setCopy(spans,idx);
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1900)?0:1;
     root.querySelector('.shop').classList.toggle('on',t>T2+2100);
   }
