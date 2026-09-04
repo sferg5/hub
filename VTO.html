@@ -230,31 +230,31 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 
 /* ---------- Variant C : Stylist Chat ---------- */
 .d .confirm{position:absolute;inset:0;transition:opacity .4s}
-.d .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:var(--phone-card);z-index:2;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1),opacity .4s}
-.d .pcard img.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.d .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
+.d .pcard .layer{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .9s ease-in-out}
+.d .pcard img.layer{width:100%;height:100%;object-fit:cover;opacity:1}
+.d .pcard .layer .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
+.d.s2 .pcard .l2{opacity:1}
+.d.s3 .pcard .l3{opacity:1}
 .d .title{position:absolute;left:16px;right:16px;top:138px;font-size:33px;line-height:1.2;font-weight:400;letter-spacing:-.025em;text-align:center;white-space:nowrap}
 .d .tips{position:absolute;left:24px;right:24px;top:630px;display:flex;flex-direction:column;align-items:center;gap:0;font-size:18px;line-height:25px;letter-spacing:-.01em;color:var(--phone-ink)}
 .d .tips .h{color:var(--phone-mute);margin-bottom:6px}
 .d .acts{position:absolute;left:20px;right:20px;bottom:35px;display:flex;gap:15px;align-items:center}
 .d .acts .imgbtn img{height:45px}.d .acts .imgbtn:last-child{flex:1}.d .acts .imgbtn:last-child img{width:100%;height:auto}
 .d.s1 .confirm .title,.d.s1 .confirm .tips,.d.s1 .confirm .acts,.d.s2 .confirm .title,.d.s2 .confirm .tips,.d.s2 .confirm .acts,.d.s3 .confirm .title,.d.s3 .confirm .tips,.d.s3 .confirm .acts{opacity:0;pointer-events:none}
-/* the photo becomes a sent attachment, right-aligned at the top of the thread */
-.d.s1 .pcard,.d.s2 .pcard,.d.s3 .pcard{left:288px;right:20px;top:116px;height:150px;border-radius:16px 16px 4px 16px}
-.d.s3 .pcard{opacity:0}
-.d .chat{position:absolute;left:20px;right:20px;top:116px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;opacity:0;transition:opacity .4s}
-.d.s1 .chat,.d.s2 .chat{opacity:1}
-.d.s3 .chat{opacity:0;transition:opacity .5s .5s}
-.d .chat .spacer{height:150px;width:100%}
-.d .msg{max-width:78%;background:var(--phone-card);color:var(--phone-ink);font-size:15px;line-height:1.3;padding:9px 13px;border-radius:16px 16px 16px 4px;display:none}
+.d.s1 .pcard,.d.s2 .pcard{left:96px;right:96px;top:106px;height:388px;border-radius:24px}
+.d.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
+.d.s3 .pcard .l3 .fg{top:96px;bottom:120px}
+/* the thread lives below the photo */
+.d .chat{position:absolute;left:24px;right:24px;top:510px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;opacity:0;transform:translateY(380px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
+.d.s1 .chat,.d.s2 .chat{opacity:1;transform:none}
+.d.s3 .chat{opacity:0;transform:translateY(380px);transition:opacity .35s,transform .7s cubic-bezier(.4,0,.2,1)}
+.d .msg{max-width:88%;background:var(--phone-card);color:var(--phone-ink);font-size:15px;line-height:1.3;padding:7px 13px;white-space:nowrap;border-radius:16px 16px 16px 4px;display:none}
 .d .msg.on{display:block;animation:arrive .45s cubic-bezier(.2,.8,.2,1) both}
 @keyframes arrive{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
-.d .msg.me{align-self:flex-end;background:var(--phone-ink);color:#fff;border-radius:16px 16px 4px 16px}
-.d .bubble{width:86px;height:150px;border-radius:16px 16px 16px 4px;overflow:hidden;background:#F1F0EE;position:relative;display:none}
-.d .bubble.on{display:block;animation:arrive .5s cubic-bezier(.2,.8,.2,1) both}
-.d .bubble .fg{perspective:900px}
-.d .prow{display:none;align-items:center;gap:10px;background:var(--phone-card);border-radius:14px;padding:6px 12px 6px 6px}
+.d .prow{display:none;align-items:center;gap:10px;background:var(--phone-card);border-radius:14px;padding:5px 12px 5px 5px}
 .d .prow.on{display:flex;animation:arrive .45s cubic-bezier(.2,.8,.2,1) both}
-.d .prow .th{width:36px;height:36px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.d .prow .th{width:32px;height:32px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .d .prow .th img{width:80%;height:80%;object-fit:contain}
 .d .prow .nm{font-size:14px;line-height:1.15}
 .d .prow .nm small{display:block;font-size:12px;color:var(--phone-mute)}
@@ -264,10 +264,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .d .typing i{width:6px;height:6px;border-radius:50%;background:var(--phone-mute);animation:typing 1.1s ease-in-out infinite}
 .d .typing i:nth-child(2){animation-delay:.15s}.d .typing i:nth-child(3){animation-delay:.3s}
 @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-3px);opacity:1}}
-/* the look arrives full-bleed */
-.d .final{position:absolute;inset:0;background:#F1F0EE;opacity:0;transform:scale(.94);transition:opacity .7s ease-in-out,transform .9s cubic-bezier(.4,0,.2,1);pointer-events:none}
-.d.s3 .final{opacity:1;transform:none}
-.d .disc{top:790px;opacity:0;transition:opacity .4s}
+.d .disc{top:798px;opacity:0;transition:opacity .4s}
 .d.s1 .disc,.d.s2 .disc{opacity:1}
 /* ---------- Variant D : Process Rail ---------- */
 .e .confirm{position:absolute;inset:0;transition:opacity .4s}
@@ -416,7 +413,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card hidden-panel" id="note-d">
         <div class="eyebrow">C · Stylist Chat</div>
         <h2>The wait as a conversation</h2>
-        <p>Takes the “consulting digital stylist” copy literally. Your photo lifts into the thread as a sent attachment; the stylist replies, and typing dots stand in for the backend at work. At 8s the cut-out arrives as the stylist's image reply — “Here you are” — and each product follows as its own message, flipping from “Adding…” to “Added” as the second wait runs. At 16s “Here's your look” lands and the final render opens full-bleed over the thread. Every state is a message, so the user always knows who is doing what.</p>
+        <p>Takes the “consulting digital stylist” copy literally. The photo stays where it is — the centred card, as in the other concepts — and the stylist's thread runs beneath it. Typing dots stand in for the backend at work; at 8s the card dissolves to the cut-out as the stylist says “Here you are”, and each product follows as its own message, flipping from “Adding…” to “Added” through the second wait. At 16s “Here's your look” lands, the thread slides away and the card opens to full-bleed on the final render. Every state is a message, so the user always knows who is doing what.</p>
       </div>
       <div class="card hidden-panel" id="note-e">
         <div class="eyebrow">D · Process Rail</div>
@@ -580,35 +577,36 @@ const PROTOS={
   html(){return `<div class="d">
     ${statusbar}
     <div class="confirm">
-      <div class="pcard">${selfieHTML()}</div>
+      <div class="pcard">
+        ${selfieHTML()}
+        <div class="layer l2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
+        <div class="layer l3 wall"><div class="fg fin-img">${figure(ASSET.final)}</div></div>
+      </div>
       ${confirmBlock}
     </div>
     <div class="chat">
-      <div class="spacer"></div>
-      <div class="msg m1">Got your photo — give me a moment to lift you out of the background.</div>
-      <div class="bubble b2 wall"><div class="fg cut-img">${figure(ASSET.cutout)}</div></div>
-      <div class="msg m3">Here you are. Now let's try the pieces.</div>
+      <div class="msg m1">Lifting you out of the background…</div>
+      <div class="msg m3">Here you are. Now the pieces.</div>
       ${PRODUCTS.map((p,i)=>`<div class="prow p${i}"><span class="th">${chipInner(p.k)}</span><span class="nm">${p.n}<small><b>Adding…</b></small></span></div>`).join('')}
       <div class="msg m4">Here's your look.</div>
       <div class="typing"><i></i><i></i><i></i></div>
     </div>
-    <div class="final wall"><div class="fg full fin-img">${figure(ASSET.final)}</div></div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
   tick(el,t,stage){
     const root=el.firstElementChild;
-    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+700);
-    if(stage>=3&&t<=T2+700)root.classList.add('s2');
+    root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3&&t>T2+800);
+    if(stage>=3&&t<=T2+800)root.classList.add('s2');
     const per=(T2-T1)/3, on=(sel,when)=>root.querySelector(sel).classList.toggle('on',running&&t>=when);
-    on('.m1',900); on('.b2',T1); on('.m3',T1+500);
+    on('.m1',900); on('.m3',T1+400);
     root.querySelectorAll('.prow').forEach((r,i)=>{const at=T1+900+i*per;r.classList.toggle('on',t>=at);r.querySelector('small').innerHTML=t>=at+per*.8?'Added <b>✓</b>':'<b>Adding…</b>'});
     on('.m4',T2);
-    // typing dots show whenever the stylist is "working" between messages
-    const gaps=[[900,T1-200],[T1+700,T1+900],[T1+900+per*.8,T1+900+per],[T1+900+per+per*.8,T1+900+2*per],[T1+900+2*per+per*.8,T2-100]];
+    // typing dots whenever the stylist is "working" between messages
+    const gaps=[[900,T1-200],[T1+600,T1+900],[T1+900+per*.8,T1+900+per],[T1+900+per+per*.8,T1+900+2*per],[T1+900+2*per+per*.8,T2-100]];
     root.querySelector('.typing').classList.toggle('on',stage<3&&gaps.some(([a,b])=>t>=a&&t<b));
-    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1700)?0:1;
-    root.querySelector('.shop').classList.toggle('on',t>T2+1900);
+    root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1800)?0:1;
+    root.querySelector('.shop').classList.toggle('on',t>T2+2000);
   }
  },
  e:{
