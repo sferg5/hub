@@ -105,6 +105,33 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .chip .ph{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8B8580;text-align:center;line-height:1.3}
 @media (prefers-reduced-motion:reduce){.screen *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
+/* ---------- camera: the step before the confirm screen ---------- */
+.camera{position:absolute;inset:0;z-index:40}
+.camera .view{position:absolute;left:0;right:0;top:0;height:852px;border-radius:0;overflow:hidden;transition:left .85s cubic-bezier(.4,0,.2,1),right .85s cubic-bezier(.4,0,.2,1),top .85s cubic-bezier(.4,0,.2,1),height .85s cubic-bezier(.4,0,.2,1),border-radius .85s cubic-bezier(.4,0,.2,1)}
+.camera .view img{width:100%;height:100%;object-fit:cover;display:block}
+.camera.shrink .view{left:80px;right:80px;top:196px;height:412px;border-radius:22px}
+.camera .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.camera.flashing .flash{animation:flash .6s ease-out forwards}
+@keyframes flash{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
+.camera .camui{position:absolute;inset:0;transition:opacity .3s}
+.camera.shrink .camui{opacity:0;pointer-events:none}
+.camera .cam-sb{position:absolute;left:0;top:0;width:100%;display:block}
+.camera .tipspill{position:absolute;left:20px;top:59px;height:44px;padding:0 18px;border-radius:22px;background:rgba(150,150,150,.55);color:#fff;font-size:16px;display:flex;align-items:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.camera .cam-x{position:absolute;top:59px;right:20px;width:44px;height:44px;border:0;border-radius:50%;background:rgba(150,150,150,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:pointer}
+.camera .cam-x i{position:absolute;left:50%;top:50%;width:16px;height:1.6px;background:#fff;transform:translate(-50%,-50%) rotate(45deg)}.camera .cam-x i:last-child{transform:translate(-50%,-50%) rotate(-45deg)}
+.camera .cam-bottom{position:absolute;left:0;right:0;bottom:40px;height:84px;display:flex;align-items:center;justify-content:center}
+.camera .gallery{position:absolute;left:34px;width:46px;height:46px;border-radius:12px;background:rgba(255,255,255,.28);border:1.6px solid #fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.camera .gallery:after{content:"";position:absolute;left:9px;right:9px;top:11px;bottom:11px;border:1.4px solid #fff;border-radius:3px}
+.camera .shutter{width:78px;height:78px;border-radius:50%;background:transparent;border:4px solid #fff;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.camera .shutter span{width:62px;height:62px;border-radius:50%;background:#fff;transition:transform .12s}
+.camera .shutter:active span{transform:scale(.86)}
+.camera .flip{position:absolute;right:34px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.28);border:1.6px solid #fff;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
+.camera .flip svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* the confirm UI waits for the photo to land, then rises in */
+.confirm .title,.confirm .tips,.confirm .acts{transition:opacity .45s,transform .6s cubic-bezier(.2,.8,.2,1)}
+.screen.cam .confirm .title,.screen.cam .confirm .tips,.screen.cam .confirm .acts{opacity:0;transform:translateY(14px)}
+.screen.cam .sb{opacity:0!important}
+
 /* ---------- studio: figure group (room + floor shadow + casts + figure move as one) ---------- */
 .fg{position:absolute;left:0;right:0;top:6%;bottom:0;perspective:2400px;perspective-origin:50% 30%}
 .fg.full{top:96px;bottom:120px}
@@ -202,45 +229,55 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .a .veil{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
 .a.s1 .veil{opacity:0}
 
-/* ---------- Variant C : Lookbook ---------- */
+/* ---------- Variant C : Callouts ---------- */
 .d .confirm{position:absolute;inset:0;transition:opacity .4s}
 .d .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
-.d .pcard .layer{position:absolute;inset:0;overflow:hidden;transition:transform .9s cubic-bezier(.7,0,.2,1)}
-.d .pcard img.layer{width:100%;height:100%;object-fit:cover}
-.d .pcard .layer.l2,.d .pcard .layer.l3{transform:translateX(102%)}
+.d .pcard .layer{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .9s ease-in-out}
+.d .pcard img.layer{width:100%;height:100%;object-fit:cover;opacity:1}
 .d .pcard .layer .fg{transition:top .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
-.d.s2 .pcard .raw{transform:translateX(-102%)}
-.d.s2 .pcard .l2{transform:none}
-.d.s3 .pcard .raw,.d.s3 .pcard .l2{transform:translateX(-102%)}
-.d.s3 .pcard .l3{transform:none}
+.d.s2 .pcard .l2{opacity:1}
+.d.s3 .pcard .l3{opacity:1}
 .d .title{position:absolute;left:16px;right:16px;top:138px;font-size:33px;line-height:1.2;font-weight:400;letter-spacing:-.025em;text-align:center;white-space:nowrap}
 .d .tips{position:absolute;left:24px;right:24px;top:630px;display:flex;flex-direction:column;align-items:center;gap:0;font-size:18px;line-height:25px;letter-spacing:-.01em;color:var(--phone-ink)}
 .d .tips .h{color:var(--phone-mute);margin-bottom:6px}
 .d .acts{position:absolute;left:20px;right:20px;bottom:35px;display:flex;gap:15px;align-items:center}
 .d .acts .imgbtn img{height:45px}.d .acts .imgbtn:last-child{flex:1}.d .acts .imgbtn:last-child img{width:100%;height:auto}
 .d.s1 .confirm .title,.d.s1 .confirm .tips,.d.s1 .confirm .acts,.d.s2 .confirm .title,.d.s2 .confirm .tips,.d.s2 .confirm .acts,.d.s3 .confirm .title,.d.s3 .confirm .tips,.d.s3 .confirm .acts{opacity:0;pointer-events:none}
-.d.s1 .pcard,.d.s2 .pcard{left:0;right:0;top:0;height:530px;border-radius:0 0 30px 30px}
+.d.s1 .pcard,.d.s2 .pcard{left:96px;right:96px;top:110px;height:560px;border-radius:20px}
 .d.s3 .pcard{left:0;right:0;top:0;height:852px;border-radius:0}
 .d.s3 .pcard .l3 .fg{top:96px;bottom:120px}
-.d .tray{position:absolute;left:0;right:0;top:556px;height:150px;display:flex;justify-content:center;gap:16px;align-items:center;transform:translateY(360px);transition:transform .8s cubic-bezier(.4,0,.2,1)}
-.d.s1 .tray,.d.s2 .tray{transform:none}
-.d.s3 .tray{transform:translateY(360px);transition-delay:.5s}
-.d .tile{position:relative;width:104px;height:104px;border-radius:26px;background:#FAFAFA;box-shadow:0 10px 26px -12px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;overflow:visible;transition:transform .5s cubic-bezier(.2,1.2,.4,1),opacity .4s}
-.d .tile img{width:80%;height:80%;object-fit:contain}
-.d .tile .tick{position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;background:var(--phone-ink);transform:scale(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
-.d .tile .tick:after{content:"";position:absolute;left:8px;top:5px;width:4px;height:8px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(45deg)}
-.d .tile.live{transform:translateY(-10px) scale(1.06)}
-.d .tile.done .tick{transform:scale(1)}
-.d .tile.done{transform:none}
-.d.s3 .tile{transform:translateY(-260px) scale(0);opacity:0;transition:transform .6s cubic-bezier(.6,0,.3,1),opacity .4s .2s}
-.d.s3 .tile:nth-child(2){transition-delay:.08s}.d.s3 .tile:nth-child(3){transition-delay:.16s}
-.d .copy{top:736px;opacity:0;transform:translateY(360px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
-.d.s1 .copy,.d.s2 .copy{opacity:1;transform:none}
-.d .disc{top:780px;opacity:0;transform:translateY(360px);transition:opacity .3s,transform .8s cubic-bezier(.4,0,.2,1)}
-.d.s1 .disc,.d.s2 .disc{opacity:1;transform:none}
-@keyframes trayDrift{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
-.d.s1 .tray>.drift{animation:trayDrift 6s ease-in-out infinite}
-
+/* measuring frame: a dashed rule that draws itself around the card while the background is removed */
+.d .measure{position:absolute;left:96px;right:96px;top:110px;height:560px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .4s}
+.d .measure svg{position:absolute;inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px);overflow:visible}
+.d .measure rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);fill:none;stroke:var(--phone-ink);stroke-width:1.2;stroke-dasharray:0 100;opacity:.55}
+.d.s1 .measure{opacity:1}
+.d.s1 .measure rect{animation:dash 8s linear forwards}
+@keyframes dash{from{stroke-dasharray:0 100}to{stroke-dasharray:100 0}}
+.d .measure .tick{position:absolute;width:10px;height:10px;border-left:1.2px solid var(--phone-ink);border-top:1.2px solid var(--phone-ink);opacity:.55}
+.d .measure .tick.tl{left:-6px;top:-6px}.d .measure .tick.tr{right:-6px;top:-6px;transform:rotate(90deg)}.d .measure .tick.br{right:-6px;bottom:-6px;transform:rotate(180deg)}.d .measure .tick.bl{left:-6px;bottom:-6px;transform:rotate(-90deg)}
+/* callouts: a dot on the garment, a leader line, a tag — pinned at the height of the piece it names */
+.d .callouts{position:absolute;inset:0;pointer-events:none}
+.d .co{position:absolute;display:flex;align-items:center;gap:0;opacity:0;transition:opacity .3s}
+.d .co.on{opacity:1}
+.d .co .dot{width:8px;height:8px;border-radius:50%;background:var(--phone-ink);box-shadow:0 0 0 3px rgba(255,255,255,.9);flex:none}
+.d .co .lead{height:1.2px;background:var(--phone-ink);width:0;transition:width .45s cubic-bezier(.4,0,.2,1);flex:none}
+.d .co.on .lead{width:var(--len,40px)}
+.d .co .tag{display:flex;align-items:center;gap:7px;height:34px;padding:0 10px 0 4px;border-radius:18px;background:#fff;box-shadow:0 8px 20px -10px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.05);transform:scale(0);transform-origin:left center;transition:transform .45s cubic-bezier(.2,1.3,.4,1) .35s;white-space:nowrap}
+.d .co.on .tag{transform:scale(1)}
+.d .co.left{flex-direction:row-reverse}
+.d .co.left .tag{transform-origin:right center;padding:0 5px 0 12px;flex-direction:row-reverse}
+.d .co .tag .th{width:26px;height:26px;border-radius:50%;background:var(--phone-card);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.d .co .tag .th img{width:78%;height:78%;object-fit:contain}
+.d .co .tag .nm{font-size:12px;line-height:1.15;color:var(--phone-ink)}
+.d .co .tag .nm small{display:block;font-size:10px;color:var(--phone-mute)}
+.d .co.tee{top:262px;left:206px;--len:30px}
+.d .co.pants{top:430px;right:208px;--len:34px}
+.d .co.shoes{top:614px;left:214px;--len:26px}
+.d.s3 .co{opacity:0;transition:opacity .35s}
+.d .copy{top:712px;font-size:15px;opacity:0;transition:opacity .4s}
+.d.s1 .copy,.d.s2 .copy{opacity:1}
+.d .disc{top:772px;opacity:0;transition:opacity .4s}
+.d.s1 .disc,.d.s2 .disc{opacity:1}
 /* ---------- Variant D : Process Rail ---------- */
 .e .confirm{position:absolute;inset:0;transition:opacity .4s}
 .e .pcard{position:absolute;left:80px;right:80px;top:196px;height:412px;border-radius:22px;overflow:hidden;background:#F1F0EE;transition:left .8s cubic-bezier(.4,0,.2,1),right .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),height .8s cubic-bezier(.4,0,.2,1),border-radius .8s cubic-bezier(.4,0,.2,1)}
@@ -337,7 +374,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <button class="tab" role="tab" aria-selected="true" data-p="b"><b>00</b>Baseline</button>
       <button class="tab" role="tab" aria-selected="false" data-p="a"><b>A</b>Fitting Room</button>
       <button class="tab" role="tab" aria-selected="false" data-p="c"><b>B</b>Contact Sheet</button>
-      <button class="tab" role="tab" aria-selected="false" data-p="d"><b>C</b>Lookbook</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="d"><b>C</b>Callouts</button>
       <button class="tab" role="tab" aria-selected="false" data-p="e"><b>D</b>Process Rail</button>
     </div>
   </header>
@@ -350,7 +387,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <div class="eyebrow">Playback</div>
         <div class="ctl">
           <button class="primary" id="restart">Restart</button>
-          <button id="tap">Tap “Use this photo”</button>
+          <button id="tap">Take photo → Use this photo</button>
           <span class="sep"></span>
           <span style="color:var(--ink3);font-size:12px">Speed</span>
           <button data-speed="1" aria-pressed="true">1×</button>
@@ -365,7 +402,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
             <div class="tl-fill" id="fill"></div>
             <div class="tl-head" id="head"></div>
           </div>
-          <div class="tl-legend"><span>tap</span><span>8s</span><span>16s</span><span>19s</span></div>
+          <div class="tl-legend"><span>use photo</span><span>8s</span><span>16s</span><span>19s</span></div>
         </div>
         <div class="readout" style="margin-top:12px">
           <span>elapsed <b id="ro-t">0.0s</b></span>
@@ -386,9 +423,9 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
         <p>The wait is reframed as a fitting: a hairline progress rule under the card counts the first 8s while the copy says what the backend is actually doing. When the cut-out arrives the card flips like a mirror turning (the cut-out is the card’s back face — no image is touched). The three products sit in a ticket below and light up one at a time across the second 8s, each with its own line of copy, so the user reads the wait as three small steps rather than one long one. The final render arrives with a second flip, and the ticket becomes “Shop this look”.</p>
       </div>
       <div class="card hidden-panel" id="note-d">
-        <div class="eyebrow">C · Lookbook</div>
-        <h2>A page in two halves: the look above, the pieces below</h2>
-        <p>The photo becomes a full-width panel with a rounded lower edge, like the top of a lookbook spread, and the three products sit in a tray beneath it, drifting gently side to side. At 8s the cut-out pushes the photo out horizontally — the panel becomes a window onto the studio. During the second wait each product in the tray is “taken” in turn: it lifts, gets its check, and settles. At 16s the pieces fly up into the figure as the final render pushes in, the tray folds away, and the panel opens to full-bleed.</p>
+        <div class="eyebrow">C · Callouts</div>
+        <h2>Get-the-look tags pinned to the body</h2>
+        <p>The photo keeps its tall portrait frame. While the background is removed, a dashed rule draws itself around the frame with corner ticks — taking measurements. When the cut-out dissolves in, the three products arrive as editorial callouts: a dot on the garment, a leader line drawn outward, then a tag with a thumbnail and name, each pinned at the height of the piece it names — tee at the chest, leggings at the hip, shoes at the ankle — one per step of the second wait. On the final render the callouts fold away and the frame opens to full-bleed.</p>
       </div>
       <div class="card hidden-panel" id="note-e">
         <div class="eyebrow">D · Process Rail</div>
@@ -544,8 +581,13 @@ const PROTOS={
       </div>
       ${confirmBlock}
     </div>
-    <div class="tray"><div class="drift" style="display:flex;gap:16px">${PRODUCTS.map(p=>`<div class="tile" data-k="${p.k}">${chipInner(p.k)}<span class="tick"></span></div>`).join('')}</div></div>
-    <div class="copy"><span>removing the background...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}</div>
+    <div class="measure"><svg><rect pathLength="100" rx="20"/></svg><span class="tick tl"></span><span class="tick tr"></span><span class="tick br"></span><span class="tick bl"></span></div>
+    <div class="callouts">
+      <div class="co tee"><span class="dot"></span><span class="lead"></span><span class="tag"><span class="th">${chipInner('shirt')}</span><span class="nm">Swiftly<small>Tee</small></span></span></div>
+      <div class="co pants left"><span class="dot"></span><span class="lead"></span><span class="tag"><span class="th">${chipInner('pants')}</span><span class="nm">Align<small>Leggings</small></span></span></div>
+      <div class="co shoes"><span class="dot"></span><span class="lead"></span><span class="tag"><span class="th">${chipInner('shoes')}</span><span class="nm">blissfeel<small>Shoes</small></span></span></div>
+    </div>
+    <div class="copy"><span>taking your measurements...</span>${PRODUCTS.map(p=>`<span>${p.v}...</span>`).join('')}</div>
     <div class="disc"><img src="${ASSET.disclaimer}" alt="AI images may include mistakes. Fit and appearance won't be exact."></div>
     <div class="shop"><img src="${ASSET.shop}" alt="Shop this look"></div>
   </div>`},
@@ -553,7 +595,7 @@ const PROTOS={
     const root=el.firstElementChild;
     root.classList.toggle('s1',stage===1);root.classList.toggle('s2',stage===2);root.classList.toggle('s3',stage>=3);
     const per=(T2-T1)/3;
-    root.querySelectorAll('.tile').forEach((tl,i)=>{const st=T1+i*per,en=st+per;tl.classList.toggle('live',stage===2&&t>=st&&t<en);tl.classList.toggle('done',stage>=2&&t>=en)});
+    root.querySelectorAll('.co').forEach((c,i)=>c.classList.toggle('on',stage===2&&t>=T1+900+i*per));
     const spans=root.querySelectorAll('.copy span');const idx=stage===1?0:stage===2?1+Math.min(2,Math.floor((t-T1)/per)):-1;
     spans.forEach((sp,i)=>sp.classList.toggle('on',i===idx));
     root.querySelector('.sb').style.opacity=(stage>=3&&t<T2+1500)?0:1;
@@ -644,8 +686,25 @@ const PROTOS={
 const screen=document.getElementById('screen');
 let cur='b',running=false,t=0,speed=1,last=0,raf=0;
 const $=s=>document.querySelector(s);
+const cameraHTML=`<div class="camera">
+  <div class="view"><img src="${ASSET.selfie}" alt="Camera"></div>
+  <div class="flash"></div>
+  <div class="camui">
+    <img class="cam-sb" src="${ASSET.statusbar}" alt="">
+    <div class="tipspill">Tips</div>
+    <button class="cam-x" aria-label="Close"><i></i><i></i></button>
+    <div class="cam-bottom"><div class="gallery"></div><button class="shutter" aria-label="Take photo"><span></span></button><div class="flip"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.6-5.7"/><path d="M17.5 3v3.5H14"/><path d="M20 12a8 8 0 0 1-13.6 5.7"/><path d="M6.5 21v-3.5H10"/></svg></div></div>
+  </div></div>`;
+let camOpen=false;
+function snap(){const cam=screen.querySelector('.camera');if(!cam||cam.classList.contains('flashing'))return;
+  cam.classList.add('flashing');
+  setTimeout(()=>cam.classList.add('shrink'),140);
+  setTimeout(()=>{screen.classList.remove('cam');camOpen=false;paint()},620);
+  setTimeout(()=>cam.remove(),1050)}
 function mount(p){
-  cur=p;screen.innerHTML=PROTOS[p].html();running=false;t=0;
+  cur=p;screen.innerHTML=PROTOS[p].html()+cameraHTML;running=false;t=0;camOpen=true;screen.classList.add('cam');
+  screen.querySelector('.shutter').addEventListener('click',snap);
+  screen.querySelector('.cam-x').addEventListener('click',()=>mount(cur));
   screen.querySelector('.use').addEventListener('click',start);
   screen.querySelector('.retake').addEventListener('click',()=>mount(cur));
   screen.querySelector('.sb .x').addEventListener('click',()=>mount(cur));
@@ -663,12 +722,12 @@ function paint(){
   const pct=Math.min(1,t/TEND)*100;
   $('#fill').style.width=running?pct+'%':'0%';$('#head').style.left=running?pct+'%':'0%';
   $('#ro-t').textContent=(running?t/1000:0).toFixed(1)+'s';
-  $('#ro-s').textContent=st===0?'—':st===1?'1 · photo':st===2?'2 · cut-out + products':'3 · final render';
-  $('#ro-b').textContent=st===0?'waiting for tap':st===1?'removing background':st===2?'rendering try-on':'delivered';
+  $('#ro-s').textContent=st===0?(camOpen?'0 · camera':'confirm'):st===1?'1 · photo':st===2?'2 · cut-out + products':'3 · final render';
+  $('#ro-b').textContent=st===0?(camOpen?'camera open':'waiting for tap'):st===1?'removing background':st===2?'rendering try-on':'delivered';
 }
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>mount(b.dataset.p)));
 $('#restart').addEventListener('click',()=>mount(cur));
-$('#tap').addEventListener('click',()=>{if(!running)start()});
+$('#tap').addEventListener('click',()=>{if(running)return;if(camOpen){snap();setTimeout(start,1150)}else start()});
 document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{speed=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))}));
 // fit phone to viewport
 function fit(){const h=window.innerHeight-90;const s=Math.min(1,h/852);document.querySelector('.phone').style.transform=`scale(${s})`;document.querySelector('.phone-wrap').style.height=(852*s+20)+'px'}
