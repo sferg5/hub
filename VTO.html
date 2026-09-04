@@ -535,7 +535,7 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
       <div class="card" id="note-b">
         <div class="eyebrow">00 · Baseline — ProtoPie recreation</div>
         <h2>Stylist copy, orbiting products, snap-to-full reveal</h2>
-        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in a third of the perimeter apart — beside each shoulder and below the feet — and sway gently in place on the card's edge (the Rotate3d “Omni” layer). At 16s each piece flies to its place on the body — tee to the chest, leggings to the hips, shoes to the feet — and settles into it as the look fades in; the card then grows to full-bleed before “Shop this look” rises.</p>
+        <p>Faithful to the recording: the confirmed photo shrinks into a centered card while seven lines of stylist copy rotate under a spinner. At 8s the card flips on its Y axis like a playing card to reveal the background-removed cut-out on its back; once it lands, the three products pop in a third of the perimeter apart — beside each shoulder and below the feet — and glide slowly one way along the card's edge (the Rotate3d “Omni” layer). At 16s each piece flies to its place on the body — tee to the chest, leggings to the hips, shoes to the feet — and settles into it as the look fades in; the card then grows to full-bleed before “Shop this look” rises.</p>
         <p>Every image is shown exactly as delivered — the studio backdrop, the cast shadow is a layer beneath the image, not edits to it.</p>
       </div>
       <div class="card hidden-panel" id="note-a">
@@ -656,7 +656,9 @@ const PROTOS={
     // seated by garment so each starts near where it will land: tee at the top, leggings lower right, shoes low left — still P/3 apart
     // start where the old drift used to finish (a 1/7.5 lap further round), so the tee begins beside the shoulder, not over the head
     const seats=[straightW*0.65-P*(8/60), straightW*0.65-P*(8/60)+P/3, straightW*0.65-P*(8/60)+2*P/3];
-    const sway=tt=>26*Math.sin((tt-T1)/4500*2*Math.PI);   // a gentle sway around each seat; the three never leave their stations
+    // one slow, one-way glide along the edge over the whole stage (about 64px), easing in and out — same direction as before, no return trip
+    const glide=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    const sway=tt=>64*glide(Math.min(1,Math.max(0,(tt-T1)/(T2-T1))));
     // where each piece lands on the body before the look arrives: tee → chest, leggings → hips, shoes → feet
     const figTop=96+520*0.06, figH=520*0.94;
     const targets=[[cx,figTop+figH*0.30],[cx,figTop+figH*0.62],[cx,figTop+figH*0.955]];
