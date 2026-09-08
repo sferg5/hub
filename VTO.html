@@ -106,6 +106,62 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .chip .ph{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8B8580;text-align:center;line-height:1.3}
 @media (prefers-reduced-motion:reduce){.screen *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
 
+/* ---------- shop this look: bottom sheet, size picking, add-to-bag circle wipe ---------- */
+.scrim{position:absolute;inset:0;background:rgba(20,20,20,.28);opacity:0;pointer-events:none;transition:opacity .4s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:792px;background:#fff;border-radius:28px 28px 0 0;transform:translateY(100%);transition:transform .6s cubic-bezier(.65,0,.15,1);z-index:41;overflow:hidden;font-family:var(--sans);color:var(--phone-ink)}
+.sheet.on{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:#D9D9D9;margin:10px auto 0}
+.sheet h3{margin:18px 0 0;text-align:center;font-size:19px;font-weight:600;letter-spacing:-.01em}
+.sheet .tiles{display:flex;gap:10px;padding:0 20px;margin-top:38px}
+.sheet .tile{position:relative;flex:1;height:126px;border-radius:12px;background:var(--phone-card);box-shadow:0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:box-shadow .25s}
+.sheet .tile img{width:66%;height:66%;object-fit:contain}
+.sheet .tile.sel{box-shadow:0 0 0 1.5px var(--phone-ink)}
+.sheet .tile:after{content:"";position:absolute;left:18px;right:18px;bottom:-9px;height:2px;border-radius:1px;background:var(--phone-ink);transform:scaleX(0);transition:transform .35s cubic-bezier(.65,0,.15,1)}
+.sheet .tile.sel:after{transform:scaleX(1)}
+.sheet .tile .ok{position:absolute;right:7px;top:7px;width:18px;height:18px;border-radius:50%;background:var(--phone-ink);transform:scale(0);transition:transform .35s cubic-bezier(.2,1.4,.4,1)}
+.sheet .tile .ok:after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:solid #fff;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.sheet .tile.done .ok{transform:scale(1)}
+.sheet .pname{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:0 20px;margin-top:44px;font-size:20px;line-height:1.2;letter-spacing:-.01em}
+.sheet .pname .heart{width:24px;height:24px;flex:none;margin-top:2px}
+.sheet .pname .heart svg{width:24px;height:24px;stroke:var(--phone-ink);fill:none;stroke-width:1.6}
+.sheet .colour{display:flex;align-items:center;gap:10px;padding:0 20px;margin-top:14px;font-size:15px}
+.sheet .colour i{width:26px;height:26px;border-radius:50%;background:var(--sw);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sheet .colour small{color:var(--phone-mute);font-size:15px}
+.sheet .sizelab{padding:0 20px;margin-top:34px;font-size:15px;font-weight:600}
+.sheet .sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 20px;margin-top:14px}
+.sheet .sz{height:66px;border-radius:8px;border:1px solid #D6D6D6;background:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:border-color .2s,background .2s,transform .15s;font-family:inherit;color:var(--phone-ink)}
+.sheet .sz:active{transform:scale(.97)}
+.sheet .sz.sel{border:1.6px solid var(--phone-ink)}
+.sheet .sz.out{color:var(--phone-mute);cursor:default;overflow:hidden}
+.sheet .sz.out:before{content:"";position:absolute;left:-10%;top:50%;width:120%;height:1px;background:#C8C8C8;transform:rotate(-31deg)}
+.sheet .sizes.small .sz{height:56px;font-size:15px}
+.sheet .addbag{position:absolute;left:24px;right:24px;bottom:50px;height:56px;border-radius:28px;background:var(--phone-ink);color:#fff;border:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:17px;font-family:inherit;cursor:pointer;transition:background .3s,color .3s,opacity .3s}
+.sheet .addbag[disabled]{background:#E9E9E9;color:#9A9A9A;cursor:default}
+.sheet .addbag .amt{font-variant-numeric:tabular-nums}
+.sheet .homebar{position:absolute;left:50%;bottom:9px;width:140px;height:5px;margin-left:-70px;border-radius:3px;background:var(--phone-ink)}
+.sheet.hidecta .addbag{opacity:0;transition:none}
+/* the wipe: a copy of the button collapses to a circle, travels to centre, then grows to cover the screen */
+.wipe{position:absolute;left:24px;right:24px;height:56px;bottom:50px;border-radius:28px;background:var(--phone-ink);z-index:45;pointer-events:none;opacity:0}
+.wipe.go{opacity:1;animation:wipe1 .38s cubic-bezier(.65,0,.15,1) forwards,wipe2 .42s cubic-bezier(.65,0,.15,1) .38s forwards,wipe3 .7s cubic-bezier(.7,0,.3,1) .8s forwards}
+@keyframes wipe1{to{left:calc(50% - 28px);right:calc(50% - 28px);border-radius:50%}}
+@keyframes wipe2{from{bottom:50px}to{bottom:398px}}
+@keyframes wipe3{from{transform:scale(1)}to{transform:scale(20)}}
+.done-screen{position:absolute;inset:0;background:var(--phone-ink);color:#fff;z-index:46;opacity:0;pointer-events:none;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:var(--sans)}
+.done-screen.on{opacity:1;pointer-events:auto}
+.done-screen .ck{width:72px;height:72px;border-radius:50%;border:1.6px solid rgba(255,255,255,.6);position:relative;transform:scale(.6);opacity:0;transition:transform .6s cubic-bezier(.2,1.3,.4,1) .15s,opacity .4s .15s}
+.done-screen.on .ck{transform:none;opacity:1}
+.done-screen .ck:after{content:"";position:absolute;left:26px;top:18px;width:14px;height:26px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.done-screen h4{margin:26px 0 6px;font-size:28px;font-weight:400;letter-spacing:-.02em;opacity:0;transform:translateY(10px);transition:opacity .5s .4s,transform .6s .4s cubic-bezier(.4,0,.2,1)}
+.done-screen p{margin:0;color:rgba(255,255,255,.65);font-size:15px;opacity:0;transform:translateY(10px);transition:opacity .5s .5s,transform .6s .5s cubic-bezier(.4,0,.2,1)}
+.done-screen .row{display:flex;gap:10px;margin-top:28px;opacity:0;transform:translateY(10px);transition:opacity .5s .6s,transform .6s .6s cubic-bezier(.4,0,.2,1)}
+.done-screen .row .t{width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
+.done-screen .row .t img{width:72%;height:72%;object-fit:contain}
+.done-screen .btns{position:absolute;left:24px;right:24px;bottom:50px;display:flex;flex-direction:column;gap:12px;opacity:0;transform:translateY(12px);transition:opacity .5s .75s,transform .6s .75s cubic-bezier(.4,0,.2,1)}
+.done-screen .btns button{height:56px;border-radius:28px;font-size:17px;font-family:inherit;cursor:pointer;border:1.4px solid rgba(255,255,255,.5);background:transparent;color:#fff}
+.done-screen .btns button.pri{background:#fff;color:var(--phone-ink);border-color:#fff}
+.done-screen.on h4,.done-screen.on p,.done-screen.on .row,.done-screen.on .btns{opacity:1;transform:none}
+
 /* ---------- camera: the step before the confirm screen ---------- */
 .camera{position:absolute;inset:0;z-index:40}
 .camera .view{position:absolute;left:0;right:0;top:0;height:852px;border-radius:44px;overflow:hidden;transition:left .85s cubic-bezier(.4,0,.2,1),right .85s cubic-bezier(.4,0,.2,1),top .85s cubic-bezier(.4,0,.2,1),height .85s cubic-bezier(.4,0,.2,1),border-radius .85s cubic-bezier(.4,0,.2,1)}
@@ -608,7 +664,10 @@ const ASSET={
 };
 const has=k=>ASSET[k]&&!ASSET[k].startsWith('{{');
 const COPY=["consulting digital stylist...","taking digital measurements...","stitching pixels together...","steaming out virtual wrinkles...","determining the silhouette...","finalizing the light...","perfecting the fit..."];
-const PRODUCTS=[{k:'shirt',n:'Swiftly Tech Short-Sleeve',c:'Tee',v:'pinning the tee'},{k:'pants',n:'Align High-Rise Pant 25"',c:'Leggings',v:'hemming the leggings'},{k:'shoes',n:'blissfeel Running Shoe',c:'Shoes',v:'lacing the shoes'}];
+const PRODUCTS=[
+ {k:'shirt',n:'Swiftly Tech Short-Sleeve',full:'Swiftly Tech Short-Sleeve Shirt 2.0',c:'Tee',v:'pinning the tee',price:78,colour:'Sage',hex:'#7E8C77',more:'+6 colours',sizes:['XS','S','M','L','XL','XXL'],out:['XXL']},
+ {k:'pants',n:'Align High-Rise Pant 25"',full:'lululemon Align™ High-Rise Pant 25"',c:'Leggings',v:'hemming the leggings',price:128,colour:'Black',hex:'#141414',more:'+4 colours',sizes:['0','2','4','6','8','10','12','14'],out:['2']},
+ {k:'shoes',n:'blissfeel Running Shoe',full:'blissfeel 2 Women\'s Running Shoe',c:'Shoes',v:'lacing the shoes',price:148,colour:'Bone',hex:'#E8DFD2',more:'+3 colours',sizes:['5','5.5','6','6.5','7','7.5','8','8.5','9','9.5','10','11'],out:['9.5']}];
 const T1=8000,T2=16000,TEND=19000;
 
 const selfieHTML=()=>has('selfie')?`<img class="photo layer raw" src="${ASSET.selfie}" alt="Your photo">`:`<div class="ph-selfie layer raw">your photo · slot</div>`;
@@ -986,6 +1045,43 @@ const cameraHTML=`<div class="camera">
     <div class="cam-bottom"><div class="gallery"></div><button class="shutter" aria-label="Take photo"><span></span></button><div class="flip"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.6-5.7"/><path d="M17.5 3v3.5H14"/><path d="M20 12a8 8 0 0 1-13.6 5.7"/><path d="M6.5 21v-3.5H10"/></svg></div></div>
   </div></div>`;
 let camOpen=false;
+const sheetHTML=`<div class="scrim"></div><div class="sheet">
+  <div class="grab"></div><h3>Shop this look</h3>
+  <div class="tiles">${PRODUCTS.map((p,i)=>`<div class="tile" data-i="${i}">${chipInner(p.k)}<span class="ok"></span></div>`).join('')}</div>
+  <div class="pname"><span class="nm"></span><span class="heart"><svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 8.2a4.3 4.3 0 0 1 7.5 2.3c0 5.4-7.5 10-7.5 10z"/></svg></span></div>
+  <div class="colour"><i></i><span class="cn"></span><small class="cm"></small></div>
+  <div class="sizelab">Size</div><div class="sizes"></div>
+  <button class="addbag" disabled><span>Add to bag</span><span class="amt"></span></button>
+  <div class="homebar"></div>
+</div>
+<div class="wipe"></div>
+<div class="done-screen"><div class="ck"></div><h4>Added to bag</h4><p>3 items · <span class="tot"></span></p><div class="row">${PRODUCTS.map(p=>`<div class="t">${chipInner(p.k)}</div>`).join('')}</div>
+  <div class="btns"><button class="pri">View bag</button><button class="again">Try another look</button></div></div>`;
+function setupSheet(){
+  const sheet=screen.querySelector('.sheet'),scrim=screen.querySelector('.scrim'),chosen=[null,null,null];let cur=1;
+  const money=n=>'$'+n.toFixed(0);
+  const render=()=>{const p=PRODUCTS[cur];
+    sheet.querySelectorAll('.tile').forEach((tl,i)=>{tl.classList.toggle('sel',i===cur);tl.classList.toggle('done',chosen[i]!==null)});
+    sheet.querySelector('.nm').textContent=p.full;sheet.querySelector('.colour i').style.setProperty('--sw',p.hex);sheet.querySelector('.cn').textContent=p.colour;sheet.querySelector('.cm').textContent=p.more;
+    const sz=sheet.querySelector('.sizes');sz.classList.toggle('small',p.sizes.length>8);
+    sz.innerHTML=p.sizes.map(v=>`<button class="sz${p.out.includes(v)?' out':''}${chosen[cur]===v?' sel':''}" data-v="${v}">${v}</button>`).join('');
+    const all=chosen.every(c=>c!==null),total=PRODUCTS.reduce((a,q)=>a+q.price,0);
+    const btn=sheet.querySelector('.addbag');btn.disabled=!all;btn.querySelector('.amt').textContent=all?money(total):`${chosen.filter(c=>c!==null).length} of 3 sized`;
+    screen.querySelector('.done-screen .tot').textContent=money(total)};
+  sheet.querySelectorAll('.tile').forEach(tl=>tl.addEventListener('click',()=>{cur=+tl.dataset.i;render()}));
+  sheet.querySelector('.sizes').addEventListener('click',e=>{const b=e.target.closest('.sz');if(!b||b.classList.contains('out'))return;chosen[cur]=b.dataset.v;render();
+    // move on to the next unsized piece after a beat
+    const next=chosen.findIndex(c=>c===null);if(next!==-1)setTimeout(()=>{cur=next;render()},420)});
+  sheet.querySelector('.addbag').addEventListener('click',()=>{if(sheet.querySelector('.addbag').disabled)return;
+    sheet.classList.add('hidecta');const w=screen.querySelector('.wipe');w.classList.add('go');
+    setTimeout(()=>{screen.querySelector('.done-screen').classList.add('on')},1450)});
+  screen.querySelector('.done-screen .again').addEventListener('click',()=>mount(cur_p()));
+  screen.querySelector('.done-screen .pri').addEventListener('click',()=>{const b=screen.querySelector('.done-screen .pri');b.style.transform='scale(.97)';setTimeout(()=>b.style.transform='',150)});
+  scrim.addEventListener('click',()=>{sheet.classList.remove('on');scrim.classList.remove('on')});
+  render();
+  return ()=>{sheet.classList.add('on');scrim.classList.add('on')};
+}
+const cur_p=()=>cur;
 function snap(){const cam=screen.querySelector('.camera');if(!cam||cam.classList.contains('flashing'))return;
   cam.classList.add('flashing');
   setTimeout(()=>cam.classList.add('shrink'),140);
@@ -998,7 +1094,8 @@ function mount(p){
   screen.querySelector('.use').addEventListener('click',start);
   screen.querySelector('.retake').addEventListener('click',()=>mount(cur));
   screen.querySelector('.sb .x').addEventListener('click',()=>mount(cur));
-  screen.querySelector('.shop').addEventListener('click',()=>{screen.querySelector('.shop').style.transform='translateY(4px) scale(.98)';setTimeout(()=>screen.querySelector('.shop').style.transform='',150)});
+  screen.insertAdjacentHTML('beforeend',sheetHTML);const openSheet=setupSheet();
+  screen.querySelector('.shop').addEventListener('click',()=>{const b=screen.querySelector('.shop');b.style.transform='translateY(4px) scale(.98)';setTimeout(()=>b.style.transform='',150);openSheet()});
   document.querySelectorAll('[id^=note-]').forEach(n=>n.classList.toggle('hidden-panel',n.id!=='note-'+p));
   document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.p===p)));
   paint();
