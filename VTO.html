@@ -143,10 +143,8 @@ h1 small{font-family:var(--sans);font-weight:400;color:var(--ink3);margin-left:1
 .sheet.hidecta .addbag{opacity:0;transition:none}
 /* the wipe: a copy of the button collapses to a circle, travels to centre, then grows to cover the screen */
 .wipe{position:absolute;left:20px;right:20px;height:50px;bottom:34px;border-radius:25px;background:var(--phone-ink);z-index:45;pointer-events:none;opacity:0}
-.wipe.go{opacity:1;animation:wipe1 .38s cubic-bezier(.65,0,.15,1) forwards,wipe2 .42s cubic-bezier(.65,0,.15,1) .38s forwards,wipe3 .7s cubic-bezier(.7,0,.3,1) .8s forwards}
-@keyframes wipe1{to{left:calc(50% - 25px);right:calc(50% - 25px);border-radius:50%}}
-@keyframes wipe2{from{bottom:34px}to{bottom:401px}}
-@keyframes wipe3{from{transform:scale(1)}to{transform:scale(20)}}
+.wipe.go{opacity:1;animation:wipe 1.15s cubic-bezier(.7,0,.25,1) forwards}
+@keyframes wipe{0%{left:20px;right:20px;bottom:34px;border-radius:25px;transform:scale(1)}40%{left:calc(50% - 25px);right:calc(50% - 25px);bottom:401px;border-radius:50%;transform:scale(1.6)}100%{left:calc(50% - 25px);right:calc(50% - 25px);bottom:401px;border-radius:50%;transform:scale(22)}}
 .done-screen{position:absolute;inset:0;background:var(--phone-ink);color:#fff;z-index:46;opacity:0;pointer-events:none;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:var(--sans)}
 .done-screen.on{opacity:1;pointer-events:auto}
 .done-screen .ck{width:72px;height:72px;border-radius:50%;border:1.6px solid rgba(255,255,255,.6);position:relative;transform:scale(.6);opacity:0;transition:transform .6s cubic-bezier(.2,1.3,.4,1) .15s,opacity .4s .15s}
@@ -1074,7 +1072,7 @@ function setupSheet(){
     const next=chosen.findIndex(c=>c===null);if(next!==-1)setTimeout(()=>{cur=next;render()},420)});
   sheet.querySelector('.addbag').addEventListener('click',()=>{if(sheet.querySelector('.addbag').disabled)return;
     sheet.classList.add('hidecta');const w=screen.querySelector('.wipe');w.classList.add('go');
-    setTimeout(()=>{screen.querySelector('.done-screen').classList.add('on')},1450)});
+    setTimeout(()=>{screen.querySelector('.done-screen').classList.add('on')},1050)});
   screen.querySelector('.done-screen .again').addEventListener('click',()=>mount(cur_p()));
   screen.querySelector('.done-screen .pri').addEventListener('click',()=>{const b=screen.querySelector('.done-screen .pri');b.style.transform='scale(.97)';setTimeout(()=>b.style.transform='',150)});
   scrim.addEventListener('click',()=>{sheet.classList.remove('on');scrim.classList.remove('on')});
