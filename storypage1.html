@@ -516,13 +516,46 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 window.Road = (() => {
   const LOOKS = {
     editorial: { sky:0xF3F1EC, road:0x9E978C, walk:0xD6D0C6, kerb:0xE6E1D8, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xCFC9BF, 0xC4BDB2, 0xDAD4CA, 0xB8B0A4, 0xE1DCD3], fogNear:30, fogFar:230, light:.9 },
+                 blocks:[0xCFC9BF, 0xC4BDB2, 0xDAD4CA, 0xB8B0A4, 0xE1DCD3], win:.86, lit:0, litColor:0xF3F1EC, fogNear:30, fogFar:230, light:.9 },
     technical: { sky:0xEDEFF1, road:0x8B939B, walk:0xD3D7DB, kerb:0xE1E4E7, paint:0xEDEFF1, dash:0xE4472A,
-                 blocks:[0xC5CBD0, 0xB7BEC4, 0xD3D7DB, 0xA9B1B8, 0xDCE0E3], fogNear:30, fogFar:230, light:1.0 },
+                 blocks:[0xC5CBD0, 0xB7BEC4, 0xD3D7DB, 0xA9B1B8, 0xDCE0E3], win:.84, lit:0, litColor:0xEDEFF1, fogNear:30, fogFar:230, light:1.0 },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], fogNear:18, fogFar:170, light:.75 },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75 },
   };
   const LENGTH = 700;          // metres of road built
+  const BAY = 2.4, FLOOR = 3.2;  // one window bay · one storey, in metres — windows stay real-sized on any block
+  const TILE_W = 4, TILE_H = 6;  // bays × floors per texture tile (so lit windows can vary)
+  function makeFacade(){
+    const c = document.createElement('canvas'); c.width = 64 * TILE_W; c.height = 96 * TILE_H;
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4;
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipMapLinearFilter;
+    return t;
+  }
+  let facadeSeed = 3;
+  function paintFacade(tex, facadeHex, winMul, litProb, litHex){
+    const c = tex.image, g = c.getContext('2d');
+    const f = new THREE.Color(facadeHex), w = f.clone().multiplyScalar(winMul), l = new THREE.Color(litHex);
+    g.fillStyle = '#' + f.getHexString(); g.fillRect(0, 0, c.width, c.height);
+    let s = facadeSeed++; const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    for (let y = 0; y < TILE_H; y++) for (let x = 0; x < TILE_W; x++) {
+      const lit = rnd() < litProb;
+      g.fillStyle = '#' + (lit ? l : w).getHexString();
+      // window: 40% of the bay wide, 45% of the storey tall, sitting a little above centre
+      g.fillRect(x * 64 + 19, y * 96 + 30, 26, 43);
+    }
+    tex.needsUpdate = true;
+  }
+  // scale a box's side-face UVs so the facade tiles at real-world size
+  function facadeUVs(geo, w, h, d){
+    const uv = geo.attributes.uv;
+    for (let i = 0; i < uv.count; i++) {
+      const face = Math.floor(i / 4);                                 // 0 +x · 1 -x · 2 +y · 3 -y · 4 +z · 5 -z
+      if (face === 2 || face === 3) continue;
+      const width = face < 2 ? d : w;
+      uv.setXY(i, uv.getX(i) * width / (BAY * TILE_W), uv.getY(i) * h / (FLOOR * TILE_H));
+    }
+    uv.needsUpdate = true;
+  }
   const ROAD_W = 7, WALK_W = 3.2, KERB_H = .14;
   let renderer, scene, camera, mats = {}, blocks = [], dashes, look = 'editorial', canvas, dpr;
   let distance = 0, dirty = true;
@@ -541,7 +574,8 @@ window.Road = (() => {
     mats.kerb  = new THREE.MeshLambertMaterial({ color:0x888888 });
     mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff });
     mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff });
-    mats.blocks = [0,1,2,3,4].map(() => new THREE.MeshLambertMaterial({ color:0x888888 }));
+    mats.blocks = [0,1,2,3,4].map(() => new THREE.MeshLambertMaterial({ color:0x888888 }));        // roofs
+    mats.facade = [0,1,2,3,4].map(() => { const t = makeFacade(); return new THREE.MeshLambertMaterial({ map:t }); });
 
     // road, sidewalks, kerbs
     const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, LENGTH + 60), mats.road);
@@ -568,7 +602,8 @@ window.Road = (() => {
       [-1, 1].forEach(s => {
         if (rnd() < .12) return;                                       // a cross street
         const w = 6 + rnd() * 10, d = 8 + rnd() * 14, h = 6 + Math.pow(rnd(), 1.6) * 34;
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 5)]);
+        const k = Math.floor(rnd() * 5), geo = new THREE.BoxGeometry(w, h, d); facadeUVs(geo, w, h, d);
+        const mesh = new THREE.Mesh(geo, [mats.facade[k], mats.facade[k], mats.blocks[k], mats.blocks[k], mats.facade[k], mats.facade[k]]);
         mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + 1 + rnd() * 4), h/2, z - d/2);
         scene.add(mesh); blocks.push(mesh);
       });
@@ -577,7 +612,8 @@ window.Road = (() => {
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
       const w = 14 + rnd()*18, h = 30 + rnd()*60;
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 20), mats.blocks[Math.floor(rnd()*5)]);
+      const k = Math.floor(rnd()*5), geo = new THREE.BoxGeometry(w, h, 20); facadeUVs(geo, w, h, 20);
+      const mesh = new THREE.Mesh(geo, [mats.facade[k], mats.facade[k], mats.blocks[k], mats.blocks[k], mats.facade[k], mats.facade[k]]);
       mesh.position.set((i - 4) * 22 + (rnd()-.5)*8, h/2, -LENGTH - 60 - rnd()*30); scene.add(mesh);
     }
     setLook(look); resize(); update(0);
@@ -591,6 +627,7 @@ window.Road = (() => {
     mats.road.color.setHex(P.road); mats.walk.color.setHex(P.walk); mats.kerb.color.setHex(P.kerb);
     mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash);
     mats.blocks.forEach((m, i) => m.color.setHex(P.blocks[i]));
+    facadeSeed = 3; mats.facade.forEach((m, i) => paintFacade(m.map, P.blocks[i], P.win, P.lit, P.litColor));
     scene.children.forEach(c => { if (c.isLight) c.intensity = (c.isHemisphereLight ? .9 : .55) * P.light; });
     dirty = true;
   }
