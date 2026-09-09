@@ -534,11 +534,11 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 window.Road = (() => {
   const LOOKS = {
     editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xF3F1EC, kerb:0xE4DFD6, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
+                 blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xEDEFF1, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
-                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
+                 blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
   };
   const LENGTH = 700;          // metres of road built
   // CARDS · camera-locked photographs: slide in, ride with you, slide out. d0/len in metres; cx,cy in % of frame; h in vh
@@ -563,6 +563,23 @@ window.Road = (() => {
     { src:'@lineup',                     ar:2000/1425, cx:50, cy:42, h:34, d0:492, len:74 },
   ];
   let cardsEl, cardEls = [];
+  const _c1 = new THREE.Color(), _c2 = new THREE.Color();
+  // a slab's facade: its own tone at the street, dissolving into the sky toward the roof
+  function makeFade(){ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; return t; }
+  function paintFade(tex, baseHex, skyHex, amt){
+    const c = tex.image, g = c.getContext('2d'); _c1.setHex(baseHex); _c2.setHex(skyHex);
+    for (let y = 0; y < 256; y++) {
+      const k = Math.pow(1 - y / 255, 1.4) * amt;                          // y=0 is the top of the texture → the roof
+      const r = _c1.r + (_c2.r - _c1.r) * k, gg = _c1.g + (_c2.g - _c1.g) * k, b = _c1.b + (_c2.b - _c1.b) * k;
+      g.fillStyle = `rgb(${r*255|0},${gg*255|0},${b*255|0})`; g.fillRect(0, y, 4, 1);
+    }
+    tex.needsUpdate = true;
+  }
+  function roofToSky(geo){                                                 // top face samples the very top of the gradient
+    const uv = geo.attributes.uv;
+    for (let i = 8; i < 12; i++) uv.setY(i, 1);
+    uv.needsUpdate = true;
+  }
   const BAY = 2.4, FLOOR = 3.2;  // one window bay · one storey, in metres — windows stay real-sized on any block
   const TILE_W = 4, TILE_H = 6;  // bays × floors per texture tile (so lit windows can vary)
   function makeFacade(){
@@ -652,18 +669,14 @@ window.Road = (() => {
     mats.kerb  = new THREE.MeshLambertMaterial({ color:0x888888 });
     mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
     mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
-    mats.blocks = [0,1,2,3,4].map(() => new THREE.MeshLambertMaterial({ color:0x888888 }));        // roofs
+    mats.blocks = [0,1,2,3,4].map(() => new THREE.MeshBasicMaterial({ map: makeFade() }));       // flat, fading up into the sky
 
     // road, sidewalks, kerbs
     const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, LENGTH + 60), mats.road);
     road.rotation.x = -Math.PI/2; road.position.z = -LENGTH/2; scene.add(road);
     [-1, 1].forEach(s => {
-      const walk = new THREE.Mesh(new THREE.BoxGeometry(WALK_W, KERB_H, LENGTH + 60), mats.walk);
-      walk.position.set(s * (ROAD_W/2 + WALK_W/2), KERB_H/2, -LENGTH/2); scene.add(walk);
-      const kerb = new THREE.Mesh(new THREE.BoxGeometry(.18, KERB_H + .02, LENGTH + 60), mats.kerb);
-      kerb.position.set(s * (ROAD_W/2 + .09), (KERB_H + .02)/2, -LENGTH/2); scene.add(kerb);
-      const edge = new THREE.Mesh(new THREE.PlaneGeometry(.09, LENGTH + 60), mats.paint);
-      edge.rotation.x = -Math.PI/2; edge.position.set(s * (ROAD_W/2 - .5), .02, -LENGTH/2); scene.add(edge);
+      const walk = new THREE.Mesh(new THREE.BoxGeometry(WALK_W + 6, KERB_H, LENGTH + 60), mats.walk);   // one clean slab, running under the blocks
+      walk.position.set(s * (ROAD_W/2 + (WALK_W + 6)/2), KERB_H/2, -LENGTH/2); scene.add(walk);
     });
     // centre dashes · instanced
     const nDash = Math.ceil(LENGTH / 6);
@@ -685,7 +698,8 @@ window.Road = (() => {
       [-1, 1].forEach(s => {
         if (rnd() < .18) return;                                       // a cross street now and then
         const w = 10 + rnd() * 10, d = 14 + rnd() * 16, h = 14 + Math.pow(rnd(), .9) * 30;   // fewer, taller, more even
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 5)]);
+        const k = Math.floor(rnd() * 5), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo);
+        const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k;
         mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + 1.5 + rnd() * 2.5), h/2, z - d/2);
         scene.add(mesh); blocks.push(mesh);
       });
@@ -694,8 +708,9 @@ window.Road = (() => {
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
       const w = 14 + rnd()*18, h = 30 + rnd()*60;
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 20), mats.blocks[Math.floor(rnd()*5)]);
-      mesh.position.set((i - 4) * 22 + (rnd()-.5)*8, h/2, -LENGTH - 60 - rnd()*30); scene.add(mesh);
+      const k = Math.floor(rnd()*5), geo = new THREE.BoxGeometry(w, h, 20); roofToSky(geo);
+      const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k;
+      mesh.position.set((i - 4) * 22 + (rnd()-.5)*8, h/2, -LENGTH - 60 - rnd()*30); scene.add(mesh); blocks.push(mesh);
     }
     setLook(look); resize(); update(0);
   }
@@ -707,7 +722,7 @@ window.Road = (() => {
     scene.fog = new THREE.Fog(P.sky, P.fogNear, P.fogFar);
     mats.road.color.setHex(P.road); mats.walk.color.setHex(P.walk); mats.kerb.color.setHex(P.kerb);
     mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash);
-    mats.blocks.forEach((m, i) => m.color.setHex(P.blocks[i]));
+    mats.blocks.forEach((m, i) => paintFade(m.map, P.blocks[i], P.sky, P.fade));
 
     scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = 1.0 * P.light; });
     sun.intensity = .3 * P.light; sun.color.setHex(P.sun);
@@ -731,10 +746,10 @@ window.Road = (() => {
     distance = d;
     const stride = 1.45, ph = (d / stride) * Math.PI * 2;
     // the body bobs, the head stays level: vertical bob per stride, a whisper of sway, no roll to speak of
-    const bob = Math.sin(ph) * .042, sway = Math.sin(ph / 2) * .012, pitch = Math.sin(ph + .6) * .003;
+    const bob = Math.sin(ph) * .02, sway = Math.sin(ph / 2) * .005, pitch = Math.sin(ph + .6) * .0012;
     camera.position.set(.7 + sway, 1.62 + bob, -d);
     camera.lookAt(.7 + sway, 1.45 + bob * .6, -d - 40);
-    camera.rotation.x += pitch; camera.rotation.z = Math.sin(ph / 2) * .0012;
+    camera.rotation.x += pitch; camera.rotation.z = 0;
     sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR, 300);
     placeCards(d);
     dirty = true;
