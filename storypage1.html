@@ -388,6 +388,13 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 
 #s0 .copy{bottom:clamp(18px,3.5vh,32px)}
 #s0 .tele{gap:4px}
+
+/* ---- lens: depth-of-field falloff and film grain, under the plates and type ---- */
+#s0 .dof{position:absolute;inset:0;z-index:1;pointer-events:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  -webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,transparent 30%,rgba(0,0,0,.55) 62%,#000 100%);mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,transparent 30%,rgba(0,0,0,.55) 62%,#000 100%)}
+#s0 .grain{position:absolute;inset:0;z-index:1;pointer-events:none;background-size:256px 256px;mix-blend-mode:soft-light;opacity:.38}
+@media (max-width:899px){#s0 .dof{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}}
+@media (prefers-reduced-motion:reduce){#s0 .grain{display:none}}
 </style>
 
 <div id="app">
@@ -731,6 +738,16 @@ window.Road = (() => {
     glowEl = document.createElement('i'); glowEl.className = 'flare__glow'; flareEl.appendChild(glowEl);
 
     canvas.parentElement.appendChild(flareEl);
+    // depth of field · a masked backdrop blur: sharp through the middle, soft at the edges, the near ground and the far skyline
+    const dof = document.createElement('div'); dof.className = 'dof'; canvas.parentElement.appendChild(dof);
+    // film grain · a tiling noise sheet, shifted a few times a second, blended softly over the render
+    const gc = document.createElement('canvas'); gc.width = gc.height = 256; const gg = gc.getContext('2d'), gi = gg.createImageData(256, 256);
+    let gs = 99; const grnd = () => { gs = (gs * 9301 + 49297) % 233280; return gs / 233280; };
+    for (let i = 0; i < gi.data.length; i += 4) { const v = 128 + (grnd() - .5) * 140; gi.data[i] = gi.data[i+1] = gi.data[i+2] = v; gi.data[i+3] = 255; }
+    gg.putImageData(gi, 0, 0);
+    const grain = document.createElement('div'); grain.className = 'grain'; grain.style.backgroundImage = `url(${gc.toDataURL()})`; canvas.parentElement.appendChild(grain);
+    let gl = 0; const tickGrain = now => { if (now - gl > 83) { gl = now; grain.style.backgroundPosition = `${(grnd()*256)|0}px ${(grnd()*256)|0}px`; } requestAnimationFrame(tickGrain); };
+    requestAnimationFrame(tickGrain);
     // the card layer · sits over the city, under the flare
     const resolve = s => s[0] === '@' ? (document.querySelector(`img[data-key="${s.slice(1)}"]`) || {}).src : s;
     cardsEl = document.createElement('div'); cardsEl.className = 'cards';
