@@ -555,9 +555,9 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xF3F1EC, kerb:0xE4DFD6, paint:0xF3F1EC, dash:0xF3F1EC,
+    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xE2DDD3, kerb:0xE4DFD6, paint:0xF3F1EC, dash:0xF3F1EC,
                  blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
-    technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xEDEFF1, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
+    technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xDCE0E4, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
                  blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
                  blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, zenith:0x12161D, cloud:0x3A404A, cloudA:.5, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
@@ -746,7 +746,20 @@ window.Road = (() => {
       const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 300); t.anisotropy = 8; return t;
     })();
     mats.road  = new THREE.MeshLambertMaterial({ color:0x888888, map: asphalt });
-    mats.walk  = new THREE.MeshLambertMaterial({ color:0x888888 });
+    const concrete = (() => {                                           // poured slabs · one tile = one 1.5 m slab with its joints · greyscale around white so the look tints it
+      const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+      const img = g.createImageData(256, 256); let s = 5;
+      const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+      for (let i = 0; i < img.data.length; i += 4) {
+        let v = 240 + (rnd() - .5) * 16; if (rnd() < .03) v -= 10;           // fine aggregate, a few flecks
+        img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+      g.fillStyle = 'rgba(60,55,50,.32)'; g.fillRect(0, 0, 256, 3); g.fillRect(0, 0, 3, 256);   // the joint · two edges so it tiles into a grid
+      g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(3, 3, 253, 1); g.fillRect(3, 3, 1, 253); // a hair of light catching the slab edge
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
+    })();
+    mats.walk  = new THREE.MeshLambertMaterial({ color:0x888888, map: concrete });
     mats.kerb  = new THREE.MeshLambertMaterial({ color:0x888888 });
     mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
     mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
@@ -757,7 +770,9 @@ window.Road = (() => {
     road.rotation.x = -Math.PI/2; road.position.z = -LENGTH/2; scene.add(road);
     [-1, 1].forEach(s => {
       const WX = 400;                                                     // the ground runs out past the fog — no edge to find between the blocks
-      const walk = new THREE.Mesh(new THREE.BoxGeometry(WX, KERB_H, LENGTH + 120), mats.walk);
+      const wg = new THREE.BoxGeometry(WX, KERB_H, LENGTH + 120), uv = wg.attributes.uv;
+      for (let i = 8; i < 12; i++) uv.setXY(i, uv.getX(i) * WX / 1.5, uv.getY(i) * (LENGTH + 120) / 1.5);   // top face: slabs at real scale
+      const walk = new THREE.Mesh(wg, mats.walk);
       walk.position.set(s * (ROAD_W/2 + WX/2), KERB_H/2, -LENGTH/2 + 20); scene.add(walk);
     });
     // centre dashes · instanced
@@ -835,7 +850,7 @@ window.Road = (() => {
     distance = d;
     const stride = 1.45, ph = (d / stride) * Math.PI * 2;
     // the body bobs, the head stays level: vertical bob per stride, a whisper of sway, no roll to speak of
-    const bob = Math.sin(ph) * .02, sway = Math.sin(ph / 2) * .005, pitch = Math.sin(ph + .6) * .0012;
+    const bob = Math.sin(ph) * .012, sway = Math.sin(ph / 2) * .0025, pitch = Math.sin(ph + .6) * .0006;
     camera.position.set(.7 + sway, 1.62 + bob, -d);
     camera.lookAt(.7 + sway, 1.45 + bob * .6, -d - 40);
     camera.rotation.x += pitch; camera.rotation.z = 0;
