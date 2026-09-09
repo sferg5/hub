@@ -556,11 +556,11 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 window.Road = (() => {
   const LOOKS = {
     editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xF3F1EC, kerb:0xE4DFD6, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
+                 blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xEDEFF1, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
-                 blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
+                 blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, zenith:0x12161D, cloud:0x3A404A, cloudA:.5, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
   };
   const LENGTH = 700;          // metres of road built
   // CARDS · camera-locked photographs: slide in, ride with you, slide out. d0/len in metres; cx,cy in % of frame; h in vh
@@ -590,6 +590,50 @@ window.Road = (() => {
     { text:'Nobody runs alone.',         cx:50, cy:71, size:5.8, d0:504, len:64, align:'center' },
   ];
   let cardsEl, cardEls = [];
+  /* ---------- sky · a dome painted with fractal-noise cumulus, re-toned per look ---------- */
+  const SKY_W = 1024, SKY_H = 512;
+  let skyField = null, skyTex = null, skyDome = null;
+  function valueNoise(){                                                   // tiling value noise, 5 octaves, stretched wide like weather
+    const N = 64, grid = new Float32Array(N * N); let s = 21;
+    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    for (let i = 0; i < grid.length; i++) grid[i] = rnd();
+    const g = (x, y) => grid[((y % N + N) % N) * N + ((x % N + N) % N)];
+    const sm = t => t * t * (3 - 2 * t);
+    const sample = (x, y) => {
+      const x0 = Math.floor(x), y0 = Math.floor(y), fx = sm(x - x0), fy = sm(y - y0);
+      const a = g(x0, y0), b = g(x0 + 1, y0), c = g(x0, y0 + 1), d = g(x0 + 1, y0 + 1);
+      return (a + (b - a) * fx) + ((c + (d - c) * fx) - (a + (b - a) * fx)) * fy;
+    };
+    const f = new Float32Array(SKY_W * SKY_H);
+    for (let y = 0; y < SKY_H; y++) for (let x = 0; x < SKY_W; x++) {
+      let v = 0, amp = .5, fx = 3.2, fy = 5.5;                              // wider than tall: clouds lie along the horizon
+      for (let o = 0; o < 5; o++) { v += amp * sample(x / SKY_W * N / fx * 0.5 + o * 7.3, y / SKY_H * N / fy * 0.5 + o * 3.1); amp *= .5; fx *= .5; fy *= .5; }
+      f[y * SKY_W + x] = v;
+    }
+    return f;
+  }
+  function paintSky(P){
+    if (!skyField) skyField = valueNoise();
+    const c = skyTex.image, g = c.getContext('2d'), img = g.createImageData(SKY_W, SKY_H);
+    const z = new THREE.Color(P.zenith), h = new THREE.Color(P.sky), cl = new THREE.Color(P.cloud);
+    for (let y = 0; y < SKY_H; y++) {
+      const t = y / (SKY_H - 1);                                            // 0 = zenith · 1 = horizon
+      const gz = Math.pow(t, 2.4);                                          // blue holds well down the sky, then warms fast at the horizon
+      const r0 = z.r + (h.r - z.r) * gz, g0 = z.g + (h.g - z.g) * gz, b0 = z.b + (h.b - z.b) * gz;
+      const band = Math.min(1, Math.max(0, (t - .06) / .4)) * (1 - Math.pow(t, 9));   // clouds thin only at the very zenith and the horizon line
+      for (let x = 0; x < SKY_W; x++) {
+        const n = skyField[y * SKY_W + x];
+        const dens = Math.min(1, Math.max(0, (n - .49) / .16));             // soft-edged cumulus, a little firmer
+        const a = dens * dens * (3 - 2 * dens) * band * P.cloudA;
+        const i = (y * SKY_W + x) * 4;
+        img.data[i]   = ((r0 + (cl.r - r0) * a) * 255) | 0;
+        img.data[i+1] = ((g0 + (cl.g - g0) * a) * 255) | 0;
+        img.data[i+2] = ((b0 + (cl.b - b0) * a) * 255) | 0;
+        img.data[i+3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0); skyTex.needsUpdate = true;
+  }
   const _c1 = new THREE.Color(), _c2 = new THREE.Color();
   // a slab's facade: its own tone at the street, dissolving into the sky toward the roof
   function makeFade(){ const c = document.createElement('canvas'); c.width = 4; c.height = 256; const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; return t; }
@@ -750,6 +794,12 @@ window.Road = (() => {
       const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k;
       mesh.position.set((i - 4) * 22 + (rnd()-.5)*8, h/2, -LENGTH - 60 - rnd()*30); scene.add(mesh); blocks.push(mesh);
     }
+    // the sky dome · upper hemisphere, inside-out, travels with the runner, untouched by fog
+    const sc2 = document.createElement('canvas'); sc2.width = SKY_W; sc2.height = SKY_H;
+    skyTex = new THREE.CanvasTexture(sc2); skyTex.wrapS = THREE.RepeatWrapping; skyTex.minFilter = THREE.LinearFilter; skyTex.magFilter = THREE.LinearFilter;
+    skyDome = new THREE.Mesh(new THREE.SphereGeometry(380, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false, depthWrite: false }));
+    skyDome.renderOrder = -1; scene.add(skyDome);
     setLook(look); resize(); update(0);
   }
 
@@ -758,6 +808,7 @@ window.Road = (() => {
     if (!scene) return;
     scene.background = new THREE.Color(P.sky);
     scene.fog = new THREE.Fog(P.sky, P.fogNear, P.fogFar);
+    if (skyTex) paintSky(P);
     mats.road.color.setHex(P.road); mats.walk.color.setHex(P.walk); mats.kerb.color.setHex(P.kerb);
     mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash);
     mats.blocks.forEach((m, i) => paintFade(m.map, P.blocks[i], P.sky, P.fade));
@@ -789,6 +840,7 @@ window.Road = (() => {
     camera.lookAt(.7 + sway, 1.45 + bob * .6, -d - 40);
     camera.rotation.x += pitch; camera.rotation.z = 0;
     sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR, 300);
+    if (skyDome) { skyDome.position.set(camera.position.x, 0, camera.position.z); skyDome.rotation.y = d * .0006; }
     placeCards(d);
     dirty = true;
   }
@@ -822,7 +874,7 @@ window.Road = (() => {
     const cx = w / 2, cy = h / 2, dx = sx - cx, dy = sy - cy;
     flareEl.style.opacity = Math.max(flareI, blast).toFixed(3);
     blastEl.style.opacity = blast.toFixed(3);
-    flareEl._wash.style.opacity = `calc(var(--flare) * .45 * ${(1 + blast * 1.6).toFixed(3)})`;
+    flareEl._wash.style.opacity = `calc(var(--flare) * .34 * ${(1 + blast * 2.2).toFixed(3)})`;
     glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%) scale(${(1 + blast * 1.4).toFixed(3)})`;
     flareEl._wash.style.background = `radial-gradient(circle farthest-corner at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 72%, transparent) 22%, color-mix(in srgb, var(--sunc) 40%, transparent) 45%, color-mix(in srgb, var(--sunc) 16%, transparent) 68%, color-mix(in srgb, var(--sunc) 4%, transparent) 88%, transparent 100%)`;
 
