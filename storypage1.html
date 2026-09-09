@@ -524,10 +524,10 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0xD3CDC3, walk:0xF3F1EC, kerb:0xE7E2DA, paint:0xFFFFFF, dash:0xFFFFFF,
-                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.5, blend:'normal' },
-    technical: { sky:0xEDEFF1, road:0xC9CED3, walk:0xEDEFF1, kerb:0xDFE3E7, paint:0xFFFFFF, dash:0xE4472A,
-                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.32, blend:'normal' },
+    editorial: { sky:0xF3F1EC, road:0x9E978C, walk:0xD6D0C6, kerb:0xE6E1D8, paint:0xF3F1EC, dash:0xF3F1EC,
+                 blocks:[0xCFC9BF, 0xC4BDB2, 0xDAD4CA, 0xB8B0A4, 0xE1DCD3], win:.86, lit:0, litColor:0xF3F1EC, fogNear:30, fogFar:230, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.5, blend:'normal' },
+    technical: { sky:0xEDEFF1, road:0x8B939B, walk:0xD3D7DB, kerb:0xE1E4E7, paint:0xEDEFF1, dash:0xE4472A,
+                 blocks:[0xC5CBD0, 0xB7BEC4, 0xD3D7DB, 0xA9B1B8, 0xDCE0E3], win:.84, lit:0, litColor:0xEDEFF1, fogNear:30, fogFar:230, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.32, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
                  blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:.9, blend:'screen' },
   };
@@ -593,7 +593,7 @@ window.Road = (() => {
     dpr = Math.min(devicePixelRatio || 1, 1.6); renderer.setPixelRatio(dpr);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(58, 1, .1, 400);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d4cc, 1.0));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, .9));
     sun = new THREE.DirectionalLight(0xffffff, .7); sun.position.copy(SUN_DIR).multiplyScalar(50); scene.add(sun);
     // the sun itself: a soft disc, far down the road, occluded by the blocks it passes behind
     const sc = document.createElement('canvas'); sc.width = sc.height = 256;
@@ -644,35 +644,31 @@ window.Road = (() => {
       mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + .6), h/2, z - d/2);
       scene.add(mesh); blocks.push(mesh); return mesh;
     };
-    // billboards · one photograph every ~45 m, alternating sides, each on the street face of its own host block
     const loader = new THREE.TextureLoader();
     let bz = -34, side = 1;
     const srcOf = s => s[0] === '@' ? (document.querySelector(`img[data-key="${s.slice(1)}"]`) || {}).src : s;
-    // plates · photographs standing free in the open lots, a couple of metres off the ground, turned a little toward the road
-    const lots = [];
+    // plates · photographs standing in the street itself, alternating lanes, so you run past them at arm's length
     BOARDS.forEach((b, i) => {
-      const H = b.big ? 14 : 10, W = H * b.ar;
+      const H = b.big ? 5.2 : 3.8, W = H * b.ar;
       const tex = loader.load(srcOf(b.src)); tex.anisotropy = 4;
       const plate = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-      const x = side * (ROAD_W/2 + WALK_W + 3 + rnd() * 5), y = 2.2 + rnd() * 1.6 + H/2;
-      plate.position.set(x, y, bz);
-      plate.rotation.y = -side * (.22 + rnd() * .12);                       // yawed toward the runner's line
+      const x = side > 0 ? 2.55 : -1.9;                                       // runner is at x≈0.7 · right-lane plates hug the kerb, left-lane ones sit mid-lane
+      plate.position.set(x, .9 + H/2, bz);
+      plate.rotation.y = -side * .18;                                         // turned a touch toward the runner's line
       scene.add(plate); boards.push(plate);
-      lots.push({ side, z: bz, half: W/2 + 7 });                           // keep the lot around it open
-      bz -= 34 + rnd() * 12; side = -side;
+      bz -= 30 + rnd() * 10; side = -side;
     });
-    // the rest of the city · sparse, tall, white
+    // city blocks · flat boxes either side, occasional gap for a cross street
     let z = -8;
     while (z > -LENGTH - 40) {
       [-1, 1].forEach(s => {
-        if (rnd() < .3) return;                                        // open lots and cross streets keep it airy
-        const w = 8 + rnd() * 10, d = 10 + rnd() * 16, h = 8 + Math.pow(rnd(), 1.4) * 36;
-        // skip if a billboard host already sits here
-        if (lots.some(l => l.side === s && Math.abs(l.z - (z - d/2)) < l.half + d/2)) return;   // a plate stands here
-        if (blocks.some(m => Math.sign(m.position.x) === s && Math.abs(m.position.z - (z - d/2)) < (m.geometry.parameters.depth + d) / 2 + 2)) return;
-        block(s, z, w, d, h);
+        if (rnd() < .12) return;
+        const w = 6 + rnd() * 10, d = 8 + rnd() * 14, h = 6 + Math.pow(rnd(), 1.6) * 34;
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 5)]);
+        mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + 1 + rnd() * 4), h/2, z - d/2);
+        scene.add(mesh); blocks.push(mesh);
       });
-      z -= 16 + rnd() * 14;
+      z -= 10 + rnd() * 8;
     }
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
@@ -692,8 +688,8 @@ window.Road = (() => {
     mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash);
     mats.blocks.forEach((m, i) => m.color.setHex(P.blocks[i]));
 
-    scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = 1.0 * P.light; });
-    sun.intensity = .3 * P.light; sun.color.setHex(P.sun);
+    scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = .8 * P.light; });
+    sun.intensity = .7 * P.light; sun.color.setHex(P.sun);
     sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = look === 'cinematic' ? .95 : .8;
     flareEl.style.setProperty('--flare', P.flare); flareEl.style.mixBlendMode = P.blend;
     flareEl.style.setProperty('--sunc', '#' + new THREE.Color(P.sunGlow).getHexString());
