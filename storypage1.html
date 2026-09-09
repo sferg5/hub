@@ -377,6 +377,14 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 
 .flare .flare__blast{position:absolute;inset:0;border-radius:0;background:#fff;opacity:0}
 #app[data-look="cinematic"] .flare .flare__blast{background:#fff}
+
+/* ---- the road's lockup is the distance ---- */
+#s0 .tele{gap:6px}
+#s0 .tele__km{font:700 clamp(64px,13vw,168px)/.9 var(--display);letter-spacing:-.04em;color:var(--fg);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:.12em}
+#s0 .tele__km small{font:400 clamp(12px,1.1vw,16px)/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#s0 .tele__meta{display:flex;gap:1.6em;font-size:clamp(12px,1vw,14px);color:var(--mute)}
+.is-framed #s0 .tele__km{font-size:clamp(56px,9vw,120px)}
+#app[data-look="technical"] #s0 .tele__km{font-family:var(--sans);letter-spacing:-.02em;color:var(--signal)}
 </style>
 
 <div id="app">
@@ -386,10 +394,9 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
   <section class="scene scene--road" id="s0" data-name="The road" data-tone="dark" data-dwell="2.4">
     <div class="plane bg mv" data-role="bg" data-in="down" data-out="up"><canvas id="road" aria-label="A city street, seen while running"></canvas></div>
     <div class="plane plane--free">
-      <div class="copy copy--bottom mv" data-role="type" data-in="down" data-out="left">
-        <p class="eyebrow">lululemon running <b>/ The City Run</b></p>
-        <h1>Run the city.</h1>
-        <p class="data tele"><span id="teleKm">0.00</span> km&nbsp;&nbsp;<span class="mute" id="telePace">4:35 /km</span>&nbsp;&nbsp;<span class="mute" id="teleTime">00:00</span></p>
+      <div class="copy copy--bottom tele mv" data-role="type" data-in="down" data-out="left">
+        <p class="tele__km"><span id="teleKm">0.00</span><small>km</small></p>
+        <p class="data tele__meta"><span id="telePace">4:35 /km</span><span id="teleTime">00:00</span></p>
       </div>
       <p class="hint mv" id="hint" data-role="blk" data-in="down" data-out="down"><i></i>Scroll to run</p>
       <p class="forward" id="forward" aria-hidden="true"><span>The road</span><br><span>forward</span><br><span>is yours.</span></p>
@@ -802,6 +809,21 @@ window.Road = (() => {
       });
       z -= 16 + rnd() * 10;
     }
+    // a second and third row behind the street wall · taller, denser · a cross street opens onto more city, not onto nothing
+    [[26, 14, 22, 28, 30, 62, .06], [62, 22, 34, 40, 44, 90, .04]].forEach(([off, w0, w1, h0, h1, step, gap]) => {
+      let z2 = -4;
+      while (z2 > -LENGTH - 80) {
+        [-1, 1].forEach(s => {
+          if (rnd() < gap) return;
+          const w = w0 + rnd() * (w1 - w0), d = 16 + rnd() * 20, h = h0 + Math.pow(rnd(), .9) * (h1 - h0);
+          const k = Math.floor(rnd() * 5), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo);
+          const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k;
+          mesh.position.set(s * (ROAD_W/2 + WALK_W + off + w/2 + rnd() * 6), h/2, z2 - d/2);
+          scene.add(mesh); blocks.push(mesh);
+        });
+        z2 -= (step / 2) + rnd() * (step / 2);
+      }
+    });
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
       const w = 14 + rnd()*18, h = 30 + rnd()*60;
@@ -1232,7 +1254,9 @@ window.Road = (() => {
       requestAnimationFrame(bstep);
     }
     // a taste of the run before you take the wheel — already moving, easing into the first lockup; any input cancels it
-    setTimeout(() => { if (T === 0 && !jump) { const to = segs[0].len * (62 / ROAD_M); gliding = { from: 0, to, t0: performance.now(), dur: 4200, soft: true, ease: t => 1 - Math.pow(1 - t, 2) }; } }, 700);
+    setTimeout(() => { if (T === 0 && !jump) { const to = segs[0].len * (62 / ROAD_M); const a = .6, v = 2 / (1 + a);                                    // constant pace for 60% of the time, then a single ease to a stop — slopes match at the join
+      const runThenPause = t => t < a ? t * v : a * v + (1 - a * v) * (1 - Math.pow(1 - (t - a) / (1 - a), 2));
+      gliding = { from: 0, to, t0: performance.now(), dur: 5200, soft: true, ease: runThenPause }; } }, 700);
   }
 })();
 </script>
