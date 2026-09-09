@@ -484,6 +484,8 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
   const MOVE_EASE = 'cubic-bezier(.7,0,.2,1)';
   const MARGIN = 28;
   const SMOOTH_MS = 120;                 // time constant of the ease toward target
+  const LEAD_VH = 0.5;                   // the target may run at most this far ahead of the picture — a flick can't queue up scenes
+  const VMAX_VH = 1.1;                   // and the picture never moves faster than this (viewports per second): about one scene a second
 
   let S = 0, T = 0;                      // rendered position · target position (px along the line)
   let cur = 0;                           // scene the chrome reports
@@ -664,8 +666,12 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
       if (Math.abs(vel) < 0.02) vel = 0;
     }
     T = Math.max(0, Math.min(total, T));
+    if (!gliding) { const lead = innerHeight * LEAD_VH; T = Math.max(S - lead, Math.min(S + lead, T)); }
     const a = 1 - Math.exp(-dt / SMOOTH_MS);
-    S += (T - S) * a;
+    let step = (T - S) * a, vmax = innerHeight * VMAX_VH * dt / 1000;
+    if (gliding) vmax *= 2.2;                                       // rail and keys may travel faster: you asked for that scene
+    step = Math.max(-vmax, Math.min(vmax, step));
+    S += step;
     if (Math.abs(T - S) < 0.05) S = T;
     render();
     requestAnimationFrame(frame);
@@ -676,7 +682,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
   stage.addEventListener('wheel', e => {
     e.preventDefault();
     const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-    nudge(Math.max(-160, Math.min(160, d)));                       // one event never leaps
+    nudge(Math.max(-110, Math.min(110, d)));                       // one event never leaps
   }, {passive:false});
 
   let tPrevY = 0, tPrevT = 0, tVel = 0;
@@ -689,7 +695,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
     tVel = 0.7 * tVel + 0.3 * ((tPrevY - y) / Math.max(1, now - tPrevT));
     nudge(tPrevY - y); tPrevY = y; tPrevT = now;
   }, {passive:false});
-  stage.addEventListener('touchend', () => { vel = tVel * 1.1; });
+  stage.addEventListener('touchend', () => { vel = Math.max(-2.2, Math.min(2.2, tVel * 0.9)); });
 
   function go(i){
     if (i < 0 || i >= scenes.length) return;
