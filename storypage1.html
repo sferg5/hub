@@ -903,10 +903,10 @@ window.Road = (() => {
     const a = el.animate(kf, {duration:1000, fill:'both', composite:'add'});
     a.pause(); return a;
   }
-  function movers(scene, leaving){
+  function movers(scene, leaving, back){
     const out = [];
     scene.querySelectorAll('.mv').forEach(el => {
-      const side = leaving ? el.dataset.out : el.dataset.in;
+      const side = (leaving !== !!back) ? el.dataset.out : el.dataset.in;   // going back, a scene leaves the way it came in
       const role = el.dataset.role || 'blk';
       if (framed() && role === 'bg' && !el.querySelector('img')) return;   // a paper plane on paper is invisible — it never covers the other plate
       const rect = el.getBoundingClientRect();
@@ -968,6 +968,7 @@ window.Road = (() => {
   let last = performance.now(), vel = 0, gliding = null;
   function frame(now){
     const dt = Math.min(64, now - last); last = now;
+    if (jump) { stepJump(now); requestAnimationFrame(frame); return; }
     if (gliding) {                                                  // rail / keys: T travels on its own curve
       const k = Math.min(1, (now - gliding.t0) / gliding.dur);
       T = gliding.from + (gliding.to - gliding.from) * (-(Math.cos(Math.PI * k) - 1) / 2);
@@ -990,7 +991,7 @@ window.Road = (() => {
   }
 
   /* ---------- input: everything just moves the target ---------- */
-  function nudge(px){ gliding = null; vel = 0; T += px; wake(); }
+  function nudge(px){ if (jump) return; gliding = null; vel = 0; T += px; wake(); }
   stage.addEventListener('wheel', e => {
     e.preventDefault();
     const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
@@ -1009,8 +1010,34 @@ window.Road = (() => {
   }, {passive:false});
   stage.addEventListener('touchend', () => { vel = Math.max(-2.2, Math.min(2.2, tVel * 0.9)); });
 
+  /* ---------- jump: a direct cut between two scenes that are not neighbours ---------- */
+  let jump = null;
+  function startJump(to){
+    const from = cur, back = to < from;
+    dropCut();
+    const out = scenes[from], inn = scenes[to];
+    setQ(to, back ? 1 : 0);                                              // arrive at the near end of the target's dwell
+    show(from); scenes.forEach((sc, k) => sc.classList.toggle('is-moving', k === from || k === to));
+    inn.getBoundingClientRect();
+    const anims = [...movers(out, true, back), ...movers(inn, false, back)];
+    jump = { from, to, anims, t0: performance.now(), dur: 1100 };
+    S = T = sceneStart(from) + (back ? 0 : segs.find(x => x.type === 'dwell' && x.i === from).len - 0.01);
+    cur = to; paintChrome(cur); vel = 0; gliding = null; wake();
+  }
+  function stepJump(now){
+    const k = Math.min(1, (now - jump.t0) / jump.dur), p = -(Math.cos(Math.PI * k) - 1) / 2;
+    jump.anims.forEach(a => a.currentTime = p * 1000);
+    if (k >= 1) {
+      jump.anims.forEach(a => a.cancel());
+      scenes[jump.from].classList.remove('is-moving'); scenes[jump.to].classList.remove('is-moving');
+      const back = jump.to < jump.from, g = segs.find(x => x.type === 'dwell' && x.i === jump.to);
+      S = T = g.start + (back ? g.len - 0.01 : 0);
+      shown = -1; jump = null; render(true);
+    }
+  }
   function go(i){
-    if (i < 0 || i >= scenes.length) return;
+    if (i < 0 || i >= scenes.length || jump) return;
+    if (Math.abs(i - cur) > 1) { startJump(i); return; }                 // skipping scenes: cut straight there
     const to = sceneStart(i), dist = Math.abs(to - T);
     gliding = { from: T, to, t0: performance.now(), dur: Math.min(1400, 380 + dist * 0.45) };
     vel = 0; wake();
