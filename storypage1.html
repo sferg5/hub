@@ -343,7 +343,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 .flare{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;--flare:.5;--sunc:#FFE9C4;opacity:0}
 .flare i{position:absolute;left:0;top:0;border-radius:50%;will-change:transform}
 .flare__glow{width:min(120vw,900px);height:min(120vw,900px);background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 60%,transparent) 30%,transparent 62%);opacity:calc(var(--flare) * .95)}
-.flare .flare__wash{position:absolute;inset:0;border-radius:0;opacity:calc(var(--flare) * .55)}
+.flare .flare__wash{position:absolute;inset:0;border-radius:0;opacity:calc(var(--flare) * .45)}
 .flare .flare__streak{width:160vw;height:3px;border-radius:0;background:linear-gradient(90deg,transparent,var(--sunc) 35%,var(--sunc) 65%,transparent);opacity:calc(var(--flare) * .35);filter:blur(1px)}
 .flare__ghost{width:30px;height:30px;background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 55%,transparent) 55%,transparent 72%);opacity:calc(var(--flare) * .4);filter:blur(1px)}
 .flare__ghost:nth-child(6){background:radial-gradient(circle,transparent 58%,var(--sunc) 66%,transparent 74%)}
@@ -533,12 +533,12 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0xD3CDC3, walk:0xF3F1EC, kerb:0xE7E2DA, paint:0xFFFFFF, dash:0xFFFFFF,
-                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.9, blend:'normal' },
-    technical: { sky:0xEDEFF1, road:0xC9CED3, walk:0xEDEFF1, kerb:0xDFE3E7, paint:0xFFFFFF, dash:0xE4472A,
-                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.65, blend:'normal' },
+    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xF3F1EC, kerb:0xE4DFD6, paint:0xF3F1EC, dash:0xF3F1EC,
+                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
+    technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xEDEFF1, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
+                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:1.1, blend:'screen' },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
   };
   const LENGTH = 700;          // metres of road built
   // CARDS · camera-locked photographs: slide in, ride with you, slide out. d0/len in metres; cx,cy in % of frame; h in vh
@@ -604,10 +604,10 @@ window.Road = (() => {
 
   function init(el){
     canvas = el;
-    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:'high-performance' });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:'high-performance', logarithmicDepthBuffer:true });
     dpr = Math.min(devicePixelRatio || 1, 1.6); renderer.setPixelRatio(dpr);
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(58, 1, .1, 400);
+    camera = new THREE.PerspectiveCamera(58, 1, .6, 420);
     scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d4cc, 1.0));
     sun = new THREE.DirectionalLight(0xffffff, .7); sun.position.copy(SUN_DIR).multiplyScalar(50); scene.add(sun);
     // the sun itself: a soft disc, far down the road, occluded by the blocks it passes behind
@@ -617,16 +617,13 @@ window.Road = (() => {
     sg.fillStyle = grad; sg.fillRect(0,0,256,256);
     sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(sc), transparent:true, depthWrite:false, depthTest:false, fog:false, blending:THREE.AdditiveBlending }));
     sunSprite.renderOrder = 999;                                       // the sun draws over the city, like a lens sees it
-    sunSprite.scale.set(120, 120, 1); scene.add(sunSprite);
+    sunSprite.scale.set(90, 90, 1); scene.add(sunSprite);
     raycaster = new THREE.Raycaster(); raycaster.far = 400;
     // the flare · DOM ghosts over the canvas, positioned by projecting the sun each frame
     flareEl = document.createElement('div'); flareEl.className = 'flare';
     const washEl = document.createElement('i'); washEl.className = 'flare__wash'; flareEl.appendChild(washEl); flareEl._wash = washEl;
     glowEl = document.createElement('i'); glowEl.className = 'flare__glow'; flareEl.appendChild(glowEl);
-    streakEl = document.createElement('i'); streakEl.className = 'flare__streak'; flareEl.appendChild(streakEl);
-    [[-.35,.05],[-.6,.09],[-.85,.16],[-1.25,.07],[-1.6,.22],[.35,.06]].forEach(([k, s]) => {
-      const g = document.createElement('i'); g.className = 'flare__ghost'; g.dataset.k = k; g.dataset.s = s; flareEl.appendChild(g); ghosts.push(g);
-    });
+
     canvas.parentElement.appendChild(flareEl);
     // the card layer · sits over the city, under the flare
     const resolve = s => s[0] === '@' ? (document.querySelector(`img[data-key="${s.slice(1)}"]`) || {}).src : s;
@@ -639,11 +636,22 @@ window.Road = (() => {
     });
     canvas.parentElement.insertBefore(cardsEl, flareEl);
 
-    mats.road  = new THREE.MeshLambertMaterial({ color:0x888888 });
+    const asphalt = (() => {                                            // fine grain · greyscale around white so the look's colour tints it
+      const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+      const img = g.createImageData(256, 256); let s = 11;
+      const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+      for (let i = 0; i < img.data.length; i += 4) {
+        let v = 236 + (rnd() - .5) * 34; if (rnd() < .06) v -= 26; if (rnd() < .02) v += 14;
+        img.data[i] = img.data[i+1] = img.data[i+2] = v; img.data[i+3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 300); t.anisotropy = 8; return t;
+    })();
+    mats.road  = new THREE.MeshLambertMaterial({ color:0x888888, map: asphalt });
     mats.walk  = new THREE.MeshLambertMaterial({ color:0x888888 });
     mats.kerb  = new THREE.MeshLambertMaterial({ color:0x888888 });
-    mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff });
-    mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff });
+    mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
+    mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
     mats.blocks = [0,1,2,3,4].map(() => new THREE.MeshLambertMaterial({ color:0x888888 }));        // roofs
 
     // road, sidewalks, kerbs
@@ -654,14 +662,14 @@ window.Road = (() => {
       walk.position.set(s * (ROAD_W/2 + WALK_W/2), KERB_H/2, -LENGTH/2); scene.add(walk);
       const kerb = new THREE.Mesh(new THREE.BoxGeometry(.18, KERB_H + .02, LENGTH + 60), mats.kerb);
       kerb.position.set(s * (ROAD_W/2 + .09), (KERB_H + .02)/2, -LENGTH/2); scene.add(kerb);
-      const edge = new THREE.Mesh(new THREE.PlaneGeometry(.12, LENGTH + 60), mats.paint);
-      edge.rotation.x = -Math.PI/2; edge.position.set(s * (ROAD_W/2 - .5), .005, -LENGTH/2); scene.add(edge);
+      const edge = new THREE.Mesh(new THREE.PlaneGeometry(.09, LENGTH + 60), mats.paint);
+      edge.rotation.x = -Math.PI/2; edge.position.set(s * (ROAD_W/2 - .5), .02, -LENGTH/2); scene.add(edge);
     });
     // centre dashes · instanced
     const nDash = Math.ceil(LENGTH / 6);
-    dashes = new THREE.InstancedMesh(new THREE.PlaneGeometry(.16, 2.4), mats.dash, nDash);
+    dashes = new THREE.InstancedMesh(new THREE.PlaneGeometry(.11, 2.2), mats.dash, nDash);
     const m = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2, 0, 0));
-    for (let i = 0; i < nDash; i++) { m.compose(new THREE.Vector3(0, .006, -i * 6 - 3), q, new THREE.Vector3(1,1,1)); dashes.setMatrixAt(i, m); }
+    for (let i = 0; i < nDash; i++) { m.compose(new THREE.Vector3(0, .02, -i * 6 - 3), q, new THREE.Vector3(1,1,1)); dashes.setMatrixAt(i, m); }
     scene.add(dashes);
 
     let seed = 7;
@@ -675,13 +683,13 @@ window.Road = (() => {
     let z = -8;
     while (z > -LENGTH - 40) {
       [-1, 1].forEach(s => {
-        if (rnd() < .12) return;
-        const w = 6 + rnd() * 10, d = 8 + rnd() * 14, h = 6 + Math.pow(rnd(), 1.6) * 34;
+        if (rnd() < .18) return;                                       // a cross street now and then
+        const w = 10 + rnd() * 10, d = 14 + rnd() * 16, h = 14 + Math.pow(rnd(), .9) * 30;   // fewer, taller, more even
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 5)]);
-        mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + 1 + rnd() * 4), h/2, z - d/2);
+        mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + 1.5 + rnd() * 2.5), h/2, z - d/2);
         scene.add(mesh); blocks.push(mesh);
       });
-      z -= 10 + rnd() * 8;
+      z -= 16 + rnd() * 10;
     }
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
@@ -703,7 +711,7 @@ window.Road = (() => {
 
     scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = 1.0 * P.light; });
     sun.intensity = .3 * P.light; sun.color.setHex(P.sun);
-    sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = 1;
+    sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = .85;
     flareEl.style.setProperty('--flare', P.flare); flareEl.style.mixBlendMode = P.blend;
     flareEl.style.setProperty('--sunc', '#' + new THREE.Color(P.sunGlow).getHexString());
     dirty = true;
@@ -759,8 +767,7 @@ window.Road = (() => {
     flareEl.style.opacity = flareI.toFixed(3);
     glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
     flareEl._wash.style.background = `radial-gradient(circle farthest-corner at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 72%, transparent) 22%, color-mix(in srgb, var(--sunc) 40%, transparent) 45%, color-mix(in srgb, var(--sunc) 16%, transparent) 68%, color-mix(in srgb, var(--sunc) 4%, transparent) 88%, transparent 100%)`;
-    streakEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
-    ghosts.forEach(g => { const k = parseFloat(g.dataset.k); g.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px) translate(-50%,-50%) scale(${parseFloat(g.dataset.s) * 10})`; });
+
   }
   function render(){ if (renderer && dirty) { renderer.render(scene, camera); placeFlare(); dirty = false; } }
 
