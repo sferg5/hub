@@ -374,6 +374,9 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 .is-framed #s0 .forward{font-size:clamp(30px,5.6vw,72px);top:clamp(88px,15vh,150px)}
 #app[data-look="technical"] #s0 .forward{font-family:var(--sans);text-transform:uppercase;letter-spacing:.02em;font-size:clamp(24px,4.4vw,56px)}
 @media (prefers-reduced-motion:reduce){#s0 .forward span{transition:none}}
+
+.flare .flare__blast{position:absolute;inset:0;border-radius:0;background:#fff;opacity:0}
+#app[data-look="cinematic"] .flare .flare__blast{background:#fff}
 </style>
 
 <div id="app">
@@ -641,7 +644,7 @@ window.Road = (() => {
   let renderer, scene, camera, mats = {}, blocks = [], boards = [], dashes, look = 'editorial', canvas, dpr;
   let distance = 0, dirty = true;
   const SUN_DIR = new THREE.Vector3(.16, .3, -1).normalize();   // low, ahead and to the right — dawn on the run
-  let sun, sunSprite, flareEl, ghosts = [], glowEl, streakEl, flareI = 0, raycaster;
+  let sun, sunSprite, flareEl, ghosts = [], glowEl, streakEl, flareI = 0, raycaster, blast = 0, blastEl;
 
   function init(el){
     canvas = el;
@@ -663,6 +666,7 @@ window.Road = (() => {
     // the flare · DOM ghosts over the canvas, positioned by projecting the sun each frame
     flareEl = document.createElement('div'); flareEl.className = 'flare';
     const washEl = document.createElement('i'); washEl.className = 'flare__wash'; flareEl.appendChild(washEl); flareEl._wash = washEl;
+    blastEl = document.createElement('i'); blastEl.className = 'flare__blast'; flareEl.appendChild(blastEl);
     glowEl = document.createElement('i'); glowEl.className = 'flare__glow'; flareEl.appendChild(glowEl);
 
     canvas.parentElement.appendChild(flareEl);
@@ -708,8 +712,9 @@ window.Road = (() => {
     const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, LENGTH + 60), mats.road);
     road.rotation.x = -Math.PI/2; road.position.z = -LENGTH/2; scene.add(road);
     [-1, 1].forEach(s => {
-      const walk = new THREE.Mesh(new THREE.BoxGeometry(WALK_W + 6, KERB_H, LENGTH + 60), mats.walk);   // one clean slab, running under the blocks
-      walk.position.set(s * (ROAD_W/2 + (WALK_W + 6)/2), KERB_H/2, -LENGTH/2); scene.add(walk);
+      const WX = 400;                                                     // the ground runs out past the fog — no edge to find between the blocks
+      const walk = new THREE.Mesh(new THREE.BoxGeometry(WX, KERB_H, LENGTH + 120), mats.walk);
+      walk.position.set(s * (ROAD_W/2 + WX/2), KERB_H/2, -LENGTH/2 + 20); scene.add(walk);
     });
     // centre dashes · instanced
     const nDash = Math.ceil(LENGTH / 6);
@@ -815,14 +820,17 @@ window.Road = (() => {
     flareI += (target - flareI) * .1;                                  // fade, never pop
     const w = canvas.clientWidth, h = canvas.clientHeight, sx = (_v.x + 1) / 2 * w, sy = (1 - _v.y) / 2 * h;
     const cx = w / 2, cy = h / 2, dx = sx - cx, dy = sy - cy;
-    flareEl.style.opacity = flareI.toFixed(3);
-    glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
+    flareEl.style.opacity = Math.max(flareI, blast).toFixed(3);
+    blastEl.style.opacity = blast.toFixed(3);
+    flareEl._wash.style.opacity = `calc(var(--flare) * .45 * ${(1 + blast * 1.6).toFixed(3)})`;
+    glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%) scale(${(1 + blast * 1.4).toFixed(3)})`;
     flareEl._wash.style.background = `radial-gradient(circle farthest-corner at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 72%, transparent) 22%, color-mix(in srgb, var(--sunc) 40%, transparent) 45%, color-mix(in srgb, var(--sunc) 16%, transparent) 68%, color-mix(in srgb, var(--sunc) 4%, transparent) 88%, transparent 100%)`;
 
   }
+  function setBlast(v){ blast = Math.max(0, Math.min(1, v)); dirty = true; }
   function render(){ if (renderer && dirty) { renderer.render(scene, camera); placeFlare(); dirty = false; } }
 
-  return { init, setLook, resize, update, render, LENGTH };
+  return { init, setLook, resize, update, render, setBlast, LENGTH };
 })();
 </script>
 <script>
@@ -1043,7 +1051,7 @@ window.Road = (() => {
     if (jump) { stepJump(now); requestAnimationFrame(frame); return; }
     if (gliding) {                                                  // rail / keys: T travels on its own curve
       const k = Math.min(1, (now - gliding.t0) / gliding.dur);
-      T = gliding.from + (gliding.to - gliding.from) * (-(Math.cos(Math.PI * k) - 1) / 2);
+      T = gliding.from + (gliding.to - gliding.from) * (gliding.ease ? gliding.ease(k) : -(Math.cos(Math.PI * k) - 1) / 2);
       if (k >= 1) gliding = null;
     } else if (vel) {                                               // touch momentum
       T += vel * dt; vel *= Math.pow(0.94, dt / 16);
@@ -1053,7 +1061,7 @@ window.Road = (() => {
     if (!gliding) { const lead = innerHeight * LEAD_VH; T = Math.max(S - lead, Math.min(S + lead, T)); }
     const a = 1 - Math.exp(-dt / SMOOTH_MS);
     let step = (T - S) * a, vmax = innerHeight * VMAX_VH * dt / 1000;
-    if (gliding) vmax *= 2.2;                                       // rail and keys may travel faster: you asked for that scene
+    if (gliding && !gliding.soft) vmax *= 2.2;                      // rail and keys may travel faster: you asked for that scene
     step = Math.max(-vmax, Math.min(vmax, step));
     S += step;
     if (Math.abs(T - S) < 0.05) S = T;
@@ -1149,8 +1157,15 @@ window.Road = (() => {
     requestAnimationFrame(step);
   }
   requestAnimationFrame(frame);
-  if (start === 0 && !reduce) {                                          // a taste of the run before you take the wheel — any input cancels it
-    setTimeout(() => { if (T === 0 && !jump) { const to = segs[0].len * (62 / ROAD_M); gliding = { from: 0, to, t0: performance.now(), dur: 3200 }; } }, 1500);
+  if (start === 0 && !reduce) {
+    // out of the light: the flare opens at full white and decays into its resting state
+    if (window.Road && Road.setBlast) {
+      Road.setBlast(1); const b0 = performance.now(), bd = 2600;
+      const bstep = now => { const k = Math.min(1, (now - b0) / bd); Road.setBlast(1 - Math.pow(k, 1.6)); if (k < 1) requestAnimationFrame(bstep); };
+      requestAnimationFrame(bstep);
+    }
+    // a taste of the run before you take the wheel — already moving, easing into the first lockup; any input cancels it
+    setTimeout(() => { if (T === 0 && !jump) { const to = segs[0].len * (62 / ROAD_M); gliding = { from: 0, to, t0: performance.now(), dur: 4200, soft: true, ease: t => 1 - Math.pow(1 - t, 2) }; } }, 700);
   }
 })();
 </script>
