@@ -340,11 +340,11 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 #app[data-look="technical"] #s0 #teleKm{color:var(--signal)}
 
 /* ---- the sun's flare · a glow, a streak, a few ghosts on the line through centre ---- */
-.flare{position:absolute;inset:0;pointer-events:none;overflow:hidden;--flare:.5;--sunc:#FFE9C4;opacity:0}
+.flare{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;--flare:.5;--sunc:#FFE9C4;opacity:0}
 .flare i{position:absolute;left:0;top:0;border-radius:50%;will-change:transform}
 .flare__glow{width:min(120vw,900px);height:min(120vw,900px);background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 60%,transparent) 30%,transparent 62%);opacity:calc(var(--flare) * .95)}
-.flare__wash{position:absolute;inset:0;border-radius:0;opacity:calc(var(--flare) * .55)}
-.flare__streak{width:160vw;height:3px;border-radius:0;background:linear-gradient(90deg,transparent,var(--sunc) 35%,var(--sunc) 65%,transparent);opacity:calc(var(--flare) * .35);filter:blur(1px)}
+.flare .flare__wash{position:absolute;inset:0;border-radius:0;opacity:calc(var(--flare) * .55)}
+.flare .flare__streak{width:160vw;height:3px;border-radius:0;background:linear-gradient(90deg,transparent,var(--sunc) 35%,var(--sunc) 65%,transparent);opacity:calc(var(--flare) * .35);filter:blur(1px)}
 .flare__ghost{width:30px;height:30px;background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 55%,transparent) 55%,transparent 72%);opacity:calc(var(--flare) * .4);filter:blur(1px)}
 .flare__ghost:nth-child(6){background:radial-gradient(circle,transparent 58%,var(--sunc) 66%,transparent 74%)}
 @media (prefers-reduced-motion:reduce){.flare{display:none}}
@@ -601,7 +601,8 @@ window.Road = (() => {
     const sg = sc.getContext('2d'), grad = sg.createRadialGradient(128,128,0,128,128,128);
     grad.addColorStop(0,'rgba(255,255,255,1)'); grad.addColorStop(.18,'rgba(255,255,255,.95)'); grad.addColorStop(.42,'rgba(255,255,255,.28)'); grad.addColorStop(1,'rgba(255,255,255,0)');
     sg.fillStyle = grad; sg.fillRect(0,0,256,256);
-    sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(sc), transparent:true, depthWrite:false, fog:false, blending:THREE.AdditiveBlending }));
+    sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(sc), transparent:true, depthWrite:false, depthTest:false, fog:false, blending:THREE.AdditiveBlending }));
+    sunSprite.renderOrder = 999;                                       // the sun draws over the city, like a lens sees it
     sunSprite.scale.set(120, 120, 1); scene.add(sunSprite);
     raycaster = new THREE.Raycaster(); raycaster.far = 400;
     // the flare · DOM ghosts over the canvas, positioned by projecting the sun each frame
@@ -725,18 +726,15 @@ window.Road = (() => {
   function placeFlare(){
     if (!flareEl) return;
     // occlusion: is a block between the eye and the sun?
-    // how much of the sun's disc is showing? five rays across it, not one through its centre
-    let seen = 0;
-    RAYS.forEach(o => { _d.copy(SUN_DIR).add(o).normalize(); raycaster.set(camera.position, _d); if (!raycaster.intersectObjects(blocks, false).length) seen++; });
     _v.copy(sunSprite.position).project(camera);
     const onScreen = _v.z < 1 && Math.abs(_v.x) < 1.3 && Math.abs(_v.y) < 1.3;
-    const target = onScreen ? seen / RAYS.length : 0;
+    const target = onScreen ? 1 : 0;                                   // top layer: the skyline never cuts it
     flareI += (target - flareI) * .1;                                  // fade, never pop
     const w = canvas.clientWidth, h = canvas.clientHeight, sx = (_v.x + 1) / 2 * w, sy = (1 - _v.y) / 2 * h;
     const cx = w / 2, cy = h / 2, dx = sx - cx, dy = sy - cy;
     flareEl.style.opacity = flareI.toFixed(3);
     glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
-    flareEl._wash.style.background = `radial-gradient(circle at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 70%, transparent) 28%, color-mix(in srgb, var(--sunc) 30%, transparent) 60%, transparent 100%)`;
+    flareEl._wash.style.background = `radial-gradient(circle farthest-corner at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 72%, transparent) 22%, color-mix(in srgb, var(--sunc) 40%, transparent) 45%, color-mix(in srgb, var(--sunc) 16%, transparent) 68%, color-mix(in srgb, var(--sunc) 4%, transparent) 88%, transparent 100%)`;
     streakEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
     ghosts.forEach(g => { const k = parseFloat(g.dataset.k); g.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px) translate(-50%,-50%) scale(${parseFloat(g.dataset.s) * 10})`; });
   }
