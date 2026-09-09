@@ -582,7 +582,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xD7CBB8, kerb:0xE4DFD6, cap:0xECE8E1, plinth:0xD3CCC0, paint:0xF3F1EC, dash:0xF3F1EC,
+    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xD7CBB8, kerb:0xE4DFD6, cap:0xECE8E1, plinth:0xD3CCC0, win2:0xC8C1B4, paint:0xF3F1EC, dash:0xF3F1EC,
                  blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xD0C9BC, kerb:0xDDE1E5, paint:0xEDEFF1, dash:0xE4472A,
                  blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
@@ -855,6 +855,7 @@ window.Road = (() => {
     mats.blocks = [0,1,2,3,4].map((_, i) => { const m = new THREE.MeshBasicMaterial({ map: makeFade() }); if (TREATMENTS[i] !== 'plaster') { m.aoMap = makePattern(TREATMENTS[i]); m.aoMapIntensity = 1; } return m; });
     mats.cap   = new THREE.MeshLambertMaterial({ color:0xE9E4DB });
     mats.plinth = new THREE.MeshLambertMaterial({ color:0xCFC8BC });
+    mats.win = new THREE.MeshLambertMaterial({ color:0xC6BFB3 });
 
     // road, sidewalks, kerbs
     const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, LENGTH + 60), mats.road);
@@ -892,6 +893,18 @@ window.Road = (() => {
       }
     });
     const inCrossing = (z0, z1) => crossings.some(cz => z0 > cz - CROSS_W - 2 && z1 < cz + 2);
+    // windows · one instanced pane and one instanced sill, placed per bay per storey while the street wall is built
+    const winGeo = new THREE.BoxGeometry(1, 1, .08), sillGeo = new THREE.BoxGeometry(1, .07, .16);
+    const panes = new THREE.InstancedMesh(winGeo, mats.win, 2400), sills = new THREE.InstancedMesh(sillGeo, mats.cap, 2400);
+    panes.castShadow = false; sills.castShadow = true; let wi = 0;
+    const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _sc = new THREE.Vector3();
+    const putWin = (x, y, z, w, h, s) => {                                   // a pane set 3 cm into the street face, a sill beneath it
+      if (wi >= 2400) return;
+      _q.setFromEuler(new THREE.Euler(0, s > 0 ? -Math.PI/2 : Math.PI/2, 0));
+      _m.compose(_p.set(x - s * .01, y, z), _q, _sc.set(w, h, 1)); panes.setMatrixAt(wi, _m);
+      _m.compose(_p.set(x - s * .1, y - h/2 - .035, z), _q, _sc.set(w + .16, 1, 1)); sills.setMatrixAt(wi, _m);
+      wi++;
+    };
     // the street wall · low stucco blocks, two and three storeys, the odd taller one
     let z = -8;
     while (z > -LENGTH - 40) {
@@ -905,7 +918,7 @@ window.Road = (() => {
         scene.add(mesh); blocks.push(mesh);
         const face = mesh.position.x - s * (w/2);                             // the street-facing plane
         const add = (bw, bh, bd, bx, by, bz, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), m || mats.cap); b.position.set(bx, by, bz); b.castShadow = true; scene.add(b); return b; };
-        if (h < 14) add(w + .5, .35, d + .5, mesh.position.x, h + .17, mesh.position.z);          // parapet
+        if (h < 14) { const ph2 = .25 + rnd() * .5; add(w + .3 + rnd() * .5, ph2, d + .3 + rnd() * .5, mesh.position.x, h + ph2/2, mesh.position.z); }   // parapet, varied
         else if (rnd() < .7) {                                                 // taller ones step back: a smaller volume on the roof
           const sw = w * (.45 + rnd() * .3), sd = d * (.5 + rnd() * .3), sh = 2.5 + rnd() * 4;
           add(sw, sh, sd, mesh.position.x + s * (w - sw) / 2 * (rnd() < .5 ? 1 : -1) * .5, h + sh/2, mesh.position.z + (rnd() - .5) * (d - sd), mats.blocks[k]);
@@ -913,13 +926,26 @@ window.Road = (() => {
         add(w + .3, .55, d + .3, mesh.position.x, .27, mesh.position.z, mats.plinth);           // plinth at the base
         const floors = Math.floor(h / 3.3);
         if (floors >= 2 && rnd() < .75) for (let f = 1; f < floors; f++)                         // storey ledges on the street face
-          add(.22, .16, d - .6, face - s * .11, f * 3.3, mesh.position.z);
+          add(.14 + rnd() * .2, .12 + rnd() * .1, d - .6, face - s * .1, f * 3.3, mesh.position.z);
         if (rnd() < .4) { const n = 2 + Math.floor(rnd() * 3), gap = d / (n + 1);                // pilasters
-          for (let p = 1; p <= n; p++) add(.26, h - .4, .5, face - s * .13, h/2, mesh.position.z - d/2 + p * gap); }
-        if (h < 14 && rnd() < .45) add(.9, .12, 2.6 + rnd() * 2, face - s * .45, 3.1, mesh.position.z + (rnd() - .5) * (d - 4), mats.cap);   // an awning slab over a doorway
+          const pwid = .3 + rnd() * .4; for (let p = 1; p <= n; p++) add(.18 + rnd() * .16, h - .4, pwid, face - s * .1, h/2, mesh.position.z - d/2 + p * gap); }
+        if (h < 14 && rnd() < .45) add(.7 + rnd() * .6, .12, 2 + rnd() * 3, face - s * .45, 2.9 + rnd() * .5, mesh.position.z + (rnd() - .5) * (d - 4), mats.cap);   // an awning slab over a doorway
+        if (h >= 8 && rnd() < .5) add(.32 + rnd() * .2, .22 + rnd() * .14, d + .4, face - s * .16, h - .6 - rnd() * .5, mesh.position.z);        // a cornice band under the roofline
+        // windows · a rhythm per building: bay width, pane shape, which storeys have them
+        if (rnd() < .85) {
+          const bay = 2.2 + rnd() * 1.2, shape = rnd(), pw = shape < .35 ? .7 + rnd() * .2 : shape < .7 ? 1.1 + rnd() * .3 : 1.5 + rnd() * .5, ph = shape < .35 ? 1.6 : shape < .7 ? 1.3 : 1.1;
+          const nb = Math.max(1, Math.floor((d - 1.2) / bay)), start = mesh.position.z - d/2 + (d - (nb - 1) * bay) / 2;
+          const shop = rnd() < .55;                                          // a taller opening at the street
+          for (let f = 0; f < floors; f++) {
+            if (f > 0 && rnd() < .12) continue;                              // the odd blank storey
+            const y = f * 3.3 + (f === 0 && shop ? 1.7 : 1.95), hh = f === 0 && shop ? 2.5 : ph, ww = f === 0 && shop ? Math.min(bay - .5, 1.9) : pw;
+            for (let b = 0; b < nb; b++) putWin(face, y, start + b * bay, ww, hh, s);
+          }
+        }
       });
       z -= d + 1 + rnd() * 3;
     }
+    panes.count = wi; sills.count = wi; panes.instanceMatrix.needsUpdate = true; sills.instanceMatrix.needsUpdate = true; scene.add(panes); scene.add(sills);
     // a second and third row behind the street wall · taller, denser · a cross street opens onto more city, not onto nothing
     [[26, 14, 22, 28, 30, 62, .06], [62, 22, 34, 40, 44, 90, .04]].forEach(([off, w0, w1, h0, h1, step, gap]) => {
       let z2 = -4;
@@ -958,7 +984,7 @@ window.Road = (() => {
     scene.fog = new THREE.Fog(P.sky, P.fogNear, P.fogFar);
     if (skyTex) paintSky(P);
     mats.road.color.setHex(P.road); mats.walk.color.setHex(P.walk); mats.kerb.color.setHex(P.kerb);
-    mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash); mats.cap.color.setHex(P.cap || P.kerb); mats.plinth.color.setHex(P.plinth || P.walk);
+    mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash); mats.cap.color.setHex(P.cap || P.kerb); mats.plinth.color.setHex(P.plinth || P.walk); mats.win.color.setHex(P.win2 || P.plinth || P.walk);
     mats.blocks.forEach((m, i) => paintFade(m.map, P.blocks[i], P.sky, P.fade));
 
     scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = .85 * P.light; });
@@ -1064,6 +1090,7 @@ window.Road = (() => {
   const SMOOTH_MS = 120;                 // time constant of the ease toward target
   const LEAD_VH = 0.5;                   // the target may run at most this far ahead of the picture — a flick can't queue up scenes
   const VMAX_VH = 1.1;                   // and the picture never moves faster than this (viewports per second): about one scene a second
+  const ROAD_VMAX_VH = .36;              // the run itself has a top speed — the 600 m road takes at least ~7 s
 
   let S = 0, T = 0;                      // rendered position · target position (px along the line)
   let cur = 0;                           // scene the chrome reports
@@ -1258,7 +1285,8 @@ window.Road = (() => {
     T = Math.max(0, Math.min(total, T));
     if (!gliding) { const lead = innerHeight * LEAD_VH; T = Math.max(S - lead, Math.min(S + lead, T)); }
     const a = 1 - Math.exp(-dt / SMOOTH_MS);
-    let step = (T - S) * a, vmax = innerHeight * VMAX_VH * dt / 1000;
+    const onRoad = segAt(S).type === 'dwell' && segAt(S).i === 0;
+    let step = (T - S) * a, vmax = innerHeight * (onRoad ? ROAD_VMAX_VH : VMAX_VH) * dt / 1000;   // on the road you can only run so fast
     if (gliding && !gliding.soft) vmax *= 2.2;                      // rail and keys may travel faster: you asked for that scene
     step = Math.max(-vmax, Math.min(vmax, step));
     S += step;
