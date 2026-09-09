@@ -762,7 +762,7 @@ window.Road = (() => {
   let renderer, scene, camera, mats = {}, blocks = [], boards = [], dashes, look = 'editorial', canvas, dpr;
   let distance = 0, dirty = true;
   const SUN_DIR = new THREE.Vector3(.16, .3, -1).normalize();   // low, ahead and to the right — dawn on the run
-  let sun, sunSprite, flareEl, ghosts = [], glowEl, streakEl, flareI = 0, raycaster, blast = 0, blastEl;
+  let envRT, envCam, sun, sunSprite, flareEl, ghosts = [], glowEl, streakEl, flareI = 0, raycaster, blast = 0, blastEl;
 
   function init(el){
     canvas = el;
@@ -855,7 +855,9 @@ window.Road = (() => {
     mats.blocks = [0,1,2,3,4].map((_, i) => { const m = new THREE.MeshBasicMaterial({ map: makeFade() }); if (TREATMENTS[i] !== 'plaster') { m.aoMap = makePattern(TREATMENTS[i]); m.aoMapIntensity = 1; } return m; });
     mats.cap   = new THREE.MeshLambertMaterial({ color:0xE9E4DB });
     mats.plinth = new THREE.MeshLambertMaterial({ color:0xCFC8BC });
-    mats.win = new THREE.MeshLambertMaterial({ color:0xF6F4F0 });
+    envRT = new THREE.WebGLCubeRenderTarget(256, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter });
+    envCam = new THREE.CubeCamera(1, 600, envRT);
+    mats.win = new THREE.MeshStandardMaterial({ color:0xFFFFFF, metalness:.9, roughness:.14, envMap: envRT.texture, envMapIntensity:1.1 });   // glass: a mirror of the sky and the street
 
     // road, sidewalks, kerbs
     const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, LENGTH + 60), mats.road);
@@ -976,6 +978,14 @@ window.Road = (() => {
     skyDome.renderOrder = -1; scene.add(skyDome);
     setLook(look); resize(); update(0);
   }
+  function captureEnv(){                                                   // photograph the sky and the street once, from mid-block at window height
+    if (!envCam) return;
+    envCam.position.set(0, 7, -60);
+    const vis = []; scene.traverse(o => { if (o.isInstancedMesh) { vis.push([o, o.visible]); o.visible = false; } });   // the glass shouldn't reflect itself
+    envCam.update(renderer, scene);
+    vis.forEach(([o, v]) => o.visible = v);
+    dirty = true;
+  }
 
   function setLook(l){
     look = LOOKS[l] ? l : 'editorial'; const P = LOOKS[look];
@@ -983,8 +993,9 @@ window.Road = (() => {
     scene.background = new THREE.Color(P.sky);
     scene.fog = new THREE.Fog(P.sky, P.fogNear, P.fogFar);
     if (skyTex) paintSky(P);
+    if (renderer && envCam) captureEnv();
     mats.road.color.setHex(P.road); mats.walk.color.setHex(P.walk); mats.kerb.color.setHex(P.kerb);
-    mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash); mats.cap.color.setHex(P.cap || P.kerb); mats.plinth.color.setHex(P.plinth || P.walk); mats.win.color.setHex(P.win2 || P.plinth || P.walk);
+    mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash); mats.cap.color.setHex(P.cap || P.kerb); mats.plinth.color.setHex(P.plinth || P.walk);
     mats.blocks.forEach((m, i) => paintFade(m.map, P.blocks[i], P.sky, P.fade));
 
     scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = .85 * P.light; });
