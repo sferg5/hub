@@ -302,6 +302,27 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 @media (min-width:900px){.is-framed #s2 .bg{--f:13vh 24% 18vh 8%}}
 
 .scene.is-current .bg img.drift{animation:none}
+
+/* ---- product presentation · norda / rains: no borders, the product's own ground is the tile ---- */
+.tile__meta{text-transform:none;letter-spacing:0;font:400 12px/1.4 var(--sans);padding:10px 0 0}
+.tile__meta span{font:400 11px/1.4 var(--mono);letter-spacing:.02em}
+.tile{background:transparent}
+.tile img{background:#EEEDEA}
+.kit__grid{gap:clamp(20px,4vh,36px) clamp(10px,2vw,20px)}
+.tile--cta{margin-top:clamp(8px,2vh,16px)}
+.is-framed .tile,.is-framed .tile--cta{box-shadow:none}
+.is-framed .tile img{mix-blend-mode:normal;background:var(--paper-2)}
+.is-framed .tile--cta{background:var(--paper-2);color:var(--fg);text-transform:none;letter-spacing:0;font:400 12px/1.4 var(--sans)}
+#app[data-look="technical"] .tile__meta{text-transform:none;letter-spacing:0}
+#app[data-look="technical"] .tile__meta span{color:var(--mute)}
+#app[data-look="technical"] .bg,#app[data-look="technical"] #s5 .pair,#app[data-look="technical"] #s5 .detail{outline:none}
+#app[data-look="technical"] .tile--cta{letter-spacing:0}
+.tile--tall img{aspect-ratio:3/4}
+.kit__grid{gap:clamp(22px,4vh,40px) clamp(14px,3.5vw,28px)}
+.tile img{object-fit:contain;padding:6%;box-sizing:border-box}
+.tile img{object-fit:cover;padding:0}
+.is-framed .tile img{background:transparent}
+.is-framed .kit__grid,.kit__grid{gap:clamp(22px,4vh,40px) clamp(14px,3.5vw,28px)}
 </style>
 
 <div id="app">
