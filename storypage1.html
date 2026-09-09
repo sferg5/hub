@@ -183,7 +183,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 /* ---- framed skeleton (editorial + technical) ---- */
 .is-framed .stage{background:var(--paper)}
 .is-framed .scene,.is-framed .scene[data-tone="dark"]{--fg:var(--ink);--bg:var(--paper);--mute:rgba(20,20,20,.5);--line:rgba(20,20,20,.16)}
-.is-framed .plane[style*="background"]{background:var(--paper) !important}
+.is-framed .plane[style*="background"]{background:transparent !important}
 .is-framed .bg::after{content:none}
 .is-framed .scene.is-current .bg img.drift{animation:none}
 .is-framed .bg{inset:var(--f,14vh 8% 22vh 8%) !important;height:auto !important}
@@ -477,9 +477,10 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
      Input moves a TARGET; the rendered position eases toward it every frame.
      There is no snap and no settle — wherever you stop is a composition.
      ===================================================================== */
-  const DWELL_VH = 0.45, CUT_VH = 0.6;
-  const OUT = { type:[0.00,0.52], blk:[0.08,0.66], bg:[0.14,0.90] };
-  const IN  = { bg:[0.10,0.86],  blk:[0.34,0.94], type:[0.50,1.00] };
+  const DWELL_VH = 0.45, CUT_VH = 0.52;
+  // the incoming plate arrives while the outgoing one is still leaving — the stage is never empty
+  const OUT = { type:[0.00,0.42], blk:[0.10,0.60], bg:[0.30,0.96] };
+  const IN  = { bg:[0.04,0.70],  blk:[0.40,0.90], type:[0.56,1.00] };
   const MOVE_EASE = 'cubic-bezier(.7,0,.2,1)';
   const MARGIN = 28;
   const SMOOTH_MS = 120;                 // time constant of the ease toward target
@@ -594,6 +595,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
     scene.querySelectorAll('.mv').forEach(el => {
       const side = leaving ? el.dataset.out : el.dataset.in;
       const role = el.dataset.role || 'blk';
+      if (framed() && role === 'bg' && !el.querySelector('img')) return;   // a paper plane on paper is invisible — it never covers the other plate
       const rect = el.getBoundingClientRect();
       const off  = offscreen(rect, side), rest = 'translate(0px, 0px)';
       const range = leaving ? OUT[role] : IN[role];
@@ -601,7 +603,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
       targets.forEach((t, k) => {
         const n = targets.length, step = 0.045;
         // the line nearest the edge of travel goes first, so stacked lines never pass through each other
-        const order = side === 'down' ? n - 1 - k : k;
+        const order = (leaving ? side === 'down' : side === 'up') ? n - 1 - k : k;
         const shift = leaving ? order * step : -(n - 1 - order) * step;
         const s = Math.max(0, range[0] + shift), e = Math.min(1, range[1] + shift);
         const fades = role === 'type' || t.classList.contains('blk') || t.querySelector('.blk, .eyebrow, .data');
