@@ -342,9 +342,10 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 /* ---- the sun's flare · a glow, a streak, a few ghosts on the line through centre ---- */
 .flare{position:absolute;inset:0;pointer-events:none;overflow:hidden;--flare:.5;--sunc:#FFE9C4;opacity:0}
 .flare i{position:absolute;left:0;top:0;border-radius:50%;will-change:transform}
-.flare__glow{width:min(70vw,520px);height:min(70vw,520px);background:radial-gradient(circle,var(--sunc) 0%,transparent 60%);opacity:calc(var(--flare) * .9)}
-.flare__streak{width:140vw;height:2px;border-radius:0;background:linear-gradient(90deg,transparent,var(--sunc) 35%,var(--sunc) 65%,transparent);opacity:calc(var(--flare) * .35);filter:blur(1px)}
-.flare__ghost{width:24px;height:24px;background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 55%,transparent) 55%,transparent 72%);opacity:calc(var(--flare) * .28);filter:blur(1px)}
+.flare__glow{width:min(120vw,900px);height:min(120vw,900px);background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 60%,transparent) 30%,transparent 62%);opacity:calc(var(--flare) * .95)}
+.flare__wash{position:absolute;inset:0;border-radius:0;opacity:calc(var(--flare) * .55)}
+.flare__streak{width:160vw;height:3px;border-radius:0;background:linear-gradient(90deg,transparent,var(--sunc) 35%,var(--sunc) 65%,transparent);opacity:calc(var(--flare) * .35);filter:blur(1px)}
+.flare__ghost{width:30px;height:30px;background:radial-gradient(circle,var(--sunc) 0%,color-mix(in srgb,var(--sunc) 55%,transparent) 55%,transparent 72%);opacity:calc(var(--flare) * .4);filter:blur(1px)}
 .flare__ghost:nth-child(6){background:radial-gradient(circle,transparent 58%,var(--sunc) 66%,transparent 74%)}
 @media (prefers-reduced-motion:reduce){.flare{display:none}}
 </style>
@@ -525,11 +526,11 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 window.Road = (() => {
   const LOOKS = {
     editorial: { sky:0xF3F1EC, road:0xD3CDC3, walk:0xF3F1EC, kerb:0xE7E2DA, paint:0xFFFFFF, dash:0xFFFFFF,
-                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.5, blend:'normal' },
+                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.9, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC9CED3, walk:0xEDEFF1, kerb:0xDFE3E7, paint:0xFFFFFF, dash:0xE4472A,
-                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.32, blend:'normal' },
+                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.65, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:.9, blend:'screen' },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:1.1, blend:'screen' },
   };
   const LENGTH = 700;          // metres of road built
   const BOARDS = [
@@ -601,10 +602,11 @@ window.Road = (() => {
     grad.addColorStop(0,'rgba(255,255,255,1)'); grad.addColorStop(.18,'rgba(255,255,255,.95)'); grad.addColorStop(.42,'rgba(255,255,255,.28)'); grad.addColorStop(1,'rgba(255,255,255,0)');
     sg.fillStyle = grad; sg.fillRect(0,0,256,256);
     sunSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(sc), transparent:true, depthWrite:false, fog:false, blending:THREE.AdditiveBlending }));
-    sunSprite.scale.set(70, 70, 1); scene.add(sunSprite);
+    sunSprite.scale.set(120, 120, 1); scene.add(sunSprite);
     raycaster = new THREE.Raycaster(); raycaster.far = 400;
     // the flare · DOM ghosts over the canvas, positioned by projecting the sun each frame
     flareEl = document.createElement('div'); flareEl.className = 'flare';
+    const washEl = document.createElement('i'); washEl.className = 'flare__wash'; flareEl.appendChild(washEl); flareEl._wash = washEl;
     glowEl = document.createElement('i'); glowEl.className = 'flare__glow'; flareEl.appendChild(glowEl);
     streakEl = document.createElement('i'); streakEl.className = 'flare__streak'; flareEl.appendChild(streakEl);
     [[-.35,.05],[-.6,.09],[-.85,.16],[-1.25,.07],[-1.6,.22],[.35,.06]].forEach(([k, s]) => {
@@ -690,7 +692,7 @@ window.Road = (() => {
 
     scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = 1.0 * P.light; });
     sun.intensity = .3 * P.light; sun.color.setHex(P.sun);
-    sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = look === 'cinematic' ? .95 : .8;
+    sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = 1;
     flareEl.style.setProperty('--flare', P.flare); flareEl.style.mixBlendMode = P.blend;
     flareEl.style.setProperty('--sunc', '#' + new THREE.Color(P.sunGlow).getHexString());
     dirty = true;
@@ -718,20 +720,23 @@ window.Road = (() => {
     dirty = true;
   }
 
-  const _v = new THREE.Vector3();
+  const _v = new THREE.Vector3(), _d = new THREE.Vector3();
+  const RAYS = [[0,0],[.07,0],[-.07,0],[0,.07],[0,-.07]].map(([x,y]) => new THREE.Vector3(x, y, 0));
   function placeFlare(){
     if (!flareEl) return;
     // occlusion: is a block between the eye and the sun?
-    raycaster.set(camera.position, SUN_DIR);
-    const hit = raycaster.intersectObjects(blocks, false).length > 0;
+    // how much of the sun's disc is showing? five rays across it, not one through its centre
+    let seen = 0;
+    RAYS.forEach(o => { _d.copy(SUN_DIR).add(o).normalize(); raycaster.set(camera.position, _d); if (!raycaster.intersectObjects(blocks, false).length) seen++; });
     _v.copy(sunSprite.position).project(camera);
     const onScreen = _v.z < 1 && Math.abs(_v.x) < 1.3 && Math.abs(_v.y) < 1.3;
-    const target = hit || !onScreen ? 0 : 1;
-    flareI += (target - flareI) * .12;                                 // fade, never pop
+    const target = onScreen ? seen / RAYS.length : 0;
+    flareI += (target - flareI) * .1;                                  // fade, never pop
     const w = canvas.clientWidth, h = canvas.clientHeight, sx = (_v.x + 1) / 2 * w, sy = (1 - _v.y) / 2 * h;
     const cx = w / 2, cy = h / 2, dx = sx - cx, dy = sy - cy;
     flareEl.style.opacity = flareI.toFixed(3);
     glowEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
+    flareEl._wash.style.background = `radial-gradient(circle at ${sx}px ${sy}px, var(--sunc) 0%, color-mix(in srgb, var(--sunc) 70%, transparent) 28%, color-mix(in srgb, var(--sunc) 30%, transparent) 60%, transparent 100%)`;
     streakEl.style.transform = `translate(${sx}px, ${sy}px) translate(-50%,-50%)`;
     ghosts.forEach(g => { const k = parseFloat(g.dataset.k); g.style.transform = `translate(${cx + dx * k}px, ${cy + dy * k}px) translate(-50%,-50%) scale(${parseFloat(g.dataset.s) * 10})`; });
   }
