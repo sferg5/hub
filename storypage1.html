@@ -364,6 +364,16 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 .bg .cards .card--center{text-align:center}
 #app[data-look="technical"] .bg .cards .card--text{font-family:var(--sans);font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:calc(var(--size) * var(--cardk) * .85)}
 #app[data-look="cinematic"] .bg .cards .card--text{color:var(--stone)}
+
+/* ---- the line you only find by turning back ---- */
+#s0 .forward{position:absolute;left:var(--gutter);top:clamp(96px,17vh,170px);margin:0;font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.03em;color:var(--fg);pointer-events:none}
+#s0 .forward span{display:inline-block;opacity:0;transform:translateY(.35em);transition:opacity .7s var(--ease-out),transform .9s var(--ease-out)}
+#s0 .forward.is-on span{opacity:1;transform:none}
+#s0 .forward.is-on span:nth-child(3){transition-delay:.08s}
+#s0 .forward.is-on span:nth-child(5){transition-delay:.16s}
+.is-framed #s0 .forward{font-size:clamp(30px,5.6vw,72px);top:clamp(88px,15vh,150px)}
+#app[data-look="technical"] #s0 .forward{font-family:var(--sans);text-transform:uppercase;letter-spacing:.02em;font-size:clamp(24px,4.4vw,56px)}
+@media (prefers-reduced-motion:reduce){#s0 .forward span{transition:none}}
 </style>
 
 <div id="app">
@@ -379,6 +389,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
         <p class="data tele"><span id="teleKm">0.00</span> km&nbsp;&nbsp;<span class="mute" id="telePace">4:35 /km</span>&nbsp;&nbsp;<span class="mute" id="teleTime">00:00</span></p>
       </div>
       <p class="hint mv" id="hint" data-role="blk" data-in="down" data-out="down"><i></i>Scroll to run</p>
+      <p class="forward" id="forward" aria-hidden="true"><span>The road</span><br><span>forward</span><br><span>is yours.</span></p>
     </div>
   </section>
 
@@ -1017,7 +1028,13 @@ window.Road = (() => {
       if (cur !== c || force) { cur = c; paintChrome(cur); }
     }
     if (S > 4 && hint) hint.classList.add('is-off');
+    // turn back to the top after you've run, and a line is waiting
+    const roadLen = segs[0].len, m = roadLen / ROAD_M;
+    if (S > 20 * m) forwardArmed = true;
+    forward.classList.toggle('is-on', forwardArmed && S < 2 && cur === 0);
+    if (S > 30 * m) forward.classList.remove('is-on');
   }
+  const forward = document.getElementById('forward'); let forwardArmed = false;
 
   /* ---------- the easing loop ---------- */
   let last = performance.now(), vel = 0, gliding = null;
@@ -1132,6 +1149,9 @@ window.Road = (() => {
     requestAnimationFrame(step);
   }
   requestAnimationFrame(frame);
+  if (start === 0 && !reduce) {                                          // a taste of the run before you take the wheel — any input cancels it
+    setTimeout(() => { if (T === 0 && !jump) { const to = segs[0].len * (62 / ROAD_M); gliding = { from: 0, to, t0: performance.now(), dur: 3200 }; } }, 1500);
+  }
 })();
 </script>
 
