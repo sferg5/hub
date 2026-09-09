@@ -98,7 +98,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 #s2 .aside .blk{height:clamp(56px,9vh,84px)}
 
 /* 3 the kit — free scroll */
-.scroller{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-y}
+.scroller{position:absolute;inset:0;overflow:hidden;touch-action:none}
 .scroller::-webkit-scrollbar{display:none}
 .scene--scroll::after{content:"";position:absolute;left:0;right:0;top:0;height:clamp(72px,11vh,110px);background:linear-gradient(180deg,var(--stone) 35%,rgba(236,232,225,0));pointer-events:none;z-index:2}
 .kit{padding:clamp(84px,14vh,140px) calc(var(--gutter) + 48px) 0 var(--gutter);max-width:1180px}
@@ -465,68 +465,48 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
   const mark   = document.getElementById('mark');
   const hint   = document.getElementById('hint');
   const app    = document.getElementById('app');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const LOOKS  = ['editorial','technical','cinematic'];
   const framed = () => app.dataset.look !== 'cinematic';
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- the timing system: one timeline, three roles ----------
-     Every transition is a 0→1 timeline. Each component owns a slice of it.
-     Outgoing: type leaves first, blocks next, the image plane last.
-     Incoming: image plane lands first, blocks next, type last.
-     Scrolling scrubs the timeline; release settles it; rail/keys tween it. */
+  /* =====================================================================
+     ONE TIMELINE
+     The story is a single line of pixels: dwell₁ · cut₁ · dwell₂ · cut₂ … dwell₈.
+     Inside a dwell the scene answers the scroll (parallax, drift); inside a cut the
+     components leave and arrive. The Kit's inner scroll is just a longer dwell.
+     Input moves a TARGET; the rendered position eases toward it every frame.
+     There is no snap and no settle — wherever you stop is a composition.
+     ===================================================================== */
+  const DWELL_VH = 0.45, CUT_VH = 0.6;
   const OUT = { type:[0.00,0.52], blk:[0.08,0.66], bg:[0.14,0.90] };
   const IN  = { bg:[0.10,0.86],  blk:[0.34,0.94], type:[0.50,1.00] };
-  const BASE = 950;                              // ms for a rail/keyboard tween, × scene speed
-  const MOVE_EASE = 'cubic-bezier(.7,0,.2,1)';   // shape of each component's path
-  const easeInOut = t => -(Math.cos(Math.PI * t) - 1) / 2;   // gentle: each component already carries its own easing
-  const easeOut   = t => 1 - Math.pow(1 - t, 3);
+  const MOVE_EASE = 'cubic-bezier(.7,0,.2,1)';
   const MARGIN = 28;
+  const SMOOTH_MS = 120;                 // time constant of the ease toward target
 
-  let cur = 0, tl = null;                        // tl = the live transition, or null at a lockup
+  let S = 0, T = 0;                      // rendered position · target position (px along the line)
+  let cur = 0;                           // scene the chrome reports
+  let segs = [], total = 0;              // segment layout
 
-  /* ---------- dwell: the scroll always answers ----------
-     Inside a scene, scroll drives a small in-scene timeline (q: 0→1): the image
-     parallaxes in its plate, plates drift, blocks travel further than type, type
-     stays anchored. Past either end, the same gesture flows into the cut.
-     Dwell transforms are composited on top of the transition transforms. */
-  const DWELL = () => innerHeight * 0.45;          // px of gesture across one dwell
-  let dw = { scene:null, anims:[], q:0 };
-  function makeDwell(scene, q){
-    dw.anims.forEach(a => a.cancel());
-    const anims = [];
-    scene.querySelectorAll('[data-dw]').forEach(el => {
-      const v = el.dataset.dw;
-      let kf;
-      if (v === 'img') kf = [{transform:'translateY(3%) scale(1.09)'}, {transform:'translateY(-3%) scale(1.09)'}];
-      else { const px = parseFloat(v.split(':')[1]) || 0; kf = [{transform:`translateY(${px/2}px)`}, {transform:`translateY(${-px/2}px)`}]; }
-      const a = el.animate(kf, {duration:1000, fill:'both', composite: v === 'img' ? 'replace' : 'add'});
-      a.pause(); anims.push(a);
+  /* ---------- layout of the line ---------- */
+  function layout(){
+    const vh = innerHeight, D = vh * DWELL_VH, C = vh * CUT_VH;
+    segs = []; let x = 0;
+    scenes.forEach((s, i) => {
+      const sc = s.querySelector('.scroller');
+      const len = sc ? Math.max(D, sc.scrollHeight - sc.clientHeight + D * .5) : D;
+      segs.push({ type:'dwell', i, start:x, len }); x += len;
+      if (i < scenes.length - 1) { segs.push({ type:'cut', i, start:x, len:C }); x += C; }
     });
-    dw = { scene, anims, q };
-    setQ(q);
+    total = x;
   }
-  function setQ(q){
-    dw.q = Math.min(1, Math.max(0, q));
-    dw.anims.forEach(a => a.currentTime = dw.q * 1000);
-  }
-  // feed a gesture delta (px, signed) into the dwell; returns leftover px once an end is reached, else 0
-  function dwell(deltaPx){
-    if (!dw.scene || !dw.anims.length) return deltaPx;
-    const q0 = dw.q, q1 = q0 + deltaPx / DWELL();
-    if (q1 > 1) { setQ(1); return (q1 - 1) * DWELL(); }
-    if (q1 < 0) { setQ(0); return q1 * DWELL(); }
-    setQ(q1); return 0;
-  }
-  function tweenQ(target, ms){
-    return new Promise(res => {
-      if (!dw.anims.length || dw.q === target) { setQ(target); return res(); }
-      const q0 = dw.q, t0 = performance.now();
-      const step = now => { const k = Math.min(1, (now - t0) / ms); setQ(q0 + (target - q0) * easeOut(k)); k < 1 ? requestAnimationFrame(step) : res(); };
-      requestAnimationFrame(step);
-    });
+  const sceneStart = i => segs.find(g => g.type === 'dwell' && g.i === i).start;
+  function segAt(x){
+    for (const g of segs) if (x < g.start + g.len) return g;
+    return segs[segs.length - 1];
   }
 
-  /* ---------- looks: one family, three members ---------- */
+  /* ---------- looks ---------- */
   const lookNav = document.getElementById('look');
   const lookBtns = LOOKS.map(l => {
     const b = document.createElement('button'); b.textContent = l;
@@ -538,7 +518,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
     lookBtns.forEach(b => b.classList.toggle('is-on', b.textContent === l));
     try { localStorage.setItem('cityrun.look', l); } catch (e) {}
     const u = new URL(location.href); u.searchParams.set('look', l); history.replaceState(null, '', u);
-    if (!silent) { stage.style.background = bgOf(cur); paintChrome(cur); }
+    if (!silent) { dropCut(); layout(); render(true); }
   }
   setLook(new URL(location.href).searchParams.get('look') || (() => { try { return localStorage.getItem('cityrun.look'); } catch (e) { return null; } })() || 'editorial', true);
 
@@ -558,10 +538,32 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
     [rail, mark, meta, lookNav].forEach(el => el.style.setProperty('--chrome', c));
     ticks.forEach((t, k) => t.classList.toggle('is-on', k === i));
     meta.textContent = `${String(i+1).padStart(2,'0')} / ${String(scenes.length).padStart(2,'0')}`;
-    { const u = new URL(location.href); u.hash = `#${i+1}`; history.replaceState(null, '', u); }
+    const u = new URL(location.href); u.hash = `#${i+1}`; history.replaceState(null, '', u);
+    stage.style.background = bgOf(i);
   }
 
-  /* ---------- geometry: how far does this component travel to clear the stage? ---------- */
+  /* ---------- dwell layer: built once per scene, scrubbed forever ---------- */
+  const dwells = scenes.map(scene => {
+    const anims = [];
+    scene.querySelectorAll('[data-dw]').forEach(el => {
+      const v = el.dataset.dw; let kf;
+      if (v === 'img') kf = [{transform:'translateY(3%) scale(1.09)'}, {transform:'translateY(-3%) scale(1.09)'}];
+      else { const px = parseFloat(v.split(':')[1]) || 0; kf = [{transform:`translateY(${px/2}px)`}, {transform:`translateY(${-px/2}px)`}]; }
+      const a = el.animate(kf, {duration:1000, fill:'both', composite: v === 'img' ? 'replace' : 'add'});
+      a.pause(); anims.push(a);
+    });
+    return anims;
+  });
+  function setQ(i, q){
+    dwells[i].forEach(a => a.currentTime = q * 1000);
+    const sc = scenes[i].querySelector('.scroller');
+    if (sc) {
+      sc.scrollTop = q * (sc.scrollHeight - sc.clientHeight);
+      ticks[i].querySelector('.tick__bar').style.setProperty('--p', (q*100).toFixed(1) + '%');
+    }
+  }
+
+  /* ---------- cut layer: built when you enter a cut, dropped when you leave it ---------- */
   function offscreen(rect, side){
     const vw = innerWidth, vh = innerHeight;
     switch (side) {
@@ -577,22 +579,20 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
       const a = leaving ? 1 : 0, b = leaving ? 0 : 1;
       kf = [{opacity:a, offset:0}, {opacity:a, offset:s, easing:'ease'}, {opacity:b, offset:e}, {opacity:b, offset:1}];
     } else if (fades) {
-      // type: travels AND fades over the first/last half of its slice, so two lockups never read on top of each other
-      const m = leaving ? s + (e - s) * .5 : s + (e - s) * .5;
+      const m = s + (e - s) * .5;   // type travels AND fades over half its slice — two lockups never read on top of each other
       kf = leaving
         ? [{transform:from, opacity:1, offset:0}, {transform:from, opacity:1, offset:s, easing:MOVE_EASE}, {opacity:0, offset:m}, {transform:to, opacity:0, offset:e}, {transform:to, opacity:0, offset:1}]
         : [{transform:from, opacity:0, offset:0}, {transform:from, opacity:0, offset:s, easing:MOVE_EASE}, {opacity:0, offset:m}, {transform:to, opacity:1, offset:e}, {transform:to, opacity:1, offset:1}];
     } else {
       kf = [{transform: from, offset:0}, {transform: from, offset:s, easing: MOVE_EASE}, {transform: to, offset:e}, {transform: to, offset:1}];
     }
-    const a = el.animate(kf, {duration:1000, fill:'both'});
+    const a = el.animate(kf, {duration:1000, fill:'both', composite:'add'});
     a.pause(); return a;
   }
-  // a .copy lockup moves as a unit but its lines are staggered a beat apart
-  function movers(scene, leaving, dir){
+  function movers(scene, leaving){
     const out = [];
     scene.querySelectorAll('.mv').forEach(el => {
-      const side = leaving ? (dir > 0 ? el.dataset.out : el.dataset.in) : (dir > 0 ? el.dataset.in : el.dataset.out);
+      const side = leaving ? el.dataset.out : el.dataset.in;
       const role = el.dataset.role || 'blk';
       const rect = el.getBoundingClientRect();
       const off  = offscreen(rect, side), rest = 'translate(0px, 0px)';
@@ -600,7 +600,9 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
       const targets = el.classList.contains('copy') ? [...el.children] : [el];
       targets.forEach((t, k) => {
         const n = targets.length, step = 0.045;
-        const shift = leaving ? k * step : -(n - 1 - k) * step;      // leaving: top line first · arriving: top line first
+        // the line nearest the edge of travel goes first, so stacked lines never pass through each other
+        const order = side === 'down' ? n - 1 - k : k;
+        const shift = leaving ? order * step : -(n - 1 - order) * step;
         const s = Math.max(0, range[0] + shift), e = Math.min(1, range[1] + shift);
         const fades = role === 'type' || t.classList.contains('blk') || t.querySelector('.blk, .eyebrow, .data');
         out.push(leaving ? slice(t, rest, off, [s, e], true, fades) : slice(t, off, rest, [s, e], false, fades));
@@ -608,161 +610,124 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
     });
     return out;
   }
-
-  /* ---------- timeline control ---------- */
-  function begin(to){
-    if (tl || to < 0 || to >= scenes.length || to === cur) return false;
-    const dir = to > cur ? 1 : -1, from = cur;
-    const inn = scenes[to], out = scenes[from];
-    const sc = inn.querySelector('.scroller');
-    if (sc) sc.scrollTop = dir > 0 ? 0 : sc.scrollHeight;             // arriving from below lands at the kit's end
-    inn.classList.add('is-moving'); out.classList.add('is-moving');
-    stage.style.background = bgOf(to);
-    inn.getBoundingClientRect();                                        // layout before measuring
-    const anims = [...movers(out, true, dir), ...movers(inn, false, dir)];
-    const outDw = dw;                                                   // keep the outgoing dwell alive through the cut
-    makeDwell(inn, dir > 0 ? 0 : 1);
-    tl = {from, to, dir, anims, p:0, settling:false, raf:0, outDw, inDw: dw};
-    setP(0); hint && hint.classList.add('is-off'); wake();
-    return true;
+  let cut = null;   // { i, anims }
+  function buildCut(i){
+    const out = scenes[i], inn = scenes[i+1];
+    setQ(i, 1); setQ(i+1, 0);                                     // the two lockups the cut travels between
+    out.classList.add('is-moving'); inn.classList.add('is-moving');
+    inn.getBoundingClientRect();
+    cut = { i, anims: [...movers(out, true), ...movers(inn, false)] };
   }
-  function setP(p){
-    tl.p = Math.min(1, Math.max(0, p));
-    tl.anims.forEach(a => a.currentTime = tl.p * 1000);
-    if (tl.p >= 1 && !tl.settling) finish(true);
-  }
-  function finish(commit){
-    const {from, to, anims} = tl;
-    cancelAnimationFrame(tl.raf);
-    anims.forEach(a => a.cancel());
-    scenes[from].classList.remove('is-moving'); scenes[to].classList.remove('is-moving');
-    if (commit) { scenes[from].classList.remove('is-current'); scenes[to].classList.add('is-current'); cur = to; tl.outDw.anims.forEach(a => a.cancel()); dw = tl.inDw; }
-    else { tl.inDw.anims.forEach(a => a.cancel()); dw = tl.outDw; }
-    stage.style.background = bgOf(cur); paintChrome(cur);
-    tl = null;
-  }
-  function settle(target, ms, ease = easeOut){
-    if (!tl) return;
-    tl.settling = true;
-    const p0 = tl.p, d = target - p0, t0 = performance.now();
-    const dur = Math.max(200, ms * Math.abs(d));
-    const step = now => {
-      if (!tl) return;
-      const k = Math.min(1, (now - t0) / dur);
-      tl.p = p0 + d * ease(k);
-      tl.anims.forEach(a => a.currentTime = tl.p * 1000);
-      if (k < 1) tl.raf = requestAnimationFrame(step); else finish(target === 1);
-    };
-    tl.raf = requestAnimationFrame(step);
-  }
-  let going = false;
-  function go(to){                                                     // rail, keys, restart: dwell to its end, then one clean tween
-    if (tl || going || to === cur || to < 0 || to >= scenes.length) return;
-    going = true;
-    tweenQ(to > cur ? 1 : 0, 220).then(() => { going = false; if (begin(to)) settle(1, BASE * parseFloat(scenes[to].dataset.speed || 1), easeInOut); });
+  function dropCut(){
+    if (!cut) return;
+    cut.anims.forEach(a => a.cancel());
+    scenes[cut.i].classList.remove('is-moving'); scenes[cut.i+1].classList.remove('is-moving');
+    cut = null;
   }
 
-  /* ---------- gesture arbitration ---------- */
-  const scrollerOf = i => scenes[i].querySelector('.scroller');
-  const atEdge = (sc, dir) => !sc || (dir > 0 ? sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 1 : sc.scrollTop <= 0);
-  const UNIT = () => innerHeight * 0.6;                                 // px of gesture = one full transition
-
-  // wheel · one gesture scrubs one transition; a gesture that scrolled the kit never also leaves it
-  let wLast = 0, wDone = false, wScrolled = false, wTimer;
-  stage.addEventListener('wheel', e => {
-    const now = performance.now(), fresh = now - wLast > 160;
-    if (fresh) { wDone = false; wScrolled = false; }
-    wLast = now; wake();
-    const dir = e.deltaY > 0 ? 1 : -1;
-    if (tl) {
-      e.preventDefault();
-      if (tl.settling || wDone) return;
-      setP(tl.p + (e.deltaY * tl.dir) / UNIT());
-      if (!tl) { wDone = true; return; }                                 // reached 1 and committed
-      clearTimeout(wTimer); wTimer = setTimeout(() => tl && !tl.settling && settle(tl.p >= .5 ? 1 : 0, 520), 170);
-      return;
+  /* ---------- render: position → picture ---------- */
+  let shown = -1;
+  function show(i){
+    if (shown === i) return;
+    scenes.forEach((s, k) => s.classList.toggle('is-current', k === i));
+    shown = i;
+  }
+  function render(force){
+    const g = segAt(S);
+    if (g.type === 'dwell') {
+      if (cut) dropCut();
+      show(g.i); setQ(g.i, (S - g.start) / g.len);
+      if (cur !== g.i || force) { cur = g.i; paintChrome(cur); }
+    } else {
+      if (!cut || cut.i !== g.i || force) { dropCut(); buildCut(g.i); }
+      show(g.i);                                                   // outgoing stays "current"; incoming stacks above via .is-moving
+      const p = (S - g.start) / g.len;
+      cut.anims.forEach(a => a.currentTime = p * 1000);
+      const c = p < .5 ? g.i : g.i + 1;
+      if (cur !== c || force) { cur = c; paintChrome(cur); }
     }
-    const sc = scrollerOf(cur);
-    if (sc && !atEdge(sc, dir)) { wScrolled = true; return; }             // native scroll inside the kit
+    if (S > 4 && hint) hint.classList.add('is-off');
+  }
+
+  /* ---------- the easing loop ---------- */
+  let last = performance.now(), vel = 0, gliding = null;
+  function frame(now){
+    const dt = Math.min(64, now - last); last = now;
+    if (gliding) {                                                  // rail / keys: T travels on its own curve
+      const k = Math.min(1, (now - gliding.t0) / gliding.dur);
+      T = gliding.from + (gliding.to - gliding.from) * (-(Math.cos(Math.PI * k) - 1) / 2);
+      if (k >= 1) gliding = null;
+    } else if (vel) {                                               // touch momentum
+      T += vel * dt; vel *= Math.pow(0.94, dt / 16);
+      if (Math.abs(vel) < 0.02) vel = 0;
+    }
+    T = Math.max(0, Math.min(total, T));
+    const a = 1 - Math.exp(-dt / SMOOTH_MS);
+    S += (T - S) * a;
+    if (Math.abs(T - S) < 0.05) S = T;
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- input: everything just moves the target ---------- */
+  function nudge(px){ gliding = null; vel = 0; T += px; wake(); }
+  stage.addEventListener('wheel', e => {
     e.preventDefault();
-    if (wDone || wScrolled || going) return;
-    const notch = Math.abs(e.deltaY) >= 80 && fresh;                       // a mouse-wheel notch: run the dwell, then commit the cut
-    if (notch) { wDone = true; tweenQ(dir > 0 ? 1 : 0, 260).then(() => { if (begin(cur + dir)) settle(1, BASE * .8, easeInOut); }); return; }
-    const left = dwell(e.deltaY);                                          // the scroll always moves something
-    if (!left) return;
-    if (!begin(cur + dir)) return;
-    setP(left * dir / UNIT());
-    if (!tl) { wDone = true; return; }
-    clearTimeout(wTimer); wTimer = setTimeout(() => tl && !tl.settling && settle(tl.p >= .5 ? 1 : 0, 520), 170);
+    const d = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+    nudge(Math.max(-160, Math.min(160, d)));                       // one event never leaps
   }, {passive:false});
 
-  // touch · your thumb scrubs the timeline; release settles it
-  let tY = 0, tPrevY = 0, tPrevY2 = 0, tPrevT = 0, tVel = 0, tEdgeY = null, tScrolled = false;
+  let tPrevY = 0, tPrevT = 0, tVel = 0;
   stage.addEventListener('touchstart', e => {
-    tY = tPrevY = tPrevY2 = e.touches[0].clientY; tPrevT = performance.now(); tVel = 0; tEdgeY = null; tScrolled = false; wake();
+    tPrevY = e.touches[0].clientY; tPrevT = performance.now(); tVel = 0; gliding = null; vel = 0; wake();
   }, {passive:true});
   stage.addEventListener('touchmove', e => {
-    const y = e.touches[0].clientY, now = performance.now();
-    tVel = (y - tPrevY) / Math.max(1, now - tPrevT); tPrevY = y; tPrevT = now;
-    if (tl) { e.preventDefault(); if (!tl.settling && tEdgeY !== null) setP((tEdgeY - y) * tl.dir / UNIT()); return; }
-    const dy = y - tY, dir = dy < 0 ? 1 : -1;
-    const sc = scrollerOf(cur);
-    if (sc) {
-      if (!atEdge(sc, dir)) { tScrolled = true; tEdgeY = null; return; }
-      if (tScrolled) { e.preventDefault(); return; }                     // finished a scroll — ask for a fresh swipe
-    }
     e.preventDefault();
-    if (going) return;
-    if (!sc) {                                                              // scrub the dwell with the thumb
-      const left = dwell(tPrevY2 - y); tPrevY2 = y;
-      if (!left) return;
-      if (begin(cur + dir)) { tEdgeY = y + left; setP(left * dir / UNIT()); }
-      return;
-    }
-    if (Math.abs(dy) < 6) return;
-    if (tEdgeY === null) tEdgeY = y;
-    if (begin(cur + dir)) setP((tEdgeY - y) * dir / UNIT());
+    const y = e.touches[0].clientY, now = performance.now();
+    tVel = 0.7 * tVel + 0.3 * ((tPrevY - y) / Math.max(1, now - tPrevT));
+    nudge(tPrevY - y); tPrevY = y; tPrevT = now;
   }, {passive:false});
-  stage.addEventListener('touchend', () => {
-    if (!tl || tl.settling) return;
-    const flick = -tVel * tl.dir > .45;                                   // fast in the transition's direction
-    settle(tl.p >= .35 || flick ? 1 : 0, 480);
-  });
+  stage.addEventListener('touchend', () => { vel = tVel * 1.1; });
 
+  function go(i){
+    if (i < 0 || i >= scenes.length) return;
+    const to = sceneStart(i), dist = Math.abs(to - T);
+    gliding = { from: T, to, t0: performance.now(), dur: Math.min(1400, 380 + dist * 0.45) };
+    vel = 0; wake();
+  }
   addEventListener('keydown', e => {
-    if (['ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
-    if (['ArrowUp','PageUp'].includes(e.key))       { e.preventDefault(); go(cur - 1); }
+    const g = segAt(T);
+    if (['ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); go(Math.min(scenes.length - 1, g.i + 1)); }
+    if (['ArrowUp','PageUp'].includes(e.key))       { e.preventDefault(); go(Math.max(0, g.type === 'dwell' && T - g.start < 2 ? g.i - 1 : g.i)); }
     if (e.key === 'Home') go(0);
     if (e.key === 'End')  go(scenes.length - 1);
   });
   document.getElementById('restart').addEventListener('click', () => go(0));
-
-  // the kit's tick fills with inner progress
-  const kit = document.getElementById('kitScroller');
-  kit.addEventListener('scroll', () => {
-    const p = kit.scrollTop / Math.max(1, kit.scrollHeight - kit.clientHeight);
-    ticks[scenes.indexOf(kit.closest('.scene'))].querySelector('.tick__bar').style.setProperty('--p', (p*100).toFixed(1) + '%');
-    wake();
-  }, {passive:true});
 
   /* ---------- the rail idles when you do ---------- */
   let idleT;
   function wake(){ rail.classList.remove('is-idle'); clearTimeout(idleT); idleT = setTimeout(() => rail.classList.add('is-idle'), 2600); }
   ['pointermove','pointerdown'].forEach(ev => addEventListener(ev, wake, {passive:true}));
 
-  /* ---------- boot: the first scene arrives the same way every scene does ---------- */
+  addEventListener('resize', () => {
+    const g = segAt(S), f = (S - g.start) / g.len;               // keep your place in the story across a resize
+    dropCut(); layout();
+    const ng = segs.find(x => x.type === g.type && x.i === g.i) || segs[0];
+    S = T = ng.start + f * ng.len; render(true);
+  });
+
+  /* ---------- boot ---------- */
+  layout();
   const start = Math.min(scenes.length, Math.max(1, parseInt(location.hash.slice(1)) || 1)) - 1;
-  cur = start; scenes[cur].classList.add('is-current'); stage.style.background = bgOf(cur); paintChrome(cur); wake();
-  makeDwell(scenes[cur], 0);
-  if (!reduce) {
-    const anims = movers(scenes[cur], false, 1);
-    tl = {from:cur, to:cur, dir:1, anims, p:0, settling:true, raf:0};
-    const t0 = performance.now(), dur = 1300;
-    const step = now => { const k = Math.min(1, (now - t0) / dur); tl.p = easeOut(k); anims.forEach(a => a.currentTime = tl.p * 1000);
-      if (k < 1) tl.raf = requestAnimationFrame(step); else { anims.forEach(a => a.cancel()); tl = null; } };
-    tl.raf = requestAnimationFrame(step);
+  S = T = sceneStart(start); cur = start; scenes.forEach((s, i) => setQ(i, 0)); render(true); wake();
+  if (!reduce) {                                                    // the first scene arrives the way every scene does
+    const anims = movers(scenes[start], false), t0 = performance.now(), dur = 1300;
+    const step = now => { const k = Math.min(1, (now - t0) / dur), p = 1 - Math.pow(1 - k, 3);
+      anims.forEach(a => a.currentTime = p * 1000);
+      if (k < 1) requestAnimationFrame(step); else anims.forEach(a => a.cancel()); };
+    requestAnimationFrame(step);
   }
-  addEventListener('resize', () => { if (tl && !tl.settling) settle(tl.p >= .5 ? 1 : 0, 200); });
+  requestAnimationFrame(frame);
 })();
 </script>
 
