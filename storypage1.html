@@ -648,16 +648,17 @@ window.Road = (() => {
     const loader = new THREE.TextureLoader();
     let bz = -34, side = 1;
     const srcOf = s => s[0] === '@' ? (document.querySelector(`img[data-key="${s.slice(1)}"]`) || {}).src : s;
+    // plates · photographs standing free in the open lots, a couple of metres off the ground, turned a little toward the road
+    const lots = [];
     BOARDS.forEach((b, i) => {
-      // the poster hangs on the END wall of its block — the face that fronts the cross street — so it comes at you head-on
-      const H = b.big ? 17 : 12, W = H * b.ar, d = 16 + rnd() * 10, w = Math.max(W + 2.5, 11), h = H + 3 + rnd() * 12;
-      const host = block(side, bz, w, d, h);
+      const H = b.big ? 14 : 10, W = H * b.ar;
       const tex = loader.load(srcOf(b.src)); tex.anisotropy = 4;
-      const board = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex }));
-      const x = host.position.x - side * (w/2 - W/2 - 1.2);                 // hug the road-side edge of the wall
-      board.position.set(x, 1.4 + H/2, bz + .06);                            // on the front face, facing +z (toward the runner)
-      scene.add(board); boards.push(board);
-      host.userData.open = 14;                                               // keep the lot in front of it clear
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+      const x = side * (ROAD_W/2 + WALK_W + 3 + rnd() * 5), y = 2.2 + rnd() * 1.6 + H/2;
+      plate.position.set(x, y, bz);
+      plate.rotation.y = -side * (.22 + rnd() * .12);                       // yawed toward the runner's line
+      scene.add(plate); boards.push(plate);
+      lots.push({ side, z: bz, half: W/2 + 7 });                           // keep the lot around it open
       bz -= 34 + rnd() * 12; side = -side;
     });
     // the rest of the city · sparse, tall, white
@@ -667,7 +668,8 @@ window.Road = (() => {
         if (rnd() < .3) return;                                        // open lots and cross streets keep it airy
         const w = 8 + rnd() * 10, d = 10 + rnd() * 16, h = 8 + Math.pow(rnd(), 1.4) * 36;
         // skip if a billboard host already sits here
-        if (blocks.some(m => Math.sign(m.position.x) === s && Math.abs(m.position.z - (z - d/2)) < (m.geometry.parameters.depth + d) / 2 + 2 + (m.userData.open || 0))) return;
+        if (lots.some(l => l.side === s && Math.abs(l.z - (z - d/2)) < l.half + d/2)) return;   // a plate stands here
+        if (blocks.some(m => Math.sign(m.position.x) === s && Math.abs(m.position.z - (z - d/2)) < (m.geometry.parameters.depth + d) / 2 + 2)) return;
         block(s, z, w, d, h);
       });
       z -= 16 + rnd() * 14;
