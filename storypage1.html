@@ -524,10 +524,10 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0x9E978C, walk:0xD6D0C6, kerb:0xE6E1D8, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xCFC9BF, 0xC4BDB2, 0xDAD4CA, 0xB8B0A4, 0xE1DCD3], win:.86, lit:0, litColor:0xF3F1EC, fogNear:30, fogFar:230, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.5, blend:'normal' },
-    technical: { sky:0xEDEFF1, road:0x8B939B, walk:0xD3D7DB, kerb:0xE1E4E7, paint:0xEDEFF1, dash:0xE4472A,
-                 blocks:[0xC5CBD0, 0xB7BEC4, 0xD3D7DB, 0xA9B1B8, 0xDCE0E3], win:.84, lit:0, litColor:0xEDEFF1, fogNear:30, fogFar:230, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.32, blend:'normal' },
+    editorial: { sky:0xF3F1EC, road:0xD3CDC3, walk:0xF3F1EC, kerb:0xE7E2DA, paint:0xFFFFFF, dash:0xFFFFFF,
+                 blocks:[0xF8F6F2, 0xEFECE6, 0xF3F0EA, 0xE9E5DE, 0xFCFBF8], win:.86, lit:0, litColor:0xF3F1EC, fogNear:40, fogFar:260, light:.9, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.5, blend:'normal' },
+    technical: { sky:0xEDEFF1, road:0xC9CED3, walk:0xEDEFF1, kerb:0xDFE3E7, paint:0xFFFFFF, dash:0xE4472A,
+                 blocks:[0xF4F6F8, 0xE8EBEE, 0xEEF1F3, 0xE1E5E9, 0xF9FAFB], win:.84, lit:0, litColor:0xEDEFF1, fogNear:40, fogFar:260, light:1.0, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.32, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, paint:0xECE8E1, dash:0xECE8E1,
                  blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, fogNear:18, fogFar:170, light:.75, sun:0xFFC98A, sunGlow:0xFFB570, flare:.9, blend:'screen' },
   };
@@ -593,7 +593,7 @@ window.Road = (() => {
     dpr = Math.min(devicePixelRatio || 1, 1.6); renderer.setPixelRatio(dpr);
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(58, 1, .1, 400);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, .9));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xd8d4cc, 1.0));
     sun = new THREE.DirectionalLight(0xffffff, .7); sun.position.copy(SUN_DIR).multiplyScalar(50); scene.add(sun);
     // the sun itself: a soft disc, far down the road, occluded by the blocks it passes behind
     const sc = document.createElement('canvas'); sc.width = sc.height = 256;
@@ -688,8 +688,8 @@ window.Road = (() => {
     mats.paint.color.setHex(P.paint); mats.dash.color.setHex(P.dash);
     mats.blocks.forEach((m, i) => m.color.setHex(P.blocks[i]));
 
-    scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = .8 * P.light; });
-    sun.intensity = .7 * P.light; sun.color.setHex(P.sun);
+    scene.children.forEach(c => { if (c.isHemisphereLight) c.intensity = 1.0 * P.light; });
+    sun.intensity = .3 * P.light; sun.color.setHex(P.sun);
     sunSprite.material.color.setHex(P.sunGlow); sunSprite.material.opacity = look === 'cinematic' ? .95 : .8;
     flareEl.style.setProperty('--flare', P.flare); flareEl.style.mixBlendMode = P.blend;
     flareEl.style.setProperty('--sunc', '#' + new THREE.Color(P.sunGlow).getHexString());
