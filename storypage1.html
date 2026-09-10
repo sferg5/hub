@@ -684,36 +684,19 @@ window.Road = (() => {
     const c = tex.image, g = c.getContext('2d'); _c1.setHex(baseHex); _c2.setHex(skyHex);
     const img = g.createImageData(FW, FH);
     let s = 17 + seed * 131; const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
-    const patch = noiseField(7, 11, 23 + seed * 57);                       // broad blotches · sun bleach, damp, an old repaint
     const fine  = noiseField(26, 40, 91 + seed * 13);                      // finer mottling in the render
-    // rain streaks off the roofline and the sills · the strongest weathering mark on stucco
-    const streak = new Float32Array(FW * FH), nS = 16 + Math.floor(rnd() * 12);
-    for (let k2 = 0; k2 < nS; k2++) {
-      const xc = rnd() * FW, hw = 1.5 + rnd() * 5, str = .06 + rnd() * .16;
-      const y0 = Math.floor(rnd() * 50), len = 70 + rnd() * 260;
-      const x0 = Math.max(0, Math.floor(xc - hw * 2)), x1 = Math.min(FW - 1, Math.ceil(xc + hw * 2));
-      for (let y = y0; y < Math.min(FH, y0 + len); y++) {
-        const fade = 1 - (y - y0) / len, wob = Math.sin(y * .05 + k2) * 1.2;
-        for (let x = x0; x <= x1; x++) {
-          const dx = (x - xc - wob) / hw, a = Math.exp(-dx * dx) * fade * str;
-          if (a > streak[y * FW + x]) streak[y * FW + x] = a;
-        }
-      }
-    }
     for (let y = 0; y < FH; y++) {
       const v = y / (FH - 1);
       const k = Math.pow(1 - v, 1.4) * amt;                                // y=0 is the top of the texture → the roof
       const detail = 1 - k;                                                // texture dissolves with the wall
       const r0 = _c1.r + (_c2.r - _c1.r) * k, g0 = _c1.g + (_c2.g - _c1.g) * k, b0 = _c1.b + (_c2.b - _c1.b) * k;
-      const base = Math.min(1, (FH - 1 - y) / 34);                         // the bottom darkens toward the ground — contact shadow, grime line
+      const base = Math.min(1, (FH - 1 - y) / 30);                         // the wall settles very slightly where it meets the ground
       for (let x = 0; x < FW; x++) {
         const u = x / (FW - 1);
         let n = 1;
-        n *= 1 + (patch(u, v) - .5) * .18 * detail;                        // broad patches
-        n *= 1 + (fine(u, v) - .5) * .09 * detail;                        // finer mottle
-        n *= 1 - streak[y * FW + x] * detail;                              // rain staining
-        n *= 1 + (rnd() - .5) * .07 * detail;                             // grain
-        n *= 1 - .20 * (1 - base);                                         // contact shadow
+        n *= 1 + (fine(u, v) - .5) * .045 * detail;                        // a gentle unevenness in the render — clean, not weathered
+        n *= 1 + (rnd() - .5) * .035 * detail;                             // fine grain
+        n *= 1 - .09 * (1 - base);                                         // the wall meets the pavement
         const i = (y * FW + x) * 4;
         img.data[i]   = Math.max(0, Math.min(255, r0 * n * 255));
         img.data[i+1] = Math.max(0, Math.min(255, g0 * n * 255));
