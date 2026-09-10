@@ -407,6 +407,9 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 #s0 .tele__km,#s0 .forward{text-shadow:0 1px 2px rgba(20,20,20,.12)}
 
 #s0 .veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(243,241,236,.16) 0%,rgba(243,241,236,.22) 55%,rgba(243,241,236,.34) 100%)}
+
+/* ---- leaving the city · the run blows out to white, then the story arrives from it ---- */
+.whiteout{position:fixed;inset:0;z-index:4;pointer-events:none;background:#fff;opacity:0}
 </style>
 
 <div id="app">
@@ -568,6 +571,7 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 
 <div class="mark" id="mark">lululemon</div>
 <div class="meta" id="meta">01 / 08</div>
+<div class="whiteout" id="whiteout" aria-hidden="true"></div>
 <nav class="rail" id="rail" aria-label="Scenes"></nav>
 </div>
 
@@ -1106,6 +1110,7 @@ window.Road = (() => {
   const meta   = document.getElementById('meta');
   const mark   = document.getElementById('mark');
   const hint   = document.getElementById('hint');
+  const whiteout = document.getElementById('whiteout');
   const app    = document.getElementById('app');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const LOOKS  = ['editorial','technical','cinematic'];
@@ -1289,6 +1294,7 @@ window.Road = (() => {
     const g = segAt(S);
     if (g.type === 'dwell') {
       if (cut) dropCut();
+      if (whiteout.style.opacity !== '0') { whiteout.style.opacity = '0'; if (window.Road && Road.setBlast) Road.setBlast(0); }
       show(g.i); setQ(g.i, (S - g.start) / g.len);
       if (cur !== g.i || force) { cur = g.i; paintChrome(cur); }
     } else {
@@ -1296,6 +1302,7 @@ window.Road = (() => {
       show(g.i);                                                   // outgoing stays "current"; incoming stacks above via .is-moving
       const p = (S - g.start) / g.len;
       cut.anims.forEach(a => a.currentTime = p * 1000);
+      if (g.i === 0) roadExit(p); else if (whiteout.style.opacity !== '0') { whiteout.style.opacity = '0'; if (window.Road && Road.setBlast) Road.setBlast(0); }
       const c = p < .5 ? g.i : g.i + 1;
       if (cur !== c || force) { cur = c; paintChrome(cur); }
     }
@@ -1306,6 +1313,18 @@ window.Road = (() => {
     if (S > 30 * m) forward.classList.remove('is-on');
   }
   const forward = document.getElementById('forward'); let forwardArmed = false;
+
+  // the road hands over to the story through light: the runner runs on, the frame blows out, the plate arrives from the white
+  const smooth = t => t * t * (3 - 2 * t);
+  function roadExit(p){
+    const up = smooth(Math.min(1, p / .45));                             // white builds while the run continues
+    const down = smooth(Math.max(0, (p - .62) / .38));                   // then clears onto the first scene
+    whiteout.style.opacity = (up * (1 - down)).toFixed(3);
+    if (window.Road) {
+      if (Road.setBlast) Road.setBlast(up * (1 - down));                 // the flare blooms with it
+      if (Road.update) Road.update(ROAD_M + 90 * Math.min(1, p / .62));  // still running as the light takes the frame
+    }
+  }
 
   /* ---------- the easing loop ---------- */
   let last = performance.now(), vel = 0, gliding = null;
