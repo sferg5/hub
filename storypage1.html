@@ -583,11 +583,11 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
 window.Road = (() => {
   const LOOKS = {
     editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xD7CBB8, kerb:0xE4DFD6, cap:0xECE8E1, plinth:0xD6CDBF, win2:0xF6F4F0, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xE3C9BE, 0xDCC0AD, 0xDED6C2, 0xCFCECA, 0xE6D5AF], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
+                 blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6, 0xE3C9BE, 0xE6D5AF], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xD0C9BC, kerb:0xDDE1E5, win2:0xF2F5F8, paint:0xEDEFF1, dash:0xE4472A,
-                 blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
+                 blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3, 0xD9D2CD, 0xDCD8CC], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, cap:0x3A4048, win2:0x4A515B, paint:0xECE8E1, dash:0xECE8E1,
-                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35], win:1.35, lit:.14, litColor:0xE9DCC2, zenith:0x12161D, cloud:0x3A404A, cloudA:.5, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
+                 blocks:[0x262A30, 0x2E333A, 0x22262B, 0x353A41, 0x2A2F35, 0x33292A, 0x322E26], win:1.35, lit:.14, litColor:0xE9DCC2, zenith:0x12161D, cloud:0x3A404A, cloudA:.5, fogNear:10, fogFar:150, light:.75, fade:.55, sun:0xFFC98A, sunGlow:0xFFB570, flare:.85, blend:'screen' },
   };
   const LENGTH = 700;          // metres of road built
   // CARDS · camera-locked photographs: slide in, ride with you, slide out. d0/len in metres; cx,cy in % of frame; h in vh
@@ -737,7 +737,7 @@ window.Road = (() => {
     }
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t;
   }
-  const TREATMENTS = ['plaster', 'brick', 'stone', 'board', 'panel'];       // one per block tint, scattered by the same random draw
+  const TREATMENTS = ['plaster', 'brick', 'stone', 'board', 'panel', 'plaster', 'plaster'];   // five greys, then two colour accents — the shoot's pink and ochre stucco
   function tileUVs(geo, w, h, d){                                           // uv2 · the side faces tile at real scale · roofs stay plain
     const uv = geo.attributes.uv, uv2 = new THREE.BufferAttribute(new Float32Array(uv.count * 2), 2);
     for (let i = 0; i < uv.count; i++) {
@@ -879,7 +879,7 @@ window.Road = (() => {
     mats.kerb  = new THREE.MeshLambertMaterial({ color:0x888888 });
     mats.paint = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
     mats.dash  = new THREE.MeshBasicMaterial({ color:0xffffff, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2 });
-    mats.blocks = [0,1,2,3,4].map((_, i) => { const m = new THREE.MeshBasicMaterial({ map: makeFade() }); if (TREATMENTS[i] !== 'plaster') { m.aoMap = makePattern(TREATMENTS[i]); m.aoMapIntensity = 1.7; } return m; });
+    mats.blocks = [0,1,2,3,4,5,6].map((_, i) => { const m = new THREE.MeshBasicMaterial({ map: makeFade() }); if (TREATMENTS[i] !== 'plaster') { m.aoMap = makePattern(TREATMENTS[i]); m.aoMapIntensity = 1.7; } return m; });
     mats.cap   = new THREE.MeshLambertMaterial({ color:0xE9E4DB });
     mats.plinth = new THREE.MeshLambertMaterial({ color:0xCFC8BC });
     envRT = new THREE.WebGLCubeRenderTarget(256, { generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter });
@@ -906,7 +906,7 @@ window.Road = (() => {
     let seed = 7;
     const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
     const block = (s, z, w, d, h) => {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 5)]);
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats.blocks[Math.floor(rnd() * 7)]);
       mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + .6), h/2, z - d/2);
       scene.add(mesh); blocks.push(mesh); return mesh;
     };
@@ -941,7 +941,7 @@ window.Road = (() => {
       if (!inCrossing(z, z - d)) [-1, 1].forEach(s => {
         if (rnd() < .06) return;
         const w = 9 + rnd() * 9, h = rnd() < .18 ? 14 + rnd() * 8 : 5.5 + rnd() * 6;
-        const k = Math.floor(rnd() * 5), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo); tileUVs(geo, w, h, d);
+        const k = Math.floor(rnd() * 7), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo); tileUVs(geo, w, h, d);
         const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k; mesh.castShadow = true;
         mesh.position.set(s * (ROAD_W/2 + WALK_W + w/2 + .8 + rnd() * 1.6), h/2, z - d/2);
         scene.add(mesh); blocks.push(mesh);
@@ -982,7 +982,7 @@ window.Road = (() => {
         [-1, 1].forEach(s => {
           if (rnd() < gap) return;
           const w = w0 + rnd() * (w1 - w0), d = 16 + rnd() * 20, h = h0 + Math.pow(rnd(), .9) * (h1 - h0);
-          const k = Math.floor(rnd() * 5), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo); tileUVs(geo, w, h, d);
+          const k = Math.floor(rnd() * 7), geo = new THREE.BoxGeometry(w, h, d); roofToSky(geo); tileUVs(geo, w, h, d);
           const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k; mesh.castShadow = true;
           mesh.position.set(s * (ROAD_W/2 + WALK_W + off + w/2 + rnd() * 6), h/2, z2 - d/2);
           scene.add(mesh); blocks.push(mesh);
@@ -993,7 +993,7 @@ window.Road = (() => {
     // a far, tall silhouette row so the vanishing point has something to vanish into
     for (let i = 0; i < 9; i++) {
       const w = 14 + rnd()*18, h = 30 + rnd()*60;
-      const k = Math.floor(rnd()*5), geo = new THREE.BoxGeometry(w, h, 20); roofToSky(geo); tileUVs(geo, w, h, 20);
+      const k = Math.floor(rnd()*7), geo = new THREE.BoxGeometry(w, h, 20); roofToSky(geo); tileUVs(geo, w, h, 20);
       const mesh = new THREE.Mesh(geo, mats.blocks[k]); mesh.userData.k = k;
       mesh.position.set((i - 4) * 22 + (rnd()-.5)*8, h/2, -LENGTH - 60 - rnd()*30); scene.add(mesh); blocks.push(mesh);
     }
