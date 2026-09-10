@@ -582,8 +582,8 @@ h1,.h1{font:700 clamp(46px,10.5vw,148px)/.9 var(--display);letter-spacing:-.025e
    Flat-shaded boxes, one fog, the page palette. Exposes window.Road. */
 window.Road = (() => {
   const LOOKS = {
-    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xD7CBB8, kerb:0xE4DFD6, cap:0xECE8E1, plinth:0xD3CCC0, win2:0xF6F4F0, paint:0xF3F1EC, dash:0xF3F1EC,
-                 blocks:[0xDFDAD1, 0xD5CFC5, 0xDBD6CD, 0xCEC8BE, 0xE3DED6], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
+    editorial: { sky:0xF3F1EC, road:0xCFC9BF, walk:0xD7CBB8, kerb:0xE4DFD6, cap:0xECE8E1, plinth:0xD6CDBF, win2:0xF6F4F0, paint:0xF3F1EC, dash:0xF3F1EC,
+                 blocks:[0xE3C9BE, 0xDCC0AD, 0xDED6C2, 0xCFCECA, 0xE6D5AF], win:.86, lit:0, litColor:0xF3F1EC, zenith:0x9FBBD8, cloud:0xFFFFFF, cloudA:.95, fogNear:24, fogFar:210, light:.9, fade:.62, sun:0xFFF1D6, sunGlow:0xFFE9C4, flare:.55, blend:'normal' },
     technical: { sky:0xEDEFF1, road:0xC4C9CE, walk:0xD0C9BC, kerb:0xDDE1E5, win2:0xF2F5F8, paint:0xEDEFF1, dash:0xE4472A,
                  blocks:[0xD6DBE0, 0xCCD2D8, 0xD2D7DC, 0xC6CCD3, 0xDBDFE3], win:.84, lit:0, litColor:0xEDEFF1, zenith:0x9DB1C4, cloud:0xFFFFFF, cloudA:.8, fogNear:24, fogFar:210, light:1.0, fade:.62, sun:0xFFFFFF, sunGlow:0xF4F7FA, flare:.4, blend:'normal' },
     cinematic: { sky:0x1E2126, road:0x2A2E34, walk:0x363B42, kerb:0x454B53, cap:0x3A4048, win2:0x4A515B, paint:0xECE8E1, dash:0xECE8E1,
