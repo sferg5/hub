@@ -211,6 +211,55 @@
     html:not(.reduce-motion) .modal{animation:pop .2s cubic-bezier(.2,.7,.2,1)}
     @keyframes pop{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
   }
+  /* ---- running order drawer ---- */
+  .drawer{flex:none;border-top:1px solid var(--line);background:var(--bg);max-height:42vh;overflow-y:auto}
+  .drawer[hidden]{display:none}
+  .dhead{display:flex;align-items:center;gap:12px;padding:12px 16px 8px}
+  .dhead .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .dhead .meta{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .dactions{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .dsub{padding:10px 16px 6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .strip{display:flex;gap:8px;padding:4px 16px 16px;overflow-x:auto;scrollbar-width:thin}
+  .stop{position:relative;flex:none;width:150px;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:grab;overflow:hidden;--c:var(--faint)}
+  .stop::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--c)}
+  .stop.dragging{opacity:.4;cursor:grabbing}
+  .stop .sthumb{height:52px;background:#000;display:block;width:100%;object-fit:cover}
+  .stop .sbody{padding:8px 9px 9px;display:flex;gap:7px;align-items:baseline}
+  .stop .sn{font-family:var(--mono);font-size:10px;color:var(--faint);flex:none}
+  .stop .st{font-size:12.5px;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .stop .sx{position:absolute;right:4px;top:4px;width:20px;height:20px;border-radius:5px;border:none;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:none;place-items:center;font-size:13px;line-height:1}
+  .stop:hover .sx{display:grid}
+  .stop:hover{border-color:var(--line2)}
+  .stop.here{border-color:var(--accent)}
+  .strip.off .stop{opacity:.5}
+  .strip.off .stop:hover{opacity:1}
+
+  /* ---- present ---- */
+  .pstage{position:absolute;inset:0;pointer-events:none;z-index:30}
+  .pstage[hidden]{display:none}
+  .pctl{position:absolute;left:0;right:0;bottom:22px;display:flex;align-items:center;justify-content:center;gap:12px;pointer-events:auto;opacity:1;transition:opacity .4s ease}
+  .pstage.idle .pctl{opacity:0;pointer-events:none}
+  .pbtn{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;display:grid;place-items:center}
+  .pbtn:hover{color:var(--text);border-color:var(--line2)}
+  .pnum{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:56px;text-align:center}
+  .pdot{width:3px;height:3px;border-radius:50%;background:var(--line2)}
+  .plabel{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);min-width:84px}
+  .pbar{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line)}
+  .pbar span{display:block;height:100%;width:0;background:var(--accent);transition:width .5s cubic-bezier(.4,0,.2,1)}
+  body.presenting header,body.presenting .filterbar,body.presenting .insp,body.presenting .drawer,body.presenting .hint,body.presenting .hud,body.presenting .empty{display:none!important}
+  body.presenting #stage{background-image:none;cursor:default}
+  body.presenting .card{cursor:default}
+  body.presenting .port{display:none!important}
+  .card.p-off{opacity:.13}
+  .card.p-near{opacity:.62}
+  .card.p-on{opacity:1}
+  #wires g.p-off{opacity:.08}
+  #wires g.p-lit .ln{stroke:var(--accent);stroke-width:2}
+  @media (prefers-reduced-motion:no-preference){
+    html:not(.reduce-motion) body.presenting .card{transition:opacity .45s ease}
+    html:not(.reduce-motion) #wires g{transition:opacity .45s ease}
+  }
+
   @media (max-width:860px){.insp{position:absolute;right:0;top:0;bottom:0;box-shadow:-12px 0 40px rgba(0,0,0,.4);z-index:20}.hint{display:none}}
 </style>
 <script>(function(){try{var t=localStorage.getItem("mh-theme")||"system";var lm=(t==="light")||(t==="system"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches);if(lm)document.documentElement.classList.add("theme-light");var r=localStorage.getItem("mh-motion")||"system";var rm=(r==="reduce")||(r==="system"&&window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);if(rm)document.documentElement.classList.add("reduce-motion");}catch(e){}})();</script>
@@ -241,12 +290,21 @@
     <div class="btnrow">
       <span class="status" id="status">Loading…</span>
       <button class="btn primary" id="addBtn"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Card</button>
+      <div class="navwrap"><button class="btn" id="tidyBtn" title="Clean up the layout" aria-haspopup="menu"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h8M3 12h13M3 19h6"/><path d="M19 8v9m-3-3 3 3 3-3"/></svg>Clean up</button>
+        <div class="menu" id="tidyMenu" hidden role="menu">
+          <button class="mi" data-arr="tidy">Tidy in place <kbd>keeps your layout</kbd></button>
+          <button class="mi" data-arr="label">Group by label <kbd>columns</kbd></button>
+          <button class="mi" data-arr="links">Follow the links <kbd>tree</kbd></button>
+        </div>
+      </div>
+      <button class="btn" id="presentBtn" title="Present the map"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 13 8-13 8z"/></svg>Present</button>
       <button class="btn" id="imgBtn" title="Add image cards"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Image</button>
       <div class="navwrap">
         <button class="btn icon" id="moreBtn" aria-haspopup="menu" aria-label="More"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
         <div class="menu" id="moreMenu" hidden role="menu">
           <button class="mi" data-act="labels">Manage labels…</button>
           <button class="mi" data-act="snap">Snap to grid <kbd id="snapState">On</kbd></button>
+          <button class="mi" data-act="route">Running order… <kbd>⇧P</kbd></button>
           <button class="mi" data-act="fit">Fit to view <kbd>⇧1</kbd></button>
           <button class="mi" data-act="undo">Undo <kbd>⌘Z</kbd></button>
           <div class="msep"></div>
@@ -269,13 +327,25 @@
     </div>
     <div id="marquee"></div>
     <div class="empty" id="empty" hidden><div><div class="big">An empty room.</div>Double-click anywhere to place a card, drop images in, or paste.</div></div>
-    <div class="hint"><kbd>Double-click</kbd> new card · <kbd>Drag</kbd> pan · <kbd>⌘ scroll</kbd> zoom · <kbd>⇧ drag</kbd> select many · drag a card's dot to link · <kbd>⌥ drag</kbd> ignore snapping</div>
+    <div class="hint"><kbd>Double-click</kbd> new card · <kbd>Drag</kbd> pan · <kbd>⌘ scroll</kbd> zoom · <kbd>⇧ drag</kbd> select many · drag a card's dot to link · <kbd>⌥ drag</kbd> ignore snapping · <kbd>P</kbd> present</div>
     <div class="hud">
       <button id="zoomOut" aria-label="Zoom out">−</button>
       <button id="zoomPct" aria-label="Reset zoom" title="Reset to 100%">100%</button>
       <button id="zoomIn" aria-label="Zoom in">+</button>
       <button id="zoomFit" aria-label="Fit to view" title="Fit to view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
     </div>
+  </div>
+
+  <div class="pstage" id="pstage" hidden>
+    <div class="pctl" id="pctl">
+      <button class="pbtn" id="pPrev" aria-label="Previous"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <span class="pnum" id="pNum">1 / 1</span>
+      <button class="pbtn" id="pNext" aria-label="Next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+      <span class="pdot" aria-hidden="true"></span>
+      <span class="plabel" id="pLabel"></span>
+      <button class="pbtn end" id="pExit" aria-label="End presentation"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="pbar"><span id="pFill"></span></div>
   </div>
 
   <aside class="insp" id="insp" hidden>
@@ -303,6 +373,21 @@
       <div class="isec"><button class="btn danger" id="mDel">Delete selected</button></div>
     </div>
   </aside>
+</div>
+
+<div class="drawer" id="routeDrawer" hidden>
+  <div class="dhead">
+    <span class="k">Running order</span>
+    <span class="meta" id="routeMeta"></span>
+    <div class="dactions">
+      <button class="btn" id="routeAuto" title="Re-derive the order from labels and position">Re-order automatically</button>
+      <button class="btn primary" id="routePlay"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m6 4 13 8-13 8z"/></svg>Play</button>
+      <button class="iclose" id="routeClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+  <div class="strip" id="routeStrip"></div>
+  <div class="dsub" id="routeOffHead" hidden>Not in the run — click to add</div>
+  <div class="strip off" id="routeOff" hidden></div>
 </div>
 
 <input type="file" id="filePick" accept="image/*" multiple hidden />
@@ -346,6 +431,8 @@ var dirty = false, saveTimer = null, lastSavedAt = 0, apiOk = null, history = []
 var imgCache = {}, imgFailed = {};
 var snapOn = true; try{ snapOn = localStorage.getItem(LS_SNAP)!=="0"; }catch(e){}
 var guides = [];          // alignment guides drawn while dragging
+var present = {on:false, i:0, route:[], raf:null, idle:null};
+var GUT_X = 72, GUT_Y = 32;   // gutters used by the arrange modes
 var $ = function(id){ return document.getElementById(id); };
 var stage = $("stage"), world = $("world"), wires = $("wires");
 var cardEls = {};
@@ -471,7 +558,9 @@ function renderAll(){
   Object.keys(cardEls).forEach(function(id){ if(!byId(map.cards,id)){ cardEls[id].remove(); delete cardEls[id]; } });
   map.cards.forEach(function(c){ renderCard(c); });
   applyView(); renderWires(); renderFilter(); renderInspector(); updateCounts();
-  $("empty").hidden = map.cards.length>0;
+  $("empty").hidden = map.cards.length>0 || present.on;
+  if(present.on) paintPresent();
+  if(!$("routeDrawer").hidden) renderRoute();
 }
 function updateCounts(){ $("counts").textContent = map.cards.length+" card"+(map.cards.length===1?"":"s")+(map.links.length?" · "+map.links.length+" link"+(map.links.length===1?"":"s"):""); }
 
@@ -772,8 +861,9 @@ async function attachImage(c, file){
 
 /* drag & drop onto the stage */
 var dragDepth=0;
-stage.addEventListener("dragenter",function(e){ e.preventDefault(); dragDepth++; stage.classList.add("dropping"); });
-stage.addEventListener("dragover",function(e){ e.preventDefault(); var t=e.target.closest(".card"); document.querySelectorAll(".card.target").forEach(function(x){ if(x!==t) x.classList.remove("target"); }); if(t) t.classList.add("target"); });
+function hasFiles(e){ try{ return [].indexOf.call(e.dataTransfer.types||[],"Files")>=0; }catch(err){ return true; } }
+stage.addEventListener("dragenter",function(e){ if(!hasFiles(e)) return; e.preventDefault(); dragDepth++; stage.classList.add("dropping"); });
+stage.addEventListener("dragover",function(e){ if(!hasFiles(e)) return; e.preventDefault(); var t=e.target.closest(".card"); document.querySelectorAll(".card.target").forEach(function(x){ if(x!==t) x.classList.remove("target"); }); if(t) t.classList.add("target"); });
 stage.addEventListener("dragleave",function(e){ dragDepth=Math.max(0,dragDepth-1); if(!dragDepth) stage.classList.remove("dropping"); });
 stage.addEventListener("drop",function(e){
   e.preventDefault(); dragDepth=0; stage.classList.remove("dropping");
@@ -799,7 +889,7 @@ var ptr=null; // active gesture
 function isEditing(){ var a=document.activeElement; return a && (a.isContentEditable || /^(INPUT|TEXTAREA)$/.test(a.tagName)); }
 
 stage.addEventListener("pointerdown",function(e){
-  if(e.target.closest(".hud,.hint")) return;
+  if(present.on || e.target.closest(".hud,.hint,.pctl")) return;
   if(e.button===1 || (e.button===0 && e.altKey)){ startPan(e); return; }
   if(e.button!==0) return;
   var port=e.target.closest(".port");
@@ -890,6 +980,7 @@ stage.addEventListener("pointerup",endGesture);
 stage.addEventListener("pointercancel",endGesture);
 
 stage.addEventListener("dblclick",function(e){
+  if(present.on) return;
   var cardEl=e.target.closest(".card");
   if(cardEl){ var f=e.target.closest(".ctitle")?"title":e.target.closest(".cnotes")?"notes":"title"; startEdit(cardEl.dataset.id,f); return; }
   if(e.target.closest("[data-link]")){ $("lLabel").focus(); return; }
@@ -899,6 +990,7 @@ stage.addEventListener("dblclick",function(e){
 });
 stage.addEventListener("wheel",function(e){
   e.preventDefault();
+  if(present.on) return;
   if(e.ctrlKey||e.metaKey){ zoomAt(Math.exp(-e.deltaY*0.01), e.clientX, e.clientY); }
   else { view.x-=e.deltaX; view.y-=e.deltaY; applyView(); }
 },{passive:false});
@@ -929,6 +1021,17 @@ function startEdit(id, field){
 /* keyboard */
 document.addEventListener("keydown",function(e){
   if(isEditing()) return;
+  if(present.on){
+    if(e.key==="Escape"){ e.preventDefault(); endPresent(); }
+    else if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"||e.key==="Enter"){ e.preventDefault(); gotoStop(present.i+1); }
+    else if(e.key==="ArrowLeft"||e.key==="PageUp"||e.key==="Backspace"){ e.preventDefault(); gotoStop(present.i-1); }
+    else if(e.key==="Home"){ e.preventDefault(); gotoStop(0); }
+    else if(e.key==="End"){ e.preventDefault(); gotoStop(present.route.length-1); }
+    armIdle();
+    return;
+  }
+  if(e.key==="P"&&e.shiftKey){ e.preventDefault(); openRoute(); return; }
+  if(e.key==="p"&&!e.metaKey&&!e.ctrlKey){ e.preventDefault(); startPresent(); return; }
   var mod=e.metaKey||e.ctrlKey;
   if(mod&&e.key.toLowerCase()==="z"){ e.preventDefault(); undo(); return; }
   if(mod&&e.key.toLowerCase()==="d"){ e.preventDefault(); duplicateSelected(); return; }
@@ -958,17 +1061,26 @@ $("addBtn").addEventListener("click",function(){ newCardAtCenter(); });
 
 var moreBtn=$("moreBtn"), moreMenu=$("moreMenu");
 moreBtn.addEventListener("click",function(e){ e.stopPropagation(); moreMenu.hidden=!moreMenu.hidden; });
-document.addEventListener("click",function(e){ if(!e.target.closest("#moreMenu,#moreBtn")) moreMenu.hidden=true; if(!e.target.closest("#navwrap")){ $("navMenu").hidden=true; $("navBtn").setAttribute("aria-expanded","false"); } });
+document.addEventListener("click",function(e){ if(!e.target.closest("#tidyMenu,#tidyBtn")) $("tidyMenu").hidden=true; if(!e.target.closest("#moreMenu,#moreBtn")) moreMenu.hidden=true; if(!e.target.closest("#navwrap")){ $("navMenu").hidden=true; $("navBtn").setAttribute("aria-expanded","false"); } });
 moreMenu.addEventListener("click",function(e){
   var b=e.target.closest(".mi"); if(!b) return; moreMenu.hidden=true;
   var a=b.dataset.act;
   if(a==="snap") setSnap(!snapOn);
+  else if(a==="route") openRoute();
   else if(a==="labels") openLabels();
   else if(a==="fit") fitView();
   else if(a==="undo") undo();
   else if(a==="export") exportJson();
   else if(a==="import") $("jsonPick").click();
   else if(a==="reload"){ localStorage.removeItem(LS_KEY); dirty=false; load(); }
+});
+var tidyBtn=$("tidyBtn"), tidyMenu=$("tidyMenu");
+tidyBtn.addEventListener("click",function(e){ e.stopPropagation(); tidyMenu.hidden=!tidyMenu.hidden; moreMenu.hidden=true; });
+tidyMenu.addEventListener("click",function(e){
+  var b=e.target.closest(".mi"); if(!b) return; tidyMenu.hidden=true;
+  if(b.dataset.arr==="tidy") arrangeTidy();
+  else if(b.dataset.arr==="label") arrangeByLabel();
+  else if(b.dataset.arr==="links") arrangeByLinks();
 });
 $("navBtn").addEventListener("click",function(e){ e.stopPropagation(); var m=$("navMenu"); m.hidden=!m.hidden; this.setAttribute("aria-expanded", String(!m.hidden)); });
 
@@ -1013,6 +1125,274 @@ $("lblAdd").addEventListener("click",function(){
   renderLabelRows(); var rows=$("lblRows").querySelectorAll(".lrow"); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector(".f"); inp.focus(); inp.select(); }
   renderFilter(); markDirty();
 });
+
+/* ---------------- arrange ---------------- */
+function easeInOut(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+function moveCards(targets, ms){
+  // targets: {id:{x,y}} — tween there, then settle
+  var ids=Object.keys(targets); if(!ids.length) return;
+  var from={}; ids.forEach(function(id){ var c=byId(map.cards,id); if(c) from[id]={x:c.x,y:c.y}; });
+  if(reduceMotion() || !ms){ ids.forEach(function(id){ var c=byId(map.cards,id); if(c){ c.x=targets[id].x; c.y=targets[id].y; } }); renderAll(); markDirty(); if(!present.on) fitView(); return; }
+  var box=null;
+  ids.forEach(function(id){
+    var c=byId(map.cards,id), g=targets[id]; if(!c) return;
+    var h=cardH(c), b={x1:g.x, y1:g.y, x2:g.x+CARD_W, y2:g.y+h};
+    box = box ? {x1:Math.min(box.x1,b.x1), y1:Math.min(box.y1,b.y1), x2:Math.max(box.x2,b.x2), y2:Math.max(box.y2,b.y2)} : b;
+  });
+  if(box && !present.on) flyTo(box, ms, null, 1.15);
+  var t0=performance.now();
+  (function step(now){
+    var t=Math.min(1,(now-t0)/ms), e=easeInOut(t);
+    ids.forEach(function(id){
+      var c=byId(map.cards,id), f=from[id], g=targets[id]; if(!c||!f) return;
+      c.x=Math.round(f.x+(g.x-f.x)*e); c.y=Math.round(f.y+(g.y-f.y)*e);
+      var el=cardEls[id]; if(el){ el.style.left=c.x+"px"; el.style.top=c.y+"px"; }
+    });
+    renderWires();
+    if(t<1) requestAnimationFrame(step); else { renderAll(); markDirty(); }
+  })(t0);
+}
+function ordered(cards){ // reading order: banded top-to-bottom, then left-to-right
+  return cards.slice().sort(function(a,b){
+    var ba=Math.round(a.y/120), bb=Math.round(b.y/120);
+    return ba!==bb ? ba-bb : a.x-b.x;
+  });
+}
+function arrangeTidy(){
+  snapshot();
+  var cs=ordered(map.cards).map(function(c){ return {c:c, x:snapPoint(c.x), y:snapPoint(c.y), h:cardH(c)}; });
+  // push overlapping cards apart along the cheaper axis, a few passes
+  for(var pass=0; pass<28; pass++){
+    var moved=false;
+    for(var i=0;i<cs.length;i++) for(var j=i+1;j<cs.length;j++){
+      var a=cs[i], b=cs[j];
+      var ox=Math.min(a.x+CARD_W+GUT_X, b.x+CARD_W+GUT_X)-Math.max(a.x,b.x)-GUT_X;
+      var oy=Math.min(a.y+a.h+GUT_Y, b.y+b.h+GUT_Y)-Math.max(a.y,b.y)-GUT_Y;
+      if(ox>0&&oy>0){
+        moved=true;
+        if(ox<oy){ var px=Math.ceil(ox/2/GRID)*GRID; if(a.x<=b.x){ a.x-=px; b.x+=px; } else { a.x+=px; b.x-=px; } }
+        else { var py=Math.ceil(oy/2/GRID)*GRID; if(a.y<=b.y){ a.y-=py; b.y+=py; } else { a.y+=py; b.y-=py; } }
+      }
+    }
+    if(!moved) break;
+  }
+  var t={}; cs.forEach(function(o){ t[o.c.id]={x:snapPoint(o.x), y:snapPoint(o.y)}; });
+  moveCards(t, 520);
+}
+function arrangeByLabel(){
+  snapshot();
+  var groups=[], seen={};
+  map.labels.forEach(function(l){ var g=ordered(map.cards.filter(function(c){return c.label===l.id;})); if(g.length){ groups.push(g); g.forEach(function(c){seen[c.id]=1;}); } });
+  var rest=ordered(map.cards.filter(function(c){ return !seen[c.id]; })); if(rest.length) groups.push(rest);
+  var b=map.cards.length?bounds(map.cards):{x:0,y:0}, x0=snapPoint(b.x), y0=snapPoint(b.y), t={};
+  groups.forEach(function(g,gi){
+    var x=x0+gi*(CARD_W+GUT_X), y=y0;
+    g.forEach(function(c){ t[c.id]={x:snapPoint(x), y:snapPoint(y)}; y+=cardH(c)+GUT_Y; });
+  });
+  moveCards(t, 620);
+}
+function arrangeByLinks(){
+  snapshot();
+  var adj={}; map.cards.forEach(function(c){ adj[c.id]=[]; });
+  map.links.forEach(function(l){ if(adj[l.from]&&adj[l.to]){ adj[l.from].push(l.to); adj[l.to].push(l.from); } });
+  var roots=[], seen={};
+  if(sel.size===1 && byId(map.cards,[...sel][0])) roots.push([...sel][0]);
+  var rest=map.cards.slice().sort(function(a,b){ return (adj[b.id].length-adj[a.id].length) || ((a.createdAt||0)-(b.createdAt||0)); });
+  rest.forEach(function(c){ if(roots.indexOf(c.id)<0) roots.push(c.id); });
+  var b=map.cards.length?bounds(map.cards):{x:0,y:0}, x0=snapPoint(b.x), y0=snapPoint(b.y);
+  var t={}, bandY=y0;
+  roots.forEach(function(rid){
+    if(seen[rid]) return;
+    var layers=[[rid]]; seen[rid]=1;
+    while(true){
+      var next=[];
+      layers[layers.length-1].forEach(function(id){ adj[id].forEach(function(k){ if(!seen[k]){ seen[k]=1; next.push(k); } }); });
+      if(!next.length) break;
+      layers.push(next);
+    }
+    var tallest=0;
+    layers.forEach(function(layer,li){
+      var h=layer.reduce(function(sum,id){ return sum+cardH(byId(map.cards,id))+GUT_Y; },-GUT_Y);
+      tallest=Math.max(tallest,h);
+    });
+    layers.forEach(function(layer,li){
+      var h=layer.reduce(function(sum,id){ return sum+cardH(byId(map.cards,id))+GUT_Y; },-GUT_Y);
+      var y=bandY+(tallest-h)/2, x=x0+li*(CARD_W+GUT_X*1.4);
+      layer.forEach(function(id){ var c=byId(map.cards,id); t[id]={x:snapPoint(x), y:snapPoint(y)}; y+=cardH(c)+GUT_Y; });
+    });
+    bandY+=tallest+GUT_Y*3;
+  });
+  moveCards(t, 680);
+}
+
+/* ---------------- running order ---------------- */
+function autoRoute(){
+  var out=[], seen={};
+  map.labels.forEach(function(l){ ordered(map.cards.filter(function(c){return c.label===l.id;})).forEach(function(c){ out.push(c.id); seen[c.id]=1; }); });
+  ordered(map.cards.filter(function(c){ return !seen[c.id]; })).forEach(function(c){ out.push(c.id); });
+  return out;
+}
+// Keep a hand-made order, drop dead ids, append anything new in its automatic slot.
+function ensureRoute(){
+  var live={}; map.cards.forEach(function(c){ live[c.id]=1; });
+  var kept=(Array.isArray(map.route)?map.route:[]).filter(function(id){ return live[id]; });
+  var have={}; kept.forEach(function(id){ have[id]=1; });
+  var omitted=Array.isArray(map.omit)?map.omit.filter(function(id){return live[id];}):[];
+  var off={}; omitted.forEach(function(id){ off[id]=1; });
+  autoRoute().forEach(function(id){ if(!have[id] && !off[id]) kept.push(id); });
+  map.route=kept; map.omit=omitted;
+  return kept;
+}
+function openRoute(){ ensureRoute(); $("routeDrawer").hidden=false; renderRoute(); }
+function closeRoute(){ $("routeDrawer").hidden=true; }
+function stopChip(id, i){
+  var c=byId(map.cards,id); if(!c) return "";
+  var l=labelOf(c), src=imgSrc(c);
+  return '<div class="stop'+(present.on&&present.route[present.i]===id?" here":"")+'" draggable="true" data-id="'+esc(id)+'" style="--c:'+(l?esc(l.color):"var(--faint)")+'">'+
+    (src?'<img class="sthumb" src="'+esc(src)+'" alt="" draggable="false" />':"")+
+    '<button class="sx" data-drop="'+esc(id)+'" aria-label="Remove from the run">&times;</button>'+
+    '<div class="sbody">'+(i==null?"":'<span class="sn">'+String(i+1).padStart(2,"0")+'</span>')+'<span class="st">'+esc(c.title||"Untitled")+'</span></div>'+
+  '</div>';
+}
+function renderRoute(){
+  var r=ensureRoute();
+  $("routeStrip").innerHTML=r.map(function(id,i){ return stopChip(id,i); }).join("")||'<span class="meta" style="padding:8px 0">No cards yet.</span>';
+  var off=(map.omit||[]);
+  $("routeOffHead").hidden=!off.length; $("routeOff").hidden=!off.length;
+  $("routeOff").innerHTML=off.map(function(id){ return stopChip(id,null); }).join("");
+  $("routeMeta").textContent=r.length+" stop"+(r.length===1?"":"s")+(off.length?" · "+off.length+" set aside":"");
+}
+$("routeClose").addEventListener("click",closeRoute);
+$("routeAuto").addEventListener("click",function(){ snapshot(); map.route=autoRoute(); map.omit=[]; renderRoute(); markDirty(); });
+$("routePlay").addEventListener("click",function(){ closeRoute(); startPresent(); });
+$("routeStrip").addEventListener("click",function(e){
+  var x=e.target.closest(".sx");
+  if(x){ snapshot(); map.route=map.route.filter(function(id){return id!==x.dataset.drop;}); (map.omit=map.omit||[]).push(x.dataset.drop); renderRoute(); markDirty(); return; }
+  var st=e.target.closest(".stop"); if(!st) return;
+  sel.clear(); sel.add(st.dataset.id); selLink=null; renderAll(); focusCard(byId(map.cards,st.dataset.id), 420);
+});
+$("routeOff").addEventListener("click",function(e){
+  var st=e.target.closest(".stop"); if(!st) return;
+  snapshot(); map.omit=(map.omit||[]).filter(function(id){return id!==st.dataset.id;}); map.route.push(st.dataset.id); renderRoute(); markDirty();
+});
+// drag to reorder: shuffle the DOM live, commit the order on drop
+(function(){
+  var strip=$("routeStrip"), dragEl=null;
+  strip.addEventListener("dragstart",function(e){
+    var st=e.target.closest(".stop"); if(!st) return;
+    dragEl=st; st.classList.add("dragging");
+    try{ e.dataTransfer.effectAllowed="move"; e.dataTransfer.setData("text/plain",st.dataset.id); }catch(err){}
+  });
+  strip.addEventListener("dragover",function(e){
+    if(!dragEl) return; e.preventDefault();
+    var after=null, chips=[].slice.call(strip.querySelectorAll(".stop:not(.dragging)"));
+    for(var i=0;i<chips.length;i++){ var b=chips[i].getBoundingClientRect(); if(e.clientX < b.left+b.width/2){ after=chips[i]; break; } }
+    if(after) strip.insertBefore(dragEl, after); else strip.appendChild(dragEl);
+  });
+  strip.addEventListener("drop",function(e){ e.preventDefault(); });
+  strip.addEventListener("dragend",function(){
+    if(!dragEl) return;
+    dragEl.classList.remove("dragging"); dragEl=null;
+    snapshot();
+    map.route=[].slice.call(strip.querySelectorAll(".stop")).map(function(el){ return el.dataset.id; });
+    renderRoute(); markDirty();
+  });
+})();
+
+/* ---------------- present ---------------- */
+function centerWorld(){ var r=stage.getBoundingClientRect(); return toWorld(r.left+r.width/2, r.top+r.height/2); }
+function setCamera(cx, cy, z){
+  var r=stage.getBoundingClientRect();
+  view.z=z; view.x=r.width/2-cx*z; view.y=r.height/2-cy*z; applyView();
+}
+function fitBox(box, padPx, maxZ){
+  var r=stage.getBoundingClientRect(), pad=padPx==null?110:padPx;
+  var w=Math.max(1,box.x2-box.x1), h=Math.max(1,box.y2-box.y1);
+  return clamp(Math.min((r.width-pad*2)/w, (r.height-pad*2)/h), .15, maxZ==null?2:maxZ);
+}
+function cardBox(c){ return {x1:c.x, y1:c.y, x2:c.x+CARD_W, y2:c.y+cardH(c)}; }
+// van Wijk-ish move: pull back on long hops so the room can follow the jump
+function flyTo(box, ms, done, maxZ){
+  cancelAnimationFrame(present.raf);
+  var r=stage.getBoundingClientRect();
+  var z1=fitBox(box, maxZ?80:null, maxZ), c1={x:(box.x1+box.x2)/2, y:(box.y1+box.y2)/2};
+  var c0=centerWorld(), z0=view.z;
+  if(reduceMotion()){ setCamera(c1.x,c1.y,z1); if(done) done(); return; }
+  var travel=Math.hypot((c1.x-c0.x)*z1,(c1.y-c0.y)*z1);
+  var dur=ms||clamp(460+travel*0.32, 460, 1150);
+  var span={x1:Math.min(c0.x,box.x1), y1:Math.min(c0.y,box.y1), x2:Math.max(c0.x,box.x2), y2:Math.max(c0.y,box.y2)};
+  var zMid=Math.max(fitBox(span,140,2), Math.min(z0,z1)*0.45);
+  zMid=Math.min(zMid, Math.min(z0,z1));
+  var la=Math.log(z0), lc=Math.log(z1), lb=2*Math.log(zMid)-0.5*la-0.5*lc;  // quadratic through the dip
+  var t0=performance.now();
+  (function step(now){
+    var t=Math.min(1,(now-t0)/dur), e=easeInOut(t), u=1-e;
+    var z=Math.exp(u*u*la + 2*u*e*lb + e*e*lc);
+    setCamera(c0.x+(c1.x-c0.x)*e, c0.y+(c1.y-c0.y)*e, z);
+    if(t<1) present.raf=requestAnimationFrame(step); else if(done) done();
+  })(t0);
+}
+function focusCard(c, ms){ if(c) flyTo(cardBox(c), ms); }
+function neighboursOf(id){
+  var out={}; map.links.forEach(function(l){ if(l.from===id) out[l.to]=1; if(l.to===id) out[l.from]=1; });
+  return out;
+}
+function paintPresent(){
+  var id=present.route[present.i], near=neighboursOf(id);
+  map.cards.forEach(function(c){
+    var el=cardEls[c.id]; if(!el) return;
+    el.classList.remove("p-on","p-near","p-off","dim","sel");
+    el.classList.add(c.id===id?"p-on":(near[c.id]?"p-near":"p-off"));
+  });
+  [].forEach.call(wires.querySelectorAll("g[data-link]"),function(g){
+    var l=byId(map.links,g.dataset.link); if(!l) return;
+    var touches=(l.from===id||l.to===id);
+    g.classList.remove("dim"); g.classList.toggle("p-lit",touches); g.classList.toggle("p-off",!touches);
+  });
+  var c=byId(map.cards,id), l=c?labelOf(c):null;
+  $("pNum").textContent=(present.i+1)+" / "+present.route.length;
+  $("pLabel").textContent=l?l.name:"";
+  $("pFill").style.width=((present.i+1)/present.route.length*100)+"%";
+}
+function gotoStop(i, ms){
+  if(!present.route.length) return;
+  present.i=clamp(i,0,present.route.length-1);
+  var c=byId(map.cards,present.route[present.i]);
+  paintPresent();
+  if(c) flyTo(cardBox(c), ms);
+}
+function startPresent(){
+  ensureRoute();
+  if(!map.route.length){ openRoute(); return; }   // nothing to show — put the running order in front of them instead
+  present.on=true; present.route=map.route.slice();
+  var here=sel.size===1?present.route.indexOf([...sel][0]):-1;
+  sel.clear(); selLink=null;
+  document.body.classList.add("presenting");
+  $("pstage").hidden=false;
+  try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(e){}
+  renderAll();
+  gotoStop(here>=0?here:0, 700);
+  armIdle();
+}
+function endPresent(){
+  present.on=false; cancelAnimationFrame(present.raf); clearTimeout(present.idle);
+  document.body.classList.remove("presenting");
+  $("pstage").hidden=true; $("pstage").classList.remove("idle");
+  try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); }catch(e){}
+  map.cards.forEach(function(c){ var el=cardEls[c.id]; if(el) el.classList.remove("p-on","p-near","p-off"); });
+  renderAll();
+}
+function armIdle(){
+  clearTimeout(present.idle); $("pstage").classList.remove("idle");
+  present.idle=setTimeout(function(){ if(present.on) $("pstage").classList.add("idle"); }, 2600);
+}
+document.addEventListener("mousemove",function(){ if(present.on) armIdle(); });
+document.addEventListener("fullscreenchange",function(){ if(present.on && !document.fullscreenElement) armIdle(); });
+$("presentBtn").addEventListener("click",startPresent);
+$("pNext").addEventListener("click",function(e){ e.stopPropagation(); gotoStop(present.i+1); });
+$("pPrev").addEventListener("click",function(e){ e.stopPropagation(); gotoStop(present.i-1); });
+$("pExit").addEventListener("click",function(e){ e.stopPropagation(); endPresent(); });
+stage.addEventListener("click",function(e){ if(present.on && !e.target.closest(".pctl")) gotoStop(present.i+1); });
 
 /* ---------------- boot ---------------- */
 window.addEventListener("resize",function(){ renderWires(); });
