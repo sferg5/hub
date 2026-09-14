@@ -323,6 +323,8 @@ var CARD_W = 232, IMG_MAX_H = 200, IMG_MAX_PX = 1400;
 
 var DEFAULT_LABELS = [
   {id:"concept",     name:"Concept",     color:"#22c55e"},
+  {id:"medium",      name:"Medium",      color:"#f87171"},
+  {id:"technology",  name:"Technology",  color:"#2dd4bf"},
   {id:"hardware",    name:"Hardware",    color:"#60a5fa"},
   {id:"content",     name:"Content",     color:"#f472b6"},
   {id:"interaction", name:"Interaction", color:"#fbbf24"},
@@ -330,6 +332,7 @@ var DEFAULT_LABELS = [
   {id:"question",    name:"Question",    color:"#fb923c"},
   {id:"decision",    name:"Decision",    color:"#e4e4e7"}
 ];
+var SEED = 2; // bump when DEFAULT_LABELS gains entries; load() adds the new ones once to an existing map
 
 var map = {v:1, labels:[], cards:[], links:[]};
 var view = {x:0, y:0, z:1};
@@ -382,6 +385,13 @@ async function load(){
     map=normalise({labels:DEFAULT_LABELS.slice()}); dirty=apiOk;
   }
   if(!map.labels.length && !map.cards.length) map.labels=DEFAULT_LABELS.map(function(l){return Object.assign({},l);});
+  // seed migration: a map saved before new defaults existed gets them once (deleting them afterwards sticks)
+  if((map.seed||1)<SEED){
+    var had={}; map.labels.forEach(function(l){ had[l.id]=1; });
+    var out=[]; DEFAULT_LABELS.forEach(function(d){ if(had[d.id]){ out.push(byId(map.labels,d.id)); } else { out.push(Object.assign({},d)); } });
+    map.labels.forEach(function(l){ if(out.indexOf(l)<0) out.push(l); });
+    map.labels=out; map.seed=SEED; dirty=true;
+  }
 
   try{ var v=JSON.parse(localStorage.getItem(LS_VIEW)||"null"); if(v&&isFinite(v.x)&&isFinite(v.y)&&isFinite(v.z)) view=v; }catch(e){}
   renderAll();
