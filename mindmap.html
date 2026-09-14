@@ -234,6 +234,17 @@
   .strip.off .stop{opacity:.5}
   .strip.off .stop:hover{opacity:1}
 
+  .segl{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .seg3{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg3 button{border:none;background:var(--panel);color:var(--muted);font-family:inherit;font-size:12.5px;padding:6px 12px;cursor:pointer;border-right:1px solid var(--line)}
+  .seg3 button:last-child{border-right:none}
+  .seg3 button:hover{color:var(--text)}
+  .seg3 button.on{background:var(--accent-dim);color:var(--text)}
+  .rhint{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font)!important;font-size:12px!important}
+  .btn.on{border-color:var(--accent);color:var(--text)}
+  .card.start::after{content:"START";position:absolute;left:0;top:-9px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:#052e16;background:var(--accent);padding:1px 5px;border-radius:3px 3px 0 0}
+  body.presenting .card.start::after{display:none}
+
   /* ---- version history ---- */
   .ugroup{display:flex;gap:2px}
   .btn:disabled{opacity:.38;cursor:default}
@@ -384,6 +395,7 @@
         <div class="row" id="iImgRow" hidden><button class="btn" id="iImgReplace">Replace</button><button class="btn danger" id="iImgRemove">Remove</button></div>
       </div>
       <div class="isec"><span class="k">Links <span id="iLinkCount"></span></span><div class="linklist" id="iLinks"></div><span class="meta">Drag a dot on the card's edge to link it to another card.</span></div>
+      <div class="isec"><button class="btn" id="iStart">Start the presentation here</button><span class="meta" id="iStartNote"></span></div>
       <div class="isec"><div class="row"><button class="btn" id="iDup">Duplicate</button><button class="btn danger" id="iDel">Delete</button></div><span class="meta" id="iMeta"></span></div>
     </div>
 
@@ -417,8 +429,14 @@
   <div class="dhead">
     <span class="k">Running order</span>
     <span class="meta" id="routeMeta"></span>
+    <span class="meta rhint" id="routeHint"></span>
     <div class="dactions">
-      <button class="btn" id="routeAuto" title="Re-derive the order from labels and position">Re-order automatically</button>
+      <span class="segl">Order by</span>
+      <div class="seg3" id="routeMode" role="group" aria-label="Automatic order">
+        <button data-mode="flow" title="Follow the links from the start card to the end of each thread">Flow</button>
+        <button data-mode="label" title="Group the stops by label">Label</button>
+        <button data-mode="position" title="Read the canvas top to bottom, left to right">Position</button>
+      </div>
       <button class="btn primary" id="routePlay"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m6 4 13 8-13 8z"/></svg>Play</button>
       <button class="iclose" id="routeClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
@@ -496,6 +514,7 @@ function normalise(m){
   m.links  = Array.isArray(m.links)  ? m.links  : [];
   var ids = {}; m.cards.forEach(function(c){ ids[c.id]=1; });
   m.links = m.links.filter(function(l){ return l && ids[l.from] && ids[l.to] && l.from!==l.to; });
+  if(m.start && !ids[m.start]) m.start="";   // the start card went away
   m.cards.forEach(function(c){ delete c._uploading; });
   return m;
 }
@@ -669,6 +688,7 @@ function renderCard(c, born){
   if(src){ frame.hidden=false; frame.style.height=imgFrameH(c)+"px"; if(im.getAttribute("src")!==src) im.src=src; frame.classList.toggle("fail", !!c.imgData && apiOk===true); }
   else { frame.hidden=true; im.removeAttribute("src"); frame.classList.remove("fail"); }
   frame.querySelector(".up").hidden = !c._uploading;
+  el.classList.toggle("start", map.start===c.id);
   el.classList.toggle("sel", sel.has(c.id));
   el.classList.toggle("dim", focus.size>0 && !(c.label && focus.has(c.label)));
 }
@@ -803,6 +823,10 @@ function renderInspector(){
     var ls=map.links.filter(function(l){return l.from===c.id||l.to===c.id;});
     $("iLinkCount").textContent=ls.length?"· "+ls.length:"";
     $("iLinks").innerHTML=ls.map(function(l){ var o=byId(map.cards, l.from===c.id?l.to:l.from); var lb=labelOf(o); return '<button class="lk" data-link="'+l.id+'" style="--c:'+(lb?lb.color:"var(--line2)")+'"><span class="sw"></span><span>'+esc(o.title||"Untitled")+'</span>'+(l.label?'<i>'+esc(l.label)+'</i>':"")+'</button>'; }).join("")||'<span class="meta">No links yet.</span>';
+    var isStart=map.start===c.id;
+    $("iStart").textContent=isStart?"Start card — clear it":"Start the presentation here";
+    $("iStart").classList.toggle("on",isStart);
+    $("iStartNote").textContent=isStart?"The flow order begins here.":"";
     $("iMeta").textContent="Added "+new Date(c.createdAt||Date.now()).toLocaleDateString([], {month:"short",day:"numeric"})+(c.img?" · image stored":"");
     return;
   }
@@ -829,6 +853,13 @@ $("lDel").addEventListener("click",function(){ deleteLink(selLink); });
 $("iDel").addEventListener("click",deleteSelected);
 $("mDel").addEventListener("click",deleteSelected);
 $("iDup").addEventListener("click",duplicateSelected);
+$("iStart").addEventListener("click",function(){
+  var c=single(); if(!c) return;
+  snapshot("the start card");
+  map.start = (map.start===c.id) ? "" : c.id;
+  if(orderMode()==="flow") map.route=autoRoute();
+  renderAll(); markDirty();
+});
 $("iImg").addEventListener("click",function(){ pendingTarget=single()?single().id:null; $("filePick").click(); });
 $("iImgReplace").addEventListener("click",function(){ pendingTarget=single()?single().id:null; $("filePick").click(); });
 $("iImgRemove").addEventListener("click",function(){ var c=single(); if(!c) return; snapshot("removing the image"); removeImage(c); renderAll(); markDirty(); });
@@ -1374,11 +1405,74 @@ function arrangeByLinks(){
 }
 
 /* ---------------- running order ---------------- */
-function autoRoute(){
+// Branch order out of a card: left to right, top to bottom within a column —
+// the same reading the "follow the links" layout gives you.
+function branchOrder(ids){
+  return ids.slice().sort(function(a,b){
+    var ca=byId(map.cards,a), cb=byId(map.cards,b); if(!ca||!cb) return 0;
+    var xa=Math.round(ca.x/120), xb=Math.round(cb.x/120);
+    return xa!==xb ? xa-xb : ca.y-cb.y;
+  });
+}
+// Walk the links as a story: follow one thread to its end, then come back for
+// the next branch. Link direction (the way you dragged it) points the way.
+function flowRoute(){
+  var out=[], seen={}, outAdj={}, allAdj={}, indeg={};
+  map.cards.forEach(function(c){ outAdj[c.id]=[]; allAdj[c.id]=[]; indeg[c.id]=0; });
+  map.links.forEach(function(l){
+    if(!outAdj[l.from]||!outAdj[l.to]) return;
+    outAdj[l.from].push(l.to); indeg[l.to]++;
+    allAdj[l.from].push(l.to); allAdj[l.to].push(l.from);
+  });
+
+  function walk(id){
+    if(seen[id]) return;
+    seen[id]=1; out.push(id);
+    branchOrder(outAdj[id]).forEach(walk);                 // downstream first
+    branchOrder(allAdj[id]).forEach(function(k){ if(!seen[k]) walk(k); }); // then whatever else hangs off it
+  }
+
+  // components, each entered at its most upstream card
+  var comps=[], cseen={};
+  map.cards.forEach(function(c){
+    if(cseen[c.id]) return;
+    var stack=[c.id], comp=[]; cseen[c.id]=1;
+    while(stack.length){
+      var id=stack.pop(); comp.push(id);
+      allAdj[id].forEach(function(k){ if(!cseen[k]){ cseen[k]=1; stack.push(k); } });
+    }
+    comps.push(comp);
+  });
+  comps.forEach(function(comp){
+    var linked=comp.filter(function(id){ return allAdj[id].length; });
+    var heads=branchOrder(comp.filter(function(id){ return allAdj[id].length && !indeg[id]; }));
+    comp._start = (map.start && comp.indexOf(map.start)>=0) ? map.start
+                : (heads[0] || branchOrder(linked)[0] || comp[0]);
+    comp._solo = !linked.length;
+    comp._c = byId(map.cards, comp._start);
+  });
+  comps.sort(function(a,b){
+    if(map.start){ var am=a.indexOf(map.start)>=0, bm=b.indexOf(map.start)>=0; if(am!==bm) return am?-1:1; }
+    if(a._solo!==b._solo) return a._solo?1:-1;             // loose cards come last
+    var ca=a._c, cb=b._c; if(!ca||!cb) return 0;
+    var ba=Math.round(ca.y/120), bb=Math.round(cb.y/120);
+    return ba!==bb ? ba-bb : ca.x-cb.x;
+  });
+  comps.forEach(function(comp){ walk(comp._start); comp.forEach(walk); });
+  map.cards.forEach(function(c){ if(!seen[c.id]){ seen[c.id]=1; out.push(c.id); } });
+  return out;
+}
+function labelRoute(){
   var out=[], seen={};
   map.labels.forEach(function(l){ ordered(map.cards.filter(function(c){return c.label===l.id;})).forEach(function(c){ out.push(c.id); seen[c.id]=1; }); });
   ordered(map.cards.filter(function(c){ return !seen[c.id]; })).forEach(function(c){ out.push(c.id); });
   return out;
+}
+function positionRoute(){ return ordered(map.cards).map(function(c){ return c.id; }); }
+function orderMode(){ return map.orderMode || "flow"; }
+function autoRoute(){
+  var m=orderMode();
+  return m==="label" ? labelRoute() : m==="position" ? positionRoute() : flowRoute();
 }
 // Keep a hand-made order, drop dead ids, append anything new in its automatic slot.
 function ensureRoute(){
@@ -1409,9 +1503,20 @@ function renderRoute(){
   $("routeOffHead").hidden=!off.length; $("routeOff").hidden=!off.length;
   $("routeOff").innerHTML=off.map(function(id){ return stopChip(id,null); }).join("");
   $("routeMeta").textContent=r.length+" stop"+(r.length===1?"":"s")+(off.length?" · "+off.length+" set aside":"");
+  var m=orderMode();
+  [].forEach.call($("routeMode").querySelectorAll("button"),function(b){ b.classList.toggle("on", b.dataset.mode===m); });
+  var startC=map.start?byId(map.cards,map.start):null;
+  $("routeHint").textContent = m!=="flow" ? "" :
+    (startC ? "Starts at “"+(startC.title||"Untitled")+"”, then follows your links."
+            : "Follows your links; each thread runs to its end before the next begins.");
 }
 $("routeClose").addEventListener("click",closeRoute);
-$("routeAuto").addEventListener("click",function(){ snapshot("the running order"); map.route=autoRoute(); map.omit=[]; renderRoute(); markDirty(); });
+$("routeMode").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-mode]"); if(!b) return;
+  snapshot("the running order");
+  map.orderMode=b.dataset.mode; map.route=autoRoute(); map.omit=[];
+  renderRoute(); markDirty();
+});
 $("routePlay").addEventListener("click",function(){ closeRoute(); startPresent(); });
 $("routeStrip").addEventListener("click",function(e){
   var x=e.target.closest(".sx");
