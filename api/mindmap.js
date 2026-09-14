@@ -9,6 +9,11 @@
  *   GET    /api/mindmap             -> { map: {...}, updatedAt: <ms> }
  *   POST   /api/mindmap  { map, updatedAt }         -> { ok, updatedAt }
  *
+ *   GET    /api/mindmap?versions=1   -> { versions: [ {id, at, label, auto, cards, links} ] }
+ *   GET    /api/mindmap?ver=<id>     -> { map, at, label }        (one saved version)
+ *   POST   /api/mindmap?ver=new  { map, label, auto }  -> { ok, version }
+ *   DELETE /api/mindmap?ver=<id>     -> { ok }
+ *
  *   GET    /api/mindmap?img=<id>    -> the image bytes (image/jpeg|png|webp)
  *   PUT    /api/mindmap?img=<id>  { dataUrl }       -> { ok, id, bytes }
  *   DELETE /api/mindmap?img=<id>    -> { ok }
@@ -21,6 +26,9 @@
 
 var MAP_KEY   = process.env.MOTION_HUB_MINDMAP_KEY || "motion-hub:mindmap";
 var IMG_PRE   = MAP_KEY + ":img:";
+var VER_PRE   = MAP_KEY + ":ver:";
+var VER_IDX   = MAP_KEY + ":versions";   // newest first, metadata only
+var MAX_VERS  = 30;                      // auto checkpoints are pruned before named ones
 var MAX_MAP   = 1500000;   // 1.5 MB for the map JSON (cards, labels, links)
 var MAX_IMG   = 950000;    // ~0.95 MB per image (free Upstash REST caps a request at 1 MB)
 var ID_RE     = /^[a-z0-9_-]{4,40}$/i;
@@ -125,6 +133,78 @@ module.exports = async function handler(req, res) {
       if (req.method === "DELETE") {
         await kv(["DEL", ikey]);
         res.setHeader("Cache-Control", "no-store");
+        res.status(200).json({ ok: true });
+        return;
+      }
+
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    /* ---------------- version history ---------------- */
+    var ver = (req.query && req.query.ver) || "";
+    if(Array.isArray(ver)) ver = ver[0];
+
+    if(req.query && req.query.versions && req.method === "GET"){
+      res.setHeader("Cache-Control", "no-store");
+      var idxRaw = await kv(["GET", VER_IDX]);
+      var idx = [];
+      if(idxRaw){ try{ idx = JSON.parse(idxRaw) || []; }catch(e){ idx = []; } }
+      res.status(200).json({ versions: Array.isArray(idx) ? idx : [] });
+      return;
+    }
+
+    if(ver){
+      res.setHeader("Cache-Control", "no-store");
+      var index = [];
+      var rawIdx = await kv(["GET", VER_IDX]);
+      if(rawIdx){ try{ index = JSON.parse(rawIdx) || []; }catch(e){ index = []; } }
+
+      if(req.method === "GET"){
+        if(!ID_RE.test(ver)){ res.status(400).json({ error: "Bad version id." }); return; }
+        var vraw = await kv(["GET", VER_PRE + ver]);
+        if(!vraw){ res.status(404).json({ error: "No such version." }); return; }
+        var vj; try{ vj = JSON.parse(vraw); }catch(e){ vj = null; }
+        if(!vj){ res.status(500).json({ error: "Stored version is malformed." }); return; }
+        res.status(200).json(vj);
+        return;
+      }
+
+      if(req.method === "POST" || req.method === "PUT"){
+        if(ver !== "new"){ res.status(400).json({ error: "POST a version to ?ver=new." }); return; }
+        var vb = await parseJson(req, MAX_MAP, res); if(!vb) return;
+        var vmap = vb.map;
+        if(!vmap || typeof vmap !== "object" || !Array.isArray(vmap.cards)){
+          res.status(400).json({ error: "Body must contain a 'map' object with cards[]." }); return;
+        }
+        var vid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        var at = vb.at || Date.now();
+        var payload = JSON.stringify({ map: vmap, at: at, label: String(vb.label || "").slice(0, 60) });
+        if(payload.length > MAX_MAP){ res.status(413).json({ error: "Version too large to store." }); return; }
+        await kv(["SET", VER_PRE + vid, payload]);
+        var meta = {
+          id: vid, at: at, label: String(vb.label || "").slice(0, 60), auto: !!vb.auto,
+          cards: vmap.cards.length, links: Array.isArray(vmap.links) ? vmap.links.length : 0
+        };
+        index.unshift(meta);
+        // over the ceiling: drop the oldest automatic checkpoint, or the oldest of any kind
+        while(index.length > MAX_VERS){
+          var cut = -1;
+          for(var i = index.length - 1; i >= 0; i--){ if(index[i].auto){ cut = i; break; } }
+          if(cut < 0) cut = index.length - 1;
+          var gone = index.splice(cut, 1)[0];
+          if(gone && gone.id) await kv(["DEL", VER_PRE + gone.id]);
+        }
+        await kv(["SET", VER_IDX, JSON.stringify(index)]);
+        res.status(200).json({ ok: true, version: meta });
+        return;
+      }
+
+      if(req.method === "DELETE"){
+        if(!ID_RE.test(ver)){ res.status(400).json({ error: "Bad version id." }); return; }
+        await kv(["DEL", VER_PRE + ver]);
+        index = index.filter(function(v){ return v.id !== ver; });
+        await kv(["SET", VER_IDX, JSON.stringify(index)]);
         res.status(200).json({ ok: true });
         return;
       }

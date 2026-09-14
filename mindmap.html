@@ -234,6 +234,27 @@
   .strip.off .stop{opacity:.5}
   .strip.off .stop:hover{opacity:1}
 
+  /* ---- version history ---- */
+  .ugroup{display:flex;gap:2px}
+  .btn:disabled{opacity:.38;cursor:default}
+  .btn:disabled:hover{border-color:var(--line);color:var(--muted)}
+  .vname{width:210px;padding:7px 10px;font-size:13px}
+  .vlist{display:flex;flex-direction:column;padding:0 16px 16px}
+  .vrow{display:flex;align-items:center;gap:14px;padding:9px 10px;border-radius:7px;border:1px solid transparent}
+  .vrow:hover{background:var(--surface);border-color:var(--line)}
+  .vrow .vtime{font-family:var(--mono);font-size:11.5px;color:var(--muted);width:118px;flex:none}
+  .vrow .vlabel{font-size:13.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vrow .vlabel em{font-style:normal;color:var(--faint)}
+  .vrow .vsize{font-family:var(--mono);font-size:11px;color:var(--faint);flex:none}
+  .vrow .vact{display:flex;gap:6px;flex:none;opacity:0}
+  .vrow:hover .vact,.vrow:focus-within .vact{opacity:1}
+  .vrow .vbtn{font-size:11.5px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .vrow .vbtn:hover{border-color:var(--line2);color:var(--text)}
+  .vrow .vbtn.del:hover{border-color:var(--rose);color:var(--rose)}
+  .vrow.now{border-color:var(--line);background:var(--surface)}
+  .vrow.now .vtime{color:var(--accent)}
+  .vempty{padding:18px 10px;color:var(--faint);font-size:13px}
+
   /* ---- present ---- */
   .pstage{position:absolute;inset:0;pointer-events:none;z-index:30}
   .pstage[hidden]{display:none}
@@ -246,7 +267,7 @@
   .plabel{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);min-width:84px}
   .pbar{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line)}
   .pbar span{display:block;height:100%;width:0;background:var(--accent);transition:width .5s cubic-bezier(.4,0,.2,1)}
-  body.presenting header,body.presenting .filterbar,body.presenting .insp,body.presenting .drawer,body.presenting .hint,body.presenting .hud,body.presenting .empty{display:none!important}
+  body.presenting header,body.presenting .filterbar,body.presenting .insp,body.presenting .drawer,body.presenting #histDrawer,body.presenting .hint,body.presenting .hud,body.presenting .empty{display:none!important}
   body.presenting #stage{background-image:none;cursor:default}
   body.presenting .card{cursor:default}
   body.presenting .port{display:none!important}
@@ -290,6 +311,11 @@
     <div class="btnrow">
       <span class="status" id="status">Loading…</span>
       <button class="btn primary" id="addBtn"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Card</button>
+      <button class="btn" id="imgBtn" title="Add image cards"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Image</button>
+      <div class="ugroup">
+        <button class="btn icon" id="undoBtn" disabled aria-label="Undo" title="Undo"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg></button>
+        <button class="btn icon" id="redoBtn" disabled aria-label="Redo" title="Redo"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg></button>
+      </div>
       <div class="navwrap"><button class="btn" id="tidyBtn" title="Clean up the layout" aria-haspopup="menu"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h8M3 12h13M3 19h6"/><path d="M19 8v9m-3-3 3 3 3-3"/></svg>Clean up</button>
         <div class="menu" id="tidyMenu" hidden role="menu">
           <button class="mi" data-arr="tidy">Tidy in place <kbd>keeps your layout</kbd></button>
@@ -298,7 +324,6 @@
         </div>
       </div>
       <button class="btn" id="presentBtn" title="Present the map"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 13 8-13 8z"/></svg>Present</button>
-      <button class="btn" id="imgBtn" title="Add image cards"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Image</button>
       <div class="navwrap">
         <button class="btn icon" id="moreBtn" aria-haspopup="menu" aria-label="More"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
         <div class="menu" id="moreMenu" hidden role="menu">
@@ -306,7 +331,7 @@
           <button class="mi" data-act="snap">Snap to grid <kbd id="snapState">On</kbd></button>
           <button class="mi" data-act="route">Running order… <kbd>⇧P</kbd></button>
           <button class="mi" data-act="fit">Fit to view <kbd>⇧1</kbd></button>
-          <button class="mi" data-act="undo">Undo <kbd>⌘Z</kbd></button>
+          <button class="mi" data-act="history">Version history… <kbd>⇧H</kbd></button>
           <div class="msep"></div>
           <button class="mi" data-act="export">Export JSON</button>
           <button class="mi" data-act="import">Import JSON…</button>
@@ -375,6 +400,19 @@
   </aside>
 </div>
 
+<div class="drawer" id="histDrawer" hidden>
+  <div class="dhead">
+    <span class="k">Version history</span>
+    <span class="meta" id="histMeta"></span>
+    <div class="dactions">
+      <input class="f vname" id="histName" placeholder="Name this version (optional)" maxlength="60" />
+      <button class="btn primary" id="histSave">Save a version</button>
+      <button class="iclose" id="histClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+  <div class="vlist" id="histList"></div>
+</div>
+
 <div class="drawer" id="routeDrawer" hidden>
   <div class="dhead">
     <span class="k">Running order</span>
@@ -427,7 +465,9 @@ var SEED = 2; // bump when DEFAULT_LABELS gains entries; load() adds the new one
 var map = {v:1, labels:[], cards:[], links:[]};
 var view = {x:0, y:0, z:1};
 var sel = new Set(), selLink = null, focus = new Set();
-var dirty = false, saveTimer = null, lastSavedAt = 0, apiOk = null, history = [];
+var dirty = false, saveTimer = null, lastSavedAt = 0, apiOk = null, history = [], redoStack = [];
+var versions = [], lastCheckpoint = 0, CHECKPOINT_MS = 5*60*1000;
+var sessionBase = null, basePosted = false;   // the map as it was before tonight's edits
 var imgCache = {}, imgFailed = {};
 var snapOn = true; try{ snapOn = localStorage.getItem(LS_SNAP)!=="0"; }catch(e){}
 var guides = [];          // alignment guides drawn while dragging
@@ -488,13 +528,17 @@ async function load(){
   }
 
   try{ var v=JSON.parse(localStorage.getItem(LS_VIEW)||"null"); if(v&&isFinite(v.x)&&isFinite(v.y)&&isFinite(v.z)) view=v; }catch(e){}
+  sessionBase=map.cards.length?JSON.parse(JSON.stringify(map, strip)):null;
   renderAll();
   if(!localStorage.getItem(LS_VIEW) && map.cards.length) fitView();
   if(apiOk){ setStatus(dirty?"Unsaved changes":"Synced · "+(lastSavedAt?timeStr(lastSavedAt):"empty")); if(dirty) scheduleSave(); }
   else setStatus("Offline · saved on this device","err");
 }
 
-function markDirty(){ dirty=true; mirrorLocal(); setStatus("Unsaved changes","busy"); scheduleSave(); }
+function markDirty(){
+  dirty=true; mirrorLocal(); setStatus("Unsaved changes","busy"); scheduleSave();
+  if(!basePosted && sessionBase){ basePosted=true; lastCheckpoint=Date.now(); saveVersion("Before this session", true, sessionBase); }
+}
 function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(save, 900); }
 async function save(){
   if(!dirty) return;
@@ -506,6 +550,8 @@ async function save(){
     if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
     apiOk=true; dirty=false; lastSavedAt=j.updatedAt||at; mirrorLocal();
     setStatus("Saved · "+timeStr(lastSavedAt));
+    // quietly keep a checkpoint every few minutes of actual work
+    if(map.cards.length && Date.now()-lastCheckpoint > CHECKPOINT_MS){ lastCheckpoint=Date.now(); saveVersion("", true); }
   }catch(e){
     apiOk=false; mirrorLocal();
     setStatus("Offline · saved on this device","err");
@@ -517,11 +563,38 @@ setInterval(async function(){
   try{ var r=await fetch(API,{cache:"no-store"}); var s=await r.json(); if(s&&s.updatedAt>lastSavedAt){ map=normalise(s.map); lastSavedAt=s.updatedAt; sel.clear(); selLink=null; renderAll(); setStatus("Synced · "+timeStr(lastSavedAt)); } }catch(e){}
 }, 45000);
 
-/* ---------------- undo ---------------- */
-function snapshot(){ history.push(JSON.stringify(map, strip)); if(history.length>60) history.shift(); }
+/* ---------------- undo / redo ---------------- */
+function snapshot(label){
+  history.push({s:JSON.stringify(map, strip), label:label||""});
+  if(history.length>80) history.shift();
+  redoStack.length=0;                     // a fresh edit forks the timeline
+  paintHistoryBtns();
+}
+function applyState(str){
+  map=normalise(JSON.parse(str)); sel.clear(); selLink=null;
+  renderAll(); markDirty(); paintHistoryBtns();
+}
 function undo(){
   if(!history.length) return;
-  map=normalise(JSON.parse(history.pop())); sel.clear(); selLink=null; renderAll(); markDirty();
+  var e=history.pop();
+  redoStack.push({s:JSON.stringify(map, strip), label:e.label});
+  applyState(e.s);
+  if(e.label) setStatus("Undid "+e.label);
+}
+function redo(){
+  if(!redoStack.length) return;
+  var e=redoStack.pop();
+  history.push({s:JSON.stringify(map, strip), label:e.label});
+  applyState(e.s);
+  if(e.label) setStatus("Redid "+e.label);
+}
+function paintHistoryBtns(){
+  var u=$("undoBtn"), r=$("redoBtn"); if(!u) return;
+  u.disabled=!history.length; r.disabled=!redoStack.length;
+  var ul=history.length?history[history.length-1].label:"";
+  var rl=redoStack.length?redoStack[redoStack.length-1].label:"";
+  u.title=history.length?("Undo"+(ul?" "+ul:"")+"  ⌘Z"):"Nothing to undo";
+  r.title=redoStack.length?("Redo"+(rl?" "+rl:"")+"  ⇧⌘Z"):"Nothing to redo";
 }
 
 /* ---------------- view / transform ---------------- */
@@ -561,6 +634,7 @@ function renderAll(){
   $("empty").hidden = map.cards.length>0 || present.on;
   if(present.on) paintPresent();
   if(!$("routeDrawer").hidden) renderRoute();
+  if(!$("histDrawer").hidden) renderVersions();
 }
 function updateCounts(){ $("counts").textContent = map.cards.length+" card"+(map.cards.length===1?"":"s")+(map.links.length?" · "+map.links.length+" link"+(map.links.length===1?"":"s"):""); }
 
@@ -746,8 +820,8 @@ function labelRows(active){
 $("iclose").addEventListener("click",function(){ sel.clear(); selLink=null; renderAll(); });
 $("iTitle").addEventListener("input",function(){ var c=single(); if(!c) return; c.title=this.value; renderCard(c); renderWires(); markDirty(); });
 $("iNotes").addEventListener("input",function(){ var c=single(); if(!c) return; c.notes=this.value; renderCard(c); renderWires(); markDirty(); });
-$("iLabels").addEventListener("click",function(e){ var b=e.target.closest(".lbrow"); var c=single(); if(!b||!c) return; snapshot(); c.label=b.dataset.label||""; renderAll(); markDirty(); });
-$("mLabels").addEventListener("click",function(e){ var b=e.target.closest(".lbrow"); if(!b) return; snapshot(); sel.forEach(function(id){ var c=byId(map.cards,id); if(c) c.label=b.dataset.label||""; }); renderAll(); markDirty(); });
+$("iLabels").addEventListener("click",function(e){ var b=e.target.closest(".lbrow"); var c=single(); if(!b||!c) return; snapshot("the label change"); c.label=b.dataset.label||""; renderAll(); markDirty(); });
+$("mLabels").addEventListener("click",function(e){ var b=e.target.closest(".lbrow"); if(!b) return; snapshot("the label change"); sel.forEach(function(id){ var c=byId(map.cards,id); if(c) c.label=b.dataset.label||""; }); renderAll(); markDirty(); });
 $("iLinks").addEventListener("click",function(e){ var b=e.target.closest(".lk"); if(!b) return; sel.clear(); selLink=b.dataset.link; renderAll(); });
 $("lEnds").addEventListener("click",function(e){ var b=e.target.closest(".lk"); if(!b) return; selLink=null; sel.clear(); sel.add(b.dataset.card); renderAll(); });
 $("lLabel").addEventListener("input",function(){ var l=byId(map.links,selLink); if(!l) return; l.label=this.value.trim(); renderWires(); markDirty(); });
@@ -757,7 +831,7 @@ $("mDel").addEventListener("click",deleteSelected);
 $("iDup").addEventListener("click",duplicateSelected);
 $("iImg").addEventListener("click",function(){ pendingTarget=single()?single().id:null; $("filePick").click(); });
 $("iImgReplace").addEventListener("click",function(){ pendingTarget=single()?single().id:null; $("filePick").click(); });
-$("iImgRemove").addEventListener("click",function(){ var c=single(); if(!c) return; snapshot(); removeImage(c); renderAll(); markDirty(); });
+$("iImgRemove").addEventListener("click",function(){ var c=single(); if(!c) return; snapshot("removing the image"); removeImage(c); renderAll(); markDirty(); });
 ["dragenter","dragover"].forEach(function(ev){ $("iImg").addEventListener(ev,function(e){ e.preventDefault(); this.classList.add("over"); }); });
 $("iImg").addEventListener("dragleave",function(){ this.classList.remove("over"); });
 $("iImg").addEventListener("drop",function(e){ e.preventDefault(); this.classList.remove("over"); var c=single(); if(c&&e.dataTransfer.files.length) attachImage(c, e.dataTransfer.files[0]); });
@@ -767,7 +841,7 @@ function single(){ if(sel.size!==1) return null; return byId(map.cards,[...sel][
 function addCard(x,y,props,quiet){
   if(snapOn){ x=snapPoint(x); y=snapPoint(y); }
   var c=Object.assign({id:uid(), x:Math.round(x), y:Math.round(y), title:"", notes:"", label:"", createdAt:Date.now()}, props||{});
-  if(!quiet) snapshot();
+  if(!quiet) snapshot("adding a card");
   map.cards.push(c); renderCard(c,true); sel.clear(); selLink=null; sel.add(c.id); renderAll(); markDirty();
   return c;
 }
@@ -779,15 +853,15 @@ function newCardAtCenter(edit){
 }
 function deleteSelected(){
   if(selLink){ deleteLink(selLink); return; }
-  if(!sel.size) return; snapshot();
+  if(!sel.size) return; snapshot(sel.size>1?("deleting "+sel.size+" cards"):"deleting a card");
   sel.forEach(function(id){ var c=byId(map.cards,id); if(c) removeImage(c,true); });
   map.cards=map.cards.filter(function(c){return !sel.has(c.id);});
   map.links=map.links.filter(function(l){return !sel.has(l.from)&&!sel.has(l.to);});
   sel.clear(); renderAll(); markDirty();
 }
-function deleteLink(id){ if(!id) return; snapshot(); map.links=map.links.filter(function(l){return l.id!==id;}); selLink=null; renderAll(); markDirty(); }
+function deleteLink(id){ if(!id) return; snapshot("removing a link"); map.links=map.links.filter(function(l){return l.id!==id;}); selLink=null; renderAll(); markDirty(); }
 function duplicateSelected(){
-  var ids=[...sel]; if(!ids.length) return; snapshot();
+  var ids=[...sel]; if(!ids.length) return; snapshot("duplicating");
   var fresh=[];
   ids.forEach(function(id){ var c=byId(map.cards,id); if(!c) return; var d=Object.assign({},c,{id:uid(), x:c.x+24, y:c.y+24, createdAt:Date.now()}); delete d._uploading; map.cards.push(d); fresh.push(d.id); renderCard(d,true); });
   sel=new Set(fresh); renderAll(); markDirty();
@@ -796,7 +870,7 @@ function addLink(from,to){
   if(from===to) return;
   var exists=map.links.some(function(l){return (l.from===from&&l.to===to)||(l.from===to&&l.to===from);});
   if(exists) return;
-  snapshot(); var l={id:uid(), from:from, to:to, label:""}; map.links.push(l); sel.clear(); selLink=l.id; renderAll(); markDirty();
+  snapshot("the new link"); var l={id:uid(), from:from, to:to, label:""}; map.links.push(l); sel.clear(); selLink=l.id; renderAll(); markDirty();
 }
 function removeImage(c, cardGoing){
   var id=c.img;
@@ -815,7 +889,7 @@ $("filePick").addEventListener("change",function(){
 $("imgBtn").addEventListener("click",function(){ pendingTarget=null; $("filePick").click(); });
 
 function newImageCards(files, x, y){
-  snapshot();
+  snapshot("adding images");
   files.filter(function(f){return /^image\//.test(f.type);}).forEach(function(f,i){
     var c=addCard(x+i*(CARD_W+24), y, {title: f.name?f.name.replace(/\.[a-z0-9]+$/i,"").replace(/[-_]+/g," "):""}, true);
     attachImage(c,f);
@@ -870,7 +944,7 @@ stage.addEventListener("drop",function(e){
   document.querySelectorAll(".card.target").forEach(function(x){x.classList.remove("target");});
   var files=[...e.dataTransfer.files].filter(function(f){return /^image\//.test(f.type);});
   var t=e.target.closest(".card");
-  if(t && files.length){ var c=byId(map.cards,t.dataset.id); if(c){ snapshot(); attachImage(c,files[0]); } return; }
+  if(t && files.length){ var c=byId(map.cards,t.dataset.id); if(c){ snapshot("the image"); attachImage(c,files[0]); } return; }
   var p=toWorld(e.clientX,e.clientY);
   if(files.length){ newImageCards(files, p.x-CARD_W/2, p.y-20); return; }
   var txt=e.dataTransfer.getData("text/plain"); if(txt&&txt.trim()) addCard(p.x-CARD_W/2, p.y-20, {title:txt.trim().slice(0,140)});
@@ -880,7 +954,7 @@ stage.addEventListener("drop",function(e){
 document.addEventListener("paste",function(e){
   if(isEditing()) return;
   var items=[...(e.clipboardData.items||[])]; var files=items.filter(function(i){return i.kind==="file"&&/^image\//.test(i.type);}).map(function(i){return i.getAsFile();});
-  if(files.length){ e.preventDefault(); var c=single(); if(c){ snapshot(); attachImage(c,files[0]); } else { var p=viewCenterWorld(); newImageCards(files, p.x-CARD_W/2, p.y-80); } return; }
+  if(files.length){ e.preventDefault(); var c=single(); if(c){ snapshot("the image"); attachImage(c,files[0]); } else { var p=viewCenterWorld(); newImageCards(files, p.x-CARD_W/2, p.y-80); } return; }
   var txt=e.clipboardData.getData("text/plain"); if(txt&&txt.trim()){ e.preventDefault(); var p2=viewCenterWorld(); var lines=txt.trim().split(/\n/); addCard(p2.x-CARD_W/2, p2.y-40, {title:lines[0].slice(0,140), notes:lines.slice(1).join("\n").trim()}); }
 });
 
@@ -944,7 +1018,7 @@ stage.addEventListener("pointermove",function(e){
   if(ptr.kind==="pan"){ view.x=ptr.ox+(e.clientX-ptr.sx); view.y=ptr.oy+(e.clientY-ptr.sy); ptr.moved=true; applyView(); return; }
   if(ptr.kind==="drag"){
     var dx=(e.clientX-ptr.sx)/view.z, dy=(e.clientY-ptr.sy)/view.z;
-    if(!ptr.moved){ if(Math.hypot(dx*view.z,dy*view.z)<3) return; ptr.moved=true; snapshot(); sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.add("dragging"); }); }
+    if(!ptr.moved){ if(Math.hypot(dx*view.z,dy*view.z)<3) return; ptr.moved=true; snapshot("the move"); sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.add("dragging"); }); }
     var adj=snapAdjust(ptr.box, dx, dy, ptr.others, !snapOn || e.altKey || e.metaKey || e.ctrlKey);
     dx+=adj.dx; dy+=adj.dy; guides=adj.guides;
     Object.keys(ptr.starts).forEach(function(id){ var c=byId(map.cards,id); if(!c) return; c.x=Math.round(ptr.starts[id].x+dx); c.y=Math.round(ptr.starts[id].y+dy); var el=cardEls[id]; el.style.left=c.x+"px"; el.style.top=c.y+"px"; });
@@ -1033,7 +1107,9 @@ document.addEventListener("keydown",function(e){
   if(e.key==="P"&&e.shiftKey){ e.preventDefault(); openRoute(); return; }
   if(e.key==="p"&&!e.metaKey&&!e.ctrlKey){ e.preventDefault(); startPresent(); return; }
   var mod=e.metaKey||e.ctrlKey;
-  if(mod&&e.key.toLowerCase()==="z"){ e.preventDefault(); undo(); return; }
+  if(mod&&e.key.toLowerCase()==="z"){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
+  if(mod&&e.key.toLowerCase()==="y"){ e.preventDefault(); redo(); return; }
+  if(e.key==="H"&&e.shiftKey&&!mod){ e.preventDefault(); openHistory(); return; }
   if(mod&&e.key.toLowerCase()==="d"){ e.preventDefault(); duplicateSelected(); return; }
   if(mod&&e.key.toLowerCase()==="a"){ e.preventDefault(); sel=new Set(map.cards.map(function(c){return c.id;})); selLink=null; renderAll(); return; }
   if(e.key==="Delete"||e.key==="Backspace"){ if(sel.size||selLink){ e.preventDefault(); deleteSelected(); } return; }
@@ -1046,7 +1122,7 @@ document.addEventListener("keydown",function(e){
     e.preventDefault();
     var step=(snapOn&&!e.shiftKey)?GRID:(e.shiftKey?1:4);
     var dx=e.key==="ArrowLeft"?-step:e.key==="ArrowRight"?step:0, dy=e.key==="ArrowUp"?-step:e.key==="ArrowDown"?step:0;
-    snapshot();
+    snapshot("the nudge");
     sel.forEach(function(id){ var c=byId(map.cards,id); c.x+=dx; c.y+=dy; if(snapOn&&!e.shiftKey){ c.x=snapPoint(c.x); c.y=snapPoint(c.y); } renderCard(c); });
     renderWires(); markDirty();
   }
@@ -1067,9 +1143,9 @@ moreMenu.addEventListener("click",function(e){
   var a=b.dataset.act;
   if(a==="snap") setSnap(!snapOn);
   else if(a==="route") openRoute();
+  else if(a==="history") openHistory();
   else if(a==="labels") openLabels();
   else if(a==="fit") fitView();
-  else if(a==="undo") undo();
   else if(a==="export") exportJson();
   else if(a==="import") $("jsonPick").click();
   else if(a==="reload"){ localStorage.removeItem(LS_KEY); dirty=false; load(); }
@@ -1093,7 +1169,7 @@ $("jsonPick").addEventListener("change",function(){
   var rd=new FileReader(); rd.onload=function(){
     try{ var j=JSON.parse(rd.result); var m=normalise(j.map||j); if(!m.cards.length&&!m.labels.length) throw new Error("empty");
       if(!confirm("Replace the current map with "+m.cards.length+" cards from this file?")) return;
-      snapshot(); map=m; sel.clear(); selLink=null; focus.clear(); renderAll(); fitView(); markDirty();
+      snapshot("the import"); map=m; sel.clear(); selLink=null; focus.clear(); renderAll(); fitView(); markDirty();
     }catch(e){ setStatus("That file isn't a mind map export","err"); }
   }; rd.readAsText(f);
 });
@@ -1117,13 +1193,85 @@ $("lblRows").addEventListener("input",function(e){
 });
 $("lblRows").addEventListener("click",function(e){
   var b=e.target.closest(".rowdel"); if(!b||b.disabled) return; var row=b.closest(".lrow");
-  snapshot(); map.labels=map.labels.filter(function(l){return l.id!==row.dataset.id;}); focus.delete(row.dataset.id); renderLabelRows(); renderFilter(); markDirty();
+  snapshot("deleting the label"); map.labels=map.labels.filter(function(l){return l.id!==row.dataset.id;}); focus.delete(row.dataset.id); renderLabelRows(); renderFilter(); markDirty();
 });
 $("lblAdd").addEventListener("click",function(){
-  snapshot(); var palette=["#22c55e","#60a5fa","#f472b6","#fbbf24","#a78bfa","#fb923c","#e4e4e7","#2dd4bf","#f87171"];
+  snapshot("the new label"); var palette=["#22c55e","#60a5fa","#f472b6","#fbbf24","#a78bfa","#fb923c","#e4e4e7","#2dd4bf","#f87171"];
   map.labels.push({id:uid(), name:"New label", color:palette[map.labels.length%palette.length]});
   renderLabelRows(); var rows=$("lblRows").querySelectorAll(".lrow"); var last=rows[rows.length-1]; if(last){ var inp=last.querySelector(".f"); inp.focus(); inp.select(); }
   renderFilter(); markDirty();
+});
+
+/* ---------------- version history ---------------- */
+function timeLabel(ms){
+  var d=new Date(ms), now=new Date();
+  var same=d.toDateString()===now.toDateString();
+  var t=d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  return same ? "Today "+t : d.toLocaleDateString([], {month:"short", day:"numeric"})+" "+t;
+}
+async function loadVersions(){
+  try{
+    var r=await fetch(API+"?versions=1",{cache:"no-store"}); var j=await r.json();
+    if(j && Array.isArray(j.versions)){
+      versions=j.versions;
+      if(versions.length) lastCheckpoint=Math.max(lastCheckpoint, versions[0].at||0);
+    }
+  }catch(e){}
+  if(!$("histDrawer").hidden) renderVersions();
+}
+async function saveVersion(label, auto, mapObj){
+  try{
+    var r=await fetch(API+"?ver=new",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({map:mapObj||map, label:label||"", auto:!!auto, at:Date.now()}, strip)});
+    var j=await r.json();
+    if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
+    versions.unshift(j.version);
+    if(versions.length>30) versions=versions.slice(0,30);
+    lastCheckpoint=j.version.at;
+    if(!$("histDrawer").hidden) renderVersions();
+    if(!auto) setStatus("Version saved · "+timeStr(j.version.at));
+    return true;
+  }catch(e){ if(!auto) setStatus("Couldn't save a version","err"); return false; }
+}
+async function restoreVersion(id){
+  try{
+    var r=await fetch(API+"?ver="+encodeURIComponent(id),{cache:"no-store"}); var j=await r.json();
+    if(!r.ok||j.error||!j.map) throw new Error(j.error||"missing");
+    snapshot("restore");                       // restoring is itself undoable
+    map=normalise(j.map); sel.clear(); selLink=null; focus.clear();
+    renderAll(); fitView(); markDirty(); renderVersions();
+    setStatus("Restored "+timeLabel(j.at||Date.now()));
+  }catch(e){ setStatus("Couldn't open that version","err"); }
+}
+async function deleteVersion(id){
+  versions=versions.filter(function(v){ return v.id!==id; });
+  renderVersions();
+  try{ await fetch(API+"?ver="+encodeURIComponent(id),{method:"DELETE"}); }catch(e){}
+}
+function openHistory(){ $("histDrawer").hidden=false; closeRoute(); renderVersions(); loadVersions(); }
+function closeHistory(){ $("histDrawer").hidden=true; }
+function renderVersions(){
+  var rows='<div class="vrow now"><span class="vtime">'+(dirty?"Unsaved":timeLabel(lastSavedAt||Date.now()))+'</span>'+
+    '<span class="vlabel">Working map<em> — what you see now</em></span>'+
+    '<span class="vsize">'+map.cards.length+" cards · "+map.links.length+' links</span><span class="vact"></span></div>';
+  rows+=versions.map(function(v){
+    return '<div class="vrow" data-id="'+esc(v.id)+'">'+
+      '<span class="vtime">'+timeLabel(v.at)+'</span>'+
+      '<span class="vlabel">'+(v.label?esc(v.label):'<em>'+(v.auto?"Checkpoint":"Saved version")+'</em>')+'</span>'+
+      '<span class="vsize">'+v.cards+" cards · "+v.links+' links</span>'+
+      '<span class="vact"><button class="vbtn" data-restore="'+esc(v.id)+'">Restore</button>'+
+      '<button class="vbtn del" data-del="'+esc(v.id)+'" aria-label="Delete this version">Delete</button></span></div>';
+  }).join("");
+  if(!versions.length) rows+='<div class="vempty">No saved versions yet. One is kept automatically every few minutes while you work, and you can save a named one any time.</div>';
+  $("histList").innerHTML=rows;
+  $("histMeta").textContent=versions.length?versions.length+" kept · newest first":"";
+}
+$("histClose").addEventListener("click",closeHistory);
+$("histSave").addEventListener("click",function(){ var v=$("histName").value.trim(); $("histName").value=""; saveVersion(v,false); });
+$("histName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); $("histSave").click(); } e.stopPropagation(); });
+$("histList").addEventListener("click",function(e){
+  var r=e.target.closest("[data-restore]"); if(r){ restoreVersion(r.dataset.restore); return; }
+  var d=e.target.closest("[data-del]"); if(d){ deleteVersion(d.dataset.del); return; }
 });
 
 /* ---------------- arrange ---------------- */
@@ -1159,7 +1307,7 @@ function ordered(cards){ // reading order: banded top-to-bottom, then left-to-ri
   });
 }
 function arrangeTidy(){
-  snapshot();
+  snapshot("the tidy-up");
   var cs=ordered(map.cards).map(function(c){ return {c:c, x:snapPoint(c.x), y:snapPoint(c.y), h:cardH(c)}; });
   // push overlapping cards apart along the cheaper axis, a few passes
   for(var pass=0; pass<28; pass++){
@@ -1180,7 +1328,7 @@ function arrangeTidy(){
   moveCards(t, 520);
 }
 function arrangeByLabel(){
-  snapshot();
+  snapshot("grouping by label");
   var groups=[], seen={};
   map.labels.forEach(function(l){ var g=ordered(map.cards.filter(function(c){return c.label===l.id;})); if(g.length){ groups.push(g); g.forEach(function(c){seen[c.id]=1;}); } });
   var rest=ordered(map.cards.filter(function(c){ return !seen[c.id]; })); if(rest.length) groups.push(rest);
@@ -1192,7 +1340,7 @@ function arrangeByLabel(){
   moveCards(t, 620);
 }
 function arrangeByLinks(){
-  snapshot();
+  snapshot("the link layout");
   var adj={}; map.cards.forEach(function(c){ adj[c.id]=[]; });
   map.links.forEach(function(l){ if(adj[l.from]&&adj[l.to]){ adj[l.from].push(l.to); adj[l.to].push(l.from); } });
   var roots=[], seen={};
@@ -1243,7 +1391,7 @@ function ensureRoute(){
   map.route=kept; map.omit=omitted;
   return kept;
 }
-function openRoute(){ ensureRoute(); $("routeDrawer").hidden=false; renderRoute(); }
+function openRoute(){ ensureRoute(); $("routeDrawer").hidden=false; closeHistory(); renderRoute(); }
 function closeRoute(){ $("routeDrawer").hidden=true; }
 function stopChip(id, i){
   var c=byId(map.cards,id); if(!c) return "";
@@ -1263,17 +1411,17 @@ function renderRoute(){
   $("routeMeta").textContent=r.length+" stop"+(r.length===1?"":"s")+(off.length?" · "+off.length+" set aside":"");
 }
 $("routeClose").addEventListener("click",closeRoute);
-$("routeAuto").addEventListener("click",function(){ snapshot(); map.route=autoRoute(); map.omit=[]; renderRoute(); markDirty(); });
+$("routeAuto").addEventListener("click",function(){ snapshot("the running order"); map.route=autoRoute(); map.omit=[]; renderRoute(); markDirty(); });
 $("routePlay").addEventListener("click",function(){ closeRoute(); startPresent(); });
 $("routeStrip").addEventListener("click",function(e){
   var x=e.target.closest(".sx");
-  if(x){ snapshot(); map.route=map.route.filter(function(id){return id!==x.dataset.drop;}); (map.omit=map.omit||[]).push(x.dataset.drop); renderRoute(); markDirty(); return; }
+  if(x){ snapshot("the running order"); map.route=map.route.filter(function(id){return id!==x.dataset.drop;}); (map.omit=map.omit||[]).push(x.dataset.drop); renderRoute(); markDirty(); return; }
   var st=e.target.closest(".stop"); if(!st) return;
   sel.clear(); sel.add(st.dataset.id); selLink=null; renderAll(); focusCard(byId(map.cards,st.dataset.id), 420);
 });
 $("routeOff").addEventListener("click",function(e){
   var st=e.target.closest(".stop"); if(!st) return;
-  snapshot(); map.omit=(map.omit||[]).filter(function(id){return id!==st.dataset.id;}); map.route.push(st.dataset.id); renderRoute(); markDirty();
+  snapshot("the running order"); map.omit=(map.omit||[]).filter(function(id){return id!==st.dataset.id;}); map.route.push(st.dataset.id); renderRoute(); markDirty();
 });
 // drag to reorder: shuffle the DOM live, commit the order on drop
 (function(){
@@ -1293,7 +1441,7 @@ $("routeOff").addEventListener("click",function(e){
   strip.addEventListener("dragend",function(){
     if(!dragEl) return;
     dragEl.classList.remove("dragging"); dragEl=null;
-    snapshot();
+    snapshot("the running order");
     map.route=[].slice.call(strip.querySelectorAll(".stop")).map(function(el){ return el.dataset.id; });
     renderRoute(); markDirty();
   });
@@ -1389,6 +1537,8 @@ function armIdle(){
 document.addEventListener("mousemove",function(){ if(present.on) armIdle(); });
 document.addEventListener("fullscreenchange",function(){ if(present.on && !document.fullscreenElement) armIdle(); });
 $("presentBtn").addEventListener("click",startPresent);
+$("undoBtn").addEventListener("click",undo);
+$("redoBtn").addEventListener("click",redo);
 $("pNext").addEventListener("click",function(e){ e.stopPropagation(); gotoStop(present.i+1); });
 $("pPrev").addEventListener("click",function(e){ e.stopPropagation(); gotoStop(present.i-1); });
 $("pExit").addEventListener("click",function(e){ e.stopPropagation(); endPresent(); });
@@ -1397,7 +1547,8 @@ stage.addEventListener("click",function(e){ if(present.on && !e.target.closest("
 /* ---------------- boot ---------------- */
 window.addEventListener("resize",function(){ renderWires(); });
 setSnap(snapOn);
-load();
+paintHistoryBtns();
+load().then(function(){ loadVersions(); });
 })();
 </script>
 
