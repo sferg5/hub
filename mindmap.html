@@ -103,6 +103,7 @@
   #wires .lbl text{fill:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:.03em}
   #wires g.sel .lbl rect{stroke:var(--accent)}
   #wires .temp{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 4;fill:none}
+  #wires .guide{stroke:var(--accent);stroke-width:1;opacity:.9;pointer-events:none}
   #marquee{position:absolute;border:1px solid var(--accent);background:rgba(34,197,94,.08);pointer-events:none;display:none}
 
   /* ---- cards ---- */
@@ -245,6 +246,7 @@
         <button class="btn icon" id="moreBtn" aria-haspopup="menu" aria-label="More"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
         <div class="menu" id="moreMenu" hidden role="menu">
           <button class="mi" data-act="labels">Manage labels…</button>
+          <button class="mi" data-act="snap">Snap to grid <kbd id="snapState">On</kbd></button>
           <button class="mi" data-act="fit">Fit to view <kbd>⇧1</kbd></button>
           <button class="mi" data-act="undo">Undo <kbd>⌘Z</kbd></button>
           <div class="msep"></div>
@@ -267,7 +269,7 @@
     </div>
     <div id="marquee"></div>
     <div class="empty" id="empty" hidden><div><div class="big">An empty room.</div>Double-click anywhere to place a card, drop images in, or paste.</div></div>
-    <div class="hint"><kbd>Double-click</kbd> new card · <kbd>Drag</kbd> pan · <kbd>⌘ scroll</kbd> zoom · <kbd>⇧ drag</kbd> select many · drag a card's dot to link</div>
+    <div class="hint"><kbd>Double-click</kbd> new card · <kbd>Drag</kbd> pan · <kbd>⌘ scroll</kbd> zoom · <kbd>⇧ drag</kbd> select many · drag a card's dot to link · <kbd>⌥ drag</kbd> ignore snapping</div>
     <div class="hud">
       <button id="zoomOut" aria-label="Zoom out">−</button>
       <button id="zoomPct" aria-label="Reset zoom" title="Reset to 100%">100%</button>
@@ -320,6 +322,9 @@
 var API = "/api/mindmap";
 var LS_KEY = "mh-mindmap:map", LS_VIEW = "mh-mindmap:view";
 var CARD_W = 232, IMG_MAX_H = 200, IMG_MAX_PX = 1400;
+var GRID = 24;            // matches the dot grid drawn on the stage
+var SNAP_PX = 7;          // screen-pixel pull toward an alignment with another card
+var LS_SNAP = "mh-mindmap:snap";
 
 var DEFAULT_LABELS = [
   {id:"concept",     name:"Concept",     color:"#22c55e"},
@@ -339,6 +344,8 @@ var view = {x:0, y:0, z:1};
 var sel = new Set(), selLink = null, focus = new Set();
 var dirty = false, saveTimer = null, lastSavedAt = 0, apiOk = null, history = [];
 var imgCache = {}, imgFailed = {};
+var snapOn = true; try{ snapOn = localStorage.getItem(LS_SNAP)!=="0"; }catch(e){}
+var guides = [];          // alignment guides drawn while dragging
 var $ = function(id){ return document.getElementById(id); };
 var stage = $("stage"), world = $("world"), wires = $("wires");
 var cardEls = {};
@@ -540,7 +547,54 @@ function renderWires(){
     }
     out.push('<g class="'+cls+'" data-link="'+l.id+'"><path class="hit" d="'+d+'"/><path class="ln" d="'+d+'"/>'+lbl+'</g>');
   });
+  guides.forEach(function(g){
+    out.push('<line class="guide" x1="'+g.x1+'" y1="'+g.y1+'" x2="'+g.x2+'" y2="'+g.y2+'" vector-effect="non-scaling-stroke"/>');
+  });
   wires.innerHTML=out.join("")+'<path id="tempWire" class="temp" d="" hidden/>';
+}
+
+/* ---------------- snapping ---------------- */
+function snapPoint(v){ return Math.round(v/GRID)*GRID; }
+function rectOf(c){ var h=cardH(c); return {x1:c.x, y1:c.y, x2:c.x+CARD_W, y2:c.y+h, cx:c.x+CARD_W/2, cy:c.y+h/2}; }
+function unionRect(rs){
+  var x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;
+  rs.forEach(function(r){ x1=Math.min(x1,r.x1); y1=Math.min(y1,r.y1); x2=Math.max(x2,r.x2); y2=Math.max(y2,r.y2); });
+  return {x1:x1,y1:y1,x2:x2,y2:y2,cx:(x1+x2)/2,cy:(y1+y2)/2};
+}
+// Given the dragged group's starting box and a raw offset, return the offset
+// correction that lands it on a neighbour's edge/centre, or failing that, on the grid.
+function snapAdjust(box, dx, dy, others, bypass){
+  if(bypass) return {dx:0, dy:0, guides:[]};
+  var T=SNAP_PX/view.z;
+  var me={x1:box.x1+dx, x2:box.x2+dx, y1:box.y1+dy, y2:box.y2+dy};
+  me.cx=(me.x1+me.x2)/2; me.cy=(me.y1+me.y2)/2;
+  var bx=null, by=null;
+  others.forEach(function(o){
+    [["x1","x1"],["x1","x2"],["x2","x1"],["x2","x2"],["cx","cx"]].forEach(function(pair){
+      var d=o[pair[1]]-me[pair[0]];
+      if(Math.abs(d)<=T && (!bx || Math.abs(d)<Math.abs(bx.d)-0.01)) bx={d:d, at:o[pair[1]], o:o};
+    });
+    [["y1","y1"],["y1","y2"],["y2","y1"],["y2","y2"],["cy","cy"]].forEach(function(pair){
+      var d=o[pair[1]]-me[pair[0]];
+      if(Math.abs(d)<=T && (!by || Math.abs(d)<Math.abs(by.d)-0.01)) by={d:d, at:o[pair[1]], o:o};
+    });
+  });
+  var adx = bx ? bx.d : snapPoint(me.x1)-me.x1;
+  var ady = by ? by.d : snapPoint(me.y1)-me.y1;
+  var g=[], fx={x1:me.x1+adx,x2:me.x2+adx,y1:me.y1+ady,y2:me.y2+ady};
+  if(bx){
+    var ys=[fx.y1,fx.y2,bx.o.y1,bx.o.y2];
+    g.push({x1:bx.at, x2:bx.at, y1:Math.min.apply(null,ys)-12, y2:Math.max.apply(null,ys)+12});
+  }
+  if(by){
+    var xs=[fx.x1,fx.x2,by.o.x1,by.o.x2];
+    g.push({y1:by.at, y2:by.at, x1:Math.min.apply(null,xs)-12, x2:Math.max.apply(null,xs)+12});
+  }
+  return {dx:adx, dy:ady, guides:g};
+}
+function setSnap(on){
+  snapOn=!!on; try{ localStorage.setItem(LS_SNAP, snapOn?"1":"0"); }catch(e){}
+  var k=$("snapState"); if(k) k.textContent=snapOn?"On":"Off";
 }
 
 /* filter bar */
@@ -622,6 +676,7 @@ function single(){ if(sel.size!==1) return null; return byId(map.cards,[...sel][
 
 /* ---------------- mutations ---------------- */
 function addCard(x,y,props,quiet){
+  if(snapOn){ x=snapPoint(x); y=snapPoint(y); }
   var c=Object.assign({id:uid(), x:Math.round(x), y:Math.round(y), title:"", notes:"", label:"", createdAt:Date.now()}, props||{});
   if(!quiet) snapshot();
   map.cards.push(c); renderCard(c,true); sel.clear(); selLink=null; sel.add(c.id); renderAll(); markDirty();
@@ -769,8 +824,10 @@ function startPan(e){
   stage.classList.add("panning"); stage.setPointerCapture(e.pointerId);
 }
 function startDrag(e){
-  var starts={}; sel.forEach(function(id){ var c=byId(map.cards,id); if(c) starts[id]={x:c.x,y:c.y}; });
-  ptr={kind:"drag", sx:e.clientX, sy:e.clientY, starts:starts, moved:false, snap:false};
+  var starts={}, mine=[];
+  sel.forEach(function(id){ var c=byId(map.cards,id); if(c){ starts[id]={x:c.x,y:c.y}; mine.push(rectOf(c)); } });
+  var others=map.cards.filter(function(c){ return !sel.has(c.id); }).map(rectOf);
+  ptr={kind:"drag", sx:e.clientX, sy:e.clientY, starts:starts, box:unionRect(mine), others:others, moved:false};
   stage.setPointerCapture(e.pointerId);
 }
 function startLink(e, fromId){
@@ -798,6 +855,8 @@ stage.addEventListener("pointermove",function(e){
   if(ptr.kind==="drag"){
     var dx=(e.clientX-ptr.sx)/view.z, dy=(e.clientY-ptr.sy)/view.z;
     if(!ptr.moved){ if(Math.hypot(dx*view.z,dy*view.z)<3) return; ptr.moved=true; snapshot(); sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.add("dragging"); }); }
+    var adj=snapAdjust(ptr.box, dx, dy, ptr.others, !snapOn || e.altKey || e.metaKey || e.ctrlKey);
+    dx+=adj.dx; dy+=adj.dy; guides=adj.guides;
     Object.keys(ptr.starts).forEach(function(id){ var c=byId(map.cards,id); if(!c) return; c.x=Math.round(ptr.starts[id].x+dx); c.y=Math.round(ptr.starts[id].y+dy); var el=cardEls[id]; el.style.left=c.x+"px"; el.style.top=c.y+"px"; });
     renderWires(); return;
   }
@@ -823,7 +882,7 @@ function endGesture(e){
   var g=ptr; ptr=null;
   stage.classList.remove("panning","linking");
   try{ stage.releasePointerCapture(e.pointerId); }catch(err){}
-  if(g.kind==="drag"){ sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.remove("dragging"); }); if(g.moved){ markDirty(); renderWires(); } }
+  if(g.kind==="drag"){ guides=[]; sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.remove("dragging"); }); renderWires(); if(g.moved) markDirty(); }
   if(g.kind==="link"){ $("tempWire").hidden=true; if(g.over&&cardEls[g.over]) cardEls[g.over].classList.remove("target"); if(g.over) addLink(g.from,g.over); }
   if(g.kind==="marquee"){ $("marquee").style.display="none"; renderAll(); }
 }
@@ -880,7 +939,14 @@ document.addEventListener("keydown",function(e){
   if(e.key==="n"&&!mod){ e.preventDefault(); newCardAtCenter(); return; }
   if(e.key==="!"||(e.shiftKey&&e.key==="1")){ e.preventDefault(); fitView(); return; }
   if(e.key==="0"&&mod){ e.preventDefault(); view.z=1; applyView(); return; }
-  if(/^Arrow/.test(e.key)&&sel.size){ e.preventDefault(); var d=e.shiftKey?24:4; var dx=e.key==="ArrowLeft"?-d:e.key==="ArrowRight"?d:0, dy=e.key==="ArrowUp"?-d:e.key==="ArrowDown"?d:0; snapshot(); sel.forEach(function(id){ var c=byId(map.cards,id); c.x+=dx; c.y+=dy; renderCard(c); }); renderWires(); markDirty(); }
+  if(/^Arrow/.test(e.key)&&sel.size){
+    e.preventDefault();
+    var step=(snapOn&&!e.shiftKey)?GRID:(e.shiftKey?1:4);
+    var dx=e.key==="ArrowLeft"?-step:e.key==="ArrowRight"?step:0, dy=e.key==="ArrowUp"?-step:e.key==="ArrowDown"?step:0;
+    snapshot();
+    sel.forEach(function(id){ var c=byId(map.cards,id); c.x+=dx; c.y+=dy; if(snapOn&&!e.shiftKey){ c.x=snapPoint(c.x); c.y=snapPoint(c.y); } renderCard(c); });
+    renderWires(); markDirty();
+  }
 });
 
 /* hud + header */
@@ -896,7 +962,8 @@ document.addEventListener("click",function(e){ if(!e.target.closest("#moreMenu,#
 moreMenu.addEventListener("click",function(e){
   var b=e.target.closest(".mi"); if(!b) return; moreMenu.hidden=true;
   var a=b.dataset.act;
-  if(a==="labels") openLabels();
+  if(a==="snap") setSnap(!snapOn);
+  else if(a==="labels") openLabels();
   else if(a==="fit") fitView();
   else if(a==="undo") undo();
   else if(a==="export") exportJson();
@@ -949,6 +1016,7 @@ $("lblAdd").addEventListener("click",function(){
 
 /* ---------------- boot ---------------- */
 window.addEventListener("resize",function(){ renderWires(); });
+setSnap(snapOn);
 load();
 })();
 </script>
