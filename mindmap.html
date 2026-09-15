@@ -32,6 +32,7 @@
     --card:#ffffff; --card-line:#dcdce0; --dot:rgba(0,0,0,.09); --link:#b4b4bb; --wire:#6b6b74;
   }
   *{box-sizing:border-box}
+  [hidden]{display:none!important}   /* an explicit display: in a rule otherwise beats the UA hidden rule */
   html,body{margin:0;height:100%}
   body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.45;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;overflow:hidden}
   a{color:inherit}
@@ -115,7 +116,11 @@
   .card.dragging{cursor:grabbing;z-index:5}
   .card.target{outline:2px solid var(--accent);outline-offset:2px}
   .card .cimg{display:block;width:100%;background:#000;overflow:hidden;border-radius:5px 5px 0 0;position:relative}
-  .card .cimg img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .card .cimg img{display:block;position:absolute;max-width:none;pointer-events:none}
+  .card .grip{position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;display:none}
+  .card .grip::after{content:"";position:absolute;left:50%;bottom:3px;width:26px;height:3px;margin-left:-13px;border-radius:2px;background:rgba(255,255,255,.75);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+  .card:hover .grip,.card.sel .grip{display:block}
+  body.presenting .card .grip{display:none!important}
   .card .cimg .up{position:absolute;left:8px;bottom:8px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.55);padding:3px 6px;border-radius:4px}
   .card .cimg.fail::after{content:"image not saved";position:absolute;inset:auto 8px 8px auto;font-family:var(--mono);font-size:10px;color:var(--rose);background:rgba(0,0,0,.6);padding:3px 6px;border-radius:4px}
   .card .cbody{padding:11px 13px 12px;display:flex;flex-direction:column;gap:4px}
@@ -146,15 +151,32 @@
   .f{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;color:var(--text);font-size:13.5px;outline:none;font-family:var(--font);line-height:1.4}
   .f:focus{border-color:var(--accent)}
   textarea.f{min-height:88px;resize:vertical}
-  .lblist{display:flex;flex-direction:column;gap:2px}
-  .lbrow{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;text-align:left;font-size:13px;width:100%}
-  .lbrow .sw{width:9px;height:9px;border-radius:2px;background:var(--c);flex:none}
-  .lbrow:hover{color:var(--text);background:var(--panel)}
-  .lbrow.on{color:var(--text);border-color:var(--line2);background:var(--panel)}
+  .lblist{display:flex;flex-wrap:wrap;gap:6px}
+  .lbrow{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;text-align:left;font-size:12px;font-family:var(--font)}
+  .lbrow .sw{width:8px;height:8px;border-radius:2px;background:var(--c);flex:none}
+  .lbrow:hover{color:var(--text);border-color:var(--line2)}
+  .lbrow.on{color:var(--text);border-color:var(--accent);background:var(--accent-dim)}
   .lbrow.none .sw{background:none;border:1px dashed var(--line2)}
   .imgbox{position:relative;border:1px dashed var(--line2);border-radius:8px;min-height:84px;display:grid;place-items:center;text-align:center;color:var(--faint);font-size:12.5px;padding:14px;cursor:pointer;overflow:hidden;background:var(--surface)}
   .imgbox:hover,.imgbox.over{border-color:var(--accent);color:var(--muted)}
   .imgbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  /* crop editor */
+  .crop{position:relative;width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000;cursor:grab;touch-action:none}
+  .crop.grabbing{cursor:grabbing}
+  .crop.over{outline:2px solid var(--accent);outline-offset:-2px}
+  .crop img{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none}
+  .crop::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.22) 33.2%,rgba(255,255,255,.22) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.22) 66.4%,rgba(255,255,255,.22) 66.7%,transparent 66.7%),
+               linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.22) 33.2%,rgba(255,255,255,.22) 33.5%,transparent 33.5%,transparent 66.4%,rgba(255,255,255,.22) 66.4%,rgba(255,255,255,.22) 66.7%,transparent 66.7%);
+    opacity:0;transition:opacity .15s ease}
+  .crop:hover::after,.crop.grabbing::after{opacity:1}
+  .zrow{display:flex;align-items:center;gap:10px}
+  .zrow input[type="range"]{flex:1;accent-color:var(--accent);background:transparent}
+  .zrow .zval{font-family:var(--mono);font-size:10.5px;color:var(--faint);width:34px;text-align:right}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chipb{font-size:11.5px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;font-family:var(--font)}
+  .chipb:hover{border-color:var(--line2);color:var(--text)}
+  .chipb.on{border-color:var(--accent);color:var(--text);background:var(--accent-dim)}
   .imgbox.has{min-height:140px;padding:0;border-style:solid}
   .imgbox .ib-txt{position:relative;z-index:1}
   .imgbox.has .ib-txt{display:none}
@@ -392,6 +414,19 @@
       <div class="isec"><span class="k">Label</span><div class="lblist" id="iLabels"></div></div>
       <div class="isec"><span class="k">Image</span>
         <div class="imgbox" id="iImg" tabindex="0"><span class="ib-txt">Drop, paste, or click to choose</span></div>
+        <div id="iCropWrap" hidden>
+          <div class="crop" id="iCrop"><img alt="" draggable="false" /></div>
+          <div class="zrow"><span class="k">Zoom</span><input type="range" id="iZoom" min="100" max="400" step="1" value="100" aria-label="Zoom" /><span class="zval" id="iZoomVal">100%</span></div>
+          <span class="k">Shape</span>
+          <div class="chips" id="iShape">
+            <button class="chipb" data-ar="natural">Whole image</button>
+            <button class="chipb" data-ar="1.7778">16:9</button>
+            <button class="chipb" data-ar="1.5">3:2</button>
+            <button class="chipb" data-ar="1">Square</button>
+            <button class="chipb" data-ar="0.8">4:5</button>
+          </div>
+          <span class="meta">Drag the picture to reposition. Drag the handle under a card’s image to resize it.</span>
+        </div>
         <div class="row" id="iImgRow" hidden><button class="btn" id="iImgReplace">Replace</button><button class="btn danger" id="iImgRemove">Remove</button></div>
       </div>
       <div class="isec"><span class="k">Links <span id="iLinkCount"></span></span><div class="linklist" id="iLinks"></div><span class="meta">Drag a dot on the card's edge to link it to another card.</span></div>
@@ -490,6 +525,7 @@ var imgCache = {}, imgFailed = {};
 var snapOn = true; try{ snapOn = localStorage.getItem(LS_SNAP)!=="0"; }catch(e){}
 var guides = [];          // alignment guides drawn while dragging
 var present = {on:false, i:0, route:[], raf:null, idle:null};
+var lastGrip = {id:"", at:0};   // for the grip's double-tap
 var GUT_X = 72, GUT_Y = 32;   // gutters used by the arrange modes
 var $ = function(id){ return document.getElementById(id); };
 var stage = $("stage"), world = $("world"), wires = $("wires");
@@ -663,13 +699,26 @@ function imgSrc(c){
   if(c.img) return API+"?img="+encodeURIComponent(c.img);
   return "";
 }
-function imgFrameH(c){ if(!c.imgW||!c.imgH) return 150; return Math.round(Math.min(IMG_MAX_H, CARD_W*c.imgH/c.imgW)); }
+function naturalFrameH(c){ if(!c.imgW||!c.imgH) return 150; return Math.round(Math.min(IMG_MAX_H, CARD_W*c.imgH/c.imgW)); }
+function imgFrameH(c){ return Math.round(clamp(c.frameH || naturalFrameH(c), 48, 560)); }
+function cropOf(c){ var k=c.crop||{}; return {z:clamp(k.z||1,1,6), cx:clamp(k.cx==null?.5:k.cx,0,1), cy:clamp(k.cy==null?.5:k.cy,0,1)}; }
+// Where the picture sits inside a frame: cover it, times the zoom, focused on (cx,cy).
+function imgLayout(c, fw, fh){
+  var iw=c.imgW||fw, ih=c.imgH||fh, k=cropOf(c);
+  var s=Math.max(fw/iw, fh/ih)*k.z;
+  var w=iw*s, h=ih*s;
+  return {w:w, h:h, left:clamp(fw/2-w*k.cx, fw-w, 0), top:clamp(fh/2-h*k.cy, fh-h, 0)};
+}
+function paintFrame(frame, c, fw, fh){
+  var im=frame.querySelector("img"), L=imgLayout(c, fw, fh);
+  im.style.width=L.w+"px"; im.style.height=L.h+"px"; im.style.left=L.left+"px"; im.style.top=L.top+"px";
+}
 
 function renderCard(c, born){
   var el=cardEls[c.id];
   if(!el){
     el=document.createElement("div"); el.className="card"; el.dataset.id=c.id;
-    el.innerHTML='<div class="cimg" hidden><img alt="" draggable="false" /><span class="up" hidden>Uploading</span></div>'+
+    el.innerHTML='<div class="cimg" hidden><img alt="" draggable="false" /><span class="up" hidden>Uploading</span><span class="grip" title="Drag to resize · double-click to fit the whole image"></span></div>'+
       '<div class="cbody"><div class="clabel"></div><div class="ctitle" spellcheck="false"></div><div class="cnotes" spellcheck="false"></div></div>'+
       '<span class="port n" data-port="n"></span><span class="port s" data-port="s"></span><span class="port w" data-port="w"></span><span class="port e" data-port="e"></span>';
     world.appendChild(el); cardEls[c.id]=el;
@@ -685,7 +734,13 @@ function renderCard(c, born){
   if(n.getAttribute("contenteditable")!=="true") n.textContent=c.notes||"";
   var frame=el.querySelector(".cimg"), im=frame.querySelector("img");
   var src=imgSrc(c);
-  if(src){ frame.hidden=false; frame.style.height=imgFrameH(c)+"px"; if(im.getAttribute("src")!==src) im.src=src; frame.classList.toggle("fail", !!c.imgData && apiOk===true); }
+  if(src){
+    frame.hidden=false;
+    var fh=imgFrameH(c); frame.style.height=fh+"px";
+    if(im.getAttribute("src")!==src) im.src=src;
+    paintFrame(frame, c, CARD_W, fh);
+    frame.classList.toggle("fail", !!c.imgData && apiOk===true);
+  }
   else { frame.hidden=true; im.removeAttribute("src"); frame.classList.remove("fail"); }
   frame.querySelector(".up").hidden = !c._uploading;
   el.classList.toggle("start", map.start===c.id);
@@ -818,8 +873,11 @@ function renderInspector(){
     if(document.activeElement!==$("iNotes")) $("iNotes").value=c.notes||"";
     $("iLabels").innerHTML=labelRows(c.label);
     var box=$("iImg"), src=imgSrc(c);
-    box.classList.toggle("has", !!src); box.innerHTML=(src?'<img alt="" src="'+esc(src)+'" />':"")+'<span class="ib-txt">Drop, paste, or click to choose</span>';
+    box.hidden=!!src;
+    box.classList.toggle("has", !!src); box.innerHTML='<span class="ib-txt">Drop, paste, or click to choose</span>';
     $("iImgRow").hidden=!src;
+    $("iCropWrap").hidden=!src;
+    if(src) paintCrop(c);
     var ls=map.links.filter(function(l){return l.from===c.id||l.to===c.id;});
     $("iLinkCount").textContent=ls.length?"· "+ls.length:"";
     $("iLinks").innerHTML=ls.map(function(l){ var o=byId(map.cards, l.from===c.id?l.to:l.from); var lb=labelOf(o); return '<button class="lk" data-link="'+l.id+'" style="--c:'+(lb?lb.color:"var(--line2)")+'"><span class="sw"></span><span>'+esc(o.title||"Untitled")+'</span>'+(l.label?'<i>'+esc(l.label)+'</i>':"")+'</button>'; }).join("")||'<span class="meta">No links yet.</span>';
@@ -868,6 +926,75 @@ $("iImg").addEventListener("dragleave",function(){ this.classList.remove("over")
 $("iImg").addEventListener("drop",function(e){ e.preventDefault(); this.classList.remove("over"); var c=single(); if(c&&e.dataTransfer.files.length) attachImage(c, e.dataTransfer.files[0]); });
 function single(){ if(sel.size!==1) return null; return byId(map.cards,[...sel][0]); }
 
+/* ---------------- crop editor ---------------- */
+var CROP_W=256;
+function cropFrameH(c){ return Math.round(CROP_W*imgFrameH(c)/CARD_W); }
+function paintCrop(c){
+  var box=$("iCrop"), im=box.querySelector("img"), src=imgSrc(c);
+  var fh=cropFrameH(c);
+  box.style.height=fh+"px";
+  if(im.getAttribute("src")!==src) im.src=src;
+  var bw=box.clientWidth||CROP_W, L=imgLayout(c, bw, fh);
+  im.style.width=L.w+"px"; im.style.height=L.h+"px"; im.style.left=L.left+"px"; im.style.top=L.top+"px";
+  var k=cropOf(c);
+  if(document.activeElement!==$("iZoom")) $("iZoom").value=Math.round(k.z*100);
+  $("iZoomVal").textContent=Math.round(k.z*100)+"%";
+  var ar=CARD_W/imgFrameH(c), nat=Math.abs(imgFrameH(c)-naturalFrameH(c))<2 && k.z<=1.001;
+  [].forEach.call($("iShape").querySelectorAll("button"),function(b){
+    b.classList.toggle("on", b.dataset.ar==="natural" ? nat : (!nat && Math.abs(parseFloat(b.dataset.ar)-ar)<0.02));
+  });
+}
+// Keep the focal point where it is when the frame shape changes.
+function setFrameH(c, h, quiet){
+  c.frameH=Math.round(clamp(h, 48, 560));
+  if(Math.abs(c.frameH-naturalFrameH(c))<2) delete c.frameH;
+  if(!quiet){ renderCard(c); renderWires(); paintCrop(c); markDirty(); }
+}
+(function(){
+  var box=$("iCrop"), drag=null;
+  box.addEventListener("pointerdown",function(e){
+    var c=single(); if(!c||!imgSrc(c)) return;
+    e.preventDefault(); box.setPointerCapture(e.pointerId); box.classList.add("grabbing");
+    var k=cropOf(c), L=imgLayout(c, box.clientWidth, cropFrameH(c));
+    drag={sx:e.clientX, sy:e.clientY, cx:k.cx, cy:k.cy, w:L.w, h:L.h, took:false};
+  });
+  box.addEventListener("pointermove",function(e){
+    if(!drag) return; var c=single(); if(!c) return;
+    if(!drag.took){ if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<2) return; drag.took=true; snapshot("the crop"); }
+    var k=cropOf(c);
+    c.crop={z:k.z, cx:clamp(drag.cx-(e.clientX-drag.sx)/drag.w,0,1), cy:clamp(drag.cy-(e.clientY-drag.sy)/drag.h,0,1)};
+    paintCrop(c); renderCard(c);
+  });
+  function end(e){ if(!drag) return; var took=drag.took; drag=null; box.classList.remove("grabbing");
+    try{ box.releasePointerCapture(e.pointerId); }catch(err){} if(took) markDirty(); }
+  box.addEventListener("pointerup",end); box.addEventListener("pointercancel",end);
+  box.addEventListener("wheel",function(e){
+    var c=single(); if(!c||!imgSrc(c)) return;
+    e.preventDefault(); var k=cropOf(c);
+    c.crop={z:clamp(k.z*Math.exp(-e.deltaY*0.0015),1,6), cx:k.cx, cy:k.cy};
+    paintCrop(c); renderCard(c); markDirty();
+  },{passive:false});
+})();
+["dragenter","dragover"].forEach(function(ev){ $("iCrop").addEventListener(ev,function(e){ e.preventDefault(); this.classList.add("over"); }); });
+$("iCrop").addEventListener("dragleave",function(){ this.classList.remove("over"); });
+$("iCrop").addEventListener("drop",function(e){
+  e.preventDefault(); this.classList.remove("over");
+  var c=single(); if(c&&e.dataTransfer.files.length){ snapshot("the image"); attachImage(c, e.dataTransfer.files[0]); }
+});
+$("iZoom").addEventListener("pointerdown",function(){ snapshot("the zoom"); });
+$("iZoom").addEventListener("input",function(){
+  var c=single(); if(!c) return; var k=cropOf(c);
+  c.crop={z:clamp(this.value/100,1,6), cx:k.cx, cy:k.cy};
+  paintCrop(c); renderCard(c); markDirty();
+});
+$("iShape").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-ar]"); var c=single(); if(!b||!c) return;
+  snapshot("the image shape");
+  if(b.dataset.ar==="natural"){ delete c.frameH; delete c.crop; }
+  else setFrameH(c, CARD_W/parseFloat(b.dataset.ar), true);
+  renderCard(c); renderWires(); paintCrop(c); markDirty();
+});
+
 /* ---------------- mutations ---------------- */
 function addCard(x,y,props,quiet){
   if(snapOn){ x=snapPoint(x); y=snapPoint(y); }
@@ -905,7 +1032,7 @@ function addLink(from,to){
 }
 function removeImage(c, cardGoing){
   var id=c.img;
-  delete c.img; delete c.imgW; delete c.imgH; delete c.imgData;
+  delete c.img; delete c.imgW; delete c.imgH; delete c.imgData; delete c.crop; delete c.frameH;
   if(id){ var stillUsed=map.cards.some(function(o){ return o!==c && o.img===id; }); if(!stillUsed) fetch(API+"?img="+encodeURIComponent(id),{method:"DELETE"}).catch(function(){}); }
 }
 
@@ -949,7 +1076,7 @@ async function attachImage(c, file){
   try{ img=await shrink(file); }catch(e){ setStatus("Couldn't read that image","err"); return; }
   var oldId=c.img;
   var id=uid(); imgCache[id]=img.dataUrl;
-  c.img=id; c.imgW=img.w; c.imgH=img.h; delete c.imgData; c._uploading=true;
+  c.img=id; c.imgW=img.w; c.imgH=img.h; delete c.imgData; delete c.crop; delete c.frameH; c._uploading=true;
   renderCard(c); renderWires(); renderInspector();
   try{
     var r=await fetch(API+"?img="+encodeURIComponent(id),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({dataUrl:img.dataUrl})});
@@ -995,6 +1122,26 @@ function isEditing(){ var a=document.activeElement; return a && (a.isContentEdit
 
 stage.addEventListener("pointerdown",function(e){
   if(present.on || e.target.closest(".hud,.hint,.pctl")) return;
+  var grip=e.target.closest(".grip");
+  if(grip && e.button===0){
+    var gid=grip.closest(".card").dataset.id, gc=byId(map.cards,gid);
+    if(gc){
+      e.preventDefault(); e.stopPropagation();
+      var now=Date.now();
+      if(lastGrip.id===gid && now-lastGrip.at<420){        // second tap: back to the whole image
+        lastGrip={id:"",at:0};
+        snapshot("the image size");
+        delete gc.frameH; delete gc.crop;
+        renderCard(gc); renderWires(); if(single()===gc) paintCrop(gc); markDirty();
+        return;
+      }
+      lastGrip={id:gid, at:now};
+      sel.clear(); sel.add(gid); selLink=null; renderAll();
+      ptr={kind:"grip", id:gid, sy:e.clientY, h0:imgFrameH(gc), took:false};
+      stage.setPointerCapture(e.pointerId);
+      return;
+    }
+  }
   if(e.button===1 || (e.button===0 && e.altKey)){ startPan(e); return; }
   if(e.button!==0) return;
   var port=e.target.closest(".port");
@@ -1055,6 +1202,13 @@ stage.addEventListener("pointermove",function(e){
     Object.keys(ptr.starts).forEach(function(id){ var c=byId(map.cards,id); if(!c) return; c.x=Math.round(ptr.starts[id].x+dx); c.y=Math.round(ptr.starts[id].y+dy); var el=cardEls[id]; el.style.left=c.x+"px"; el.style.top=c.y+"px"; });
     renderWires(); return;
   }
+  if(ptr.kind==="grip"){
+    var gc=byId(map.cards,ptr.id); if(!gc) return;
+    if(!ptr.took){ if(Math.abs(e.clientY-ptr.sy)<2) return; ptr.took=true; snapshot("the image size"); }
+    setFrameH(gc, ptr.h0+(e.clientY-ptr.sy)/view.z, true);
+    renderCard(gc); renderWires(); if(single()===gc) paintCrop(gc);
+    return;
+  }
   if(ptr.kind==="link"){
     moveTemp(e);
     var el=document.elementFromPoint(e.clientX,e.clientY); var card=el&&el.closest?el.closest(".card"):null;
@@ -1078,6 +1232,7 @@ function endGesture(e){
   stage.classList.remove("panning","linking");
   try{ stage.releasePointerCapture(e.pointerId); }catch(err){}
   if(g.kind==="drag"){ guides=[]; sel.forEach(function(id){ cardEls[id]&&cardEls[id].classList.remove("dragging"); }); renderWires(); if(g.moved) markDirty(); }
+  if(g.kind==="grip"){ if(g.took) markDirty(); }
   if(g.kind==="link"){ $("tempWire").hidden=true; if(g.over&&cardEls[g.over]) cardEls[g.over].classList.remove("target"); if(g.over) addLink(g.from,g.over); }
   if(g.kind==="marquee"){ $("marquee").style.display="none"; renderAll(); }
 }
@@ -1086,6 +1241,7 @@ stage.addEventListener("pointercancel",endGesture);
 
 stage.addEventListener("dblclick",function(e){
   if(present.on) return;
+  if(e.target.closest(".grip")){ e.preventDefault(); return; }
   var cardEl=e.target.closest(".card");
   if(cardEl){ var f=e.target.closest(".ctitle")?"title":e.target.closest(".cnotes")?"notes":"title"; startEdit(cardEl.dataset.id,f); return; }
   if(e.target.closest("[data-link]")){ $("lLabel").focus(); return; }
@@ -1491,7 +1647,7 @@ function stopChip(id, i){
   var c=byId(map.cards,id); if(!c) return "";
   var l=labelOf(c), src=imgSrc(c);
   return '<div class="stop'+(present.on&&present.route[present.i]===id?" here":"")+'" draggable="true" data-id="'+esc(id)+'" style="--c:'+(l?esc(l.color):"var(--faint)")+'">'+
-    (src?'<img class="sthumb" src="'+esc(src)+'" alt="" draggable="false" />':"")+
+    (src?'<img class="sthumb" src="'+esc(src)+'" alt="" draggable="false" style="object-position:'+(cropOf(c).cx*100)+'% '+(cropOf(c).cy*100)+'%" />':"")+
     '<button class="sx" data-drop="'+esc(id)+'" aria-label="Remove from the run">&times;</button>'+
     '<div class="sbody">'+(i==null?"":'<span class="sn">'+String(i+1).padStart(2,"0")+'</span>')+'<span class="st">'+esc(c.title||"Untitled")+'</span></div>'+
   '</div>';
