@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>Apply Captain's Log</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2318181b'/><circle cx='50' cy='50' r='26' fill='none' stroke='%2322c55e' stroke-width='7'/><circle cx='50' cy='50' r='6' fill='%2322c55e'/></svg>" />
+<style>
+  :root{
+    --bg:#09090b; --panel:#18181b; --surface:#0d0d0f; --line:#27272a; --line2:#3f3f46;
+    --text:#f4f4f5; --muted:#a1a1aa; --faint:#8a8a92; --accent:#22c55e; --accent-dim:rgba(34,197,94,0.13);
+    --rose:#fb7185; --amber:#fbbf24; --blue:#60a5fa;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 72px}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  h1{font-size:26px;letter-spacing:-.01em;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 22px;max-width:62ch}
+  .links{display:flex;gap:14px;font-size:13px;margin-bottom:22px}
+  .links a{color:var(--muted);text-decoration:none}
+  .links a:hover{color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  textarea{width:100%;min-height:180px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;outline:none}
+  textarea:focus{border-color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .btn{background:var(--panel);border:1px solid var(--line2);color:var(--text);border-radius:9px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font)}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#052e16;border-color:var(--accent);font-weight:600}
+  .btn.primary:hover{background:#4ade80}
+  .btn[disabled]{opacity:.45;cursor:default}
+  #msg{min-height:18px;font-size:12.5px;font-family:var(--mono);color:var(--muted);margin-left:auto}
+  #msg.ok{color:var(--accent)} #msg.err{color:var(--rose)}
+  .summary{margin-top:18px;padding:12px 14px;background:var(--surface);border-left:3px solid var(--accent);border-radius:8px;font-size:14px;color:var(--text)}
+  .list{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .op{display:grid;grid-template-columns:22px 1fr;gap:12px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:13.5px}
+  .op .st{width:10px;height:10px;border-radius:50%;background:var(--line2);margin-top:6px}
+  .op.ok .st{background:var(--accent)} .op.warn .st{background:var(--amber)} .op.bad .st{background:var(--rose)}
+  .op .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:2px}
+  .op .d{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .op .d b{color:var(--text);font-weight:500}
+  .op select{margin-top:6px;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12.5px;font-family:var(--font)}
+  .stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .stats b{color:var(--text);font-weight:500}
+  .hist{margin-top:26px}
+  .hist h2{font-size:12px;font-family:var(--mono);font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 10px}
+  .hist .h{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .hist .h .t{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  details{margin-top:20px;color:var(--muted);font-size:13px}
+  summary{cursor:pointer;color:var(--text)}
+  pre{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:11.5px;overflow:auto;color:var(--muted)}
+  a:focus-visible,button:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  #pwgate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:#09090b;font-family:var(--font)}
+  #pwgate .pwcard{width:100%;max-width:340px;background:#18181b;border:1px solid #27272a;border-radius:16px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  #pwgate .pwbrand{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:#a1a1aa;margin-bottom:12px}
+  #pwgate .pwtitle{font-size:19px;font-weight:700;color:#f4f4f5;margin:0 0 8px}
+  #pwgate .pwsub{font-size:13px;color:#a1a1aa;margin:0 0 20px}
+  #pwgate input{width:100%;background:#09090b;border:1px solid #27272a;border-radius:10px;padding:12px;color:#f4f4f5;font-size:14px;outline:none}
+  #pwgate input:focus{border-color:#22c55e}
+  #pwgate button{width:100%;margin-top:12px;background:#22c55e;color:#0a0a0a;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer}
+  #pwgate .pwerr{min-height:18px;margin-top:12px;font-size:12.5px;color:#fb7185}
+</style>
+</head>
+<body>
+<div id="pwgate" role="dialog" aria-modal="true" aria-label="Password required">
+  <div class="pwcard">
+    <div class="pwbrand">MOTION DESIGN · UX</div>
+    <h1 class="pwtitle">This page is private</h1>
+    <p class="pwsub">Enter the password to continue.</p>
+    <input id="pwinput" type="password" placeholder="Password" autocomplete="current-password" spellcheck="false" />
+    <button id="pwbtn" type="button">Unlock</button>
+    <div id="pwerr" class="pwerr" aria-live="polite"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var PWGATE_HASH = "87d756c60f8cf6e776961f6d8b4c60caa3565a1ed61070492a7fd07e90bc639e";
+  var KEY = "motion-hub:unlocked";
+  var gate = document.getElementById("pwgate"), input = document.getElementById("pwinput"), btn = document.getElementById("pwbtn"), err = document.getElementById("pwerr");
+  function lockScroll(on){ try { document.documentElement.style.overflow = on ? "hidden" : ""; } catch(e){} }
+  function isUnlocked(){ try { return localStorage.getItem(KEY) === PWGATE_HASH; } catch(e){ return false; } }
+  function reveal(){ if (gate && gate.parentNode) gate.parentNode.removeChild(gate); lockScroll(false); }
+  if (isUnlocked()) { reveal(); return; }
+  lockScroll(true);
+  async function sha256hex(str){ var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)); return Array.prototype.map.call(new Uint8Array(buf), function(b){ return b.toString(16).padStart(2,"0"); }).join(""); }
+  async function tryUnlock(){ err.textContent=""; var val=input.value||""; if(!val) return; if(!(window.crypto&&crypto.subtle)){ err.textContent="Open this page over https to unlock."; return; }
+    try { var h = await sha256hex(val); if (h === PWGATE_HASH) { try { localStorage.setItem(KEY, PWGATE_HASH); } catch(e){} reveal(); } else { err.textContent = "Incorrect password."; input.select(); } } catch (e) { err.textContent = "Couldn't verify — try again."; } }
+  btn.addEventListener("click", tryUnlock);
+  input.addEventListener("keydown", function(e){ if (e.key === "Enter") tryUnlock(); });
+  setTimeout(function(){ try { input.focus(); } catch(e){} }, 50);
+})();
+</script>
+
+<div class="wrap" role="main">
+  <div class="eyebrow">Motion Specialist Hub · Captain's Log</div>
+  <h1>Apply Captain's Log</h1>
+  <p class="sub">Paste the patch the end-of-day recap produced (copy it from the Bridge). Preview shows every change against the live tracker before anything is written.</p>
+  <div class="links"><a href="manager.html">← Specialist Status</a><a href="index.html">Dashboard</a></div>
+
+  <div class="card">
+    <textarea id="patch" placeholder='{"v":1,"summary":"…","ops":[{"op":"project.hours","project":"Members Hub Prototype","hours":2,"date":"2026-09-16"}]}' spellcheck="false"></textarea>
+    <div class="row">
+      <button class="btn" id="preview">Preview</button>
+      <button class="btn primary" id="apply" disabled>Apply to Hub</button>
+      <button class="btn" id="clear">Clear</button>
+      <span id="msg"></span>
+    </div>
+    <div id="summary" class="summary" hidden></div>
+    <div id="list" class="list"></div>
+    <div id="stats" class="stats"></div>
+  </div>
+
+  <div class="hist card" style="margin-top:18px">
+    <h2>Recently applied</h2>
+    <div id="hist"></div>
+  </div>
+
+  <details>
+    <summary>Patch format</summary>
+    <pre>{
+  "v": 1,
+  "at": "2026-09-16T21:10:00Z",
+  "summary": "one line of what changed today",
+  "ops": [
+    {"op":"project.hours",    "project":"Name", "hours":2, "date":"2026-09-16", "note":"optional"},
+    {"op":"project.status",   "project":"Name", "status":"wip|review|revisions|delivered|onhold|backlog|discovery|intake"},
+    {"op":"project.deadline", "project":"Name", "deadline":"2026-09-30"},
+    {"op":"project.priority", "project":"Name", "priority":"low|medium|high"},
+    {"op":"project.note",     "project":"Name", "note":"appended with today's date"},
+    {"op":"project.add",      "name":"Name", "type":"UX Delivery Team Enablement", "status":"discovery", "priority":"medium",
+                              "deadline":"", "estimatedHours":8, "stakeholders":[{"team":"UX Design","name":"…"}], "notes":""},
+    {"op":"intake.status",    "id":"…", "title":"or match by title", "status":"discovery"},
+    {"op":"checklist.done",   "text":"matches an existing item"},
+    {"op":"checklist.add",    "text":"new item"}
+  ]
+}</pre>
+  </details>
+</div>
+
+<script>
+(function(){
+"use strict";
+var SYNC_URL = "/api/data";
+var VALID_STATUS = ["intake","backlog","discovery","wip","review","revisions","delivered","onhold"];
+var VALID_PRIORITY = ["low","medium","high"];
+var PROJECT_TYPES = ["Brand Team Enablement","UX Delivery Team Enablement","UX Design Team Enablement","Signature Moment","Strategic Moment","Motion System","Office Hours","Community of Practice"];
+var K = { projects:"motion-tracker:projects", intake:"motion-tracker:intakeRequests", checklist:"motion-tracker:dailyChecklist", log:"motion-tracker:captainsLog" };
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+var todayKey = function(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };           // dashboard checklist format (unpadded)
+var isoDay = function(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+var rid = function(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); };
+var norm = function(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim(); };
+
+var snap = null, plan = null;
+
+function setMsg(t, cls){ var m=$("msg"); m.textContent=t||""; m.className=cls||""; }
+
+async function getSnapshot(){
+  var r = await fetch(SYNC_URL, {cache:"no-store"}); if(!r.ok) throw new Error("GET "+r.status);
+  var s = await r.json(); if(!s||typeof s!=="object") s={}; if(!s.data||typeof s.data!=="object") s.data={};
+  ["projects","intake","checklist","log"].forEach(function(k){ if(!Array.isArray(s.data[K[k]])) s.data[K[k]] = []; });
+  return s;
+}
+
+/* --- matching --- */
+function matchBy(list, field, query){
+  var q = norm(query); if(!q) return {hits:[]};
+  var exact = list.filter(function(x){ return norm(x[field])===q; }); if(exact.length) return {hits:exact, how:"exact"};
+  var sub = list.filter(function(x){ var n=norm(x[field]); return n.indexOf(q)!==-1 || q.indexOf(n)!==-1 && n.length>3; }); if(sub.length) return {hits:sub, how:"partial"};
+  var qt = q.split(" ").filter(function(t){ return t.length>2; });
+  var scored = list.map(function(x){ var n=norm(x[field]); var sc=qt.filter(function(t){ return n.indexOf(t)!==-1; }).length; return {x:x, sc:sc}; }).filter(function(o){ return o.sc>0; }).sort(function(a,b){ return b.sc-a.sc; });
+  if(scored.length && scored[0].sc>=Math.max(1, Math.ceil(qt.length/2))) return {hits:scored.filter(function(o){ return o.sc===scored[0].sc; }).map(function(o){ return o.x; }), how:"fuzzy"};
+  return {hits:[]};
+}
+
+/* --- resolve each op into a plan item --- */
+function resolve(op, data){
+  var projects = data[K.projects], intake = data[K.intake], checklist = data[K.checklist];
+  var it = { op:op, state:"ok", label:"", detail:"", choices:null, target:null };
+  var t = String(op.op||"");
+  var needProject = /^project\.(hours|status|deadline|priority|note)$/.test(t);
+  if(needProject){
+    var m = matchBy(projects, "name", op.project);
+    if(m.hits.length===1){ it.target=m.hits[0]; if(m.how!=="exact") it.detail="Matched “"+it.target.name+"”"; }
+    else if(m.hits.length>1){ it.state="warn"; it.choices=m.hits; it.target=m.hits[0]; it.detail="Several projects match — pick one"; }
+    else { it.state="bad"; it.detail="No project named “"+(op.project||"")+"”"; }
+  }
+  switch(t){
+    case "project.hours":
+      var h = Number(op.hours); if(!(h>0)) { it.state="bad"; it.detail="Hours must be a positive number"; }
+      it.label = (h||"?")+"h on "+(op.project||"?")+" · "+(op.date||isoDay()); break;
+    case "project.status":
+      if(VALID_STATUS.indexOf(op.status)===-1){ it.state="bad"; it.detail="Unknown status “"+op.status+"”"; }
+      it.label = (op.project||"?")+" → "+op.status + (it.target?"  (was "+(it.target.status||"—")+")":""); break;
+    case "project.deadline":
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(op.deadline||"")){ it.state="bad"; it.detail="Deadline must be YYYY-MM-DD"; }
+      it.label = (op.project||"?")+" deadline → "+op.deadline + (it.target?"  (was "+(it.target.deadline||"—")+")":""); break;
+    case "project.priority":
+      if(VALID_PRIORITY.indexOf(op.priority)===-1){ it.state="bad"; it.detail="Priority must be low, medium, or high"; }
+      it.label = (op.project||"?")+" priority → "+op.priority; break;
+    case "project.note":
+      if(!op.note){ it.state="bad"; it.detail="Empty note"; }
+      it.label = "Note on "+(op.project||"?")+": "+String(op.note||"").slice(0,80); break;
+    case "project.add":
+      if(!op.name){ it.state="bad"; it.detail="New project needs a name"; }
+      else if(matchBy(projects,"name",op.name).hits.some(function(p){ return norm(p.name)===norm(op.name); })){ it.state="bad"; it.detail="A project with that name already exists"; }
+      it.label = "New project: "+(op.name||"?")+" · "+(op.status||"discovery")+" · "+(op.type||"UX Delivery Team Enablement"); break;
+    case "intake.status":
+      var hit = null;
+      if(op.id) hit = intake.filter(function(x){ return x.id===op.id; })[0];
+      if(!hit && op.title){ var mm = matchBy(intake,"title",op.title); if(mm.hits.length===1) hit=mm.hits[0]; else if(mm.hits.length>1){ it.state="warn"; it.choices=mm.hits; hit=mm.hits[0]; it.detail="Several requests match — pick one"; } }
+      if(!hit){ it.state="bad"; it.detail="No intake request matched"; }
+      if(VALID_STATUS.indexOf(op.status)===-1){ it.state="bad"; it.detail="Unknown status “"+op.status+"”"; }
+      it.target=hit; it.label="Intake “"+(hit?hit.title:(op.title||op.id||"?"))+"” → "+op.status; break;
+    case "checklist.done":
+      var c = matchBy(checklist,"text",op.text);
+      if(c.hits.length===1) it.target=c.hits[0]; else if(c.hits.length>1){ it.state="warn"; it.choices=c.hits; it.target=c.hits[0]; it.detail="Several items match — pick one"; } else { it.state="bad"; it.detail="No checklist item like “"+(op.text||"")+"”"; }
+      it.label = "Check off: "+(it.target?it.target.text:(op.text||"?")); break;
+    case "checklist.add":
+      if(!op.text){ it.state="bad"; it.detail="Empty checklist item"; }
+      it.label = "Add to checklist: "+(op.text||"?"); break;
+    default:
+      it.state="bad"; it.detail="Unknown op “"+t+"”"; it.label = JSON.stringify(op).slice(0,100);
+  }
+  return it;
+}
+
+function nameOf(x){ return x.name || x.title || x.text || x.id; }
+
+function renderPlan(){
+  var list=$("list"); list.innerHTML="";
+  var ok=0, warn=0, bad=0;
+  plan.items.forEach(function(it, i){
+    if(it.state==="ok") ok++; else if(it.state==="warn") warn++; else bad++;
+    var d = document.createElement("div"); d.className="op "+it.state;
+    var choose = "";
+    if(it.choices){ choose = '<select data-i="'+i+'">'+it.choices.map(function(c,j){ return '<option value="'+j+'">'+esc(nameOf(c))+'</option>'; }).join("")+'</select>'; }
+    d.innerHTML = '<span class="st"></span><div><div class="k">'+esc(it.op.op)+'</div><div>'+esc(it.label)+'</div>'+(it.detail?'<div class="d">'+esc(it.detail)+'</div>':'')+choose+'</div>';
+    list.appendChild(d);
+  });
+  list.querySelectorAll("select").forEach(function(sel){ sel.addEventListener("change", function(){ var it=plan.items[+sel.getAttribute("data-i")]; it.target = it.choices[+sel.value]; it.state="ok"; it.detail="Using “"+nameOf(it.target)+"”"; renderPlan(); }); });
+  $("stats").innerHTML = '<span><b>'+ok+'</b> ready</span><span><b>'+warn+'</b> need a choice</span><span><b>'+bad+'</b> will be skipped</span>';
+  $("apply").disabled = !(ok>0 && warn===0);
+  var s=$("summary"); if(plan.patch.summary){ s.hidden=false; s.textContent=plan.patch.summary; } else s.hidden=true;
+}
+
+async function preview(){
+  setMsg("");
+  var raw = $("patch").value.trim(); if(!raw){ setMsg("Paste a patch first.","err"); return; }
+  var patch; try{ patch = JSON.parse(raw); }catch(e){ setMsg("That isn't valid JSON.","err"); return; }
+  if(!patch || !Array.isArray(patch.ops)){ setMsg("Patch needs an \"ops\" array.","err"); return; }
+  setMsg("Reading the Hub…");
+  try{ snap = await getSnapshot(); }catch(e){ setMsg("Couldn't read the Hub ("+e.message+").","err"); return; }
+  plan = { patch:patch, items: patch.ops.map(function(op){ return resolve(op, snap.data); }) };
+  renderPlan(); setMsg(plan.items.length+" change"+(plan.items.length===1?"":"s")+" previewed against live data.");
+}
+
+function applyTo(data, it){
+  var op=it.op, t=op.op, today=isoDay();
+  switch(t){
+    case "project.hours": it.target.timeEntries = Array.isArray(it.target.timeEntries)?it.target.timeEntries:[]; it.target.timeEntries.push({id:rid(), hours:Number(op.hours), date:op.date||today, note:op.note||undefined}); break;
+    case "project.status": it.target.status=op.status; if(op.status==="delivered") it.target.deliveredAt=Date.now(); else if(it.target.deliveredAt) it.target.deliveredAt=null; break;
+    case "project.deadline": it.target.deadline=op.deadline; break;
+    case "project.priority": it.target.priority=op.priority; break;
+    case "project.note": it.target.notes = (it.target.notes?it.target.notes+"\n":"")+today+" · "+op.note; break;
+    case "project.add": {
+      var list=data[K.projects]; var order = list.reduce(function(m,p){ return Math.max(m, Number(p.order)||0); }, -1)+1;
+      list.push({ id:String(Date.now()), createdAt:Date.now(), order:order, timeEntries:[], name:op.name, stakeholders:Array.isArray(op.stakeholders)?op.stakeholders:[], type: PROJECT_TYPES.indexOf(op.type)!==-1?op.type:"UX Delivery Team Enablement", status: VALID_STATUS.indexOf(op.status)!==-1?op.status:"discovery", priority: VALID_PRIORITY.indexOf(op.priority)!==-1?op.priority:"medium", estimatedHours: Number(op.estimatedHours)||null, startDate: op.startDate||today, deadline: op.deadline||"", deliveredAt:null, notes: op.notes||"" }); break; }
+    case "intake.status": it.target.status=op.status; it.target.statusAt=Date.now(); break;
+    case "checklist.done": it.target.doneOn = todayKey(); break;
+    case "checklist.add": data[K.checklist].push({id:rid(), text:String(op.text).trim(), doneOn:null}); break;
+  }
+}
+
+async function apply(){
+  if(!plan||!snap) return;
+  var ready = plan.items.filter(function(it){ return it.state==="ok"; });
+  if(!ready.length) return;
+  $("apply").disabled=true; setMsg("Re-reading the Hub…");
+  try{ snap = await getSnapshot(); }catch(e){ setMsg("Couldn't read the Hub ("+e.message+").","err"); $("apply").disabled=false; return; }
+  // re-resolve against the freshest data so nothing stale is written
+  var fresh = plan.patch.ops.map(function(op){ return resolve(op, snap.data); });
+  var applied = 0, skipped = 0;
+  fresh.forEach(function(it, i){
+    if(it.state==="warn" && plan.items[i].target){ var want = nameOf(plan.items[i].target); var pick = it.choices.filter(function(c){ return nameOf(c)===want; })[0]; if(pick){ it.target=pick; it.state="ok"; } }
+    if(it.state==="ok"){ applyTo(snap.data, it); applied++; } else skipped++;
+  });
+  if(!applied){ setMsg("Nothing applied.","err"); $("apply").disabled=false; return; }
+  snap.data[K.log].unshift({ id:rid(), appliedAt:Date.now(), at:plan.patch.at||null, source:plan.patch.source||"captains-log", summary:plan.patch.summary||"", ops:applied, skipped:skipped });
+  snap.data[K.log] = snap.data[K.log].slice(0,60);
+  snap.updatedAt = Date.now();
+  setMsg("Writing…");
+  try{
+    var r = await fetch(SYNC_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(snap)});
+    if(!r.ok){ var t=""; try{ t=(await r.json()).error||""; }catch(e){} throw new Error(r.status+" "+t); }
+    setMsg("Applied "+applied+" change"+(applied===1?"":"s")+(skipped?" · "+skipped+" skipped":"")+". Hub updated.","ok");
+    plan=null; $("list").innerHTML=""; $("stats").innerHTML=""; $("summary").hidden=true; $("patch").value="";
+    renderHist(snap.data[K.log]);
+  }catch(e){ setMsg("Write failed ("+e.message+"). Nothing changed.","err"); $("apply").disabled=false; }
+}
+
+function renderHist(log){
+  var h=$("hist"); if(!log||!log.length){ h.innerHTML='<div class="h"><span class="t">—</span><span>Nothing applied yet.</span></div>'; return; }
+  h.innerHTML = log.slice(0,12).map(function(e){ var d=new Date(e.appliedAt); return '<div class="h"><span class="t">'+esc(d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))+'</span><span>'+esc(e.summary||"(no summary)")+' <span style="color:var(--faint)">· '+e.ops+' change'+(e.ops===1?"":"s")+(e.skipped?', '+e.skipped+' skipped':'')+'</span></span></div>'; }).join("");
+}
+
+$("preview").addEventListener("click", preview);
+$("apply").addEventListener("click", apply);
+$("clear").addEventListener("click", function(){ $("patch").value=""; $("list").innerHTML=""; $("stats").innerHTML=""; $("summary").hidden=true; $("apply").disabled=true; plan=null; setMsg(""); });
+$("patch").addEventListener("input", function(){ $("apply").disabled=true; });
+// drag-and-drop a .json file
+document.addEventListener("dragover", function(e){ e.preventDefault(); });
+document.addEventListener("drop", function(e){ e.preventDefault(); var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(!f) return; var rd=new FileReader(); rd.onload=function(){ $("patch").value=String(rd.result||""); preview(); }; rd.readAsText(f); });
+// history on load
+getSnapshot().then(function(s){ snap=s; renderHist(s.data[K.log]); }).catch(function(){ renderHist([]); });
+// allow ?patch= prefill from the Bridge copy (URL-safe base64), never auto-applies
+try{ var m=location.hash.match(/patch=([^&]+)/); if(m){ $("patch").value = decodeURIComponent(escape(atob(m[1].replace(/-/g,"+").replace(/_/g,"/")))); history.replaceState(null,"",location.pathname); } }catch(e){}
+})();
+</script>
+</body>
+</html>
