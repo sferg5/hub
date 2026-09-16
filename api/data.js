@@ -61,9 +61,39 @@ function readBody(req) {
   });
 }
 
+
+// ---------------------------------------------------------------------------
+// Write guard. Reads stay public (the site and the Hub Watch poller need them);
+// writes are accepted only from the Hub's own pages.
+//
+// Browsers always send an Origin header on POST. We accept a POST only when that
+// Origin (or, failing that, the Referer) is this same deployment — production,
+// a Vercel preview, a custom domain, or localhost during development — or one of
+// the hosts listed in the optional HUB_ALLOWED_ORIGINS env var (comma-separated,
+// e.g. "hub.example.com,localhost:3000"). Everything else gets a 403.
+// ---------------------------------------------------------------------------
+function hostOf(urlish) {
+  if (!urlish) return "";
+  try { return new URL(urlish).host.toLowerCase(); } catch (e) { return ""; }
+}
+function writeAllowed(req) {
+  var self = String(req.headers.host || "").toLowerCase();
+  var extra = String(process.env.HUB_ALLOWED_ORIGINS || "")
+    .split(",").map(function (h) { return h.trim().toLowerCase(); }).filter(Boolean);
+  var from = hostOf(req.headers.origin) || hostOf(req.headers.referer);
+  if (!from) return false;                         // scripts/bots: no Origin, no write
+  if (from === self) return true;                  // same deployment
+  if (extra.indexOf(from) !== -1) return true;     // explicitly allowed
+  if (/^localhost(:\d+)?$/.test(from) && /^localhost(:\d+)?$/.test(self)) return true;
+  return false;
+}
+
 module.exports = async function handler(req, res) {
-  // Permissive CORS (site is same-origin; this also lets server-side pollers read it).
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // CORS: only this deployment's own pages may call the API from a browser.
+  // (Server-side readers such as the Hub Watch poller don't use CORS, so GET still works for them.)
+  var proto = String(req.headers["x-forwarded-proto"] || "https").split(",")[0];
+  res.setHeader("Access-Control-Allow-Origin", proto + "://" + String(req.headers.host || ""));
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Cache-Control", "no-store");
@@ -88,6 +118,10 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      if (!writeAllowed(req)) {
+        res.status(403).json({ error: "Writes are only accepted from the Hub's own pages." });
+        return;
+      }
       var body;
       try { body = await readBody(req); }
       catch (e) { res.status(413).json({ error: "Payload too large." }); return; }
