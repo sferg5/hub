@@ -1074,7 +1074,7 @@ function setupSheet(){
   const total=PRODUCTS.reduce((a,q)=>a+q.price,0);
   const render=()=>{const p=PRODUCTS[cur],allIn=added.every(Boolean);
     page.querySelectorAll('.tile').forEach((tl,i)=>{tl.classList.toggle('sel',i===cur);tl.classList.toggle('done',added[i])});
-    const selTile=page.querySelectorAll('.tile')[cur];if(selTile)selTile.scrollIntoView({behavior:'smooth',inline:'start',block:'nearest'});
+    const tiles=page.querySelector('.tiles'),selTile=tiles.children[cur];if(selTile)tiles.scrollTo({left:Math.max(0,selTile.offsetLeft-20),behavior:page.classList.contains('on')?'smooth':'auto'});
     page.querySelector('.nm').textContent=p.full;page.querySelector('.colour i').style.setProperty('--sw',p.hex);page.querySelector('.cn').textContent=p.colour;page.querySelector('.cm').textContent=p.more;
     const sz=page.querySelector('.sizes');sz.classList.toggle('small',p.sizes.length>8);
     sz.innerHTML=p.sizes.map(v=>`<button class="sz${p.out.includes(v)?' out':''}${chosen[cur]===v?' sel':''}" data-v="${v}">${v}</button>`).join('');
