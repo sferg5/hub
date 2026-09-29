@@ -142,7 +142,7 @@ body.panel-open .panel{transform:none}
 .row .nm b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .nm small{font-size:12px;color:var(--p-mute);text-transform:capitalize}
 .row.is-sel{border-left-color:var(--bc,var(--p-fg))}
-.bd{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bc);margin-right:6px;vertical-align:1px}
+.bdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bc);margin-right:6px;vertical-align:1px}
 .beats{display:flex;gap:5px;padding:10px 20px 8px 17px;border-top:1px solid var(--p-line-2);flex-wrap:wrap}
 .bf{border:1px solid var(--p-line);background:#fff;border-radius:4px;height:26px;padding:0 7px;font:400 11.5px/1 var(--sans);color:var(--p-fg);display:inline-flex;align-items:center;cursor:pointer}
 .bf small{margin-left:5px;color:var(--p-mute);font-size:11px}
@@ -193,6 +193,35 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
 .sw button[aria-pressed="true"]{outline:1px solid var(--p-fg);outline-offset:3px}
 .hint{font-size:13px;color:var(--p-mute);margin:-6px 0 16px}
 .none{padding:32px 0;color:var(--p-mute);text-align:center}
+
+/* section pool */
+.pool-h{padding:16px 0 4px;display:grid;gap:4px}
+.pool-h b{font:700 18px/1.2 var(--sans)}
+.pool-h small{font-size:13px;color:var(--p-mute)}
+.pool-f{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 4px}
+.pool h4{font:600 14px/1.2 var(--sans);margin:18px 0 10px;display:flex;justify-content:space-between}
+.pool h4 small{font-weight:400;color:var(--p-mute)}
+.pool-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pc{display:grid;gap:7px;text-align:left;padding:6px 6px 8px;border:1px solid var(--p-line);border-radius:4px;background:#fff;cursor:grab}
+.pc:hover{border-color:var(--p-fg)}
+.pc:active{cursor:grabbing}
+.pc .nm{display:grid;gap:3px;padding:0 2px}
+.pc .nm b{font:600 13px/1.2 var(--sans)}
+.pc .nm small{font-size:11.5px;color:var(--p-mute);text-transform:capitalize}
+.pc.added{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.pt{position:relative;aspect-ratio:16/10;background:#fff;border:1px solid var(--p-line-2);border-radius:2px;overflow:hidden;pointer-events:none}
+.pt .pf{position:absolute;background:#E9E6E1 center/cover no-repeat}
+.pt .pr{position:absolute;top:0;bottom:0;display:grid;padding:9% 6% 7%}
+.pt .pb{display:flex;flex-direction:column;gap:3px}
+.pt .pb i{display:block;height:3px;border-radius:1px;background:var(--ink)}
+.pt .pb i.h{height:var(--hh)}
+.pt .pb i.e{height:2px;width:22%;opacity:.5}
+.pt .pb i.b{height:2px;opacity:.55}
+.pt .pb i.c{height:7px;width:26%;border-radius:1px;margin-top:2px}
+.pt .pb.light i{background:#fff}
+.pt .pcd{position:absolute;width:24%;height:17%;background:#fff;border:1px solid #DDD;border-radius:2px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.p-list-h .btn[aria-pressed="true"]{background:var(--p-accent);color:var(--p-accent-fg)}
+#list.drop-end{box-shadow:inset 0 -2px 0 var(--red)}
 
 /* tabs */
 .tabs{display:flex;gap:24px;padding:0 20px;border-bottom:1px solid var(--p-line)}
@@ -283,7 +312,7 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
   <div class="p-list">
     <div class="p-list-h">
       <b>Story order</b>
-      <select id="add" aria-label="Add section" style="width:auto;height:36px;padding:0 32px 0 12px;font-size:13px;font-weight:600"></select>
+      <button class="btn" id="add" aria-pressed="false">+ Add section</button>
     </div>
     <div class="beats" id="beatfilter" role="group" aria-label="Filter by beat"></div>
     <div id="list" role="list"></div>
@@ -1021,7 +1050,7 @@ function renderBeatFilter() {
   $('beatfilter').replaceChildren(
     h('button', { class:'bf' + (beatFilter === 'all' ? ' on' : ''), onclick:() => { beatFilter = 'all'; renderList(); } }, 'All', h('small', {}, S.sections.length)),
     ...BEAT_ORDER.map(k => h('button', { class:'bf' + (beatFilter === k ? ' on' : ''), style:{ '--bc': BEATS[k].color }, onclick:() => { beatFilter = k; renderList(); } },
-      h('i', { class:'bd' }), BEATS[k].label, h('small', {}, counts[k] || 0))));
+      h('i', { class:'bdot' }), BEATS[k].label, h('small', {}, counts[k] || 0))));
 }
 function renderList() {
   renderBeatFilter();
@@ -1031,7 +1060,7 @@ function renderList() {
         onclick:e => { if (!e.target.closest('.acts')) select(s.id, true); } },
       h('span', { class:'grip', 'aria-hidden':'true' }, '⋮⋮'),
       mini(s),
-      h('div', { class:'nm' }, h('b', {}, `${i + 1}. ${s.name}`), h('small', {}, h('i', { class:'bd', style:{ '--bc': BEATS[s.beat].color } }), BEATS[s.beat].label, ' · ', i ? `${kind} · ${MOTIONS[s.motion][0]}` : kind)),
+      h('div', { class:'nm' }, h('b', {}, `${i + 1}. ${s.name}`), h('small', {}, h('i', { class:'bdot', style:{ '--bc': BEATS[s.beat].color } }), BEATS[s.beat].label, ' · ', i ? `${kind} · ${MOTIONS[s.motion][0]}` : kind)),
       h('div', { class:'acts' },
         h('button', { class:'ib', title:'Move up', 'aria-label':'Move up', disabled: i === 0 ? true : null, onclick:act(() => move(i, i - 1)) }, '↑'),
         h('button', { class:'ib', title:'Move down', 'aria-label':'Move down', disabled: i === S.sections.length - 1 ? true : null, onclick:act(() => move(i, i + 1)) }, '↓'),
@@ -1046,6 +1075,8 @@ function renderList() {
     row.addEventListener('dragleave', () => row.classList.remove('drop-above', 'drop-below'));
     row.addEventListener('drop', e => {
       e.preventDefault(); const below = row.classList.contains('drop-below'); row.classList.remove('drop-above', 'drop-below');
+      const key = e.dataTransfer.getData(SEC);
+      if (key) { insertSection(fromPool(key), i + (below ? 1 : 0)); return; }
       if (dragFrom < 0) return; let to = i + (below ? 1 : 0); if (dragFrom < to) to--;
       if (to !== dragFrom) { snapshot(); move(dragFrom, to); render(); }
       dragFrom = -1;
@@ -1055,9 +1086,105 @@ function renderList() {
 }
 function move(from, to) { const [s] = S.sections.splice(from, 1); S.sections.splice(to, 0, s); }
 function select(id, scroll) {
-  sel = id; renderList(); renderInspector();
+  sel = id; if (poolOpen) setPool(false); renderList(); renderInspector();
   if (scroll) goTo(idx(id));
 }
+
+/* ---------- section pool ----------
+   Ready-made sections to pick from: the City Run set (with its photos) and
+   blank layouts. Click to add after the selected section, or drag a card
+   into the story order. */
+let poolOpen = false, poolBeat = 'all';
+const SEC = 'application/x-story-section';
+const POOL = [
+  ...PRESETS.pool().map((s, k) => ({ key:'cr' + k, src:'City Run', s })),
+  ...Object.entries(STARTERS).map(([k, v]) => ({ key:'st-' + k, src:'Blank layouts', s:make(v.o) })),
+];
+const poolItem = key => POOL.find(p => p.key === key);
+function fromPool(key) { const c = clone(poolItem(key).s); c.id = uid(); return c; }
+function insertSection(sec, at) {
+  snapshot(); S.sections.splice(at, 0, sec); sel = sec.id;
+  beatFilter = 'all'; render(); goTo(at);
+}
+
+/* A drawing of the composition: frames where the media sits (with the real
+   image when there is one), bars for the copy, a box for the product card. */
+function poolThumb(s) {
+  const box = h('div', { class:'pt' });
+  const sw = W, sh = H; W = 1600; H = 1000; // measure at a desktop size, then scale
+  let rs; try { rs = rectsFor(s); } finally { W = sw; H = sh; }
+  (rs || []).forEach((r, k) => {
+    if (r.o < .5) return;
+    const a = asset(s.media.items[k]);
+    box.append(h('i', { class:'pf', style:{ left:r.x / 16 + '%', top:r.y / 10 + '%', width:r.w / 16 + '%', height:r.h / 10 + '%',
+      backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null } }));
+  });
+  const L = s.media.kind === 'none' ? 'none' : s.media.layout, t = s.text;
+  const region = h('div', { class:'pr', style:{ left: L === 'left' ? '50%' : '0', right: L === 'right' ? '50%' : '0' } });
+  const align = t.align === 'auto' ? t.x : t.align;
+  const bw = { narrow:52, medium:70, wide:92 }[t.width];
+  const hh = { s:3, m:4, l:5, xl:7 }[t.size], hl = { s:[70,40], m:[80,50], l:[90,55], xl:[100,60] }[t.size];
+  const block = h('div', { class:'pb' + (inkOf(s) === 'light' ? ' light' : ''), style:{ width:bw + '%', '--hh':hh + 'px',
+      alignItems: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start',
+      justifySelf: t.x === 'center' ? 'center' : t.x === 'right' ? 'end' : 'start',
+      alignSelf: t.y === 'top' ? 'start' : t.y === 'bottom' ? 'end' : 'center' } },
+    s.showEyebrow && s.eyebrow && h('i', { class:'e' }),
+    h('i', { class:'h', style:{ width:hl[0] + '%' } }), h('i', { class:'h', style:{ width:hl[1] + '%' } }),
+    s.body && h('i', { class:'b', style:{ width:'62%' } }),
+    s.stats.on && h('i', { class:'b', style:{ width:'48%', height:'4px' } }),
+    s.cta.show && h('i', { class:'c' }));
+  region.append(block); box.append(region);
+  if (s.card.on) box.append(h('i', { class:'pcd', style:{
+    left: { left:'6%', center:'38%', right:'70%' }[s.card.x], top: { top:'10%', middle:'42%', bottom:'74%' }[s.card.y] } }));
+  return box;
+}
+function renderPool() {
+  const keep = $insp.scrollTop;
+  const counts = {}; POOL.forEach(p => counts[p.s.beat] = (counts[p.s.beat] || 0) + 1);
+  const filter = h('div', { class:'pool-f' },
+    h('button', { class:'bf' + (poolBeat === 'all' ? ' on' : ''), onclick:() => { poolBeat = 'all'; renderPool(); } }, 'All', h('small', {}, POOL.length)),
+    ...BEAT_ORDER.map(k => h('button', { class:'bf' + (poolBeat === k ? ' on' : ''), style:{ '--bc':BEATS[k].color }, onclick:() => { poolBeat = k; renderPool(); } },
+      h('i', { class:'bdot' }), BEATS[k].label, h('small', {}, counts[k] || 0))));
+  const after = cur();
+  const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a section'),
+      h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the story order above.` : 'Click to add, or drag a card into the story order above.')),
+    filter];
+  ['City Run', 'Blank layouts'].forEach(src => {
+    const items = POOL.filter(p => p.src === src && (poolBeat === 'all' || p.s.beat === poolBeat));
+    if (!items.length) return;
+    kids.push(h('h4', {}, src, h('small', {}, items.length)));
+    kids.push(h('div', { class:'pool-grid' }, items.map(p => {
+      const s = p.s, kind = s.media.kind === 'none' ? 'type only' : `${s.media.kind} · ${s.media.layout}`;
+      const card = h('div', { class:'pc', role:'button', tabindex:'0', draggable:'true', title:'Click to add, or drag into the story order',
+          onclick:() => { const at = sel ? idx(sel) + 1 : S.sections.length; insertSection(fromPool(p.key), at); } },
+        poolThumb(s),
+        h('div', { class:'nm' }, h('b', {}, s.name),
+          h('small', {}, h('i', { class:'bdot', style:{ '--bc':BEATS[s.beat].color } }), BEATS[s.beat].label, ' · ', kind)));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+      card.addEventListener('dragstart', e => { e.dataTransfer.setData(SEC, p.key); e.dataTransfer.setData('text/plain', s.name); e.dataTransfer.effectAllowed = 'copy'; });
+      return card;
+    })));
+  });
+  $insp.replaceChildren(h('div', { class:'pool' }, ...kids));
+  $insp.scrollTop = keep;
+}
+function setPool(open) {
+  poolOpen = open;
+  $('add').setAttribute('aria-pressed', String(open));
+  $('add').textContent = open ? 'Done adding' : '+ Add section';
+  $insp.scrollTop = 0; renderInspector();
+}
+// dropping a pool card past the last row appends it
+$list.addEventListener('dragover', e => {
+  if (!e.dataTransfer.types.includes(SEC) || e.target.closest('.row')) return;
+  e.preventDefault(); $list.classList.add('drop-end');
+});
+$list.addEventListener('dragleave', e => { if (!$list.contains(e.relatedTarget)) $list.classList.remove('drop-end'); });
+$list.addEventListener('drop', e => {
+  $list.classList.remove('drop-end');
+  const key = e.dataTransfer.getData(SEC); if (!key || e.target.closest('.row')) return;
+  e.preventDefault(); insertSection(fromPool(key), S.sections.length);
+});
 
 /* ---------- inspector ---------- */
 function slotsFor(s) {
@@ -1080,6 +1207,7 @@ function slotsFor(s) {
 }
 
 function renderInspector() {
+  if (poolOpen) return renderPool();
   const keepScroll = $insp.scrollTop;
   const s = cur();
   if (!s) { $insp.replaceChildren(h('p', { class:'none' }, 'Select or add a section.')); return; }
@@ -1170,13 +1298,7 @@ function renderGlobals() {
 }
 function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); if (!$('view-library').hidden) renderLibrary(); save(); }
 
-$('add').replaceChildren(h('option', { value:'' }, '+ Add section'),
-  ...Object.entries(STARTERS).map(([k, v]) => h('option', { value:k }, v.label)));
-$('add').addEventListener('change', e => {
-  const k = e.target.value; e.target.value = ''; if (!k) return;
-  snapshot(); const s = make(STARTERS[k].o), at = sel ? idx(sel) + 1 : S.sections.length;
-  S.sections.splice(at, 0, s); sel = s.id; render(); goTo(at);
-});
+$('add').addEventListener('click', () => setPool(!poolOpen));
 $('preset').addEventListener('change', e => {
   const k = e.target.value; e.target.value = ''; if (!k) return;
   snapshot(); S.sections = PRESETS[k](); sel = S.sections[0].id; render(); scrollTo(0, 0);
