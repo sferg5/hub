@@ -39,7 +39,7 @@ body.panel-open .stage{right:var(--panel-w)}
 
 .frames,.texts{position:absolute;inset:0}
 .texts{pointer-events:none}
-.frame{position:absolute;left:0;top:0;overflow:hidden;opacity:0;will-change:transform,width,height,opacity}
+.frame{position:absolute;left:0;top:0;overflow:hidden;opacity:0;will-change:transform,width,height,opacity;contain:layout paint}
 .lay{position:absolute;inset:0;visibility:hidden}
 .lz{position:absolute;inset:0;transform-origin:50% 50%}
 .lz video,.lz img{width:100%;height:100%;object-fit:cover;display:block}
@@ -64,7 +64,6 @@ body.panel-open .stage{right:var(--panel-w)}
 .tr[data-y="middle"] .copy{align-self:center}
 .tr[data-y="bottom"] .copy{align-self:end}
 .copy{pointer-events:auto;display:grid;gap:clamp(12px,1.8cqw,22px);max-width:min(100%,var(--cw))}
-.copy > *{will-change:transform,opacity}
 .copy.w-narrow{--cw:440px}.copy.w-medium{--cw:720px}.copy.w-wide{--cw:1120px}
 .copy[data-align="left"]{text-align:left;justify-items:start}
 .copy[data-align="center"]{text-align:center;justify-items:center}
@@ -73,7 +72,7 @@ body.panel-open .stage{right:var(--panel-w)}
 .hl{font-weight:700;line-height:.94;letter-spacing:-.025em;text-wrap:balance}
 .hl .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .12em;margin:0 -.03em -.12em}
 .hl .c{display:inline-block}
-.hl .w > span{display:inline-block;will-change:transform}
+.hl .w > span{display:inline-block}
 .s-s .hl{font-size:clamp(28px,3.8cqw,56px)}
 .s-m .hl{font-size:clamp(34px,5.6cqw,84px)}
 .s-l .hl{font-size:clamp(40px,7.6cqw,116px)}
@@ -88,11 +87,36 @@ body.panel-open .stage{right:var(--panel-w)}
 .stats small{font:400 11px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
 .cta{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 24px;border-radius:4px;background:var(--ink);color:var(--white);font:600 14px/1 var(--sans);text-decoration:none;margin-top:6px}
 
+/* shoppable tiles: the frame becomes a product card that still glides */
+.lay.shop{background:#fff}
+.lay.shop .lz{bottom:64px;overflow:hidden}
+.sl{position:absolute;left:0;right:0;bottom:0;height:64px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:8px 2px 4px;background:#fff;color:var(--ink)}
+.sl b{display:block;font:600 14px/1.25 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl small{font:400 13px/1.3 var(--sans);color:var(--mute)}
+.qa{width:32px;height:32px;border-radius:50%;border:1px solid var(--ink);background:#fff;color:var(--ink);font-size:17px;line-height:1;flex:none}
+.qa:hover{background:var(--ink);color:#fff}
+.tag{position:absolute;top:10px;left:10px;z-index:2;background:#fff;color:var(--ink);font:600 11px/1 var(--sans);padding:5px 7px;border-radius:2px}
+/* hotspots pinned to the image; they ride its camera move */
+.spots{position:absolute;inset:0}
+.spot{position:absolute;display:flex;align-items:center;gap:8px}
+.spot.flip{flex-direction:row-reverse}
+.spot i{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.35),0 2px 8px rgba(0,0,0,.25);flex:none}
+.spot span{background:#fff;color:var(--ink);border-radius:2px;padding:6px 9px;font:600 12px/1.25 var(--sans);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.spot span small{display:block;font-weight:400;color:var(--mute);font-size:11.5px}
+/* numbered feature list */
+.feats{display:grid;gap:12px;margin-top:4px;width:min(100%,44ch);text-align:left}
+.feats div{display:grid;grid-template-columns:30px 1fr;gap:3px 10px;padding-top:12px;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+.feats em{font:400 11px/1.5 var(--mono);letter-spacing:.08em;font-style:normal;color:var(--mute);grid-row:span 2}
+.feats b{font:600 15px/1.25 var(--sans)}
+.feats small{font:400 14px/1.4 var(--sans);color:var(--mute)}
+.toast{position:absolute;left:50%;bottom:24px;z-index:30;transform:translate(-50%,16px);opacity:0;background:var(--ink);color:#fff;padding:12px 18px;border-radius:4px;font:600 13px/1 var(--sans);pointer-events:none;transition:opacity .25s,transform .35s var(--ease-out)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
 /* product card */
 .cw{position:absolute;inset:0;display:grid;padding:var(--top) var(--g) var(--g);visibility:hidden}
 .cw[data-x="left"] .card{justify-self:start}.cw[data-x="center"] .card{justify-self:center}.cw[data-x="right"] .card{justify-self:end}
 .cw[data-y="top"] .card{align-self:start}.cw[data-y="middle"] .card{align-self:center}.cw[data-y="bottom"] .card{align-self:end}
-.card{pointer-events:auto;width:min(290px,80%);background:var(--white);color:var(--ink);border:1px solid #E6E6E6;border-radius:4px;padding:10px;display:grid;grid-template-columns:60px 1fr 34px;gap:12px;align-items:center;box-shadow:0 12px 32px rgba(0,0,0,.08);will-change:transform,opacity}
+.card{pointer-events:auto;width:min(290px,80%);background:var(--white);color:var(--ink);border:1px solid #E6E6E6;border-radius:4px;padding:10px;display:grid;grid-template-columns:60px 1fr 34px;gap:12px;align-items:center;box-shadow:0 12px 32px rgba(0,0,0,.08)}
 .card .th{width:60px;height:72px;border-radius:2px;background:var(--ph);background-image:repeating-linear-gradient(135deg,var(--ph-line) 0 1px,transparent 1px 10px)}
 .card p{font:600 14px/1.2 var(--sans)}
 .card small{display:block;font:400 12px/1.3 var(--sans);color:var(--mute);margin-top:4px}
@@ -212,6 +236,8 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
 .pt{position:relative;aspect-ratio:16/10;background:#fff;border:1px solid var(--p-line-2);border-radius:2px;overflow:hidden;pointer-events:none}
 .pt .pf{position:absolute;background:#E9E6E1 center/cover no-repeat}
 .pt .pr{position:absolute;top:0;bottom:0;display:grid;padding:9% 6% 7%}
+.pt .pf.shop{box-shadow:inset 0 -7px 0 #fff, inset 0 -8px 0 #DDD}
+.pt .pdot{position:absolute;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.35)}
 .pt .pb{display:flex;flex-direction:column;gap:3px}
 .pt .pb i{display:block;height:3px;border-radius:1px;background:var(--ink)}
 .pt .pb i.h{height:var(--hh)}
@@ -299,6 +325,9 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
       <div class="gb">
         <div class="f"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
         <div class="f"><span class="lbl">Section name on stage</span><div class="seg" id="showname" role="group" aria-label="Section name on stage"></div></div>
+        <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
+        <p class="hint">Higher means less scrolling for each section.</p>
+        <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
         <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
@@ -387,6 +416,9 @@ const BASE = () => ({
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
   stats: { on: false, items: [{ v: '', l: '' }, { v: '', l: '' }, { v: '', l: '' }] },
+  shop: { on: false, items: [0, 1, 2, 3].map(() => ({ name: 'Product name', price: '$XX', tag: '' })) },
+  spots: { on: false, items: [{ x: 30, y: 35, label: 'Feature', sub: '' }, { x: 62, y: 55, label: 'Feature', sub: '' }, { x: 40, y: 72, label: '', sub: '' }] },
+  feats: { on: false, items: [{ t: 'Feature', d: 'One line on why it matters.' }, { t: 'Feature', d: 'One line on why it matters.' }, { t: '', d: '' }] },
   card: { on: false, x: 'right', y: 'bottom', name: 'Product name', price: '$XX' },
 });
 const make = o => merge(BASE(), clone(o));
@@ -505,6 +537,8 @@ const normalize = d => ({
   showName: d.showName === true,
   trans: clamp(+d.trans || 1, .5, 2),
   holdAmt: clamp(+d.holdAmt || 1, .4, 2),
+  pace: clamp(+d.pace || 1.5, .6, 2.5),
+  smooth: d.smooth !== false,
   sections: (d.sections || []).map(s => {
     const x = merge(BASE(), s);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
@@ -517,7 +551,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -570,7 +604,7 @@ function rectsFor(s) {
     else { const th = (I.h - gap) / 2, tw = (rw - gap) / 2;
       tiles.push({ x:rx, y:I.y, w:tw, h:th }, { x:rx + tw + gap, y:I.y, w:tw, h:th }, { x:rx, y:I.y + th + gap, w:rw, h:th }); }
   } else {
-    const cols = narrow ? Math.min(2, n) : n, rows = Math.ceil(n / cols);
+    const cols = m.arrange === 'grid' || narrow ? Math.min(2, n) : n, rows = Math.ceil(n / cols);
     const tw = (I.w - gap * (cols - 1)) / cols, th = (I.h - gap * (rows - 1)) / rows;
     for (let k = 0; k < n; k++) {
       const t = { x:I.x + (k % cols) * (tw + gap), y:I.y + Math.floor(k / cols) * (th + gap), w:tw, h:th };
@@ -611,7 +645,7 @@ function asset(id) {
 function assetEl(a, play) {
   if (a.type === 'video') {
     const v = h('video', { src: play ? a.src : a.src + '#t=0.5', loop:true, playsinline:true, preload: play ? 'auto' : 'metadata' });
-    v.muted = true; if (play) v.autoplay = true;
+    v.muted = true; if (play) v.dataset.stage = '1'; // played/paused by update() as its section comes and goes
     if (a.id.startsWith('b:')) v.addEventListener('error', () => { if (!missing.has(a.id)) { missing.add(a.id); renderLibrary(); } });
     return v;
   }
@@ -748,6 +782,11 @@ function mediaInner(s, k) {
   const where = m.layout === 'full' ? 'full bleed' : m.layout === 'inset' ? 'inset ' + m.inset.toUpperCase() : 'half ' + m.layout;
   return h('div', { class:'ph' + (m.kind === 'video' ? ' ph--video' : '') }, h('span', {}, `${m.kind === 'video' ? '▶ ' : ''}${m.kind} · ${where}`));
 }
+// the product card shows the section's own image when it has one
+function cardThumb(s) {
+  const a = asset(s.media.items[0]);
+  return a && a.type === 'image' ? { backgroundImage:`url("${a.src}")`, backgroundSize:'cover', backgroundPosition:'center' } : null;
+}
 function textLayer(s, i) {
   const t = s.text, align = t.align === 'auto' ? t.x : t.align;
   const layout = s.media.kind === 'none' ? 'none' : s.media.layout;
@@ -766,47 +805,66 @@ function textLayer(s, i) {
     eb, hl,
     P(s.quote.on && s.quote.attr ? h('p', { class:'attr' }, '— ' + s.quote.attr) : null),
     P(s.body ? h('p', { class:'bd' }, s.body) : null),
+    P(s.feats.on ? h('div', { class:'feats' }, s.feats.items.filter(x => x.t).map((x, k) => h('div', {}, h('em', {}, String(k + 1).padStart(2, '0')), h('b', {}, x.t), x.d && h('small', {}, x.d)))) : null),
     P(s.stats.on ? h('div', { class:'stats' }, s.stats.items.filter(x => x.v || x.l).map(x => h('div', {}, h('b', {}, x.v), h('small', {}, x.l)))) : null),
     P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => e.preventDefault() }, s.cta.label, ' →') : null),
   );
   const el = h('div', { class:'tr', 'data-x':t.x, 'data-y':t.y, 'data-layout':layout, 'data-ink': inkOf(s) }, copy);
   let card = null;
   if (s.card.on) card = h('div', { class:'cw', 'data-x':s.card.x, 'data-y':s.card.y },
-    h('div', { class:'card' }, h('div', { class:'th' }), h('div', {}, h('p', {}, s.card.name), h('small', {}, s.card.price)),
-      h('button', { class:'add', 'aria-label':'Add to bag' }, '+')));
+    h('div', { class:'card' }, h('div', { class:'th', style: cardThumb(s) }), h('div', {}, h('p', {}, s.card.name), h('small', {}, s.card.price)),
+      h('button', { class:'add', 'aria-label':'Add to bag', onclick:e => addToBag(e, s.card.name) }, '+')));
   return { s, el, copy, eb, words, letters, parts, card, ty:0, ty2:0, sc:1 };
 }
 
-let frames = [], layers = [], starts = [], holds = [], TR = 0, curI = 0;
+let frames = [], layers = [], starts = [], holds = [], TR = 0, UNIT = 1, curI = 0, shownI = -1;
 function renderStage() {
   W = $stage.clientWidth; H = $stage.clientHeight;
   const fw = h('div', { class:'frames' }), tw = h('div', { class:'texts' });
   frames = Array.from({ length:FR }, () => fw.appendChild(h('div', { class:'frame' })));
   layers = S.sections.map((s, i) => {
-    const n = count(s), single = s.media.kind !== 'gallery';
+    const n = count(s), single = s.media.kind !== 'gallery', spots = [];
     const media = frames.map((f, k) => {
       if (k >= n) return null;
-      const lay = h('div', { class:'lay' }, h('div', { class:'lz' }, mediaInner(s, k)));
-      if (single && (s.media.layout === 'full' || s.media.layout === 'inset')) { const sb = scrimFor(s); if (sb) lay.append(h('div', { class:'scrim', style:{ background:sb } })); }
+      const lz = h('div', { class:'lz' }, mediaInner(s, k));
+      const lay = h('div', { class:'lay' + (s.shop.on ? ' shop' : '') }, lz);
+      if (single && !s.shop.on && (s.media.layout === 'full' || s.media.layout === 'inset')) { const sb = scrimFor(s); if (sb) lay.append(h('div', { class:'scrim', style:{ background:sb } })); }
+      if (s.shop.on) {
+        const it = s.shop.items[k] || {};
+        if (it.tag) lay.append(h('span', { class:'tag' }, it.tag));
+        lay.append(h('div', { class:'sl' }, h('div', {}, h('b', {}, it.name || 'Product'), h('small', {}, it.price || '')),
+          h('button', { class:'qa', 'aria-label':`Add ${it.name || 'product'} to bag`, onclick:e => addToBag(e, it.name) }, '+')));
+      }
+      if (s.spots.on && k === 0) {
+        const wrap = h('div', { class:'spots' });
+        s.spots.items.forEach(sp => {
+          if (!sp.label) return;
+          const el = h('div', { class:'spot' + (sp.x > 60 ? ' flip' : ''), style:{ left:sp.x + '%', top:sp.y + '%' } },
+            h('i'), h('span', {}, sp.label, sp.sub && h('small', {}, sp.sub)));
+          spots.push(el); wrap.append(el);
+        });
+        lz.append(wrap);
+      }
       return f.appendChild(lay);
     });
     const T = textLayer(s, i);
     tw.append(T.el); if (T.card) tw.append(T.card);
-    return { media, ...T };
+    return { media, spots, ...T };
   });
   $stage.replaceChildren(fw, tw,
+    h('div', { class:'toast', id:'toast', role:'status' }),
     h('div', { class:'counter', id:'counter' }),
     h('nav', { class:'dots', 'aria-label':'Sections' }, S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
-  measure(); update();
+  shownI = -1; measure(); ys = scrollY; update();
 }
 function measure() {
   W = $stage.clientWidth; H = $stage.clientHeight;
-  const vh = innerHeight; TR = vh * S.trans;
+  const vh = innerHeight; UNIT = vh / S.pace; TR = UNIT * S.trans;
   starts = []; holds = []; let y = 0;
   $spacer.replaceChildren();
   S.sections.forEach((s, i) => {
-    starts.push(y); holds.push(s.dwell * vh);
+    starts.push(y); holds.push(s.dwell * UNIT);
     $spacer.append(h('div', { class:'snap', style:{ top: y + 'px' } }));
     y += holds[i] + TR;
   });
@@ -828,10 +886,31 @@ const amt = () => S.holdAmt;
 const glide = t => .82 * easeIO(t) + .18 * t;
 
 function kenBurns(s, u) {
+  const r = kenBurnsRaw(s, u);
+  // hotspots and product cards sit on the image, so keep its move gentle
+  if (s.spots.on || s.shop.on) { r.sc = 1 + (r.sc - 1) * .35; r.x *= .35; r.y *= .35; }
+  return r;
+}
+function kenBurnsRaw(s, u) {
   const k = amt(), v = u + S.trans; // v >= 0 from the moment a section starts arriving
   if (s.hold === 'pan') return { sc:1.14, x:clamp(-5 + v * 2.6 * k, -7, 7), y:0 };
   if (s.hold === 'drift') return { sc:1.12, x:0, y:clamp(4 - v * 2.2 * k, -6, 6) };
   return { sc:Math.min(1.02 + v * .035 * k, 1.3), x:0, y:0 };
+}
+// hotspots pop in one after another while the section is held
+function holdSpots(L, u) {
+  L.spots.forEach((el, k) => {
+    const q = easeOut(clamp((u + .25 - k * .28) / .3));
+    const base = el.classList.contains('flip') ? 'translate(calc(-100% + 7px),-50%)' : 'translate(-7px,-50%)';
+    el.style.transform = `${base} scale(${.6 + .4 * q})`; el.style.opacity = q;
+  });
+}
+let toastT = 0;
+function addToBag(e, name) {
+  e.stopPropagation();
+  const t = $('toast'); if (!t) return;
+  t.textContent = `Added to bag · ${name || 'Product'}`; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600);
 }
 const kbStr = (m, extraY = 0, extraS = 0) => `translate(${m.x}%,${m.y + extraY}%) scale(${m.sc + extraS})`;
 function driftRects(rs, s, u) {
@@ -895,19 +974,24 @@ function textIn(L, t, motion) {
 
 function update() {
   const N = layers.length; if (!N) return;
-  const y = scrollY, vh = innerHeight; let i = 0;
+  const y = ys; let i = 0;
   while (i < N - 1 && y >= starts[i + 1]) i++;
   const local = y - starts[i], hold = holds[i];
   const t = i < N - 1 ? clamp((local - hold) / TR) : 0;
   const j = t > 0 ? i + 1 : -1;
   const si = S.sections[i], sj = j >= 0 ? S.sections[j] : null;
   const motion = sj ? sj.motion : 'glide';
-  const ui = local / vh, uj = sj ? (y - starts[j]) / vh : 0;
+  const ui = local / UNIT, uj = sj ? (y - starts[j]) / UNIT : 0;
 
   layers.forEach((L, k) => {
-    const vis = k === i || k === j ? 'visible' : 'hidden';
-    L.el.style.visibility = vis; if (L.card) L.card.style.visibility = vis;
-    L.media.forEach(m => { if (m) { m.style.visibility = vis; m.style.opacity = ''; m.style.clipPath = ''; } });
+    const on = k === i || k === j;
+    if (L.on !== on) {
+      L.on = on; const vis = on ? 'visible' : 'hidden';
+      L.el.style.visibility = vis; if (L.card) L.card.style.visibility = vis;
+      L.media.forEach(m => { if (!m) return; m.style.visibility = vis;
+        const v = m.querySelector('video[data-stage]'); if (v) on ? v.play().catch(() => {}) : v.pause(); });
+    }
+    if (on) L.media.forEach(m => { if (m) { m.style.opacity = ''; m.style.clipPath = ''; } });
   });
 
   // frames: glide from composition i to composition j, each already drifting
@@ -941,20 +1025,28 @@ function update() {
     });
   }
 
-  holdType(layers[i], si, ui); textOut(layers[i], t);
-  if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); }
+  holdType(layers[i], si, ui); textOut(layers[i], t); holdSpots(layers[i], ui);
+  if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); holdSpots(layers[j], uj); }
   setCurrent(t > .5 ? i + 1 : i);
 }
 function setCurrent(i) {
-  curI = i;
+  curI = i; if (i === shownI) return; shownI = i;
   const c = document.getElementById('counter'), s = S.sections[i];
   if (c && s) c.textContent = `${String(i + 1).padStart(2, '0')} / ${String(S.sections.length).padStart(2, '0')}` + (S.showName ? ` · ${s.name}` : '');
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
   $list.querySelectorAll('.row').forEach((r, k) => r.classList.toggle('is-cur', k === i));
 }
 const goTo = i => scrollTo({ top: starts[i] || 0, behavior:'smooth' });
-let raf = 0;
-addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); }, { passive:true });
+let raf = 0, ys = scrollY, lastT = 0;
+function tick(now) {
+  const target = scrollY, dt = lastT ? Math.min(64, now - lastT) : 16.7; lastT = now;
+  ys = S.smooth ? ys + (target - ys) * (1 - Math.pow(.72, dt / 16.7)) : target;
+  if (Math.abs(target - ys) < .5) ys = target;
+  update();
+  raf = ys !== target ? requestAnimationFrame(tick) : 0;
+  if (!raf) lastT = 0;
+}
+addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive:true });
 addEventListener('resize', () => { measure(); update(); });
 /* drag from the Library (or Finder) straight onto a frame on the stage */
 let dropFrame = -1;
@@ -1096,7 +1188,53 @@ function select(id, scroll) {
    into the story order. */
 let poolOpen = false, poolBeat = 'all';
 const SEC = 'application/x-story-section';
+/* Shoppable sections, built from the product shots in the Library. */
+const SHOP_POOL = () => {
+  const im = n => 'b:story-library/cityrun-' + String(n).padStart(2, '0') + '.jpg';
+  const P = (name, tag = '') => ({ name, price:'$XX', tag });
+  return [
+    make({ beat:'close', name:'Product grid · 4', hold:'drift', motion:'rise', overlay:0,
+      media:{ kind:'gallery', layout:'full', count:4, arrange:'row', items:[im(3), im(4), im(6), im(9)] },
+      shop:{ on:true, items:[P('Fleece Jacket', 'New'), P('Gradient Tank'), P('Wind Jacket', 'New'), P('Mesh Tank')] },
+      text:{ x:'left', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'Shop the run kit.' }),
+    make({ beat:'close', name:'Product grid · 3', hold:'drift', overlay:0,
+      media:{ kind:'gallery', layout:'full', count:3, arrange:'stagger', items:[im(7), im(8), im(5)] },
+      shop:{ on:true, items:[P('Layered Tank', 'New'), P('Run Short'), P('Gradient Short')] },
+      text:{ x:'center', y:'top', size:'m', width:'wide', anim:'rise' }, headline:'Built for the long way home.' }),
+    make({ beat:'proof', name:'Split product grid', hold:'drift', overlay:0,
+      media:{ kind:'gallery', layout:'right', count:4, arrange:'grid', items:[im(3), im(6), im(4), im(9)] },
+      shop:{ on:true, items:[P('Fleece Jacket'), P('Wind Jacket', 'New'), P('Gradient Tank'), P('Mesh Tank')] },
+      text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'cascade' },
+      headline:'Layer for the first mile.', body:'Start warm, peel back as you go.', cta:{ show:true, label:'Shop layers' } }),
+    make({ beat:'close', name:'Look + products', hold:'drift', overlay:0,
+      media:{ kind:'gallery', layout:'full', count:3, arrange:'mosaic', items:[im(25), im(9), im(5)] },
+      shop:{ on:true, items:[P('The full look'), P('Mesh Tank'), P('Gradient Short', 'New')] },
+      text:{ x:'left', y:'top', size:'s', anim:'wipe' }, headline:'Shop the look.' }),
+    make({ beat:'proof', name:'Shop the look · hotspots', hold:'push', overlay:30,
+      media:{ kind:'image', layout:'full', items:[im(23)] },
+      spots:{ on:true, items:[{ x:52, y:30, label:'Run Bra', sub:'$XX' }, { x:47, y:62, label:'Run Short', sub:'$XX' }, { x:0, y:0, label:'', sub:'' }] },
+      text:{ x:'left', y:'bottom', size:'l', width:'narrow', ink:'light', anim:'rise' },
+      headline:'Shop the look.', cta:{ show:true, label:'Shop all' } }),
+    make({ beat:'proof', name:'New product · hotspots', hold:'drift', overlay:0,
+      media:{ kind:'image', layout:'inset', mx:'right', inset:'l', items:[im(10)] },
+      spots:{ on:true, items:[{ x:34, y:30, label:'Hidden pocket', sub:'Fits a phone' }, { x:68, y:52, label:'Light, quick-dry', sub:'Placeholder' }, { x:42, y:74, label:'Split hem', sub:'Full stride' }] },
+      showEyebrow:true, eyebrow:'New', text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'fade' },
+      headline:'The new run short.', body:'Placeholder line about the product.', cta:{ show:true, label:'Shop now' } }),
+    make({ beat:'proof', name:'New product · features', hold:'pan',
+      media:{ kind:'image', layout:'left', items:[im(20)] },
+      showEyebrow:true, eyebrow:'New', text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'cascade' },
+      headline:'Meet the Mesh Tank.',
+      feats:{ on:true, items:[{ t:'Open-knit mesh', d:'Placeholder: where it breathes, and why.' }, { t:'Sweat-wicking', d:'Placeholder: how it stays light.' }, { t:'Reflective details', d:'Placeholder: seen at dawn and dusk.' }] },
+      cta:{ show:true, label:'Shop the Mesh Tank' } }),
+    make({ beat:'proof', name:'Product spotlight', hold:'drift', overlay:0,
+      media:{ kind:'image', layout:'inset', mx:'center', inset:'m', items:[im(9)] },
+      spots:{ on:true, items:[{ x:30, y:24, label:'Wide straps', sub:'Placeholder' }, { x:72, y:48, label:'Mesh panel', sub:'Placeholder' }, { x:36, y:78, label:'Longer hem', sub:'Placeholder' }] },
+      card:{ on:true, x:'right', y:'bottom', name:'Mesh Tank', price:'$XX' },
+      text:{ x:'left', y:'top', size:'s', width:'narrow', anim:'letters' }, headline:'Every detail, on purpose.' }),
+  ];
+};
 const POOL = [
+  ...SHOP_POOL().map((s, k) => ({ key:'sh' + k, src:'Shop', s })),
   ...PRESETS.pool().map((s, k) => ({ key:'cr' + k, src:'City Run', s })),
   ...Object.entries(STARTERS).map(([k, v]) => ({ key:'st-' + k, src:'Blank layouts', s:make(v.o) })),
 ];
@@ -1116,8 +1254,10 @@ function poolThumb(s) {
   (rs || []).forEach((r, k) => {
     if (r.o < .5) return;
     const a = asset(s.media.items[k]);
-    box.append(h('i', { class:'pf', style:{ left:r.x / 16 + '%', top:r.y / 10 + '%', width:r.w / 16 + '%', height:r.h / 10 + '%',
-      backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null } }));
+    const f = h('i', { class:'pf' + (s.shop.on ? ' shop' : ''), style:{ left:r.x / 16 + '%', top:r.y / 10 + '%', width:r.w / 16 + '%', height:r.h / 10 + '%',
+      backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null } });
+    if (s.spots.on && k === 0) s.spots.items.filter(sp => sp.label).forEach(sp => f.append(h('b', { class:'pdot', style:{ left:sp.x + '%', top:sp.y + '%' } })));
+    box.append(f);
   });
   const L = s.media.kind === 'none' ? 'none' : s.media.layout, t = s.text;
   const region = h('div', { class:'pr', style:{ left: L === 'left' ? '50%' : '0', right: L === 'right' ? '50%' : '0' } });
@@ -1149,7 +1289,7 @@ function renderPool() {
   const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a section'),
       h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the story order above.` : 'Click to add, or drag a card into the story order above.')),
     filter];
-  ['City Run', 'Blank layouts'].forEach(src => {
+  ['Shop', 'City Run', 'Blank layouts'].forEach(src => {
     const items = POOL.filter(p => p.src === src && (poolBeat === 'all' || p.s.beat === poolBeat));
     if (!items.length) return;
     kids.push(h('h4', {}, src, h('small', {}, items.length)));
@@ -1233,7 +1373,7 @@ function renderInspector() {
       field('Inset side', seg([['left','L'],['center','C'],['right','R']], m.mx, up(v => m.mx = v)))));
     if (m.kind === 'gallery') mg.append(h('div', { class:'f2' },
       field('Tiles', seg([[2,'2'],[3,'3'],[4,'4']], m.count, up(v => m.count = v))),
-      field('Arrangement', seg([['row','Row'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
+      field('Arrangement', seg([['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
     mg.append(field(m.kind === 'gallery' ? 'Tiles · drag from the Library, or click to choose' : 'Content · drag from the Library, or click to choose', slotsFor(s)));
     if (m.kind !== 'gallery') {
       if (m.layout === 'full' || m.layout === 'inset')
@@ -1262,6 +1402,27 @@ function renderInspector() {
   md.append(field('Stats row', seg([[false,'Off'],[true,'On']], s.stats.on, up(v => s.stats.on = v))));
   if (s.stats.on) s.stats.items.forEach((it, k) => md.append(h('div', { class:'f2' },
     field(`Stat ${k + 1}`, text(it.v, v => it.v = v)), field('Label', text(it.l, v => it.l = v)))));
+  if (m.kind !== 'none') {
+    md.append(field('Product labels on the media', seg([[false,'Off'],[true,'On']], s.shop.on, up(v => s.shop.on = v))));
+    if (s.shop.on) {
+      md.append(h('p', { class:'hint' }, 'Each frame becomes a shoppable product card with a quick-add button.'));
+      for (let k = 0; k < count(s); k++) { const it = s.shop.items[k] || (s.shop.items[k] = { name:'Product name', price:'$XX', tag:'' });
+        md.append(h('div', { class:'f2', style:{ gridTemplateColumns:'1.4fr 1fr 1fr' } },
+          field(count(s) > 1 ? `Tile ${k + 1} product` : 'Product', text(it.name, v => it.name = v)), field('Price', text(it.price, v => it.price = v)), field('Tag', text(it.tag, v => it.tag = v)))); }
+    }
+    md.append(field('Hotspots on the image', seg([[false,'Off'],[true,'On']], s.spots.on, up(v => s.spots.on = v))));
+    if (s.spots.on) {
+      md.append(h('p', { class:'hint' }, 'Points pinned to the image. They appear one by one as the viewer scrolls. Leave a label empty to hide it.'));
+      s.spots.items.forEach((sp, k) => md.append(
+        h('div', { class:'f2' }, field(`Hotspot ${k + 1}`, text(sp.label, v => sp.label = v)), field('Detail', text(sp.sub, v => sp.sub = v))),
+        h('div', { class:'f2' },
+          field('Across', slider(0, 100, 1, sp.x, v => v + '%', v => sp.x = v, renderStage)),
+          field('Down', slider(0, 100, 1, sp.y, v => v + '%', v => sp.y = v, renderStage)))));
+    }
+  }
+  md.append(field('Feature list', seg([[false,'Off'],[true,'On']], s.feats.on, up(v => s.feats.on = v))));
+  if (s.feats.on) s.feats.items.forEach((it, k) => md.append(h('div', { class:'f2' },
+    field(`Feature ${k + 1}`, text(it.t, v => it.t = v)), field('Description', text(it.d, v => it.d = v)))));
   md.append(field('Product card', seg([[false,'Off'],[true,'On']], s.card.on, up(v => s.card.on = v))));
   if (s.card.on) md.append(
     field('Card position', grid9(s.card.x, s.card.y, act((x, y) => { s.card.x = x; s.card.y = y; }))),
@@ -1293,6 +1454,8 @@ function renderGlobals() {
   $('magnet').replaceChildren(...seg([[true,'Magnet'],[false,'Free']], S.magnet, act(v => S.magnet = v)).childNodes);
   $('showname').replaceChildren(...seg([[false,'Off'],[true,'On']], S.showName, act(v => S.showName = v)).childNodes);
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
+  $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
+  $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
