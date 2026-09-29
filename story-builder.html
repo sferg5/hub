@@ -72,6 +72,7 @@ body.panel-open .stage{right:var(--panel-w)}
 .eb{font:400 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 .hl{font-weight:700;line-height:.94;letter-spacing:-.025em;text-wrap:balance}
 .hl .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .12em;margin:0 -.03em -.12em}
+.hl .c{display:inline-block}
 .hl .w > span{display:inline-block;will-change:transform}
 .s-s .hl{font-size:clamp(28px,3.8cqw,56px)}
 .s-m .hl{font-size:clamp(34px,5.6cqw,84px)}
@@ -252,7 +253,7 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
     <div class="p-title"><b>Story Builder</b><small>Scroll moves one composition into the next.</small></div>
     <select id="preset" aria-label="Load a preset">
       <option value="">Start from a preset</option>
-      <option value="align">Align · one class (8 sections)</option>
+      <option value="align">Sample arc · 8 sections</option>
       <option value="lockups">Hero lockups (same hero, 6 ways)</option>
       <option value="pool">City Run pool · 20 sections, 5 per beat</option>
       <option value="blank">Blank · one hero</option>
@@ -334,12 +335,25 @@ const MOTIONS = {
 };
 const FR = 4; // frames on stage: one per gallery tile at most
 
+/* How a section's copy arrives (and leaves). All scroll-driven, so every one scrubs backwards. */
+const TYPE_ANIMS = {
+  rise:    ['Rise',       'Words rise out of the line, one after another.'],
+  cascade: ['Cascade',    'Each word fades and lifts into place in sequence.'],
+  letters: ['Letters',    'Character by character, rising out of the line.'],
+  type:    ['Typewriter', 'Characters appear in reading order. No movement.'],
+  fade:    ['Fade',       'The whole copy block fades in with a short lift.'],
+  blur:    ['Blur',       'The copy resolves out of a blur.'],
+  scale:   ['Scale',      'The copy settles down from slightly larger.'],
+  wipe:    ['Wipe',       'A wipe reveals the copy from its aligned edge.'],
+};
+const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
+
 /* Every section shares one shape. "Type" only picks starting values,
    so any section can become any composition. */
 const BASE = () => ({
-  id: uid(), name: 'Section', beat: 'feel', motion: 'glide', hold: 'push', dwell: 1,
+  id: uid(), name: 'Section', beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row' },
-  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark' },
+  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
@@ -352,18 +366,18 @@ const make = o => merge(BASE(), clone(o));
    so any pool of tagged sections can be re-ordered into a new story. */
 const BEATS = {
   hook:  { label:'Hook',  color:'#c8202f', hint:'Opens the story. One image, one line, a reason to keep going.' },
-  feel:  { label:'Feel',  color:'#d98a1f', hint:'What it is like. Sensation, movement, atmosphere.' },
-  proof: { label:'Proof', color:'#2f6fb3', hint:'Why to believe it. Detail, numbers, a real voice, the product.' },
-  close: { label:'Close', color:'#1f8a5b', hint:'Where it lands. The ask, the collection, the way out.' },
+  build: { label:'Build', color:'#d98a1f', hint:'Develops the idea. Atmosphere, movement, the world of the story.' },
+  proof: { label:'Proof', color:'#2f6fb3', hint:'Why to believe it. Detail, numbers, a real voice.' },
+  close: { label:'Close', color:'#1f8a5b', hint:'Where it lands. The ask and the way out.' },
 };
 const BEAT_ORDER = Object.keys(BEATS);
 
 const STARTERS = {
   hero:      { label:'Hero · full-bleed video', o:{ name:'Hero', beat:'hook', eyebrow:'Eyebrow', headline:'A headline that opens the story', cta:{show:true,label:'Shop now'} } },
-  split:     { label:'Split · media + text', o:{ name:'Split', beat:'feel', media:{kind:'image',layout:'left'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, eyebrow:'Chapter', headline:'Half image, half story', body:'Body copy sits beside the image and carries the narrative forward.' } },
-  inset:     { label:'Inset · framed media', o:{ name:'Inset', beat:'feel', media:{kind:'image',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'A framed moment', body:'Room around the image lets the type breathe.' } },
-  statement: { label:'Statement · type only', o:{ name:'Statement', beat:'feel', media:{kind:'none'}, text:{x:'center',y:'middle',size:'l',width:'wide'}, headline:'One big line that lands the idea.' } },
-  gallery:   { label:'Gallery · image tiles', o:{ name:'Gallery', beat:'feel', media:{kind:'gallery',layout:'full',count:3,arrange:'row'}, overlay:0, text:{x:'left',y:'top',size:'s',width:'medium'}, headline:'Three moments' } },
+  split:     { label:'Split · media + text', o:{ name:'Split', beat:'build', media:{kind:'image',layout:'left'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, eyebrow:'Chapter', headline:'Half image, half story', body:'Body copy sits beside the image and carries the narrative forward.' } },
+  inset:     { label:'Inset · framed media', o:{ name:'Inset', beat:'build', media:{kind:'image',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'A framed moment', body:'Room around the image lets the type breathe.' } },
+  statement: { label:'Statement · type only', o:{ name:'Statement', beat:'build', media:{kind:'none'}, text:{x:'center',y:'middle',size:'l',width:'wide'}, headline:'One big line that lands the idea.' } },
+  gallery:   { label:'Gallery · image tiles', o:{ name:'Gallery', beat:'build', media:{kind:'gallery',layout:'full',count:3,arrange:'row'}, overlay:0, text:{x:'left',y:'top',size:'s',width:'medium'}, headline:'Three moments' } },
   product:   { label:'Product · image + card', o:{ name:'Product', beat:'proof', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'The product, in the story', body:'Short product line.', card:{on:true,x:'left',y:'bottom'} } },
   quote:     { label:'Quote', o:{ name:'Quote', beat:'proof', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'}, headline:'A line from a real person.', quote:{on:true,attr:'Name, role'} } },
   stats:     { label:'Stats · numbers row', o:{ name:'Stats', beat:'proof', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'By the numbers', stats:{on:true,items:[{v:'01',l:'Detail'},{v:'02',l:'Detail'},{v:'03',l:'Detail'}]} } },
@@ -373,25 +387,25 @@ const STARTERS = {
 /* Presets are written as a sequence: each composition sets up the next move. */
 const PRESETS = {
   align: () => [
-    make({ name:'Arrival', beat:'hook', hold:'push', media:{kind:'video',layout:'full'}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
-      eyebrow:'00:00 · Arrival', headline:'Feel nothing but the practice.', body:'One class, start to finish, in the Align pant.', cta:{show:true,label:'Shop Align'} }),
-    make({ name:'Breath', beat:'feel', hold:'drift', media:{kind:'video',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'},
-      eyebrow:'04:00 · Breath', headline:'Buttery-soft. Weightless.' }),
-    make({ name:'Flow', beat:'feel', hold:'pan', media:{kind:'image',layout:'left'}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
-      eyebrow:'12:00 · Flow', headline:'Every transition, uninterrupted.', body:'Nulu fabric stays with you from down dog to warrior without a second thought.' }),
-    make({ name:'Balance', beat:'feel', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger'}, overlay:0, text:{x:'left',y:'top',size:'s'}, motion:'rise',
-      eyebrow:'24:00 · Balance', headline:'Hold still. Nothing shifts.' }),
-    make({ name:'Close-up', beat:'proof', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
-      eyebrow:'31:00 · Detail', headline:'The pant.', body:'High rise, no side seams, a hidden waistband pocket.', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
-    make({ name:'Stretch', beat:'proof', hold:'pan', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'},
-      eyebrow:'38:00 · Stretch', headline:'Built for the deep end of class.', stats:{on:true,items:[{v:'28″',l:'Inseam'},{v:'4-way',l:'Stretch'},{v:'0',l:'Side seams'}]} }),
-    make({ name:'Savasana', beat:'proof', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'},
-      eyebrow:'55:00 · Savasana', headline:'I forgot I was wearing anything at all.', quote:{on:true,attr:'Placeholder quote'} }),
-    make({ name:'After class', beat:'close', hold:'push', media:{kind:'video',layout:'full'}, overlay:36, text:{x:'center',y:'middle',size:'l'}, motion:'iris',
-      eyebrow:'60:00 · After class', headline:'Take it with you.', cta:{show:true,label:'Shop the Align collection'} }),
+    make({ name:'Opening', beat:'hook', hold:'push', media:{kind:'video',layout:'full'}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
+      eyebrow:'00:00', headline:'Feel nothing but the practice.', body:'One class, start to finish, in the Align pant.', cta:{show:true,label:'Shop Align'} }),
+    make({ name:'Atmosphere', beat:'build', hold:'drift', media:{kind:'video',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'},
+      eyebrow:'04:00', headline:'Buttery-soft. Weightless.' }),
+    make({ name:'Movement', beat:'build', hold:'pan', media:{kind:'image',layout:'left'}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
+      eyebrow:'12:00', headline:'Every transition, uninterrupted.', body:'Nulu fabric stays with you from down dog to warrior without a second thought.' }),
+    make({ name:'Rhythm', beat:'build', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger'}, overlay:0, text:{x:'left',y:'top',size:'s'}, motion:'rise',
+      eyebrow:'24:00', headline:'Hold still. Nothing shifts.' }),
+    make({ name:'Detail', beat:'proof', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
+      eyebrow:'31:00', headline:'The pant.', body:'High rise, no side seams, a hidden waistband pocket.', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
+    make({ name:'Numbers', beat:'proof', hold:'pan', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'},
+      eyebrow:'38:00', headline:'Built for the deep end of class.', stats:{on:true,items:[{v:'28″',l:'Inseam'},{v:'4-way',l:'Stretch'},{v:'0',l:'Side seams'}]} }),
+    make({ name:'Voice', beat:'proof', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'},
+      eyebrow:'55:00', headline:'I forgot I was wearing anything at all.', quote:{on:true,attr:'Placeholder quote'} }),
+    make({ name:'Ending', beat:'close', hold:'push', media:{kind:'video',layout:'full'}, overlay:36, text:{x:'center',y:'middle',size:'l'}, motion:'iris',
+      eyebrow:'60:00', headline:'Take it with you.', cta:{show:true,label:'Shop the Align collection'} }),
   ],
   lockups: () => {
-    const c = { beat:'hook', eyebrow:'New · Align', headline:'Feel nothing but the practice.', body:'The same hero, six lockups.', cta:{show:true,label:'Shop Align'}, overlay:34 };
+    const c = { beat:'hook', eyebrow:'New in', headline:'Feel nothing but the practice.', body:'The same hero, six lockups.', cta:{show:true,label:'Shop Align'}, overlay:34 };
     return [
       make({ ...c, name:'Bottom left', text:{x:'left',y:'bottom',size:'xl'} }),
       make({ ...c, name:'Centered', hold:'push', text:{x:'center',y:'middle',size:'xl',width:'wide'}, overlay:40 }),
@@ -408,47 +422,47 @@ const PRESETS = {
       // Hook — five ways to open
       make({ beat:'hook', name:'Cold open', hold:'push', media:{kind:'image',layout:'full', ...I(1)}, text:{x:'left',y:'bottom',size:'xl'}, overlay:30,
         eyebrow:'City Run', headline:'The city is the track.' }),
-      make({ beat:'hook', name:'Statement open', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'},
+      make({ beat:'hook', name:'Statement open', media:{kind:'none'}, text:{anim:'letters',x:'center',y:'middle',size:'xl',width:'wide'},
         eyebrow:'City Run', headline:'Wake the legs.' }),
-      make({ beat:'hook', name:'Split open', hold:'pan', media:{kind:'image',layout:'right', ...I(2)}, text:{x:'left',y:'middle',size:'l',width:'narrow'},
+      make({ beat:'hook', name:'Split open', hold:'pan', media:{kind:'image',layout:'right', ...I(2)}, text:{anim:'cascade',x:'left',y:'middle',size:'l',width:'narrow'},
         eyebrow:'5:48 am', headline:'Before the city wakes up.', body:'One route, thirty minutes, no plan past the next corner.' }),
-      make({ beat:'hook', name:'Inset open', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(3)}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'},
+      make({ beat:'hook', name:'Inset open', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(3)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'l',width:'narrow'},
         eyebrow:'City Run', headline:'Out the door.' }),
-      make({ beat:'hook', name:'Triptych open', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger', ...I(4,5,6)}, overlay:0, text:{x:'left',y:'top',size:'m'}, motion:'rise',
+      make({ beat:'hook', name:'Triptych open', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger', ...I(4,5,6)}, overlay:0, text:{anim:'wipe',x:'left',y:'top',size:'m'}, motion:'rise',
         eyebrow:'City Run', headline:'Three blocks in.' }),
       // Feel — what it is like
-      make({ beat:'feel', name:'Pace', hold:'pan', media:{kind:'image',layout:'left', ...I(7)}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
-        eyebrow:'Feel', headline:'Hold the pace.', body:'Light enough to forget, warm enough to keep going.' }),
-      make({ beat:'feel', name:'Breath', hold:'drift', media:{kind:'image',layout:'inset',mx:'center',inset:'m', ...I(8)}, overlay:0, text:{x:'center',y:'bottom',size:'m',width:'wide'},
-        eyebrow:'Feel', headline:'Breathe with the traffic lights.' }),
-      make({ beat:'feel', name:'Weather', hold:'push', media:{kind:'image',layout:'full', ...I(9)}, text:{x:'right',y:'top',size:'l',width:'narrow'}, overlay:26,
-        eyebrow:'Feel', headline:'Louder than the traffic.' }),
-      make({ beat:'feel', name:'Crew', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'mosaic', ...I(10,11,12)}, overlay:0, text:{x:'left',y:'bottom',size:'s'},
-        eyebrow:'Feel', headline:'Nobody runs alone.' }),
-      make({ beat:'feel', name:'Line', media:{kind:'none'}, text:{x:'left',y:'middle',size:'l',width:'wide'},
-        eyebrow:'Feel', headline:'Every corner is a decision. Every decision is a run.' }),
+      make({ beat:'build', name:'Split moment', hold:'pan', media:{kind:'image',layout:'left', ...I(7)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Hold the pace.', body:'Light enough to forget, warm enough to keep going.' }),
+      make({ beat:'build', name:'Framed moment', hold:'drift', media:{kind:'image',layout:'inset',mx:'center',inset:'m', ...I(8)}, overlay:0, text:{anim:'blur',x:'center',y:'bottom',size:'m',width:'wide'},
+        eyebrow:'City Run', headline:'Breathe with the traffic lights.' }),
+      make({ beat:'build', name:'Full-bleed moment', hold:'push', media:{kind:'image',layout:'full', ...I(9)}, text:{anim:'scale',x:'right',y:'top',size:'l',width:'narrow'}, overlay:26,
+        eyebrow:'City Run', headline:'Louder than the traffic.' }),
+      make({ beat:'build', name:'Mosaic', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'mosaic', ...I(10,11,12)}, overlay:0, text:{anim:'wipe',x:'left',y:'bottom',size:'s'},
+        eyebrow:'City Run', headline:'Nobody runs alone.' }),
+      make({ beat:'build', name:'Statement', media:{kind:'none'}, text:{anim:'type',x:'left',y:'middle',size:'l',width:'wide'},
+        eyebrow:'City Run', headline:'Every corner is a decision. Every decision is a run.' }),
       // Proof — why to believe it
-      make({ beat:'proof', name:'The vest', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(13)}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'Proof', headline:'The vest.', body:'Packs to a fist. Reflective where the headlights land.', card:{on:true,x:'left',y:'bottom',name:'Modular Run Vest',price:'$XX'} }),
-      make({ beat:'proof', name:'Numbers', hold:'pan', media:{kind:'image',layout:'right', ...I(14)}, text:{x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'Proof', headline:'By the numbers.', stats:{on:true,items:[{v:'112 g',l:'Weight'},{v:'360°',l:'Reflective'},{v:'2',l:'Modes'}]} }),
-      make({ beat:'proof', name:'Voice', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'},
-        eyebrow:'Proof', headline:'I stopped thinking about what I was wearing by the first bridge.', quote:{on:true,attr:'Run club member, Vancouver'} }),
-      make({ beat:'proof', name:'Detail pair', hold:'drift', media:{kind:'gallery',layout:'full',count:2,arrange:'row', ...I(15,16)}, overlay:0, text:{x:'left',y:'top',size:'s'},
-        eyebrow:'Proof', headline:'Zip, clip, go.' }),
-      make({ beat:'proof', name:'The bag', hold:'drift', media:{kind:'image',layout:'inset',mx:'left',inset:'l', ...I(17)}, overlay:0, text:{x:'right',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'Proof', headline:'Roll-top for the way home.', body:'Clips to the vest. Comes off in one move.', card:{on:true,x:'right',y:'bottom',name:'Roll-top Bag',price:'$XX'} }),
+      make({ beat:'proof', name:'Product close-up', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(13)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'The vest.', body:'Packs to a fist. Reflective where the headlights land.', card:{on:true,x:'left',y:'bottom',name:'Modular Run Vest',price:'$XX'} }),
+      make({ beat:'proof', name:'Numbers', hold:'pan', media:{kind:'image',layout:'right', ...I(14)}, text:{anim:'cascade',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'By the numbers.', stats:{on:true,items:[{v:'112 g',l:'Weight'},{v:'360°',l:'Reflective'},{v:'2',l:'Modes'}]} }),
+      make({ beat:'proof', name:'Voice', media:{kind:'none'}, text:{anim:'type',x:'center',y:'middle',size:'xl',width:'wide'},
+        eyebrow:'City Run', headline:'I stopped thinking about what I was wearing by the first bridge.', quote:{on:true,attr:'Run club member, Vancouver'} }),
+      make({ beat:'proof', name:'Detail pair', hold:'drift', media:{kind:'gallery',layout:'full',count:2,arrange:'row', ...I(15,16)}, overlay:0, text:{anim:'letters',x:'left',y:'top',size:'s'},
+        eyebrow:'City Run', headline:'Zip, clip, go.' }),
+      make({ beat:'proof', name:'Second product', hold:'drift', media:{kind:'image',layout:'inset',mx:'left',inset:'l', ...I(17)}, overlay:0, text:{anim:'fade',x:'right',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Roll-top for the way home.', body:'Clips to the vest. Comes off in one move.', card:{on:true,x:'right',y:'bottom',name:'Roll-top Bag',price:'$XX'} }),
       // Close — where it lands
-      make({ beat:'close', name:'Shop close', hold:'push', media:{kind:'image',layout:'full', ...I(18)}, overlay:40, text:{x:'center',y:'middle',size:'l',width:'medium'}, motion:'iris',
-        eyebrow:'Close', headline:'Run the city.', cta:{show:true,label:'Shop the collection'} }),
-      make({ beat:'close', name:'Quiet close', media:{kind:'none'}, text:{x:'center',y:'middle',size:'l',width:'wide'},
-        eyebrow:'Close', headline:'The road forward is yours.', cta:{show:true,label:'Find a run club'} }),
-      make({ beat:'close', name:'Split close', hold:'pan', media:{kind:'image',layout:'left', ...I(19)}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
-        eyebrow:'Close', headline:'Same time tomorrow.', body:'Save the route. Bring someone.', cta:{show:true,label:'Plan a route'} }),
-      make({ beat:'close', name:'Inset close', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'m', ...I(20)}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'Close', headline:'Take it with you.', cta:{show:true,label:'Shop the vest'} }),
-      make({ beat:'close', name:'Lineup close', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'row', ...I(21,22,23)}, overlay:0, text:{x:'center',y:'bottom',size:'m',width:'wide'},
-        eyebrow:'Close', headline:'See you at the start.', cta:{show:true,label:'Join the club'} }),
+      make({ beat:'close', name:'Shop close', hold:'push', media:{kind:'image',layout:'full', ...I(18)}, overlay:40, text:{anim:'scale',x:'center',y:'middle',size:'l',width:'medium'}, motion:'iris',
+        eyebrow:'City Run', headline:'Run the city.', cta:{show:true,label:'Shop the collection'} }),
+      make({ beat:'close', name:'Quiet close', media:{kind:'none'}, text:{anim:'letters',x:'center',y:'middle',size:'l',width:'wide'},
+        eyebrow:'City Run', headline:'The road forward is yours.', cta:{show:true,label:'Find a run club'} }),
+      make({ beat:'close', name:'Split close', hold:'pan', media:{kind:'image',layout:'left', ...I(19)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Same time tomorrow.', body:'Save the route. Bring someone.', cta:{show:true,label:'Plan a route'} }),
+      make({ beat:'close', name:'Inset close', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'m', ...I(20)}, overlay:0, text:{anim:'blur',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Take it with you.', cta:{show:true,label:'Shop the vest'} }),
+      make({ beat:'close', name:'Lineup close', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'row', ...I(21,22,23)}, overlay:0, text:{anim:'wipe',x:'center',y:'bottom',size:'m',width:'wide'},
+        eyebrow:'City Run', headline:'See you at the start.', cta:{show:true,label:'Join the club'} }),
     ];
   },
   blank: () => [make(STARTERS.hero.o)],
@@ -468,7 +482,8 @@ const normalize = d => ({
     if (!Array.isArray(x.media.items)) x.media.items = [];
     if (x.media.url) { x.media.items[0] = 'l:' + x.media.url; delete x.media.url; }
     if (!['push','pan','drift'].includes(x.hold)) x.hold = 'push';
-    if (!BEATS[x.beat]) x.beat = 'feel';
+    if (!BEATS[x.beat]) x.beat = 'build';
+    if (!TYPE_ANIMS[x.text.anim]) x.text.anim = 'rise';
     return x;
   }),
 });
@@ -707,13 +722,14 @@ function mediaInner(s, k) {
 function textLayer(s, i) {
   const t = s.text, align = t.align === 'auto' ? t.x : t.align;
   const layout = s.media.kind === 'none' ? 'none' : s.media.layout;
-  const words = [], parts = [];
+  const words = [], letters = [], parts = [];
   const P = el => { if (el) parts.push(el); return el; };
   let hl = null;
   if (s.headline) {
     hl = h(i === 0 ? 'h1' : 'h2', { class:'hl' + (s.quote.on ? ' q' : '') });
     (s.quote.on ? `“${s.headline}”` : s.headline).split(/\s+/).filter(Boolean).forEach(w => {
-      const inner = h('span', {}, w); words.push(inner); hl.append(h('span', { class:'w' }, inner), ' ');
+      const inner = perLetter(s) ? h('span', {}, ...[...w].map(ch => { const c = h('span', { class:'c' }, ch); letters.push(c); return c; })) : h('span', {}, w);
+      words.push(inner); hl.append(h('span', { class:'w' }, inner), ' ');
     });
   }
   const eb = s.showEyebrow && s.eyebrow ? h('p', { class:'eb' }, s.eyebrow) : null;
@@ -729,7 +745,7 @@ function textLayer(s, i) {
   if (s.card.on) card = h('div', { class:'cw', 'data-x':s.card.x, 'data-y':s.card.y },
     h('div', { class:'card' }, h('div', { class:'th' }), h('div', {}, h('p', {}, s.card.name), h('small', {}, s.card.price)),
       h('button', { class:'add', 'aria-label':'Add to bag' }, '+')));
-  return { el, copy, eb, words, parts, card };
+  return { s, el, copy, eb, words, letters, parts, card, ty:0, ty2:0, sc:1 };
 }
 
 let frames = [], layers = [], starts = [], holds = [], TR = 0, curI = 0;
@@ -797,7 +813,7 @@ function driftRects(rs, s, u) {
 }
 function holdType(L, s, u) {
   const k = amt(), d = u - s.dwell / 2;
-  L.copy.style.transform = `translateY(${-d * 26 * k}px)`;
+  L.ty = -d * 26 * k; place(L);
   if (L.card) L.card.style.transform = `translateY(${-d * 44 * k}px)`;
   // type-only sections: words fill with ink as you read down the line
   if (s.media.kind === 'none' && L.words.length) {
@@ -806,19 +822,46 @@ function holdType(L, s, u) {
   }
 }
 
-/* type choreography: the old copy lifts away word by word, the new copy rises in */
+/* type choreography: the copy leaves and arrives per its section's animation */
+const place = L => { L.copy.style.transform = `translateY(${L.ty + L.ty2}px)` + (L.sc !== 1 ? ` scale(${L.sc})` : ''); };
+function resetType(L) {
+  const st = el => { el.style.transform = ''; el.style.opacity = ''; };
+  L.words.forEach(st); L.letters.forEach(st); L.parts.forEach(st); if (L.eb) st(L.eb);
+  L.el.style.opacity = ''; L.el.style.filter = ''; L.copy.style.clipPath = ''; L.ty2 = 0; L.sc = 1;
+}
+const wipeSide = L => (L.copy.dataset.align === 'right' ? 'right' : 'left');
 function textOut(L, t) {
-  L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .015) / .28)); w.style.transform = `translateY(${-q * 110}%)`; });
-  const rest = [L.eb, ...L.parts].filter(Boolean);
-  rest.forEach((p, k) => { const q = easeIn(clamp((t - .02 - k * .03) / .3)); p.style.transform = `translateY(${-q * 28}px)`; p.style.opacity = 1 - q; });
+  resetType(L);
+  const anim = L.s.text.anim, rest = [L.eb, ...L.parts].filter(Boolean);
+  const restOut = () => rest.forEach((p, k) => { const q = easeIn(clamp((t - .02 - k * .03) / .3)); p.style.transform = `translateY(${-q * 28}px)`; p.style.opacity = 1 - q; });
+  if (anim === 'rise') { L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .015) / .28)); w.style.transform = `translateY(${-q * 110}%)`; }); restOut(); }
+  else if (anim === 'cascade') { L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .02) / .3)); w.style.transform = `translateY(${-q * 40}%)`; w.style.opacity = 1 - q; }); restOut(); }
+  else if (anim === 'letters') { L.letters.forEach((c, k) => { const q = easeIn(clamp((t - k * .006) / .26)); c.style.transform = `translateY(${-q * 110}%)`; }); restOut(); }
+  else if (anim === 'type') { const n = L.letters.length, f = (1 - clamp(t / .4)) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); restOut(); }
+  else {
+    const q = easeIn(clamp(t / .38));
+    if (anim === 'wipe') L.copy.style.clipPath = wipeSide(L) === 'left' ? `inset(0 ${q * 100}% 0 0)` : `inset(0 0 0 ${q * 100}%)`;
+    else { L.el.style.opacity = 1 - q; L.ty2 = -q * 24; if (anim === 'blur') L.el.style.filter = `blur(${q * 12}px)`; if (anim === 'scale') L.sc = 1 - q * .06; }
+  }
   if (L.card) { const q = easeIn(clamp((t - .06) / .3)); L.card.firstChild.style.transform = `translateY(${-q * 28}px)`; L.card.firstChild.style.opacity = 1 - q; }
+  place(L);
 }
 function textIn(L, t, motion) {
-  const base = motion === 'dissolve' ? .55 : .38, rise = motion === 'rise' ? 64 : 34;
-  if (L.eb) { const q = easeOut(clamp((t - base) / .35)); L.eb.style.transform = `translateY(${(1 - q) * rise * .6}px)`; L.eb.style.opacity = q; }
-  L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .025) / .34)); w.style.transform = `translateY(${(1 - q) * 110}%)`; });
-  L.parts.forEach((p, k) => { const q = easeOut(clamp((t - base - .14 - k * .05) / .36)); p.style.transform = `translateY(${(1 - q) * rise}px)`; p.style.opacity = q; });
+  resetType(L);
+  const anim = L.s.text.anim, base = motion === 'dissolve' ? .55 : .38, rise = motion === 'rise' ? 64 : 34;
+  const ebIn = () => { if (L.eb) { const q = easeOut(clamp((t - base) / .35)); L.eb.style.transform = `translateY(${(1 - q) * rise * .6}px)`; L.eb.style.opacity = q; } };
+  const partsIn = d => L.parts.forEach((p, k) => { const q = easeOut(clamp((t - base - d - k * .05) / .36)); p.style.transform = `translateY(${(1 - q) * rise}px)`; p.style.opacity = q; });
+  if (anim === 'rise') { ebIn(); L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .025) / .34)); w.style.transform = `translateY(${(1 - q) * 110}%)`; }); partsIn(.14); }
+  else if (anim === 'cascade') { ebIn(); L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .045) / .4)); w.style.transform = `translateY(${(1 - q) * 40}%)`; w.style.opacity = q; }); partsIn(.2); }
+  else if (anim === 'letters') { ebIn(); L.letters.forEach((c, k) => { const q = easeOut(clamp((t - base - .03 - k * .009) / .3)); c.style.transform = `translateY(${(1 - q) * 110}%)`; }); partsIn(.18); }
+  else if (anim === 'type') { ebIn(); const n = L.letters.length, f = clamp((t - base - .02) / .45) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); partsIn(.3); }
+  else {
+    const q = easeOut(clamp((t - base) / .48));
+    if (anim === 'wipe') { const w = easeIO(clamp((t - base) / .5)); L.copy.style.clipPath = wipeSide(L) === 'left' ? `inset(0 ${(1 - w) * 100}% 0 0)` : `inset(0 0 0 ${(1 - w) * 100}%)`; }
+    else { L.el.style.opacity = q; L.ty2 = (1 - q) * rise * .5; if (anim === 'blur') L.el.style.filter = `blur(${(1 - q) * 14}px)`; if (anim === 'scale') L.sc = 1.1 - q * .1; }
+  }
   if (L.card) { const q = easeOut(clamp((t - base - .2) / .36)); L.card.firstChild.style.transform = `translateY(${(1 - q) * rise}px)`; L.card.firstChild.style.opacity = q; }
+  place(L);
 }
 
 function update() {
@@ -1105,6 +1148,9 @@ function renderInspector() {
     i === 0 ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'The first section is where the story opens, so it has no motion in.') : h('div', {},
       field('How this composition arrives', seg(Object.entries(MOTIONS).map(([k, v]) => [k, v[0]]), s.motion, up(v => s.motion = v))),
       h('p', { class:'hint' }, MOTIONS[s.motion][1])),
+    i === 0 ? null : h('div', {},
+      field('How the copy arrives', seg(Object.entries(TYPE_ANIMS).map(([k, v]) => [k, v[0]]), s.text.anim, up(v => s.text.anim = v), 'Copy animation')),
+      h('p', { class:'hint' }, TYPE_ANIMS[s.text.anim][1])),
     holdMode,
     holdF,
   );
