@@ -282,6 +282,8 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
 .slot.over{border:2px solid var(--red)}
 .slot.filled{border-style:solid;padding:0}
 .slot img,.slot video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.slot .res{position:absolute;left:3px;right:3px;bottom:3px;z-index:1;border-radius:2px;padding:3px 4px;font:600 10px/1.1 var(--sans);text-align:center;background:#fff;color:var(--p-fg)}
+.slot .res.low{background:var(--red);color:#fff}
 .slot .x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff;font-size:12px;line-height:1;z-index:1}
 /* dropping onto the stage */
 .frame.drop-target::after{content:"Drop to place";position:absolute;inset:0;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--red);background:rgba(210,32,48,.08);color:var(--red);font:600 13px/1 var(--sans);z-index:5}
@@ -410,7 +412,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
    so any section can become any composition. */
 const BASE = () => ({
   id: uid(), name: 'Section', beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
-  media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row' },
+  media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
@@ -476,54 +478,63 @@ const PRESETS = {
       make({ ...c, name:'Top right', hold:'pan', text:{x:'right',y:'top',size:'l',width:'narrow'}, motion:'iris', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
     ];
   },
+  /* City Run pool. Placement follows the photos:
+     - full-bleed frames get the three big landscape shots (02, 11, 16);
+     - halves and framed insets get the tall editorial shots (01, 10, 12–15, 20–23);
+     - small tiles get the narrower portraits (17–19);
+     - product moments and product grids get the flat lays (03–09), shown whole;
+     - 24 and 25 are too small for anything larger than a thumbnail, so they sit out. */
   pool: () => {
     const im = n => 'b:story-library/cityrun-' + String(n).padStart(2, '0') + '.jpg';
     const I = (...n) => ({ items: n.map(im) });
+    const P = (name, tag = '') => ({ name, price:'$XX', tag });
     return [
       // Hook — five ways to open
-      make({ beat:'hook', name:'Cold open', hold:'push', media:{kind:'image',layout:'full', ...I(1)}, text:{x:'left',y:'bottom',size:'xl'}, overlay:30,
+      make({ beat:'hook', name:'Cold open', hold:'push', media:{kind:'image',layout:'full', ...I(11)}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
         eyebrow:'City Run', headline:'The city is the track.' }),
       make({ beat:'hook', name:'Statement open', media:{kind:'none'}, text:{anim:'letters',x:'center',y:'middle',size:'xl',width:'wide'},
         eyebrow:'City Run', headline:'Wake the legs.' }),
-      make({ beat:'hook', name:'Split open', hold:'pan', media:{kind:'image',layout:'right', ...I(2)}, text:{anim:'cascade',x:'left',y:'middle',size:'l',width:'narrow'},
+      make({ beat:'hook', name:'Split open', hold:'pan', media:{kind:'image',layout:'right', ...I(1)}, text:{anim:'cascade',x:'left',y:'middle',size:'l',width:'narrow'},
         eyebrow:'5:48 am', headline:'Before the city wakes up.', body:'One route, thirty minutes, no plan past the next corner.' }),
-      make({ beat:'hook', name:'Inset open', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(3)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'l',width:'narrow'},
+      make({ beat:'hook', name:'Inset open', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'m', ...I(13)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'l',width:'narrow'},
         eyebrow:'City Run', headline:'Out the door.' }),
-      make({ beat:'hook', name:'Triptych open', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger', ...I(4,5,6)}, overlay:0, text:{anim:'wipe',x:'left',y:'top',size:'m'}, motion:'rise',
+      make({ beat:'hook', name:'Triptych open', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger', ...I(17,18,19)}, overlay:0, text:{anim:'wipe',x:'left',y:'top',size:'m'}, motion:'rise',
         eyebrow:'City Run', headline:'Three blocks in.' }),
-      // Feel — what it is like
-      make({ beat:'build', name:'Split moment', hold:'pan', media:{kind:'image',layout:'left', ...I(7)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
+      // Build — what it is like
+      make({ beat:'build', name:'Split moment', hold:'pan', media:{kind:'image',layout:'left', ...I(15)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
         eyebrow:'City Run', headline:'Hold the pace.', body:'Light enough to forget, warm enough to keep going.' }),
-      make({ beat:'build', name:'Framed moment', hold:'drift', media:{kind:'image',layout:'inset',mx:'center',inset:'m', ...I(8)}, overlay:0, text:{anim:'blur',x:'center',y:'bottom',size:'m',width:'wide'},
+      make({ beat:'build', name:'Framed moment', hold:'drift', media:{kind:'image',layout:'inset',mx:'center',inset:'m', ...I(14)}, overlay:0, text:{anim:'blur',x:'center',y:'bottom',size:'m',width:'wide'},
         eyebrow:'City Run', headline:'Breathe with the traffic lights.' }),
-      make({ beat:'build', name:'Full-bleed moment', hold:'push', media:{kind:'image',layout:'full', ...I(9)}, text:{anim:'scale',x:'right',y:'top',size:'l',width:'narrow'}, overlay:26,
+      make({ beat:'build', name:'Full-bleed moment', hold:'push', media:{kind:'image',layout:'full', ...I(2)}, text:{anim:'scale',x:'right',y:'top',size:'l',width:'narrow',ink:'light'}, overlay:34,
         eyebrow:'City Run', headline:'Louder than the traffic.' }),
-      make({ beat:'build', name:'Mosaic', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'mosaic', ...I(10,11,12)}, overlay:0, text:{anim:'wipe',x:'left',y:'bottom',size:'s'},
+      make({ beat:'build', name:'Mosaic', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'mosaic', ...I(12,21,22)}, overlay:0, text:{anim:'wipe',x:'left',y:'top',size:'s'},
         eyebrow:'City Run', headline:'Nobody runs alone.' }),
       make({ beat:'build', name:'Statement', media:{kind:'none'}, text:{anim:'type',x:'left',y:'middle',size:'l',width:'wide'},
         eyebrow:'City Run', headline:'Every corner is a decision. Every decision is a run.' }),
-      // Proof — why to believe it
-      make({ beat:'proof', name:'Product close-up', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(13)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'City Run', headline:'The vest.', body:'Packs to a fist. Reflective where the headlights land.', card:{on:true,x:'left',y:'bottom',name:'Modular Run Vest',price:'$XX'} }),
-      make({ beat:'proof', name:'Numbers', hold:'pan', media:{kind:'image',layout:'right', ...I(14)}, text:{anim:'cascade',x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'City Run', headline:'By the numbers.', stats:{on:true,items:[{v:'112 g',l:'Weight'},{v:'360°',l:'Reflective'},{v:'2',l:'Modes'}]} }),
+      // Proof — why to believe it: the product, shown whole
+      make({ beat:'proof', name:'Product close-up', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l', ...I(6)}, overlay:0, text:{anim:'fade',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'The wind jacket.', body:'Placeholder: packs small, sheds the first rain.', card:{on:true,x:'left',y:'bottom',name:'Wind Jacket',price:'$XX'} }),
+      make({ beat:'proof', name:'Numbers', hold:'pan', media:{kind:'image',layout:'right', ...I(10)}, text:{anim:'cascade',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'By the numbers.', stats:{on:true,items:[{v:'00',l:'Placeholder'},{v:'00',l:'Placeholder'},{v:'00',l:'Placeholder'}]} }),
       make({ beat:'proof', name:'Voice', media:{kind:'none'}, text:{anim:'type',x:'center',y:'middle',size:'xl',width:'wide'},
         eyebrow:'City Run', headline:'I stopped thinking about what I was wearing by the first bridge.', quote:{on:true,attr:'Run club member, Vancouver'} }),
-      make({ beat:'proof', name:'Detail pair', hold:'drift', media:{kind:'gallery',layout:'full',count:2,arrange:'row', ...I(15,16)}, overlay:0, text:{anim:'letters',x:'left',y:'top',size:'s'},
-        eyebrow:'City Run', headline:'Zip, clip, go.' }),
-      make({ beat:'proof', name:'Second product', hold:'drift', media:{kind:'image',layout:'inset',mx:'left',inset:'l', ...I(17)}, overlay:0, text:{anim:'fade',x:'right',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'City Run', headline:'Roll-top for the way home.', body:'Clips to the vest. Comes off in one move.', card:{on:true,x:'right',y:'bottom',name:'Roll-top Bag',price:'$XX'} }),
+      make({ beat:'proof', name:'Product pair', hold:'drift', media:{kind:'gallery',layout:'full',count:2,arrange:'row', ...I(4,7)}, overlay:0, text:{anim:'letters',x:'left',y:'top',size:'s'},
+        shop:{ on:true, items:[P('Gradient Tank'), P('Layered Tank', 'New')] },
+        eyebrow:'City Run', headline:'Two ways to layer.' }),
+      make({ beat:'proof', name:'Second product', hold:'drift', media:{kind:'image',layout:'inset',mx:'left',inset:'l', ...I(3)}, overlay:0, text:{anim:'fade',x:'right',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Warm for the way home.', body:'Pull it on after the cool-down.', card:{on:true,x:'right',y:'bottom',name:'Fleece Jacket',price:'$XX'} }),
       // Close — where it lands
-      make({ beat:'close', name:'Shop close', hold:'push', media:{kind:'image',layout:'full', ...I(18)}, overlay:40, text:{anim:'scale',x:'center',y:'middle',size:'l',width:'medium'}, motion:'iris',
+      make({ beat:'close', name:'Shop close', hold:'push', media:{kind:'image',layout:'full', ...I(16)}, overlay:36, text:{anim:'scale',x:'center',y:'top',size:'l',width:'medium'}, motion:'iris',
         eyebrow:'City Run', headline:'Run the city.', cta:{show:true,label:'Shop the collection'} }),
       make({ beat:'close', name:'Quiet close', media:{kind:'none'}, text:{anim:'letters',x:'center',y:'middle',size:'l',width:'wide'},
         eyebrow:'City Run', headline:'The road forward is yours.', cta:{show:true,label:'Find a run club'} }),
-      make({ beat:'close', name:'Split close', hold:'pan', media:{kind:'image',layout:'left', ...I(19)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
+      make({ beat:'close', name:'Split close', hold:'pan', media:{kind:'image',layout:'left', ...I(20)}, text:{anim:'cascade',x:'left',y:'bottom',size:'m',width:'narrow'},
         eyebrow:'City Run', headline:'Same time tomorrow.', body:'Save the route. Bring someone.', cta:{show:true,label:'Plan a route'} }),
-      make({ beat:'close', name:'Inset close', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'m', ...I(20)}, overlay:0, text:{anim:'blur',x:'left',y:'middle',size:'m',width:'narrow'},
-        eyebrow:'City Run', headline:'Take it with you.', cta:{show:true,label:'Shop the vest'} }),
-      make({ beat:'close', name:'Lineup close', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'row', ...I(21,22,23)}, overlay:0, text:{anim:'wipe',x:'center',y:'bottom',size:'m',width:'wide'},
-        eyebrow:'City Run', headline:'See you at the start.', cta:{show:true,label:'Join the club'} }),
+      make({ beat:'close', name:'Inset close', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'m', ...I(23)}, overlay:0, text:{anim:'blur',x:'left',y:'middle',size:'m',width:'narrow'},
+        eyebrow:'City Run', headline:'Take it with you.', cta:{show:true,label:'Shop now'} }),
+      make({ beat:'close', name:'Product lineup', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'row', ...I(9,5,8)}, overlay:0, text:{anim:'wipe',x:'center',y:'top',size:'m',width:'wide'},
+        shop:{ on:true, items:[P('Mesh Tank'), P('Gradient Short', 'New'), P('Run Short')] },
+        eyebrow:'City Run', headline:'See you at the start.', cta:{show:true,label:'Shop the kit'} }),
     ];
   },
   blank: () => [make(STARTERS.hero.o)],
@@ -622,8 +633,18 @@ const lerpR = (a, b, t) => ({ x:lerp(a.x, b.x, t), y:lerp(a.y, b.y, t), w:lerp(a
 /* ---------- content library ----------
    Built-in files ship next to this page. Files added here are kept in this
    browser only (IndexedDB), so they never leave the machine. */
+/* City Run facts: [width, height, look, focus-y %]. "flat" = product on the
+   studio grey, shown whole; "edit" = editorial, cropped to fill around its focus. */
+const CITYRUN = {
+   1:[1170,1400,'edit',50],  2:[1800,1283,'edit',55],  3:[502,900,'flat'],     4:[756,900,'flat'],     5:[756,900,'flat'],
+   6:[756,900,'flat'],       7:[755,900,'flat'],       8:[756,900,'flat'],     9:[756,900,'flat'],    10:[997,1200,'edit',45],
+  11:[1800,1280,'edit',45], 12:[1175,1400,'edit',32], 13:[1175,1400,'edit',32], 14:[1170,1400,'edit',42], 15:[1163,1400,'edit',36],
+  16:[2000,1425,'edit',52], 17:[832,1000,'edit',42],  18:[562,1000,'edit',40],  19:[562,1000,'edit',38],  20:[833,1000,'edit',36],
+  21:[833,1000,'edit',40],  22:[833,1000,'edit',40],  23:[667,1000,'edit',40],  24:[324,389,'edit',45],   25:[324,389,'edit',40],
+};
+const FLAT_BG = '#EBEBEB'; // the studio grey behind every flat lay
 const BUILTIN = [
-  ['City Run', Array.from({ length:25 }, (_, k) => `story-library/cityrun-${String(k + 1).padStart(2, '0')}.jpg`)],
+  ['City Run', Object.entries(CITYRUN).map(([n, [w, h, look, fy]]) => ({ path:`story-library/cityrun-${String(n).padStart(2, '0')}.jpg`, w, h, look, fy }))],
   ['Video', [
     { path:'20260325_LULU_LILAC_16x9_15s_ProRes_Clean.mp4', name:'Lilac · 15s', type:'video' },
     { path:'NA_May26_Wk3_Q2_MustWin_ShakeItOut_Paid_Reddit_6s_16x9_1920x1080.mp4', name:'Shake It Out · 6s', type:'video' },
@@ -632,8 +653,9 @@ const BUILTIN = [
 const ASSETS = {};           // id -> { id, name, type, src, group, user }
 const missing = new Set();   // built-ins that failed to load (e.g. not deployed)
 BUILTIN.forEach(([group, items]) => items.forEach(it => {
-  const { path, name, type } = typeof it === 'string' ? { path:it } : it;
-  const id = 'b:' + path; ASSETS[id] = { id, name: name || path.split('/').pop(), type: type || 'image', src:path, group };
+  const { path, name, type, w, h, look, fy } = typeof it === 'string' ? { path:it } : it;
+  const id = 'b:' + path;
+  ASSETS[id] = { id, name: name || path.split('/').pop(), type: type || 'image', src:path, group, w, h, look: look || 'edit', fy: fy ?? 50, bg: look === 'flat' ? FLAT_BG : null };
 }));
 const typeOf = (mime, name) => /^video\//.test(mime) || /\.(mp4|webm|mov|m4v)$/i.test(name) ? 'video' : 'image';
 function asset(id) {
@@ -650,6 +672,7 @@ function assetEl(a, play) {
     return v;
   }
   const img = h('img', { src:a.src, alt:'', loading: play ? null : 'lazy', decoding:'async' });
+  if (!play) { const flat = a.look === 'flat'; img.style.objectFit = flat ? 'contain' : 'cover'; img.style.objectPosition = `50% ${a.fy ?? 50}%`; if (flat) img.style.background = a.bg; }
   if (a.id.startsWith('b:')) img.addEventListener('error', () => { if (!missing.has(a.id)) { missing.add(a.id); renderLibrary(); } });
   return img;
 }
@@ -672,7 +695,34 @@ const DB = (() => {
 })();
 function addUserAsset(rec) {
   const src = rec.blob ? URL.createObjectURL(rec.blob) : rec.url;
-  return ASSETS[rec.id] = { id:rec.id, name:rec.name, type:rec.type, src, group:'Your uploads', user:true, added:rec.added };
+  const a = ASSETS[rec.id] = { id:rec.id, name:rec.name, type:rec.type, src, group:'Your uploads', user:true, added:rec.added, look:'edit', fy:50 };
+  if (rec.type === 'image') {
+    const im = new Image();
+    im.onload = () => {
+      a.w = im.naturalWidth; a.h = im.naturalHeight;
+      const flat = rec.blob && detectFlat(im); if (flat) { a.look = 'flat'; a.bg = flat; }
+      if (usedIds().has(a.id)) { renderStage(); renderInspector(); }
+    };
+    im.src = src;
+  } else if (rec.type === 'video') {
+    const v = document.createElement('video'); v.preload = 'metadata'; v.muted = true;
+    v.onloadedmetadata = () => { a.w = v.videoWidth; a.h = v.videoHeight; };
+    v.src = src;
+  }
+  return a;
+}
+/* A product shot on a plain background: every sample along the edges is light
+   and nearly the same colour. Returns that colour, or null. */
+function detectFlat(im) {
+  try {
+    const c = document.createElement('canvas'), n = 64; c.width = c.height = n;
+    const x = c.getContext('2d'); x.drawImage(im, 0, 0, n, n);
+    const d = x.getImageData(0, 0, n, n).data, px = [];
+    for (let k = 0; k < n; k += 4) [[k, 0], [k, n - 1], [0, k], [n - 1, k]].forEach(([u, v]) => { const o = (v * n + u) * 4; px.push([d[o], d[o + 1], d[o + 2]]); });
+    const avg = [0, 1, 2].map(c2 => px.reduce((t, p) => t + p[c2], 0) / px.length);
+    const spread = Math.max(...px.map(p => Math.max(...p.map((v, c2) => Math.abs(v - avg[c2])))));
+    return avg.every(v => v > 205) && spread < 18 ? `rgb(${avg.map(Math.round).join(',')})` : null;
+  } catch (e) { return null; }
 }
 async function importFiles(files) {
   const out = [];
@@ -775,9 +825,18 @@ function scrimFor(s) {
   const dir = y === 'bottom' ? 'to top' : y === 'top' ? 'to bottom' : x === 'left' ? 'to right' : x === 'right' ? 'to left' : null;
   return dir ? `linear-gradient(${dir},rgba(${c},${a}) 0%,rgba(${c},${a * .5}) 38%,rgba(${c},0) 72%)` : `rgba(${c},${a * .6})`;
 }
+/* How an image sits in its frame. Auto: flat lays show whole on their studio
+   grey (never cropped into the product); editorial fills the frame, cropped
+   around its focus. */
+const fitOf = (s, a) => s.media.fit === 'fill' ? 'cover' : s.media.fit === 'fit' ? 'contain' : a.look === 'flat' ? 'contain' : 'cover';
 function mediaInner(s, k) {
   const m = s.media, a = asset(m.items[k]);
-  if (a) return assetEl(a, true);
+  if (a) {
+    const el = assetEl(a, true), fit = fitOf(s, a);
+    el.style.objectFit = fit; el.style.objectPosition = `50% ${a.fy ?? 50}%`;
+    if (fit === 'contain') el.dataset.bg = a.bg || FLAT_BG;
+    return el;
+  }
   if (m.kind === 'gallery') return h('div', { class:'ph' }, h('span', {}, `Image ${k + 1}`));
   const where = m.layout === 'full' ? 'full bleed' : m.layout === 'inset' ? 'inset ' + m.inset.toUpperCase() : 'half ' + m.layout;
   return h('div', { class:'ph' + (m.kind === 'video' ? ' ph--video' : '') }, h('span', {}, `${m.kind === 'video' ? '▶ ' : ''}${m.kind} · ${where}`));
@@ -826,8 +885,10 @@ function renderStage() {
     const n = count(s), single = s.media.kind !== 'gallery', spots = [];
     const media = frames.map((f, k) => {
       if (k >= n) return null;
-      const lz = h('div', { class:'lz' }, mediaInner(s, k));
+      const inner = mediaInner(s, k);
+      const lz = h('div', { class:'lz' }, inner);
       const lay = h('div', { class:'lay' + (s.shop.on ? ' shop' : '') }, lz);
+      if (inner.dataset && inner.dataset.bg) { lay.style.background = inner.dataset.bg; lz.style.inset = '5%'; if (s.shop.on) lz.style.bottom = 'calc(64px + 4%)'; }
       if (single && !s.shop.on && (s.media.layout === 'full' || s.media.layout === 'inset')) { const sb = scrimFor(s); if (sb) lay.append(h('div', { class:'scrim', style:{ background:sb } })); }
       if (s.shop.on) {
         const it = s.shop.items[k] || {};
@@ -1207,13 +1268,13 @@ const SHOP_POOL = () => {
       text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'cascade' },
       headline:'Layer for the first mile.', body:'Start warm, peel back as you go.', cta:{ show:true, label:'Shop layers' } }),
     make({ beat:'close', name:'Look + products', hold:'drift', overlay:0,
-      media:{ kind:'gallery', layout:'full', count:3, arrange:'mosaic', items:[im(25), im(9), im(5)] },
+      media:{ kind:'gallery', layout:'full', count:3, arrange:'mosaic', items:[im(13), im(9), im(5)] },
       shop:{ on:true, items:[P('The full look'), P('Mesh Tank'), P('Gradient Short', 'New')] },
       text:{ x:'left', y:'top', size:'s', anim:'wipe' }, headline:'Shop the look.' }),
-    make({ beat:'proof', name:'Shop the look · hotspots', hold:'push', overlay:30,
-      media:{ kind:'image', layout:'full', items:[im(23)] },
-      spots:{ on:true, items:[{ x:52, y:30, label:'Run Bra', sub:'$XX' }, { x:47, y:62, label:'Run Short', sub:'$XX' }, { x:0, y:0, label:'', sub:'' }] },
-      text:{ x:'left', y:'bottom', size:'l', width:'narrow', ink:'light', anim:'rise' },
+    make({ beat:'proof', name:'Shop the look · hotspots', hold:'drift', overlay:0,
+      media:{ kind:'image', layout:'right', items:[im(23)] },
+      spots:{ on:true, items:[{ x:58, y:42, label:'Run Bra', sub:'$XX' }, { x:56, y:78, label:'Run Short', sub:'$XX' }, { x:0, y:0, label:'', sub:'' }] },
+      text:{ x:'left', y:'bottom', size:'l', width:'narrow', anim:'rise' },
       headline:'Shop the look.', cta:{ show:true, label:'Shop all' } }),
     make({ beat:'proof', name:'New product · hotspots', hold:'drift', overlay:0,
       media:{ kind:'image', layout:'inset', mx:'right', inset:'l', items:[im(10)] },
@@ -1255,7 +1316,9 @@ function poolThumb(s) {
     if (r.o < .5) return;
     const a = asset(s.media.items[k]);
     const f = h('i', { class:'pf' + (s.shop.on ? ' shop' : ''), style:{ left:r.x / 16 + '%', top:r.y / 10 + '%', width:r.w / 16 + '%', height:r.h / 10 + '%',
-      backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null } });
+      backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null,
+      backgroundSize: a && fitOf(s, a) === 'contain' ? 'contain' : null, backgroundColor: a && a.look === 'flat' ? a.bg : null,
+      backgroundPosition: a ? `50% ${a.fy ?? 50}%` : null } });
     if (s.spots.on && k === 0) s.spots.items.filter(sp => sp.label).forEach(sp => f.append(h('b', { class:'pdot', style:{ left:sp.x + '%', top:sp.y + '%' } })));
     box.append(f);
   });
@@ -1326,6 +1389,17 @@ $list.addEventListener('drop', e => {
   e.preventDefault(); insertSection(fromPool(key), S.sections.length);
 });
 
+/* Is this image big enough for its frame? Compares the frame at the current
+   stage size (and the slow camera zoom) against the image's own pixels. */
+function sharpness(s, k) {
+  const a = asset(s.media.items[k]); if (!a || !a.w) return null;
+  const r = (rectsFor(s) || [])[k]; if (!r) return null;
+  const fit = fitOf(s, a), zoom = 1.08;
+  const scale = (fit === 'cover' ? Math.max(r.w / a.w, r.h / a.h) : Math.min(r.w * .9 / a.w, r.h * .9 / a.h)) * zoom;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  return { scale, level: scale > 1.25 ? 'low' : scale * dpr > 1.6 ? 'soft' : 'ok', w:a.w, h:a.h, fw:Math.round(r.w), fh:Math.round(r.h) };
+}
+
 /* ---------- inspector ---------- */
 function slotsFor(s) {
   const n = count(s);
@@ -1334,6 +1408,8 @@ function slotsFor(s) {
     const el = h('div', { class:'slot' + (a ? ' filled' : ''), role:'button', tabindex:'0', title: a ? a.name : 'Choose from the Library',
         onclick:() => { picking = { id:s.id, k }; showTab('library'); } },
       a ? assetEl(a, false) : (n > 1 ? `Tile ${k + 1}` : 'Empty'),
+      (() => { const q = a && sharpness(s, k); return q && q.level !== 'ok' && h('span', { class:'res ' + q.level,
+        title:`Image is ${q.w}×${q.h}px; this frame is about ${q.fw}×${q.fh}px on screen.` }, q.level === 'low' ? 'Too small' : 'Soft on retina'); })(),
       a && h('button', { class:'x', 'aria-label':'Clear', title:'Clear', onclick:act(e => { e.stopPropagation(); s.media.items[k] = null; }) }, '×'));
     el.addEventListener('dragover', e => { if (e.dataTransfer.types.includes(DRAG) || e.dataTransfer.types.includes('Files')) { e.preventDefault(); el.classList.add('over'); } });
     el.addEventListener('dragleave', () => el.classList.remove('over'));
@@ -1375,6 +1451,8 @@ function renderInspector() {
       field('Tiles', seg([[2,'2'],[3,'3'],[4,'4']], m.count, up(v => m.count = v))),
       field('Arrangement', seg([['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
     mg.append(field(m.kind === 'gallery' ? 'Tiles · drag from the Library, or click to choose' : 'Content · drag from the Library, or click to choose', slotsFor(s)));
+    mg.append(field('Image fit', seg([['auto','Auto'],['fill','Fill frame'],['fit','Show whole']], m.fit, up(v => m.fit = v))),
+      h('p', { class:'hint' }, m.fit === 'fill' ? 'Crops the image to fill the frame.' : m.fit === 'fit' ? 'Shows the whole image on a matching background.' : 'Product flat lays show whole on their grey; editorial photos fill the frame.'));
     if (m.kind !== 'gallery') {
       if (m.layout === 'full' || m.layout === 'inset')
         mg.append(field(inkOf(s) === 'light' ? 'Shade behind text' : 'White wash behind text', slider(0, 80, 1, s.overlay, v => v + '%', v => s.overlay = v, renderStage)));
