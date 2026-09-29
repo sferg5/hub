@@ -218,6 +218,45 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
 .hint{font-size:13px;color:var(--p-mute);margin:-6px 0 16px}
 .none{padding:32px 0;color:var(--p-mute);text-align:center}
 
+/* narrative arc builder: sits over the stage, left of the panel */
+.arc{position:fixed;top:0;left:0;bottom:0;right:var(--panel-w);z-index:40;background:#fff;color:var(--p-fg);font:400 14px/1.45 var(--sans);display:grid;grid-template-rows:auto 1fr;overflow:auto}
+body:not(.panel-open) .arc{right:0}
+.arc[hidden]{display:none}
+.arc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:22px 28px 10px}
+.arc-h b{display:block;font:700 26px/1.1 var(--sans);letter-spacing:-.01em}
+.arc-h small{display:block;margin-top:6px;font-size:14px;color:var(--p-mute);max-width:60ch}
+.arc-x{width:40px;height:40px;border-radius:50%;border:1px solid var(--p-line);font-size:18px;flex:none}
+.arc-x:hover{border-color:var(--p-fg)}
+.arc-body{display:grid;grid-template-columns:1fr 260px;gap:24px;padding:6px 28px 28px;min-height:0}
+.arc-main{min-width:0;display:grid;gap:14px;align-content:start}
+.arc-tools{display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+.arc-tools .f{margin:0;min-width:150px}
+.arc-graph{position:relative;border:1px solid var(--p-line);border-radius:4px;background:#fff;touch-action:none;user-select:none}
+.arc-graph svg{display:block;width:100%;height:auto}
+.arc-graph.draw{cursor:crosshair}
+.arc-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--p-mute)}
+.arc-legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--red);vertical-align:3px;margin-right:6px}
+.arc-legend i.cur{border-top:2px dashed #8A8A8A}
+.arc-prev{position:relative;height:118px}
+.arc-prev .ac{position:absolute;top:0;width:86px;margin-left:-43px;display:grid;gap:4px;text-align:center}
+.arc-prev .ac .pt{border-color:var(--p-line)}
+.arc-prev .ac b{font:600 11px/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-prev .ac small{font:400 10.5px/1.1 var(--sans);color:var(--p-mute)}
+.arc-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.arc-actions small{color:var(--p-mute);font-size:12.5px}
+.arc-side{display:grid;gap:10px;align-content:start}
+.arc-side h4{font:600 14px/1.2 var(--sans);margin:4px 0 2px}
+.arcp{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;text-align:left;padding:8px;border:1px solid var(--p-line);border-radius:4px;background:#fff}
+.arcp:hover{border-color:var(--p-fg)}
+.arcp[aria-pressed="true"]{border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg)}
+.arcp svg{width:78px;height:44px;display:block;background:var(--p-soft);border-radius:2px}
+.arcp b{display:block;font:600 13px/1.2 var(--sans)}
+.arcp small{display:block;font-size:11.5px;line-height:1.3;color:var(--p-mute);margin-top:2px}
+.spark{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 8px;border:1px solid var(--p-line);border-radius:4px;background:#fff;font:600 12px/1 var(--sans)}
+.spark:hover{border-color:var(--p-fg)}
+.spark svg{width:54px;height:20px;display:block}
+@media (max-width:1100px){.arc-body{grid-template-columns:1fr}.arc-side{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}}
+
 /* section pool */
 .pool-h{padding:16px 0 4px;display:grid;gap:4px}
 .pool-h b{font:700 18px/1.2 var(--sans)}
@@ -316,7 +355,8 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
       <option value="blank">Blank · one hero</option>
     </select>
     <div class="p-row">
-      <button class="btn pri" id="remix" title="Randomize layouts, keep copy">Remix layouts</button>
+      <button class="btn pri" id="arc-open" title="Shape the story by feeling over time">Narrative arc</button>
+      <button class="btn" id="remix" title="Randomize layouts, keep copy">Remix layouts</button>
       <button class="btn" id="export">Export</button>
       <button class="btn" id="import">Import</button>
       <button class="linkbtn" id="undo" title="Undo (⌘Z)">Undo</button>
@@ -343,6 +383,7 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
   <div class="p-list">
     <div class="p-list-h">
       <b>Story order</b>
+      <button class="spark" id="spark" title="How this story feels over time. Open the arc builder."></button>
       <button class="btn" id="add" aria-pressed="false">+ Add section</button>
     </div>
     <div class="beats" id="beatfilter" role="group" aria-label="Filter by beat"></div>
@@ -354,6 +395,32 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
     <div class="lib" id="lib"></div>
   </div>
   <input type="file" id="lib-file" accept="image/*,video/*" multiple hidden>
+</aside>
+<section class="arc" id="arc" hidden aria-label="Narrative arc builder">
+  <div class="arc-h">
+    <div><b>Narrative arc</b><small>Time runs left to right. Feeling runs from shopping and product at the bottom to emotive story at the top. Pick an arc or shape your own, then build a story that follows it.</small></div>
+    <button class="arc-x" id="arc-close" aria-label="Close the arc builder">×</button>
+  </div>
+  <div class="arc-body">
+    <div class="arc-main">
+      <div class="arc-tools">
+        <div class="f"><span class="lbl">Shape the line</span><div class="seg" id="arc-mode"></div></div>
+        <div class="f" style="min-width:250px"><span class="lbl">Sections</span><div class="pos" id="arc-n" style="white-space:nowrap"></div></div>
+        <div class="f"><span class="lbl">Build from</span><div class="seg" id="arc-src"></div></div>
+      </div>
+      <div class="arc-graph" id="arc-graph"></div>
+      <div class="arc-legend"><span><i></i>Your arc</span><span><i class="cur"></i>The story as it is now</span><span id="arc-hint"></span></div>
+      <div class="arc-prev" id="arc-prev"></div>
+      <div class="arc-actions">
+        <button class="btn pri" id="arc-build">Build a new story from this arc</button>
+        <button class="btn" id="arc-fit">Re-order my current sections to fit</button>
+        <small>Pacing follows the arc too: emotive moments hold longer, big rises get bigger entrances. Undo brings back the old story.</small>
+      </div>
+    </div>
+    <div class="arc-side" id="arc-side"></div>
+  </div>
+</section>
+<aside hidden>
 </aside>
 
 <script>
@@ -411,7 +478,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
 /* Every section shares one shape. "Type" only picks starting values,
    so any section can become any composition. */
 const BASE = () => ({
-  id: uid(), name: 'Section', beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
+  id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
@@ -549,6 +616,7 @@ const normalize = d => ({
   trans: clamp(+d.trans || 1, .5, 2),
   holdAmt: clamp(+d.holdAmt || 1, .4, 2),
   pace: clamp(+d.pace || 1.5, .6, 2.5),
+  arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
   smooth: d.smooth !== false,
   sections: (d.sections || []).map(s => {
     const x = merge(BASE(), s);
@@ -1389,6 +1457,210 @@ $list.addEventListener('drop', e => {
   e.preventDefault(); insertSection(fromPool(key), S.sections.length);
 });
 
+/* ---------- narrative arc ----------
+   Feeling: 0 = shopping / product, 1 = emotive / story. Every section has one,
+   worked out from what is in it unless the author sets it by hand. */
+function autoFeel(s) {
+  let f = .5; const m = s.media, a = asset(m.items[0]);
+  const flat = a && a.look === 'flat';
+  if (m.kind === 'none') f += s.quote.on ? .32 : .24;
+  else if (flat) f -= .22;
+  else if (m.layout === 'full') f += .24;
+  else if (m.layout === 'left' || m.layout === 'right') f += .08;
+  if (m.kind === 'video' && !flat) f += .06;
+  if (s.shop.on) f -= .34;
+  if (s.card.on) f -= .14;
+  if (s.spots.on) f -= .16;
+  if (s.stats.on) f -= .12;
+  if (s.feats.on) f -= .14;
+  if (s.cta.show) f -= .06;
+  f += { s:-.04, m:0, l:.04, xl:.08 }[s.text.size] || 0;
+  f += { hook:.04, build:.06, proof:-.08, close:-.04 }[s.beat] || 0;
+  return clamp(f, .02, .98);
+}
+const feelOf = s => s.feel == null ? autoFeel(s) : s.feel;
+
+/* Six stock arcs, as points on 0–1 time × 0–1 feeling. */
+const ARCS = {
+  crescendo: ['Crescendo',    'A steady climb to an emotional peak, then a quick landing on product.', [[0,.3],[.2,.42],[.4,.55],[.6,.7],[.8,.92],[.9,.97],[1,.34]]],
+  journey:   ["Hero's journey", 'Open big, dip into the practical, climb to a bigger peak, resolve.', [[0,.78],[.2,.46],[.38,.26],[.58,.56],[.78,.9],[.9,.95],[1,.42]]],
+  hole:      ['Man in a hole', 'Start steady, fall to the product detail, rise higher than where you began.', [[0,.58],[.22,.34],[.42,.16],[.62,.44],[.82,.8],[1,.9]]],
+  pulse:     ['Pulse',        'Alternate feeling and product, so every emotive beat pays off in a shoppable one.', [[0,.88],[.17,.3],[.34,.82],[.5,.26],[.67,.78],[.84,.22],[1,.64]]],
+  coldopen:  ['Cold open',    'Start at full emotion and glide down into shopping.', [[0,.96],[.2,.86],[.42,.68],[.62,.48],[.82,.28],[1,.1]]],
+  slowburn:  ['Slow burn',    'Product first, feeling builds late and ends on the story.', [[0,.18],[.22,.2],[.44,.3],[.64,.46],[.82,.72],[1,.94]]],
+};
+const arcState = () => S.arc || (S.arc = { preset:'crescendo', points:clone(ARCS.crescendo[2]), n:9, src:'photo', mode:'edit' });
+
+/* Smooth curve through the points (Catmull-Rom), kept inside 0–1. */
+function curveAt(pts, x) {
+  const P = pts; if (x <= P[0][0]) return P[0][1]; if (x >= P[P.length - 1][0]) return P[P.length - 1][1];
+  let k = 0; while (k < P.length - 2 && x > P[k + 1][0]) k++;
+  const p0 = P[Math.max(0, k - 1)], p1 = P[k], p2 = P[k + 1], p3 = P[Math.min(P.length - 1, k + 2)];
+  const t = (x - p1[0]) / (p2[0] - p1[0] || 1), t2 = t * t, t3 = t2 * t;
+  const y = .5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3);
+  return clamp(y, 0, 1);
+}
+const svgNS = 'http://www.w3.org/2000/svg';
+const sv = (tag, attrs = {}, ...kids) => { const e = document.createElementNS(svgNS, tag); for (const [k, v] of Object.entries(attrs)) if (v != null) e.setAttribute(k, v); kids.flat().forEach(c => c && e.append(c)); return e; };
+const pathOf = (fn, x0, x1, X, Y, steps = 80) => Array.from({ length:steps + 1 }, (_, k) => { const x = x0 + (x1 - x0) * k / steps; return `${k ? 'L' : 'M'}${X(x).toFixed(1)},${Y(fn(x)).toFixed(1)}`; }).join('');
+function sparkSvg(pts, w, h, color = '#D22030', sw = 2) {
+  return sv('svg', { viewBox:`0 0 ${w} ${h}`, 'aria-hidden':'true' },
+    sv('path', { d:pathOf(x => curveAt(pts, x), 0, 1, x => 3 + x * (w - 6), y => h - 3 - y * (h - 6), 40), fill:'none', stroke:color, 'stroke-width':sw, 'stroke-linecap':'round' }));
+}
+const storyPoints = () => { const n = S.sections.length; return S.sections.map((s, i) => [n > 1 ? i / (n - 1) : .5, feelOf(s)]); };
+
+/* Pick sections for each moment of the arc: closest feeling, the right beat
+   at the start and end, no repeats, and a change of composition each time. */
+function planFromArc(A) {
+  const src = POOL.filter(p => A.src === 'blank' ? p.src === 'Blank layouts' : A.src === 'photo' ? p.src !== 'Blank layouts' : true);
+  const used = new Set(), plan = []; let prev = null;
+  for (let i = 0; i < A.n; i++) {
+    const x = A.n > 1 ? i / (A.n - 1) : 0, y = curveAt(A.points, x);
+    let best = null, bestC = Infinity;
+    src.forEach(p => {
+      const s = p.s; let c = Math.abs(feelOf(s) - y) * 3;
+      if (used.has(p.key)) c += 2;
+      if (i === 0 && s.beat !== 'hook') c += .45;
+      if (i === A.n - 1 && s.beat !== 'close') c += .45;
+      if (i > 0 && i < A.n - 1 && (s.beat === 'hook' || s.beat === 'close')) c += .2;
+      if (prev) { if (s.media.kind === prev.media.kind && s.media.layout === prev.media.layout) c += .28; if (s.media.kind === 'none' && prev.media.kind === 'none') c += .5; }
+      if (c < bestC) { bestC = c; best = p; }
+    });
+    used.add(best.key); prev = best.s; plan.push({ key:best.key, x, y });
+  }
+  return plan;
+}
+/* Pacing from the arc: emotive moments hold longer; steep rises get a bigger entrance. */
+function paceToArc(secs, ys) {
+  secs.forEach((s, i) => {
+    s.dwell = Math.round((.6 + ys[i] * .9) * 10) / 10;
+    if (!i) return;
+    const d = ys[i] - ys[i - 1];
+    s.motion = d > .25 ? 'iris' : d > .08 ? 'rise' : d < -.28 ? 'dissolve' : 'glide';
+  });
+}
+/* Re-order what is already in the story: fill the most extreme moments first. */
+function fitCurrent(A) {
+  const n = S.sections.length; if (n < 2) return;
+  const slots = S.sections.map((_, i) => ({ i, y:curveAt(A.points, i / (n - 1)) }));
+  const order = [...slots].sort((a, b) => Math.abs(b.y - .5) - Math.abs(a.y - .5));
+  const left = [...S.sections], out = new Array(n);
+  order.forEach(sl => {
+    let bi = 0, bc = Infinity;
+    left.forEach((s, k) => { let c = Math.abs(feelOf(s) - sl.y); if (sl.i === 0 && s.beat === 'hook') c -= .15; if (sl.i === n - 1 && s.beat === 'close') c -= .15; if (c < bc) { bc = c; bi = k; } });
+    out[sl.i] = left.splice(bi, 1)[0];
+  });
+  snapshot(); S.sections = out; paceToArc(S.sections, slots.map(sl => sl.y)); sel = S.sections[0].id; render(); scrollTo(0, 0);
+}
+
+let arcDrag = null, arcDraw = null;
+function renderArc() {
+  const A = arcState();
+  $('arc-mode').replaceChildren(...seg([['edit','Drag points'],['draw','Draw freehand']], A.mode, v => { A.mode = v; save(); renderArc(); }).childNodes);
+  $('arc-n').replaceChildren(...slider(4, 16, 1, A.n, v => v + ' sections', v => A.n = v, () => renderArcGraph()).childNodes);
+  $('arc-src').replaceChildren(...seg([['photo','Photo sections'],['blank','Blank layouts'],['all','Both']], A.src, v => { A.src = v; save(); renderArc(); }).childNodes);
+  $('arc-hint').textContent = A.mode === 'draw' ? 'Draw across the graph, left to right.' : 'Drag a point. Click the line area to add one; double-click a point to remove it.';
+  $('arc-side').replaceChildren(h('h4', {}, 'Stock arcs'), ...Object.entries(ARCS).map(([k, [name, desc, pts]]) =>
+    h('button', { class:'arcp', 'aria-pressed':String(A.preset === k), onclick:() => { snapshot(); A.preset = k; A.points = clone(pts); save(); renderArc(); } },
+      sparkSvg(pts, 78, 44), h('div', {}, h('b', {}, name), h('small', {}, desc)))),
+    h('button', { class:'arcp', 'aria-pressed':String(A.preset === 'custom'), onclick:() => { A.preset = 'custom'; save(); renderArc(); } },
+      sparkSvg(A.preset === 'custom' ? A.points : [[0,.5],[1,.5]], 78, 44, '#141414', 1.5), h('div', {}, h('b', {}, 'Your own'), h('small', {}, 'Drag the points or draw the line on the graph.'))));
+  renderArcGraph();
+}
+function renderArcGraph() {
+  const A = arcState(), box = $('arc-graph');
+  const Wd = Math.max(420, box.clientWidth || 800), Hd = Math.round(Math.min(420, Math.max(260, Wd * .42)));
+  const L = 118, R = 22, T = 22, B = 40, iw = Wd - L - R, ih = Hd - T - B;
+  const X = x => L + x * iw, Y = y => T + (1 - y) * ih, iX = px => clamp((px - L) / iw), iY = py => clamp(1 - (py - T) / ih);
+  const svg = sv('svg', { viewBox:`0 0 ${Wd} ${Hd}`, role:'img', 'aria-label':'Narrative arc graph: time across, feeling up' });
+  // bands and labels
+  svg.append(sv('defs', {}, sv('linearGradient', { id:'feelg', x1:0, y1:0, x2:0, y2:1 }, sv('stop', { offset:0, 'stop-color':'#D22030', 'stop-opacity':.07 }), sv('stop', { offset:1, 'stop-color':'#141414', 'stop-opacity':.04 }))));
+  svg.append(sv('rect', { x:L, y:T, width:iw, height:ih, fill:'url(#feelg)' }));
+  [0, .25, .5, .75, 1].forEach(v => svg.append(sv('line', { x1:L, x2:L + iw, y1:Y(v), y2:Y(v), stroke:'#E6E6E6', 'stroke-width':1 })));
+  const lab = (x, y, t, a = {}) => { const e = sv('text', { x, y, 'font-size':12, fill:'#6B6B6B', 'font-family':'Saans, -apple-system, sans-serif', ...a }); e.textContent = t; return e; };
+  svg.append(lab(L - 12, Y(1) + 4, 'Emotive · story', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+    lab(L - 12, Y(1) + 19, 'feeling, expression', { 'text-anchor':'end' }),
+    lab(L - 12, Y(.5) + 4, 'Balanced', { 'text-anchor':'end' }),
+    lab(L - 12, Y(0) - 11, 'Shopping · product', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+    lab(L - 12, Y(0) + 4, 'grids, prices, detail', { 'text-anchor':'end' }),
+    lab(L, Hd - 12, 'Start'), lab(L + iw, Hd - 12, 'End', { 'text-anchor':'end' }), lab(L + iw / 2, Hd - 12, 'Time →', { 'text-anchor':'middle' }));
+  // where each section will land
+  for (let i = 0; i < A.n; i++) { const x = A.n > 1 ? i / (A.n - 1) : 0; svg.append(sv('line', { x1:X(x), x2:X(x), y1:T + ih, y2:T + ih + 6, stroke:'#9A9A9A' })); }
+  // the story as it is now
+  const cur = storyPoints();
+  if (cur.length > 1) {
+    svg.append(sv('path', { d:cur.map((p, k) => `${k ? 'L' : 'M'}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(''), fill:'none', stroke:'#8A8A8A', 'stroke-width':1.6, 'stroke-dasharray':'5 4' }));
+    cur.forEach((p, k) => { const c = sv('circle', { cx:X(p[0]), cy:Y(p[1]), r:3.2, fill:'#fff', stroke:'#8A8A8A', 'stroke-width':1.4 }); c.append(sv('title', {}, `${k + 1}. ${S.sections[k].name}`)); svg.append(c); });
+  }
+  // the arc
+  svg.append(sv('path', { d:pathOf(x => curveAt(A.points, x), 0, 1, X, Y, 120), fill:'none', stroke:'#D22030', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
+  const plan = planFromArc(A);
+  plan.forEach(pl => svg.append(sv('circle', { cx:X(pl.x), cy:Y(pl.y), r:4, fill:'#D22030' })));
+  if (A.mode === 'edit') A.points.forEach((pt, k) => {
+    const c = sv('circle', { cx:X(pt[0]), cy:Y(pt[1]), r:8, fill:'#fff', stroke:'#141414', 'stroke-width':2, style:'cursor:grab' });
+    c.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); snapshot(); arcDrag = k; box.setPointerCapture(e.pointerId); });
+    c.addEventListener('dblclick', e => { e.stopPropagation(); if (k === 0 || k === A.points.length - 1 || A.points.length <= 3) return; snapshot(); A.points.splice(k, 1); A.preset = 'custom'; save(); renderArc(); });
+    svg.append(c);
+  });
+  if (arcDraw && arcDraw.length > 1) svg.append(sv('path', { d:arcDraw.map((p, k) => `${k ? 'L' : 'M'}${X(p[0])},${Y(p[1])}`).join(''), fill:'none', stroke:'#141414', 'stroke-width':2, 'stroke-dasharray':'2 3' }));
+  box.classList.toggle('draw', A.mode === 'draw');
+  box.replaceChildren(svg);
+
+  // pointer handling (in svg units)
+  const toSvg = e => { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left) * Wd / r.width, (e.clientY - r.top) * Hd / r.height]; };
+  box.onpointerdown = e => {
+    const [px, py] = toSvg(e);
+    if (A.mode === 'draw') { snapshot(); arcDraw = [[iX(px), iY(py)]]; box.setPointerCapture(e.pointerId); return; }
+    if (px < L || px > L + iw) return;
+    snapshot(); const x = iX(px); let k = A.points.findIndex(p => p[0] > x); if (k < 0) k = A.points.length;
+    A.points.splice(k, 0, [x, iY(py)]); A.preset = 'custom'; arcDrag = k; box.setPointerCapture(e.pointerId); renderArcGraph();
+  };
+  box.onpointermove = e => {
+    const [px, py] = toSvg(e);
+    if (arcDraw) { arcDraw.push([iX(px), iY(py)]); renderArcGraph(); return; }
+    if (arcDrag == null) return;
+    const P = A.points, k = arcDrag, lo = k === 0 ? 0 : P[k - 1][0] + .02, hi = k === P.length - 1 ? 1 : P[k + 1][0] - .02;
+    P[k] = [k === 0 ? 0 : k === P.length - 1 ? 1 : clamp(iX(px), lo, hi), iY(py)]; A.preset = 'custom'; renderArcGraph();
+  };
+  box.onpointerup = () => {
+    if (arcDraw) { // turn the stroke into nine smooth points
+      const d = arcDraw.filter(p => p[0] >= 0 && p[0] <= 1).sort((a, b) => a[0] - b[0]); arcDraw = null;
+      if (d.length > 3) {
+        A.points = Array.from({ length:9 }, (_, k) => { const x = k / 8, near = d.filter(p => Math.abs(p[0] - x) < .07);
+          const y = near.length ? near.reduce((t, p) => t + p[1], 0) / near.length : d.reduce((b, p) => Math.abs(p[0] - x) < Math.abs(b[0] - x) ? p : b)[1]; return [x, y]; });
+        A.preset = 'custom';
+      }
+      save(); renderArc(); return;
+    }
+    if (arcDrag != null) { arcDrag = null; save(); renderArc(); }
+  };
+
+  // the proposed story, under the graph at the same moments in time
+  const prev = $('arc-prev');
+  prev.replaceChildren(...plan.map((pl, i) => { const it = poolItem(pl.key);
+    return h('div', { class:'ac', style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: Math.min(86, iw / A.n - 6) + 'px', marginLeft: -Math.min(86, iw / A.n - 6) / 2 + 'px' }, title:`${i + 1}. ${it.s.name}` },
+      poolThumb(it.s), h('b', {}, it.s.name), h('small', {}, `${Math.round(feelOf(it.s) * 100)} feeling`)); }));
+}
+function openArc(open) {
+  $('arc').hidden = !open;
+  if (open) { requestAnimationFrame(renderArc); }
+}
+$('arc-open').addEventListener('click', () => openArc(true));
+$('arc-close').addEventListener('click', () => openArc(false));
+$('spark').addEventListener('click', () => openArc(true));
+$('arc-build').addEventListener('click', () => {
+  const A = arcState(), plan = planFromArc(A);
+  snapshot(); S.sections = plan.map(pl => fromPool(pl.key)); paceToArc(S.sections, plan.map(pl => pl.y));
+  sel = S.sections[0].id; openArc(false); render(); scrollTo(0, 0);
+});
+$('arc-fit').addEventListener('click', () => { fitCurrent(arcState()); openArc(false); });
+addEventListener('resize', () => { if (!$('arc').hidden) renderArcGraph(); });
+function renderSpark() {
+  const pts = storyPoints();
+  $('spark').replaceChildren(pts.length > 1 ? sv('svg', { viewBox:'0 0 54 20', 'aria-hidden':'true' },
+    sv('path', { d:pts.map((p, k) => `${k ? 'L' : 'M'}${(2 + p[0] * 50).toFixed(1)},${(18 - p[1] * 16).toFixed(1)}`).join(''), fill:'none', stroke:'#D22030', 'stroke-width':1.6, 'stroke-linejoin':'round' })) : '', 'Arc');
+}
+
 /* Is this image big enough for its frame? Compares the frame at the current
    stage size (and the slow camera zoom) against the image's own pixels. */
 function sharpness(s, k) {
@@ -1460,6 +1732,12 @@ function renderInspector() {
   }
 
   const contentGrp = grp('Copy',
+    field('Feeling', h('div', { class:'pos' },
+      (() => { const r = h('input', { type:'range', min:0, max:100, step:1, 'aria-label':'Feeling' }); r.value = Math.round(feelOf(s) * 100);
+        r.addEventListener('pointerdown', snapshot); r.addEventListener('input', () => { s.feel = +r.value / 100; r.nextSibling.textContent = r.value + (s.feel == null ? ' · auto' : ''); renderSpark(); save(); }); return r; })(),
+      h('small', {}, Math.round(feelOf(s) * 100) + (s.feel == null ? ' · auto' : '')),
+      s.feel != null && h('button', { class:'linkbtn', onclick:act(() => s.feel = null) }, 'Auto'))),
+    h('p', { class:'hint' }, '0 is shopping and product, 100 is emotive story. Auto reads it from what is in the section.'),
     field('Beat', seg(BEAT_ORDER.map(k => [k, BEATS[k].label]), s.beat, up(v => s.beat = v), 'Beat')),
     h('p', { class:'hint' }, BEATS[s.beat].hint),
     field('Section name', text(s.name, v => s.name = v)),
@@ -1537,7 +1815,7 @@ function renderGlobals() {
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
-function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); if (!$('view-library').hidden) renderLibrary(); save(); }
+function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); renderSpark(); if (!$('view-library').hidden) renderLibrary(); if (!$('arc').hidden) renderArc(); save(); }
 
 $('add').addEventListener('click', () => setPool(!poolOpen));
 $('preset').addEventListener('change', e => {
@@ -1577,6 +1855,7 @@ $fab.addEventListener('click', () => togglePanel());
 addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); undo(); }
+  else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
   else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
 });
 
