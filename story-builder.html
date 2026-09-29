@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ================= stage =================
    One white stage that never changes. Media frames and type are the
    performers: scrolling moves them from one composition into the next. */
-.stage{--g:clamp(20px,4.5cqw,64px);--top:calc(var(--g) + 28px);position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;overflow:hidden;background:var(--white);container-type:inline-size;transition:right .35s var(--ease-out)}
+.stage{--g:clamp(20px,4.5cqw,64px);--top:calc(var(--g) + 28px);--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);position:fixed;top:0;left:0;right:0;height:100vh;height:100dvh;overflow:hidden;background:var(--white);container-type:inline-size;transition:right .35s var(--ease-out)}
 body.panel-open .stage{right:var(--panel-w)}
 .spacer{position:relative;width:1px;pointer-events:none}
 .snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start}
@@ -124,11 +124,13 @@ body.panel-open .stage{right:var(--panel-w)}
 
 /* phone-width preview: split text moves below the media */
 @container (max-width:720px){
+  /* phones: keep copy clear of the notch at the top and the home indicator and browser bar at the bottom */
+  .tr,.cw{padding-top:calc(var(--top) + var(--sat));padding-bottom:calc(var(--g) + var(--sab) + 5vh)}
   .tr[data-layout="left"],.tr[data-layout="right"]{inset:50% 0 0 0;padding-top:var(--g)}
   .has-swiper .dots{display:none} /* swiping does the dots' job on a phone */
   .card{width:min(270px,78%)}
   /* on a phone the player stands upright in the corner, clear of the copy */
-  .stage .player{left:auto;right:16px;transform:none;bottom:20px;flex-direction:column;border-radius:24px}
+  .stage .player{left:auto;right:16px;transform:none;bottom:calc(20px + var(--sab) + 2vh);flex-direction:column;border-radius:24px}
   .stage .player.open .speeds{flex-direction:column}
 }
 
@@ -148,8 +150,10 @@ body.panel-open .stage{right:var(--panel-w)}
 /* touch swiping: the stage takes vertical swipes itself instead of scrolling the page */
 .stage.has-swiper{touch-action:none;overscroll-behavior:none}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
-.dots button{width:7px;height:7px;border-radius:50%;border:1px solid #fff;opacity:.6}
-.dots button.on{background:#fff;opacity:1}
+/* filled dots; the section on stage is the solid one. Padding gives a bigger target without a bigger dot */
+.dots button{box-sizing:content-box;width:7px;height:7px;padding:4px;margin:-4px;border-radius:50%;background:#fff;background-clip:content-box;opacity:.3;transition:opacity .25s}
+.dots button:hover{opacity:.65}
+.dots button.on{opacity:1}
 .empty{position:absolute;inset:0;display:grid;place-items:center;color:#9A9A9A;font:400 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:24px}
 
 /* ================= control panel (lululemon.com style) ================= */
@@ -397,6 +401,7 @@ body:not(.panel-open) .arc{right:0}
 .tabs button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--p-fg)}
 .tabs .count{font-weight:400;color:var(--p-mute);margin-left:4px}
 .view{display:flex;flex-direction:column;flex:1;min-height:0}
+.panel,.p-list,.p-insp,.lib,.story-pane,.arc,.help,.help-card,#help-text{overscroll-behavior:contain}
 .view[hidden]{display:none}
 /* library */
 .lib{flex:1;overflow:auto;padding:16px 20px 48px}
@@ -859,12 +864,12 @@ function rectsFor(s) {
   let R;
   if (m.layout === 'full') R = { x:0, y:0, w:W, h:H };
   else if (m.layout === 'left' || m.layout === 'right')
-    R = narrow ? { x:0, y:0, w:W, h:H * .5 } : { x: m.layout === 'left' ? 0 : W / 2, y:0, w:W / 2, h:H };
+    R = narrow ? { x:0, y:0, w:W, h:H * splitFrac(s) } : { x: m.layout === 'left' ? 0 : W / 2, y:0, w:W / 2, h:H };
   else {
-    const [fw, fh] = (narrow ? { s:[.62,.4], m:[.76,.46], l:[.88,.52] } : { s:[.36,.54], m:[.48,.68], l:[.64,.8] })[m.inset];
+    const [fw, fh] = (narrow ? { s:[.62,.36], m:[.76,.42], l:[.88,.48] } : { s:[.36,.54], m:[.48,.68], l:[.64,.8] })[m.inset];
     const w = W * fw, hh = H * fh;
-    // on a phone the framed image leads from the top and the copy stacks underneath
-    R = { x: m.mx === 'left' ? g : m.mx === 'right' ? W - g - w : (W - w) / 2, y: narrow ? Math.max(g + 28, H * .08) : (H - hh) / 2, w, h:hh };
+    // on a phone the framed image leads from the top (clear of the notch) and the copy stacks underneath, with room to breathe
+    R = { x: m.mx === 'left' ? g : m.mx === 'right' ? W - g - w : (W - w) / 2, y: narrow ? Math.max(g + 20, H * .06) + SAFE.t : (H - hh) / 2, w, h:hh };
   }
   if (m.kind !== 'gallery') return Array.from({ length:FR }, (_, k) => ({ ...R, o: k ? 0 : 1 }));
 
@@ -875,6 +880,10 @@ function rectsFor(s) {
     else if (s.text.y === 'bottom') I.h -= band;
   }
   if (narrow && S.player) I.w -= 44; // keep the tiles (and their + buttons) clear of the player in the corner
+  if (narrow && m.layout !== 'inset') { // and clear of the notch, the home indicator and the browser bar
+    if (m.layout === 'full') { I.y += SAFE.t; I.h -= SAFE.t; }
+    I.h -= SAFE.b + H * .05;
+  }
   const gap = g * .35, tiles = [];
   if (m.arrange === 'mosaic' && n > 1) {
     const bw = (I.w - gap) * .58, rx = I.x + bw + gap, rw = I.w - bw - gap, rest = n - 1;
@@ -1142,6 +1151,16 @@ function textLayer(s, i) {
   return { s, el, copy, eb, words, letters, parts, card, ty:0, ty2:0, sc:1 };
 }
 
+// on a phone a split stacks media over copy; long copy (a feature list) gets a little more of the screen
+const splitFrac = s => s.feats.on ? .38 : .5;
+/* The phone's own safe areas (notch, home indicator), measured once per layout. */
+let SAFE = { t:0, b:0 };
+function safeInsets() {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)';
+  document.body.append(d); const cs = getComputedStyle(d); const r = { t:parseFloat(cs.paddingTop) || 0, b:parseFloat(cs.paddingBottom) || 0 }; d.remove();
+  return r;
+}
 /* Phone composition. Desktop lockups put copy beside the media; a phone has no
    "beside", so: right-set copy moves left, copy under a framed image stacks
    below it, the product card tucks over the frame's lower edge, and bottom
@@ -1150,6 +1169,7 @@ function phoneCopy(s, T) {
   const t = s.text, g = clamp(W * .045, 20, 64);
   if (t.x === 'right') { T.el.dataset.x = 'left'; if (t.align === 'auto') T.copy.dataset.align = 'left'; }
   const inset = s.media.kind !== 'none' && s.media.kind !== 'gallery' && s.media.layout === 'inset';
+  if (s.media.kind !== 'none' && (s.media.layout === 'left' || s.media.layout === 'right')) T.el.style.top = splitFrac(s) * 100 + '%';
   if (inset) {
     const r = rectsFor(s)[0], below = r.y + r.h;
     T.el.style.top = (below + (s.card.on ? 64 : 18)) + 'px';
@@ -1169,7 +1189,7 @@ let lastNarrow = null;
 
 let frames = [], layers = [], starts = [], holds = [], TR = 0, UNIT = 1, curI = 0, shownI = -1;
 function renderStage() {
-  W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720;
+  W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720; SAFE = lastNarrow ? safeInsets() : { t:0, b:0 };
   const fw = h('div', { class:'frames' }), tw = h('div', { class:'texts' });
   frames = Array.from({ length:FR }, () => fw.appendChild(h('div', { class:'frame' })));
   layers = S.sections.map((s, i) => {
@@ -1305,9 +1325,9 @@ function textOut(L, t) {
   resetType(L);
   const anim = L.s.text.anim, rest = [L.eb, ...L.parts].filter(Boolean);
   const restOut = () => rest.forEach((p, k) => { const q = easeIn(clamp((t - .02 - k * .03) / .3)); p.style.transform = `translateY(${-q * 28}px)`; p.style.opacity = 1 - q; });
-  if (anim === 'rise') { L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .015) / .28)); w.style.transform = `translateY(${-q * 110}%)`; }); restOut(); }
+  if (anim === 'rise') { L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .015) / .28)); w.style.transform = `translateY(${-q * 140}%)`; }); restOut(); }
   else if (anim === 'cascade') { L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .02) / .3)); w.style.transform = `translateY(${-q * 40}%)`; w.style.opacity = 1 - q; }); restOut(); }
-  else if (anim === 'letters') { L.letters.forEach((c, k) => { const q = easeIn(clamp((t - k * .006) / .26)); c.style.transform = `translateY(${-q * 110}%)`; }); restOut(); }
+  else if (anim === 'letters') { L.letters.forEach((c, k) => { const q = easeIn(clamp((t - k * .006) / .26)); c.style.transform = `translateY(${-q * 140}%)`; }); restOut(); }
   else if (anim === 'type') { const n = L.letters.length, f = (1 - clamp(t / .4)) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); restOut(); }
   else {
     const q = easeIn(clamp(t / .38));
@@ -1330,9 +1350,9 @@ function textIn(L, t, motion) {
   const anim = L.s.text.anim, base = motion === 'dissolve' ? .55 : .38, rise = motion === 'rise' ? 64 : 34;
   const ebIn = () => { if (L.eb) { const q = easeOut(clamp((t - base) / .35)); L.eb.style.transform = `translateY(${(1 - q) * rise * .6}px)`; L.eb.style.opacity = q; } };
   const partsIn = d => L.parts.forEach((p, k) => { const q = easeOut(clamp((t - base - d - k * .05) / .36)); p.style.transform = `translateY(${(1 - q) * rise}px)`; p.style.opacity = q; });
-  if (anim === 'rise') { ebIn(); L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .025) / .34)); w.style.transform = `translateY(${(1 - q) * 110}%)`; }); partsIn(.14); }
+  if (anim === 'rise') { ebIn(); L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .025) / .34)); w.style.transform = `translateY(${(1 - q) * 140}%)`; }); partsIn(.14); }
   else if (anim === 'cascade') { ebIn(); L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .045) / .4)); w.style.transform = `translateY(${(1 - q) * 40}%)`; w.style.opacity = q; }); partsIn(.2); }
-  else if (anim === 'letters') { ebIn(); L.letters.forEach((c, k) => { const q = easeOut(clamp((t - base - .03 - k * .009) / .3)); c.style.transform = `translateY(${(1 - q) * 110}%)`; }); partsIn(.18); }
+  else if (anim === 'letters') { ebIn(); L.letters.forEach((c, k) => { const q = easeOut(clamp((t - base - .03 - k * .009) / .3)); c.style.transform = `translateY(${(1 - q) * 140}%)`; }); partsIn(.18); }
   else if (anim === 'type') { ebIn(); const n = L.letters.length, f = clamp((t - base - .02) / .45) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); partsIn(.3); }
   else {
     const q = easeOut(clamp((t - base) / .48));
@@ -1349,7 +1369,7 @@ function update() {
   while (i < N - 1 && y >= starts[i + 1]) i++;
   const local = y - starts[i], hold = holds[i];
   const t = i < N - 1 ? clamp((local - hold) / TR) : 0;
-  const j = t > 0 ? i + 1 : -1;
+  const j = t > .0005 ? i + 1 : -1; // a rounding hair past the rest point isn't a transition
   drawPair(i, j, t, local / UNIT, j >= 0 ? (y - starts[j]) / UNIT : 0);
 }
 /* Draw the stage between composition i (leaving) and j (arriving) at
@@ -1578,9 +1598,21 @@ function swiperEnds() {} // (kept for callers; there is no visible control to up
    step the wheel stays quiet until those events die down. */
 const chapterMode = () => S.scrollMode === 'chapter' && !touchSwipe() && S.sections.length > 1;
 let wheelAcc = 0, wheelLock = false, wheelQuiet = 0;
+/* Scrolling over the editor, the arc builder or the guide never moves the story.
+   Their own lists scroll as usual; at the end of a list (or over a part that
+   doesn't scroll) the wheel simply stops instead of passing on to the page. */
+function canScrollWithin(el, stop, dy) {
+  for (; el && el !== stop.parentElement; el = el.parentElement) {
+    const cs = getComputedStyle(el);
+    if (!/(auto|scroll)/.test(cs.overflowY) || el.scrollHeight <= el.clientHeight + 1) continue;
+    if (dy < 0 ? el.scrollTop > 0 : el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+  }
+  return false;
+}
 addEventListener('wheel', e => {
+  const ui = e.target.closest && e.target.closest('.panel, .arc, .help');
+  if (ui) { if (!e.ctrlKey && !canScrollWithin(e.target, ui, e.deltaY)) e.preventDefault(); return; }
   if (!chapterMode() || e.ctrlKey) return;               // pinch-zoom passes through
-  if (e.target.closest && e.target.closest('.panel, .arc, .help')) return; // the editor scrolls normally
   e.preventDefault();
   const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
   clearTimeout(wheelQuiet);
