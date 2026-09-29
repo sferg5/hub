@@ -125,13 +125,11 @@ body.panel-open .stage{right:var(--panel-w)}
 /* phone-width preview: split text moves below the media */
 @container (max-width:720px){
   .tr[data-layout="left"],.tr[data-layout="right"]{inset:50% 0 0 0;padding-top:var(--g)}
-  .has-swiper .dots{display:none} /* the swiper does the dots' job on a phone */
+  .has-swiper .dots{display:none} /* swiping does the dots' job on a phone */
   .card{width:min(270px,78%)}
-  .stage .swiper.right{bottom:20px}
-  /* on a phone the player stacks upright above the swiper, clear of the copy */
-  .has-swiper .player{left:auto;right:20px;transform:none;bottom:146px;flex-direction:column;border-radius:24px}
-  .has-swiper.sw-left .player{right:auto;left:20px}
-  .has-swiper .player.open .speeds{flex-direction:column}
+  /* on a phone the player stands upright in the corner, clear of the copy */
+  .stage .player{left:auto;right:16px;transform:none;bottom:20px;flex-direction:column;border-radius:24px}
+  .stage .player.open .speeds{flex-direction:column}
 }
 
 /* stage chrome */
@@ -147,18 +145,8 @@ body.panel-open .stage{right:var(--panel-w)}
 .player.open .cur{display:none}
 .pbar{position:absolute;left:0;bottom:0;height:3px;background:var(--ink);z-index:13;width:0;opacity:0;transition:opacity .3s}
 .pbar.on{opacity:1}
-/* swiper: a small pill with one dot. Drag the dot, the story follows; let go and it springs back to centre */
-.swiper{position:absolute;bottom:24px;z-index:12;width:40px;height:116px;border-radius:20px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-  box-shadow:0 6px 18px rgba(0,0,0,.1),inset 0 0 0 1px rgba(0,0,0,.06);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
-.swiper.left{left:20px}.swiper.right{right:20px;bottom:84px}
-.swiper.dragging{cursor:grabbing}
-.sw-track{position:absolute;left:50%;top:18px;bottom:18px;width:2px;margin-left:-1px;border-radius:1px;background:rgba(20,20,20,.12)}
-.sw-dot{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.22);
-  transition:transform .55s cubic-bezier(.25,1.6,.45,1)}
-.swiper.dragging .sw-dot{transition:none}
-.swiper.end-top .sw-track{background:linear-gradient(transparent 50%,rgba(20,20,20,.12) 50%)}
-.swiper.end-bottom .sw-track{background:linear-gradient(rgba(20,20,20,.12) 50%,transparent 50%)}
-@media (prefers-reduced-motion:reduce){.sw-dot{transition:transform .2s ease-out}}
+/* touch swiping: the stage takes vertical swipes itself instead of scrolling the page */
+.stage.has-swiper{touch-action:none;overscroll-behavior:none}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
 .dots button{width:7px;height:7px;border-radius:50%;border:1px solid #fff;opacity:.6}
 .dots button.on{background:#fff;opacity:1}
@@ -488,8 +476,8 @@ body:not(.panel-open) .arc{right:0}
         <p class="hint">Higher means less scrolling for each section.</p>
         <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
         <div class="f"><span class="lbl">Play button</span><div class="seg" id="playeron" role="group" aria-label="Play button"></div></div>
-        <div class="f"><span class="lbl">Swiper</span><div class="seg" id="swiperpos" role="group" aria-label="Swiper position"></div></div>
-        <p class="hint">A thumb-sized control for touch screens: flick up or down to move one section.</p>
+        <div class="f"><span class="lbl">Touch swiping</span><div class="seg" id="swiperpos" role="group" aria-label="Touch swiping"></div></div>
+        <p class="hint">On phones and tablets, swiping anywhere moves one section at a time: each swipe plays the next section through and rests at its end. Desktop scrolls as usual.</p>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
         <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
@@ -753,7 +741,7 @@ const normalize = d => ({
   pace: clamp(+d.pace || 1.5, .6, 2.5),
   arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
   smooth: d.smooth !== false,
-  swiper: ['left','right','off'].includes(d.swiper) ? d.swiper : 'right',
+  swiper: d.swiper === 'off' ? 'off' : 'on',
   player: d.player !== false,
   playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
   sections: (d.sections || []).map(s => {
@@ -768,7 +756,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'right', player:true, playSpeed:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', player:true, playSpeed:1, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -817,9 +805,7 @@ function rectsFor(s) {
     if (s.text.y === 'top') { I.y += band; I.h -= band; }
     else if (s.text.y === 'bottom') I.h -= band;
   }
-  if (narrow && S.swiper !== 'off') { // keep the tiles (and their + buttons) clear of the swiper
-    const sw = 44; if (S.swiper === 'left') I.x += sw; I.w -= sw;
-  }
+  if (narrow && S.player) I.w -= 44; // keep the tiles (and their + buttons) clear of the player in the corner
   const gap = g * .35, tiles = [];
   if (m.arrange === 'mosaic' && n > 1) {
     const bw = (I.w - gap) * .58, rx = I.x + bw + gap, rw = I.w - bw - gap, rest = n - 1;
@@ -1092,7 +1078,7 @@ function textLayer(s, i) {
 /* Phone composition. Desktop lockups put copy beside the media; a phone has no
    "beside", so: right-set copy moves left, copy under a framed image stacks
    below it, the product card tucks over the frame's lower edge, and bottom
-   copy keeps clear of the swiper. */
+   copy keeps clear of the player in the corner. */
 function phoneCopy(s, T) {
   const t = s.text, g = clamp(W * .045, 20, 64);
   if (t.x === 'right') { T.el.dataset.x = 'left'; if (t.align === 'auto') T.copy.dataset.align = 'left'; }
@@ -1104,12 +1090,12 @@ function phoneCopy(s, T) {
     T.el.dataset.y = t.y === 'bottom' ? 'bottom' : 'top';
     if (T.card) { Object.assign(T.card.style, { top:(below - 38) + 'px', bottom:'auto', paddingTop:'0px' }); T.card.dataset.y = 'top'; T.card.dataset.x = 'left'; }
   } else if (T.card) { T.card.dataset.x = 'left'; }
-  // copy in the lower part of the screen keeps clear of the swiper; centred copy is padded on both sides so it stays centred
+  // copy in the lower part of the screen keeps clear of the player; centred copy is padded on both sides so it stays centred
   const low = T.el.dataset.y === 'bottom' || (T.el.dataset.y === 'middle' && (inset || ['left','right'].includes(s.media.layout) && s.media.kind !== 'none'));
-  if (S.swiper !== 'off' && low) {
+  if (S.player && low) {
     const pad = (g + 48) + 'px';
     if (T.el.dataset.x === 'center') { T.el.style.paddingLeft = pad; T.el.style.paddingRight = pad; }
-    else T.el.style[S.swiper === 'left' ? 'paddingLeft' : 'paddingRight'] = pad;
+    else T.el.style.paddingRight = pad;
   }
 }
 let lastNarrow = null;
@@ -1156,9 +1142,7 @@ function renderStage() {
     h('nav', { class:'dots', 'aria-label':'Sections', // long stories tighten the spacing so the column stays within the middle half
       style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
       S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
-  $stage.classList.toggle('has-swiper', S.swiper !== 'off' && S.sections.length > 1);
-  $stage.classList.toggle('sw-left', S.swiper === 'left');
-  if (S.swiper !== 'off' && S.sections.length > 1) $stage.append(buildSwiper());
+  $stage.classList.toggle('has-swiper', touchSwipe());
   if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
   shownI = -1; measure(); ys = scrollY; update();
@@ -1382,8 +1366,7 @@ function jumpTo(from, to) {
    Feels like a feed: the story follows the finger 1:1, a short flick is
    enough, one flick moves one section, and it springs home if you let go
    early. At the ends it stretches like a rubber band. */
-let swipeDirect = false, swipeAnim = 0, $sw = null, swBase = null; // swBase: the section a swipe started from
-const SW_DIST = 150;                   // finger travel for a full section
+let swipeDirect = false, swipeAnim = 0, swBase = null; // swBase: the section a swipe started from
 const settledAt = y => { let k = 0; while (k < starts.length - 1 && y >= starts[k + 1] - 2) k++; return k; };
 // move the page and draw the stage in the same frame, without waiting for the scroll event
 const setY = y => { scrollTo({ top:y, behavior:'instant' }); ys = scrollY; update(); };
@@ -1438,79 +1421,74 @@ function swipeTo(dir, v0) {
   else if (dir < 0 && i > 0) animateTo(restOf(i - 1), v0);
   else if (dir < 0) animateTo(0, v0);
 }
-function buildSwiper() {
-  const dot = h('span', { class:'sw-dot' });
-  const el = h('div', { class:'swiper ' + S.swiper, role:'slider', tabindex:'0', 'aria-label':'Drag up or down to move between sections', 'aria-orientation':'vertical' },
-    h('span', { class:'sw-track' }), dot);
-  el.addEventListener('click', e => e.stopPropagation());
-  el.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); swipeTo(1); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); swipeTo(-1); } });
-  const REACH = 40; // how far the dot can travel from centre
-
-  let drag = null;
-  el.addEventListener('pointerdown', e => {
-    cancelAnimationFrame(swipeAnim); swipeDirect = true;
-    const base = scrollY, i = settledAt(base);
-    swBase = i; swiperHeld = true;
-    const next = starts[i + 1], prev = i > 0 ? restOf(i - 1) : (base > 2 ? 0 : undefined);
-    // any part of this section's hold still ahead (or behind) goes by in the first bit of travel, so the finger drives the transition itself
-    const hNext = next != null ? Math.max(0, restOf(i) - base) / (next - base) : null;
-    const hPrev = prev != null && base > prev ? Math.max(0, base - starts[i]) / (base - prev) : null;
-    drag = { id:e.pointerId, y0:e.clientY, t0:e.timeStamp, moved:0, base, i, next, prev, hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
-    try { el.setPointerCapture(e.pointerId); } catch (err) {}
-    el.classList.add('dragging');
-    document.documentElement.classList.remove('magnet');
-  });
-  el.addEventListener('pointermove', e => {
-    if (!drag || e.pointerId !== drag.id) return;
-    drag.samples.push([e.timeStamp, e.clientY]); if (drag.samples.length > 6) drag.samples.shift();
-    const dy = drag.y0 - e.clientY; drag.moved = Math.max(drag.moved, Math.abs(dy));
-    let p = dy / SW_DIST; // + = up = forward
-    const hasNext = drag.next != null, hasPrev = drag.prev != null;
-    if ((p > 0 && !hasNext) || (p < 0 && !hasPrev)) p = Math.sign(p) * (1 - 1 / (1 + Math.abs(p) * .6)) * .25; // rubber band
-    p = clamp(p, -1, 1); drag.p = p;
-    const q = .12, a = Math.abs(p);
-    let f = a; // share of the way to the neighbouring section
-    if (p > 0 && drag.hNext > .02) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
-    if (p < 0 && drag.hPrev > .02) f = a < q ? drag.hPrev * a / q : drag.hPrev + (1 - drag.hPrev) * (a - q) / (1 - q);
-    const y = p >= 0 ? drag.base + f * ((hasNext ? drag.next : drag.base) - drag.base) : drag.base - f * (drag.base - (hasPrev ? drag.prev : drag.base));
-    setY(y);
-    // the dot follows the finger, easing off as it nears the ends of the pill
-    const reach = (hasNext || dy < 0) && (hasPrev || dy > 0) ? REACH : REACH * .35;
-    dot.style.transform = `translateY(${-reach * Math.tanh(dy / (REACH * 1.6))}px) scale(1.12)`;
-  });
-  const end = e => {
-    if (!drag || e.pointerId !== drag.id) return;
-    el.classList.remove('dragging');
-    dot.style.transform = ''; // springs back to centre
-    const S0 = drag.samples[0], S1 = drag.samples[drag.samples.length - 1];
-    const v = (S0[1] - S1[1]) / Math.max(1, S1[0] - S0[0]); // px/ms, + = up
-    const p = drag.p || 0, flick = Math.abs(v) > .32;
-    let dir = 0;
-    if (drag.moved < 6 && e.timeStamp - drag.t0 < 300) { // a tap: top half goes back, bottom half goes forward
-      const r = el.getBoundingClientRect(); dir = e.clientY < r.top + r.height / 2 ? -1 : 1;
-      if (dir > 0 && drag.next == null) dir = 0; if (dir < 0 && drag.prev == null) dir = 0;
-    } else {
-      if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
-      if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
-    }
-    const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base, k = drag.i;
-    drag = null;
-    const v0 = Math.abs(v) * Math.abs(target - scrollY) / SW_DIST;
-    if (dir > 0) swipeForward(k + 1, v0); // on into the next section, then play it through and rest at its end
-    else animateTo(target, v0);            // back to the end of the previous section, or home if the swipe didn't commit
-  };
-  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-  $sw = el; swiperEnds();
-  return el;
+/* On phones and tablets, swiping anywhere on the stage is the swiper: the story
+   follows the finger, a flick moves one section, and each forward swipe plays
+   the next section through and rests at its end. A swipe only begins once the
+   finger clearly moves up or down, so taps on buttons, "+" and hotspots still work. */
+const isTouch = () => !!window.__forceTouch || matchMedia('(pointer: coarse)').matches;
+const touchSwipe = () => S.swiper !== 'off' && isTouch() && S.sections.length > 1;
+const swipeDist = () => Math.max(180, H * .42); // finger travel for a full section
+let drag = null, tg = null, swallowClick = 0;
+function dragBegin(e) {
+  cancelAnimationFrame(swipeAnim); cancelAnimationFrame(jumpRaf); stopPlay(); swipeDirect = true;
+  const base = scrollY, i = settledAt(base);
+  swBase = i; swiperHeld = true;
+  const next = starts[i + 1], prev = i > 0 ? restOf(i - 1) : (base > 2 ? 0 : undefined);
+  // any part of this section's hold still ahead (or behind) goes by in the first bit of travel, so the finger drives the transition itself
+  const hNext = next != null ? Math.max(0, restOf(i) - base) / (next - base) : null;
+  const hPrev = prev != null && base > prev ? Math.max(0, base - starts[i]) / (base - prev) : null;
+  drag = { y0:e.clientY, base, i, next, prev, hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
+  document.documentElement.classList.remove('magnet');
 }
-// at the first or last section, the track fades on the side you can't go
-function swiperEnds() {
-  if (!$sw || !$sw.isConnected) return;
-  const k = swBase != null ? swBase : curI;
-  $sw.classList.toggle('end-top', k === 0); $sw.classList.toggle('end-bottom', k === S.sections.length - 1);
-  $sw.setAttribute('aria-valuenow', k + 1); $sw.setAttribute('aria-valuemin', 1); $sw.setAttribute('aria-valuemax', S.sections.length);
-  $sw.setAttribute('aria-valuetext', `Section ${k + 1} of ${S.sections.length}`);
+function dragMove(e) {
+  drag.samples.push([e.timeStamp, e.clientY]); if (drag.samples.length > 6) drag.samples.shift();
+  const dy = drag.y0 - e.clientY;
+  let p = dy / swipeDist(); // + = up = forward
+  const hasNext = drag.next != null, hasPrev = drag.prev != null;
+  if ((p > 0 && !hasNext) || (p < 0 && !hasPrev)) p = Math.sign(p) * (1 - 1 / (1 + Math.abs(p) * .6)) * .25; // rubber band
+  p = clamp(p, -1, 1); drag.p = p;
+  const q = .12, a = Math.abs(p);
+  let f = a; // share of the way to the neighbouring section
+  if (p > 0 && drag.hNext > .02) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
+  if (p < 0 && drag.hPrev > .02) f = a < q ? drag.hPrev * a / q : drag.hPrev + (1 - drag.hPrev) * (a - q) / (1 - q);
+  setY(p >= 0 ? drag.base + f * ((hasNext ? drag.next : drag.base) - drag.base) : drag.base - f * (drag.base - (hasPrev ? drag.prev : drag.base)));
 }
+function dragEnd() {
+  const S0 = drag.samples[0], S1 = drag.samples[drag.samples.length - 1];
+  const v = (S0[1] - S1[1]) / Math.max(1, S1[0] - S0[0]); // px/ms, + = up
+  const p = drag.p || 0, flick = Math.abs(v) > .32;
+  let dir = 0;
+  if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
+  if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
+  const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base, k = drag.i;
+  drag = null;
+  const v0 = Math.abs(v) * Math.abs(target - scrollY) / swipeDist();
+  if (dir > 0) swipeForward(k + 1, v0); // on into the next section, then play it through and rest at its end
+  else animateTo(target, v0);            // back to the end of the previous section, or home if the swipe didn't commit
+}
+$stage.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'touch' || !touchSwipe() || e.target.closest('.player')) return;
+  tg = { id:e.pointerId, x0:e.clientX, y0:e.clientY, on:false };
+});
+$stage.addEventListener('pointermove', e => {
+  if (!tg || e.pointerId !== tg.id) return;
+  if (!tg.on) {
+    const dx = e.clientX - tg.x0, dy = e.clientY - tg.y0;
+    if (Math.abs(dy) < 10 || Math.abs(dy) < Math.abs(dx) * 1.2) return; // not a vertical swipe yet
+    tg.on = true; dragBegin(e);
+    try { $stage.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+  dragMove(e);
+});
+const touchEnd = e => {
+  if (!tg || e.pointerId !== tg.id) return;
+  if (tg.on && drag) { dragEnd(); swallowClick = performance.now(); }
+  tg = null;
+};
+$stage.addEventListener('pointerup', touchEnd); $stage.addEventListener('pointercancel', touchEnd);
+// a swipe that ends over a button shouldn't also press it
+$stage.addEventListener('click', e => { if (performance.now() - swallowClick < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
+function swiperEnds() {} // (kept for callers; there is no visible control to update)
 /* ---------- player ----------
    Plays the story as one continuous move, the way the viewer would scroll it.
    1× moves one story unit every two seconds, so a section (hold + transition)
@@ -1561,7 +1539,7 @@ function buildPlayer() {
   return el;
 }
 // the viewer taking over pauses playback
-['wheel', 'touchstart'].forEach(t => addEventListener(t, e => { stopPlay(); if (swiperHeld && !(e.target.closest && e.target.closest('.swiper'))) { swiperHeld = false; magnetOn(); } }, { passive:true }));
+['wheel', 'touchstart'].forEach(t => addEventListener(t, e => { stopPlay(); if (swiperHeld && !(touchSwipe() && $stage.contains(e.target))) { swiperHeld = false; magnetOn(); } }, { passive:true }));
 $stage.addEventListener('pointerdown', e => { if (!e.target.closest('.player')) stopPlay(); });
 
 let raf = 0, ys = scrollY, lastT = 0;
@@ -2277,7 +2255,7 @@ function renderGlobals() {
   $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
   $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
   $('playeron').replaceChildren(...seg([[true,'On'],[false,'Off']], S.player, act(v => { S.player = v; if (!v) stopPlay(); })).childNodes);
-  $('swiperpos').replaceChildren(...seg([['left','Bottom left'],['right','Bottom right'],['off','Off']], S.swiper, act(v => S.swiper = v)).childNodes);
+  $('swiperpos').replaceChildren(...seg([['on','On'],['off','Off']], S.swiper, act(v => S.swiper = v)).childNodes);
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
@@ -2336,35 +2314,41 @@ addEventListener('keydown', e => {
    refresh showing. Esc closes, arrow keys step through. */
 const HELP = [
   { t:'Welcome to Story Builder', v:'morph',
-    b:`<p>Build a story page that plays as people scroll.</p><p>The page itself stays still. As the viewer scrolls, the images and words glide from one composition into the next, like a scene changing in front of an audience.</p>` },
+    b:`<p>Build a story page that plays as people scroll.</p><p>The page itself stays still. As the viewer moves through it, the images and words glide from one composition into the next, like a scene changing in front of an audience. There is always something moving.</p>` },
   { t:'A story is a list of sections', v:'rows',
-    b:`<p>Each section is one composition: where the image sits, where the words go, and how it moves in.</p><p>In <b>Story order</b>, drag a section to reorder it. Click one to edit its text position, media, copy and motion underneath.</p>` },
+    b:`<p>Each section is one composition, tagged with a beat: <b>Hook</b>, <b>Build</b>, <b>Proof</b> or <b>Close</b>.</p><p>In <b>Story order</b>, drag a section to reorder it. Click one to edit it, and the stage moves straight to it, even if it's far away.</p>` },
+  { t:'Fine-tune each section', v:'edit',
+    b:`<p>Under the section list, choose where the words sit on a 3×3 grid, where the media goes (full, half, framed or a gallery), and how the section moves in and moves while it's on screen.</p><p>Add shoppable extras too: product labels with a quick-add, hotspots on the image, a feature list or a product card. <b>Feeling</b> sets how emotive or shopping-led the section is.</p>` },
   { t:'Add sections from the pool', v:'pool',
-    b:`<p>Press <b>+ Add section</b> to open a pool of ready-made sections: shoppable product grids, hotspots, full-bleed moments, quotes and more.</p><p>Click a card to add it after the section you're on, or drag it into the exact spot in Story order.</p>` },
+    b:`<p>Press <b>+ Add section</b> for ready-made sections: <b>Shop</b> grids and hotspots, <b>City Run</b> story moments, and blank layouts.</p><p>Click a card to add it after the section you're on, or drag it into the exact spot in Story order.</p>` },
   { t:'Drop in images and video', v:'drop',
-    b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the stage. It glows red where it will land.</p><p>Press <b>Add files</b> to use your own. They stay in this browser and are never uploaded.</p>` },
+    b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the stage. It glows red where it will land. <b>Add files</b> brings in your own; they stay in this browser.</p><p>Product flat lays show whole on their grey. Editorial photos fill the frame. If a photo is too small for its frame, the section's media box says so.</p>` },
   { t:'Shape it with a narrative arc', v:'arc',
-    b:`<p><b>Build a Narrative Arc</b> maps the feeling of your story over time: shopping and product at the bottom, emotive story at the top.</p><p>Pick a stock arc or drag the points yourself. Each point is one section. Then build a story that follows the line.</p>` },
+    b:`<p><b>Build a Narrative Arc</b> maps the feeling of the story over time: shopping and product at the bottom, emotive story at the top.</p><p>Each point is one section, evenly spaced. Drag a point up or down. Click empty space or <b>+</b> to add one. Select a point, then press <b>×</b> or <b>Delete</b>, or drag it off the graph, to remove it. Then build a new story or re-order the one you have.</p>` },
   { t:'Watch it like a viewer', v:'play',
-    b:`<p>Scroll to play it through. Or press <b>Play</b> at the bottom and choose a speed.</p><p>On a phone, swipe the dot in the corner: each swipe plays the next section and rests at its end. Click a section in the list to jump straight to it.</p>` },
+    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p>` },
   { t:'Handy to know', v:'keys',
     b:`<ul>
-      <li><kbd>⌘Z</kbd><span>Undo. <kbd>⇧⌘Z</kbd> redoes.</span></li>
+      <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo. The buttons are under Export.</span></li>
       <li><kbd>E</kbd><span>Hide or show the editor to see the page clean.</span></li>
       <li><kbd>Space</kbd><span>Play or pause.</span></li>
       <li><kbd>Remix</kbd><span>Shuffles the layouts and keeps your words.</span></li>
       <li><kbd>Export</kbd><span>Saves the story as a file. <b>Import</b> opens one again.</span></li>
-      <li><kbd>?</kbd><span>Opens this guide any time.</span></li>
-      <li><kbd>Esc</kbd><span>Closes this guide or the arc builder.</span></li>
+      <li><kbd>Settings</kbd><span><b>Page settings</b> tunes scroll speed, smoothing, transitions, the Play button and touch swiping.</span></li>
+      <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
     </ul>` },
 ];
 const HELP_VIS = {
   morph:`<div class="hv"><div class="hv-stage"><i class="hv-f img hv-morph"></i><i class="hv-t hv-copy" style="width:34%"></i></div></div>`,
   rows:`<div class="hv"><div class="hv-stage" style="background:#FAFAFA"><div class="hv-rows">${[0, 1, 2, 3].map(k => `<div class="hv-row${k === 1 ? ' drag' : ''}"><i></i><b style="width:${[62, 48, 70, 54][k]}%"></b></div>`).join('')}</div></div></div>`,
+  edit:`<div class="hv"><div class="hv-stage" style="background:#FAFAFA;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:9% 8%;align-content:center">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;aspect-ratio:16/10;padding:8px;background:#fff;border:1px solid #DDD;border-radius:4px">${[0,1,2,3,4,5,6,7,8].map(k => `<i style="border-radius:2px;display:grid;place-items:center;background:${k === 6 ? '#141414' : 'transparent'}"><b style="width:14px;height:3px;border-radius:1px;background:${k === 6 ? '#fff' : '#BDBDBD'}"></b></i>`).join('')}</div>
+    <div style="display:grid;gap:8px;align-content:center">${['Full','Half','Framed'].map((t, k) => `<span style="display:block;height:30px;border:1px solid ${k === 2 ? '#141414' : '#DDD'};box-shadow:${k === 2 ? 'inset 0 0 0 1px #141414' : 'none'};border-radius:4px;background:#fff;font:${k === 2 ? 600 : 400} 12px/30px Saans,sans-serif;text-align:center">${t}</span>`).join('')}</div>
+  </div></div>`,
   pool:`<div class="hv"><div class="hv-stage" style="background:#FAFAFA"><div class="hv-grid">${'<i></i>'.repeat(6)}</div></div></div>`,
   drop:`<div class="hv"><div class="hv-stage"><i class="hv-t" style="left:8%;top:34%;width:30%"></i><i class="hv-t s" style="left:8%;top:44%;width:24%"></i><div class="hv-slot"></div></div><div class="hv-thumb"></div></div>`,
-  arc:`<div class="hv"><div class="hv-stage"><svg class="hv-arc" viewBox="0 0 320 240" preserveAspectRatio="none"><line x1="20" y1="220" x2="300" y2="220" stroke="#E6E6E6"/><line x1="20" y1="20" x2="20" y2="220" stroke="#E6E6E6"/><path d="M24 190 C70 180 100 150 140 120 S210 30 250 40 S290 150 296 170" fill="none" stroke="#D22030" stroke-width="4" stroke-linecap="round"/>${[[24,190],[80,172],[140,120],[200,62],[250,40],[296,170]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6" fill="#fff" stroke="#141414" stroke-width="2"/>`).join('')}</svg></div></div>`,
-  play:`<div class="hv"><div class="hv-stage"><i class="hv-f img" style="left:0;top:0;width:100%;height:100%"></i><div class="hv-pill" style="left:36%;bottom:8%;width:28%;height:44px;display:flex;align-items:center;gap:8px;padding:0 6px"><i style="width:32px;height:32px;border-radius:50%;background:#141414;display:grid;place-items:center;color:#fff;font-style:normal;font-size:12px">▶</i><b style="font:600 13px var(--sans)">1×</b></div><div class="hv-pill" style="right:5%;bottom:8%;width:34px;height:104px"><span class="hv-dot"></span></div></div></div>`,
+  arc:`<div class="hv"><div class="hv-stage"><svg class="hv-arc" viewBox="0 0 320 240" preserveAspectRatio="none"><line x1="20" y1="220" x2="300" y2="220" stroke="#E6E6E6"/><line x1="20" y1="20" x2="20" y2="220" stroke="#E6E6E6"/><path d="M24 190 C51 184 105 150 133 120 S170 70 187 62 S228 32 242 40 S286 140 296 170" fill="none" stroke="#D22030" stroke-width="4" stroke-linecap="round"/>${[[24,190],[78,172],[133,120],[187,62],[242,40],[296,170]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="6" fill="#fff" stroke="#141414" stroke-width="2"/>`).join('')}</svg></div></div>`,
+  play:`<div class="hv"><div class="hv-stage"><i class="hv-f img" style="left:0;top:0;width:100%;height:100%"></i><div class="hv-pill" style="left:36%;bottom:8%;width:28%;height:44px;display:flex;align-items:center;gap:8px;padding:0 6px"><i style="width:32px;height:32px;border-radius:50%;background:#141414;display:grid;place-items:center;color:#fff;font-style:normal;font-size:12px">▶</i><b style="font:600 13px var(--sans)">1×</b></div><span class="hv-dot" style="left:78%;top:62%;width:26px;height:26px;margin:-13px;background:rgba(255,255,255,.85);box-shadow:0 0 0 6px rgba(255,255,255,.35)"></span></div></div>`,
   keys:`<div class="hv"><div class="hv-keys"><kbd>⌘Z</kbd><kbd>E</kbd><kbd>␣</kbd><kbd>⇧⌘Z</kbd><kbd>?</kbd><kbd>Esc</kbd></div></div>`,
 };
 const HELP_SEEN = 'storyBuilder.helpSeen', HELP_RELOAD = 'storyBuilder.helpOnReload';
