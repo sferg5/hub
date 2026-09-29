@@ -131,15 +131,23 @@ body.panel-open .stage{right:var(--panel-w)}
   .card{width:min(270px,78%)}
   /* on a phone the player stands upright in the corner, clear of the copy */
   .stage .player{left:auto;right:16px;transform:none;bottom:calc(20px + var(--sab) + 2vh);flex-direction:column;border-radius:24px}
+  .stage .player{opacity:.9} /* no hover on a phone, so it stays visible, with a thumb-sized button */
+  .stage .player .pp{width:38px;height:38px}
+  .stage .player .pp svg{width:14px;height:14px}
+  .stage .player .spd{height:34px}
   .stage .player.open .speeds{flex-direction:column}
 }
 
 /* stage chrome */
 /* player: plays the story as one continuous move */
-.player{position:absolute;left:50%;bottom:20px;z-index:12;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:5px;border-radius:26px;background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 6px 18px rgba(0,0,0,.1),inset 0 0 0 1px rgba(0,0,0,.06)}
-.player .pp{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
-.player .pp svg{width:14px;height:14px;display:block}
-.player .spd{height:38px;min-width:46px;padding:0 10px;border-radius:19px;font:600 13px/1 var(--sans);color:var(--ink)}
+.player{position:absolute;right:20px;bottom:20px;z-index:12;display:flex;align-items:center;gap:2px;padding:4px;border-radius:20px;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  opacity:.45;transition:opacity .3s} /* quiet in the corner until you reach for it */
+.player:hover,.player:focus-within,.player.open{opacity:1}
+.player.playing{opacity:.7}
+.player.playing:hover{opacity:1}
+.player .pp{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.player .pp svg{width:11px;height:11px;display:block}
+.player .spd{height:30px;min-width:36px;padding:0 8px;border-radius:15px;font:600 12px/1 var(--sans);color:var(--ink)}
 .player .spd:hover{background:rgba(20,20,20,.06)}
 .player .spd[aria-pressed="true"]{background:var(--ink);color:#fff}
 .player .speeds{display:none;gap:2px}
@@ -1706,6 +1714,7 @@ const togglePlay = () => playing ? stopPlay() : startPlay();
 function playerIcon() {
   const b = $stage.querySelector('.player .pp'); if (!b) return;
   b.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; b.setAttribute('aria-label', playing ? 'Pause' : 'Play the story');
+  b.closest('.player').classList.toggle('playing', playing);
 }
 function buildPlayer() {
   const pp = h('button', { class:'pp', onclick:e => { e.stopPropagation(); togglePlay(); } });
