@@ -129,6 +129,21 @@ body.panel-open .stage{right:var(--panel-w)}
 
 /* stage chrome */
 .counter{position:absolute;top:18px;left:var(--g);z-index:10;font:400 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;mix-blend-mode:difference;pointer-events:none}
+/* swiper: a thumb-sized control for touch; one flick = one section, like a feed */
+.swiper{position:absolute;bottom:24px;z-index:12;width:78px;height:164px;border-radius:40px;background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 10px 30px rgba(0,0,0,.14),inset 0 0 0 1px rgba(0,0,0,.06);display:grid;grid-template-rows:30px 1fr 30px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;color:var(--ink)}
+.swiper.left{left:20px}.swiper.right{right:20px;bottom:84px}
+.swiper.dragging{cursor:grabbing}
+.swiper button{display:grid;place-items:center;font-size:14px;line-height:1;color:var(--ink)}
+.swiper button:disabled{opacity:.25}
+.sw-win{position:relative;overflow:hidden;margin:0 9px;border-radius:6px;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.sw-card{position:absolute;left:0;right:0;top:50%;height:38px;margin-top:-19px;will-change:transform,opacity}
+.sw-card .pt{height:100%;aspect-ratio:auto;border-color:#DDD}
+.sw-n{position:absolute;left:0;right:0;bottom:-18px;text-align:center;font:400 10px/1 var(--mono);letter-spacing:.08em;color:var(--mute)}
+.swiper .hint{position:absolute;top:50%;white-space:nowrap;font:600 12px/1 var(--sans);background:var(--ink);color:#fff;padding:7px 10px;border-radius:4px;transform:translateY(-50%);pointer-events:none;transition:opacity .4s}
+.swiper.left .hint{left:calc(100% + 10px)}.swiper.right .hint{right:calc(100% + 10px)}
+.swiper .hint.gone{opacity:0}
+@media (prefers-reduced-motion:reduce){.sw-card{transition:none}}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
 .dots button{width:7px;height:7px;border-radius:50%;border:1px solid #fff;opacity:.6}
 .dots button.on{background:#fff;opacity:1}
@@ -370,6 +385,8 @@ body:not(.panel-open) .arc{right:0}
         <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
         <p class="hint">Higher means less scrolling for each section.</p>
         <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
+        <div class="f"><span class="lbl">Swiper</span><div class="seg" id="swiperpos" role="group" aria-label="Swiper position"></div></div>
+        <p class="hint">A thumb-sized control for touch screens: flick up or down to move one section.</p>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
         <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
@@ -618,6 +635,7 @@ const normalize = d => ({
   pace: clamp(+d.pace || 1.5, .6, 2.5),
   arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
   smooth: d.smooth !== false,
+  swiper: ['left','right','off'].includes(d.swiper) ? d.swiper : 'right',
   sections: (d.sections || []).map(s => {
     const x = merge(BASE(), s);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
@@ -630,7 +648,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'right', sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -984,6 +1002,7 @@ function renderStage() {
     h('div', { class:'toast', id:'toast', role:'status' }),
     h('div', { class:'counter', id:'counter' }),
     h('nav', { class:'dots', 'aria-label':'Sections' }, S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
+  if (S.swiper !== 'off' && S.sections.length > 1) $stage.append(buildSwiper());
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
   shownI = -1; measure(); ys = scrollY; update();
 }
@@ -1159,17 +1178,123 @@ function update() {
   setCurrent(t > .5 ? i + 1 : i);
 }
 function setCurrent(i) {
-  curI = i; if (i === shownI) return; shownI = i;
+  curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperCards();
   const c = document.getElementById('counter'), s = S.sections[i];
   if (c && s) c.textContent = `${String(i + 1).padStart(2, '0')} / ${String(S.sections.length).padStart(2, '0')}` + (S.showName ? ` · ${s.name}` : '');
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
   $list.querySelectorAll('.row').forEach((r, k) => r.classList.toggle('is-cur', k === i));
 }
 const goTo = i => scrollTo({ top: starts[i] || 0, behavior:'smooth' });
+
+/* ---------- swiper ----------
+   Feels like a feed: the story follows the finger 1:1, a short flick is
+   enough, one flick moves one section, and it springs home if you let go
+   early. At the ends it stretches like a rubber band. */
+let swipeDirect = false, swipeAnim = 0, $sw = null, swFirst = true, swBase = null; // swBase: the section a swipe started from
+const SW_DIST = 150;                   // finger travel for a full section
+const settledAt = y => { let k = 0; while (k < starts.length - 1 && y >= starts[k + 1] - 2) k++; return k; };
+// move the page and draw the stage in the same frame, without waiting for the scroll event
+const setY = y => { scrollTo({ top:y, behavior:'instant' }); ys = scrollY; update(); };
+function animateTo(target, v0 = 0, p0 = 0) {
+  cancelAnimationFrame(swipeAnim);
+  const from = scrollY, dist = target - from, t0 = performance.now();
+  if (swBase == null) swBase = settledAt(from);
+  const span = settledAt(target) - swBase; // how many cards the stack travels in total
+  // quick when flicked, never sluggish: 240–560ms, ease-out that starts at the finger's speed
+  const speed = Math.abs(v0), dur = clamp(Math.abs(dist) / Math.max(1.6, speed * 3.2), 240, 560);
+  document.documentElement.classList.remove('magnet'); swipeDirect = true;
+  const step = now => {
+    const t = clamp((now - t0) / dur), e = 1 - Math.pow(1 - t, 3.2);
+    setY(from + dist * e); swiperCards(p0 + (span - p0) * e);
+    if (t < 1) swipeAnim = requestAnimationFrame(step);
+    else { swipeDirect = false; swBase = null; document.documentElement.classList.toggle('magnet', S.magnet); swiperCards(0); }
+  };
+  swipeAnim = requestAnimationFrame(step);
+}
+function swipeTo(dir, v0) {
+  const i = settledAt(scrollY), k = clamp(i + dir, 0, starts.length - 1);
+  swBase = i; animateTo(starts[k], v0);
+}
+function buildSwiper() {
+  const up = h('button', { 'aria-label':'Previous section', onclick:e => { e.stopPropagation(); swipeTo(-1); } }, '︿');
+  const down = h('button', { 'aria-label':'Next section', onclick:e => { e.stopPropagation(); swipeTo(1); } }, '﹀');
+  const win = h('div', { class:'sw-win' });
+  const hint = h('span', { class:'hint' + (swFirst ? '' : ' gone') }, 'Swipe up');
+  const el = h('div', { class:'swiper ' + S.swiper, role:'group', 'aria-label':'Swipe to move between sections', tabindex:'0' }, up, win, down, hint);
+  el.addEventListener('click', e => e.stopPropagation());
+  el.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); swipeTo(1); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); swipeTo(-1); } });
+
+  let drag = null;
+  el.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    cancelAnimationFrame(swipeAnim); swipeDirect = true;
+    const base = scrollY, i = settledAt(base), back = base > starts[i] + 2; // mid-section: "back" first returns to its start
+    swBase = i;
+    // from a resting point, the hold is the quiet part: pass through it in the first bit of travel, so the finger drives the transition
+    const settled = Math.abs(base - starts[i]) < 3;
+    const hNext = settled && starts[i + 1] != null ? holds[i] / (starts[i + 1] - starts[i]) : null;
+    const hPrev = settled && i > 0 ? holds[i - 1] / (starts[i] - starts[i - 1]) : null;
+    drag = { id:e.pointerId, y0:e.clientY, base, i, next: starts[i + 1], prev: back ? starts[i] : starts[i - 1], backCards: back ? 0 : 1, hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    el.classList.add('dragging');
+    document.documentElement.classList.remove('magnet');
+    if (swFirst) { swFirst = false; hint.classList.add('gone'); }
+  });
+  el.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.samples.push([e.timeStamp, e.clientY]); if (drag.samples.length > 6) drag.samples.shift();
+    let p = (drag.y0 - e.clientY) / SW_DIST; // + = up = forward
+    const hasNext = drag.next != null, hasPrev = drag.prev != null;
+    if ((p > 0 && !hasNext) || (p < 0 && !hasPrev)) p = Math.sign(p) * (1 - 1 / (1 + Math.abs(p) * .6)) * .25; // rubber band
+    p = clamp(p, -1, 1); drag.p = p;
+    const q = .12, a = Math.abs(p);
+    let f = a; // share of the way to the neighbouring section
+    if (p > 0 && drag.hNext != null) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
+    if (p < 0 && drag.hPrev != null) { const tr = 1 - drag.hPrev; f = a < 1 - q ? tr * a / (1 - q) : tr + drag.hPrev * (a - (1 - q)) / q; }
+    const y = p >= 0 ? drag.base + f * ((hasNext ? drag.next : drag.base) - drag.base) : drag.base - f * (drag.base - (hasPrev ? drag.prev : drag.base));
+    setY(y); drag.cards = p >= 0 ? (hasNext ? p : 0) : (hasPrev ? p * drag.backCards : 0); swiperCards(drag.cards);
+  });
+  const end = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    el.classList.remove('dragging');
+    const S0 = drag.samples[0], S1 = drag.samples[drag.samples.length - 1];
+    const v = (S0[1] - S1[1]) / Math.max(1, S1[0] - S0[0]); // px/ms, + = up
+    const p = drag.p || 0, flick = Math.abs(v) > .32;
+    let dir = 0;
+    if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
+    if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
+    const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base;
+    const p0 = drag.cards || 0; drag = null;
+    animateTo(target, Math.abs(v) * Math.abs(target - scrollY) / SW_DIST, p0);
+  };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  $sw = el; swiperCards();
+  return el;
+}
+/* The little stack inside the swiper: previous, current and next cards,
+   moving with the finger. p: -1..1 progress toward prev/next. */
+function swiperCards(p = 0) {
+  if (!$sw || !$sw.isConnected) return;
+  const win = $sw.querySelector('.sw-win');
+  const base = swBase != null ? swBase : curI;
+  if (win.dataset.i !== String(base)) {
+    win.dataset.i = base;
+    win.replaceChildren(...[-1, 0, 1].map(d => { const s = S.sections[base + d];
+      return h('div', { class:'sw-card', 'data-d':d }, s ? poolThumb(s) : null); }),
+      h('span', { class:'sw-n' }, `${base + 1}/${S.sections.length}`));
+    const [u, dn] = $sw.querySelectorAll('button'); u.disabled = base === 0; dn.disabled = base === S.sections.length - 1;
+  }
+  const gap = 44;
+  win.querySelectorAll('.sw-card').forEach(c => {
+    const d = +c.dataset.d - p, a = Math.abs(d);
+    c.style.transform = `translateY(${d * gap}px) scale(${1 - Math.min(a, 1.4) * .16})`;
+    c.style.opacity = a > 1.3 ? 0 : 1 - a * .45;
+  });
+}
 let raf = 0, ys = scrollY, lastT = 0;
 function tick(now) {
   const target = scrollY, dt = lastT ? Math.min(64, now - lastT) : 16.7; lastT = now;
-  ys = S.smooth ? ys + (target - ys) * (1 - Math.pow(.72, dt / 16.7)) : target;
+  ys = S.smooth && !swipeDirect ? ys + (target - ys) * (1 - Math.pow(.72, dt / 16.7)) : target;
   if (Math.abs(target - ys) < .5) ys = target;
   update();
   raf = ys !== target ? requestAnimationFrame(tick) : 0;
@@ -1812,6 +1937,7 @@ function renderGlobals() {
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
   $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
+  $('swiperpos').replaceChildren(...seg([['left','Bottom left'],['right','Bottom right'],['off','Off']], S.swiper, act(v => S.swiper = v)).childNodes);
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
