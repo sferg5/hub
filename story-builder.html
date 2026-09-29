@@ -260,6 +260,7 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
       <summary>Page settings</summary>
       <div class="gb">
         <div class="f"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
+        <div class="f"><span class="lbl">Section name on stage</span><div class="seg" id="showname" role="group" aria-label="Section name on stage"></div></div>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
         <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
@@ -330,7 +331,7 @@ const BASE = () => ({
   id: uid(), name: 'Section', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark' },
-  overlay: 30, eyebrow: '', headline: 'Headline', body: '',
+  overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
   stats: { on: false, items: [{ v: '', l: '' }, { v: '', l: '' }, { v: '', l: '' }] },
@@ -389,6 +390,7 @@ const KEY = 'storyBuilder.v2';
 let S, sel = null, history = [];
 const normalize = d => ({
   magnet: d.magnet !== false,
+  showName: d.showName === true,
   trans: clamp(+d.trans || 1, .5, 2),
   holdAmt: clamp(+d.holdAmt || 1, .4, 2),
   sections: (d.sections || []).map(s => {
@@ -401,7 +403,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, trans:1, holdAmt:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -644,7 +646,7 @@ function textLayer(s, i) {
       const inner = h('span', {}, w); words.push(inner); hl.append(h('span', { class:'w' }, inner), ' ');
     });
   }
-  const eb = s.eyebrow ? h('p', { class:'eb' }, s.eyebrow) : null;
+  const eb = s.showEyebrow && s.eyebrow ? h('p', { class:'eb' }, s.eyebrow) : null;
   const copy = h('div', { class:`copy s-${t.size} w-${t.width}`, 'data-align':align },
     eb, hl,
     P(s.quote.on && s.quote.attr ? h('p', { class:'attr' }, '— ' + s.quote.attr) : null),
@@ -804,7 +806,7 @@ function update() {
 function setCurrent(i) {
   curI = i;
   const c = document.getElementById('counter'), s = S.sections[i];
-  if (c && s) c.textContent = `${String(i + 1).padStart(2, '0')} / ${String(S.sections.length).padStart(2, '0')} · ${s.name}`;
+  if (c && s) c.textContent = `${String(i + 1).padStart(2, '0')} / ${String(S.sections.length).padStart(2, '0')}` + (S.showName ? ` · ${s.name}` : '');
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
   $list.querySelectorAll('.row').forEach((r, k) => r.classList.toggle('is-cur', k === i));
 }
@@ -991,8 +993,10 @@ function renderInspector() {
   }
 
   const contentGrp = grp('Copy',
-    field('Section name (panel only)', text(s.name, v => s.name = v)),
-    field('Eyebrow', text(s.eyebrow, v => s.eyebrow = v)),
+    field('Section name', text(s.name, v => s.name = v)),
+    h('div', { class:'f2' },
+      field('Eyebrow', seg([[false,'Off'],[true,'On']], s.showEyebrow, up(v => s.showEyebrow = v))),
+      s.showEyebrow ? field('Eyebrow text', text(s.eyebrow, v => s.eyebrow = v)) : h('span')),
     field('Headline', text(s.headline, v => s.headline = v, true)),
     field('Body', text(s.body, v => s.body = v, true)),
     h('div', { class:'f2' },
@@ -1033,6 +1037,7 @@ function renderInspector() {
 /* ---------- global controls ---------- */
 function renderGlobals() {
   $('magnet').replaceChildren(...seg([[true,'Magnet'],[false,'Free']], S.magnet, act(v => S.magnet = v)).childNodes);
+  $('showname').replaceChildren(...seg([[false,'Off'],[true,'On']], S.showName, act(v => S.showName = v)).childNodes);
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
