@@ -125,6 +125,9 @@ body.panel-open .stage{right:var(--panel-w)}
 /* phone-width preview: split text moves below the media */
 @container (max-width:720px){
   .tr[data-layout="left"],.tr[data-layout="right"]{inset:50% 0 0 0;padding-top:var(--g)}
+  .has-swiper .dots{display:none} /* the swiper does the dots' job on a phone */
+  .card{width:min(270px,78%)}
+  .stage .swiper.right{bottom:20px}
 }
 
 /* stage chrome */
@@ -350,6 +353,7 @@ body:not(.panel-open) .arc{right:0}
   .panel{top:auto;height:64vh;width:100%;border-left:0;border-top:1px solid var(--p-line);transform:translateY(100%)}
   body.panel-open .stage{right:0}
   body.panel-open .fab{right:16px;bottom:calc(64vh + 12px)}
+  body:not(.panel-open) .fab{top:12px;bottom:auto;right:12px;height:36px;padding:0 14px;font-size:13px} /* out of the way of the story */
   .p-list{max-height:26vh}
 }
 </style>
@@ -686,9 +690,10 @@ function rectsFor(s) {
   else if (m.layout === 'left' || m.layout === 'right')
     R = narrow ? { x:0, y:0, w:W, h:H * .5 } : { x: m.layout === 'left' ? 0 : W / 2, y:0, w:W / 2, h:H };
   else {
-    const [fw, fh] = (narrow ? { s:[.6,.46], m:[.74,.56], l:[.88,.66] } : { s:[.36,.54], m:[.48,.68], l:[.64,.8] })[m.inset];
+    const [fw, fh] = (narrow ? { s:[.62,.4], m:[.76,.46], l:[.88,.52] } : { s:[.36,.54], m:[.48,.68], l:[.64,.8] })[m.inset];
     const w = W * fw, hh = H * fh;
-    R = { x: m.mx === 'left' ? g : m.mx === 'right' ? W - g - w : (W - w) / 2, y:(H - hh) / 2, w, h:hh };
+    // on a phone the framed image leads from the top and the copy stacks underneath
+    R = { x: m.mx === 'left' ? g : m.mx === 'right' ? W - g - w : (W - w) / 2, y: narrow ? Math.max(g + 28, H * .08) : (H - hh) / 2, w, h:hh };
   }
   if (m.kind !== 'gallery') return Array.from({ length:FR }, (_, k) => ({ ...R, o: k ? 0 : 1 }));
 
@@ -697,6 +702,9 @@ function rectsFor(s) {
     const band = H * .22;
     if (s.text.y === 'top') { I.y += band; I.h -= band; }
     else if (s.text.y === 'bottom') I.h -= band;
+  }
+  if (narrow && S.swiper !== 'off') { // keep the tiles (and their + buttons) clear of the swiper
+    const sw = 44; if (S.swiper === 'left') I.x += sw; I.w -= sw;
   }
   const gap = g * .35, tiles = [];
   if (m.arrange === 'mosaic' && n > 1) {
@@ -967,9 +975,34 @@ function textLayer(s, i) {
   return { s, el, copy, eb, words, letters, parts, card, ty:0, ty2:0, sc:1 };
 }
 
+/* Phone composition. Desktop lockups put copy beside the media; a phone has no
+   "beside", so: right-set copy moves left, copy under a framed image stacks
+   below it, the product card tucks over the frame's lower edge, and bottom
+   copy keeps clear of the swiper. */
+function phoneCopy(s, T) {
+  const t = s.text, g = clamp(W * .045, 20, 64);
+  if (t.x === 'right') { T.el.dataset.x = 'left'; if (t.align === 'auto') T.copy.dataset.align = 'left'; }
+  const inset = s.media.kind !== 'none' && s.media.kind !== 'gallery' && s.media.layout === 'inset';
+  if (inset) {
+    const r = rectsFor(s)[0], below = r.y + r.h;
+    T.el.style.top = (below + (s.card.on ? 64 : 18)) + 'px';
+    T.el.style.paddingTop = '0px';
+    T.el.dataset.y = t.y === 'bottom' ? 'bottom' : 'top';
+    if (T.card) { Object.assign(T.card.style, { top:(below - 38) + 'px', bottom:'auto', paddingTop:'0px' }); T.card.dataset.y = 'top'; T.card.dataset.x = 'left'; }
+  } else if (T.card) { T.card.dataset.x = 'left'; }
+  // copy in the lower part of the screen keeps clear of the swiper; centred copy is padded on both sides so it stays centred
+  const low = T.el.dataset.y === 'bottom' || (T.el.dataset.y === 'middle' && (inset || ['left','right'].includes(s.media.layout) && s.media.kind !== 'none'));
+  if (S.swiper !== 'off' && low) {
+    const pad = (g + 48) + 'px';
+    if (T.el.dataset.x === 'center') { T.el.style.paddingLeft = pad; T.el.style.paddingRight = pad; }
+    else T.el.style[S.swiper === 'left' ? 'paddingLeft' : 'paddingRight'] = pad;
+  }
+}
+let lastNarrow = null;
+
 let frames = [], layers = [], starts = [], holds = [], TR = 0, UNIT = 1, curI = 0, shownI = -1;
 function renderStage() {
-  W = $stage.clientWidth; H = $stage.clientHeight;
+  W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720;
   const fw = h('div', { class:'frames' }), tw = h('div', { class:'texts' });
   frames = Array.from({ length:FR }, () => fw.appendChild(h('div', { class:'frame' })));
   layers = S.sections.map((s, i) => {
@@ -1000,12 +1033,16 @@ function renderStage() {
       return f.appendChild(lay);
     });
     const T = textLayer(s, i);
+    if (W < 720) phoneCopy(s, T);
     tw.append(T.el); if (T.card) tw.append(T.card);
     return { media, spots, ...T };
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
-    h('nav', { class:'dots', 'aria-label':'Sections' }, S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
+    h('nav', { class:'dots', 'aria-label':'Sections', // long stories tighten the spacing so the column stays within the middle half
+      style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
+      S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
+  $stage.classList.toggle('has-swiper', S.swiper !== 'off' && S.sections.length > 1);
   if (S.swiper !== 'off' && S.sections.length > 1) $stage.append(buildSwiper());
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
   shownI = -1; measure(); ys = scrollY; update();
@@ -1297,7 +1334,7 @@ function tick(now) {
   if (!raf) lastT = 0;
 }
 addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive:true });
-addEventListener('resize', () => { measure(); update(); });
+addEventListener('resize', () => { if (($stage.clientWidth < 720) !== lastNarrow) renderStage(); else { measure(); update(); } });
 /* drag from the Library (or Finder) straight onto a frame on the stage */
 let dropFrame = -1;
 function frameAt(x, y) {
