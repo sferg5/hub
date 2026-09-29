@@ -1513,9 +1513,11 @@ const setY = y => { scrollTo({ top:y, behavior:'instant' }); ys = scrollY; updat
 const restOf = k => Math.min(endY(), starts[k] + holds[k]);
 let swiperHeld = false; // while the swiper is driving, magnet snapping stays off so rests aren't pulled to a snap point
 const magnetOn = () => document.documentElement.classList.toggle('magnet', S.magnet);
+let swipeGoal = null; // the section an in-flight swipe is heading for
 function animateTo(target, v0 = 0) {
   cancelAnimationFrame(swipeAnim);
   const from = scrollY, dist = target - from, t0 = performance.now();
+  swipeGoal = settledAt(target);
   if (swBase == null) swBase = settledAt(from);
   // quick when flicked, never sluggish: 240–560ms, ease-out that starts at the finger's speed
   const speed = Math.abs(v0), dur = clamp(Math.abs(dist) / Math.max(1.6, speed * 3.2), 240, 560);
@@ -1524,7 +1526,7 @@ function animateTo(target, v0 = 0) {
     const t = clamp((now - t0) / dur), e = 1 - Math.pow(1 - t, 3.2);
     setY(from + dist * e);
     if (t < 1) swipeAnim = requestAnimationFrame(step);
-    else { swipeDirect = false; swBase = null; if (!swiperHeld) magnetOn(); swiperEnds(); }
+    else { swipeDirect = false; swBase = null; swipeGoal = null; if (!swiperHeld) magnetOn(); swiperEnds(); }
   };
   swipeAnim = requestAnimationFrame(step);
 }
@@ -1535,6 +1537,7 @@ function swipeForward(k, v0 = 0) {
   cancelAnimationFrame(swipeAnim);
   const from = scrollY, A = starts[k], B = restOf(k), dA = A - from, dB = B - A;
   if (dB < 1) { animateTo(A, v0); return; }
+  swipeGoal = k;
   if (swBase == null) swBase = settledAt(from);
   const tA = clamp(Math.abs(dA) / Math.max(1.6, v0 * 3.2), 260, 620);
   const base = UNIT / 2000 * S.playSpeed, tB = dB / base, vB = 2 * dB / tB; // ease-out hold: starts at 2× the play speed
@@ -1548,12 +1551,12 @@ function swipeForward(k, v0 = 0) {
     } else { const s = clamp((el - tA) / tB); y = A + dB * (1 - (1 - s) * (1 - s)); }
     setY(y);
     if (el < tA + tB) swipeAnim = requestAnimationFrame(step);
-    else { swipeDirect = false; swBase = null; swiperEnds(); }
+    else { swipeDirect = false; swBase = null; swipeGoal = null; swiperEnds(); }
   };
   swipeAnim = requestAnimationFrame(step);
 }
 function swipeTo(dir, v0) {
-  const i = settledAt(scrollY); swiperHeld = true; swBase = i;
+  const i = swipeGoal != null ? swipeGoal : settledAt(scrollY); swiperHeld = true; swBase = i;
   if (dir > 0 && i < starts.length - 1) swipeForward(i + 1, v0);
   else if (dir < 0 && i > 0) animateTo(restOf(i - 1), v0);
   else if (dir < 0) animateTo(0, v0);
@@ -1567,7 +1570,7 @@ const touchSwipe = () => S.swiper !== 'off' && isTouch() && S.sections.length > 
 const swipeDist = () => Math.max(180, H * .42); // finger travel for a full section
 let drag = null, tg = null, swallowClick = 0;
 function dragBegin(e) {
-  cancelAnimationFrame(swipeAnim); cancelJump(); stopPlay(); swipeDirect = true;
+  cancelAnimationFrame(swipeAnim); swipeGoal = null; cancelJump(); stopPlay(); swipeDirect = true;
   const base = scrollY, i = settledAt(base);
   swBase = i; swiperHeld = true;
   const next = starts[i + 1], prev = i > 0 ? restOf(i - 1) : (base > 2 ? 0 : undefined);
@@ -1632,7 +1635,7 @@ function swiperEnds() {} // (kept for callers; there is no visible control to up
    swipe on a phone. Trackpads keep sending events as they coast, so after a
    step the wheel stays quiet until those events die down. */
 const chapterMode = () => S.scrollMode === 'chapter' && !touchSwipe() && S.sections.length > 1;
-let wheelAcc = 0, wheelLock = false, wheelQuiet = 0;
+let wheelAcc = 0, wheelLock = false, wheelQuiet = 0, wheelPrev = 0, wheelDir = 0, wheelLockT = 0;
 /* Scrolling over the editor, the arc builder or the guide never moves the story.
    Their own lists scroll as usual; at the end of a list (or over a part that
    doesn't scroll) the wheel simply stops instead of passing on to the page. */
@@ -1650,12 +1653,21 @@ addEventListener('wheel', e => {
   if (!chapterMode() || e.ctrlKey) return;               // pinch-zoom passes through
   e.preventDefault();
   const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+  const a = Math.abs(dy);
   clearTimeout(wheelQuiet);
-  wheelQuiet = setTimeout(() => { wheelLock = false; wheelAcc = 0; }, 200); // the gesture (and its coasting) is over
-  if (wheelLock) return;
+  wheelQuiet = setTimeout(() => { wheelLock = false; wheelAcc = 0; wheelPrev = 0; }, 180); // the gesture (and its coasting) is over
+  if (wheelLock) {
+    // A trackpad keeps coasting after the fingers lift, and coasting only ever slows down.
+    // A clear jump in speed, or a change of direction, means the fingers are moving again: a new flick.
+    const fresh = performance.now() - wheelLockT > 150 && ((a > 8 && a > wheelPrev * 1.8) || (Math.sign(dy) !== wheelDir && a > 4));
+    wheelPrev = a;
+    if (!fresh) return;
+    wheelLock = false; wheelAcc = 0;
+  }
+  wheelPrev = a;
   wheelAcc += dy;
   if (Math.abs(wheelAcc) < 24) return;                    // ignore the faintest nudges
-  wheelLock = true; stopPlay();
+  wheelLock = true; wheelLockT = performance.now(); wheelDir = Math.sign(wheelAcc); stopPlay();
   swipeTo(wheelAcc > 0 ? 1 : -1);
   wheelAcc = 0;
 }, { passive:false });
