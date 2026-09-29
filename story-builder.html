@@ -128,22 +128,18 @@ body.panel-open .stage{right:var(--panel-w)}
 }
 
 /* stage chrome */
-.counter{position:absolute;top:18px;left:var(--g);z-index:10;font:400 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;mix-blend-mode:difference;pointer-events:none}
-/* swiper: a thumb-sized control for touch; one flick = one section, like a feed */
-.swiper{position:absolute;bottom:24px;z-index:12;width:78px;height:164px;border-radius:40px;background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  box-shadow:0 10px 30px rgba(0,0,0,.14),inset 0 0 0 1px rgba(0,0,0,.06);display:grid;grid-template-rows:30px 1fr 30px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;color:var(--ink)}
+/* swiper: a small pill with one dot. Drag the dot, the story follows; let go and it springs back to centre */
+.swiper{position:absolute;bottom:24px;z-index:12;width:40px;height:116px;border-radius:20px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 6px 18px rgba(0,0,0,.1),inset 0 0 0 1px rgba(0,0,0,.06);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .swiper.left{left:20px}.swiper.right{right:20px;bottom:84px}
 .swiper.dragging{cursor:grabbing}
-.swiper button{display:grid;place-items:center;font-size:14px;line-height:1;color:var(--ink)}
-.swiper button:disabled{opacity:.25}
-.sw-win{position:relative;overflow:hidden;margin:0 9px;border-radius:6px;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
-.sw-card{position:absolute;left:0;right:0;top:50%;height:38px;margin-top:-19px;will-change:transform,opacity}
-.sw-card .pt{height:100%;aspect-ratio:auto;border-color:#DDD}
-.sw-n{position:absolute;left:0;right:0;bottom:-18px;text-align:center;font:400 10px/1 var(--mono);letter-spacing:.08em;color:var(--mute)}
-.swiper .hint{position:absolute;top:50%;white-space:nowrap;font:600 12px/1 var(--sans);background:var(--ink);color:#fff;padding:7px 10px;border-radius:4px;transform:translateY(-50%);pointer-events:none;transition:opacity .4s}
-.swiper.left .hint{left:calc(100% + 10px)}.swiper.right .hint{right:calc(100% + 10px)}
-.swiper .hint.gone{opacity:0}
-@media (prefers-reduced-motion:reduce){.sw-card{transition:none}}
+.sw-track{position:absolute;left:50%;top:18px;bottom:18px;width:2px;margin-left:-1px;border-radius:1px;background:rgba(20,20,20,.12)}
+.sw-dot{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.22);
+  transition:transform .55s cubic-bezier(.25,1.6,.45,1)}
+.swiper.dragging .sw-dot{transition:none}
+.swiper.end-top .sw-track{background:linear-gradient(transparent 50%,rgba(20,20,20,.12) 50%)}
+.swiper.end-bottom .sw-track{background:linear-gradient(rgba(20,20,20,.12) 50%,transparent 50%)}
+@media (prefers-reduced-motion:reduce){.sw-dot{transition:transform .2s ease-out}}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
 .dots button{width:7px;height:7px;border-radius:50%;border:1px solid #fff;opacity:.6}
 .dots button.on{background:#fff;opacity:1}
@@ -158,6 +154,12 @@ body.panel-open .panel{transform:none}
 .p-title{display:grid;gap:4px}
 .p-title b{font:700 22px/1.1 var(--sans);letter-spacing:-.01em}
 .p-title small{font-size:13px;color:var(--p-mute)}
+.arc-cta{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 16px;border-radius:4px;background:var(--p-accent);color:var(--p-accent-fg);text-align:left;transition:background .2s}
+.arc-cta:hover{background:#333}
+.arc-cta svg{width:40px;height:20px;color:#FF5A66}
+.arc-cta b{display:block;font:600 16px/1.2 var(--sans)}
+.arc-cta small{display:block;font:400 12.5px/1.3 var(--sans);opacity:.72;margin-top:2px}
+.arc-cta i{font-style:normal;font-size:18px}
 .p-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .p-row .seg{flex:1}
 .btn{height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--p-fg);background:#fff;font:600 13px/1 var(--sans);white-space:nowrap}
@@ -369,8 +371,12 @@ body:not(.panel-open) .arc{right:0}
       <option value="pool">City Run pool · 20 sections, 5 per beat</option>
       <option value="blank">Blank · one hero</option>
     </select>
+    <button class="arc-cta" id="arc-open" title="Shape the story by feeling over time">
+      <svg viewBox="0 0 40 20" aria-hidden="true"><path d="M2 16 C10 15 14 12 20 8 S30 1 34 3 S37 12 38 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span><b>Build a Narrative Arc</b><small>Shape the story by feeling over time</small></span>
+      <i aria-hidden="true">→</i>
+    </button>
     <div class="p-row">
-      <button class="btn pri" id="arc-open" title="Shape the story by feeling over time">Narrative arc</button>
       <button class="btn" id="remix" title="Randomize layouts, keep copy">Remix layouts</button>
       <button class="btn" id="export">Export</button>
       <button class="btn" id="import">Import</button>
@@ -381,7 +387,6 @@ body:not(.panel-open) .arc{right:0}
       <summary>Page settings</summary>
       <div class="gb">
         <div class="f"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
-        <div class="f"><span class="lbl">Section name on stage</span><div class="seg" id="showname" role="group" aria-label="Section name on stage"></div></div>
         <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
         <p class="hint">Higher means less scrolling for each section.</p>
         <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
@@ -1000,7 +1005,6 @@ function renderStage() {
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
-    h('div', { class:'counter', id:'counter' }),
     h('nav', { class:'dots', 'aria-label':'Sections' }, S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
   if (S.swiper !== 'off' && S.sections.length > 1) $stage.append(buildSwiper());
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
@@ -1178,9 +1182,7 @@ function update() {
   setCurrent(t > .5 ? i + 1 : i);
 }
 function setCurrent(i) {
-  curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperCards();
-  const c = document.getElementById('counter'), s = S.sections[i];
-  if (c && s) c.textContent = `${String(i + 1).padStart(2, '0')} / ${String(S.sections.length).padStart(2, '0')}` + (S.showName ? ` · ${s.name}` : '');
+  curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
   $list.querySelectorAll('.row').forEach((r, k) => r.classList.toggle('is-cur', k === i));
 }
@@ -1190,24 +1192,23 @@ const goTo = i => scrollTo({ top: starts[i] || 0, behavior:'smooth' });
    Feels like a feed: the story follows the finger 1:1, a short flick is
    enough, one flick moves one section, and it springs home if you let go
    early. At the ends it stretches like a rubber band. */
-let swipeDirect = false, swipeAnim = 0, $sw = null, swFirst = true, swBase = null; // swBase: the section a swipe started from
+let swipeDirect = false, swipeAnim = 0, $sw = null, swBase = null; // swBase: the section a swipe started from
 const SW_DIST = 150;                   // finger travel for a full section
 const settledAt = y => { let k = 0; while (k < starts.length - 1 && y >= starts[k + 1] - 2) k++; return k; };
 // move the page and draw the stage in the same frame, without waiting for the scroll event
 const setY = y => { scrollTo({ top:y, behavior:'instant' }); ys = scrollY; update(); };
-function animateTo(target, v0 = 0, p0 = 0) {
+function animateTo(target, v0 = 0) {
   cancelAnimationFrame(swipeAnim);
   const from = scrollY, dist = target - from, t0 = performance.now();
   if (swBase == null) swBase = settledAt(from);
-  const span = settledAt(target) - swBase; // how many cards the stack travels in total
   // quick when flicked, never sluggish: 240–560ms, ease-out that starts at the finger's speed
   const speed = Math.abs(v0), dur = clamp(Math.abs(dist) / Math.max(1.6, speed * 3.2), 240, 560);
   document.documentElement.classList.remove('magnet'); swipeDirect = true;
   const step = now => {
     const t = clamp((now - t0) / dur), e = 1 - Math.pow(1 - t, 3.2);
-    setY(from + dist * e); swiperCards(p0 + (span - p0) * e);
+    setY(from + dist * e);
     if (t < 1) swipeAnim = requestAnimationFrame(step);
-    else { swipeDirect = false; swBase = null; document.documentElement.classList.toggle('magnet', S.magnet); swiperCards(0); }
+    else { swipeDirect = false; swBase = null; document.documentElement.classList.toggle('magnet', S.magnet); swiperEnds(); }
   };
   swipeAnim = requestAnimationFrame(step);
 }
@@ -1216,17 +1217,15 @@ function swipeTo(dir, v0) {
   swBase = i; animateTo(starts[k], v0);
 }
 function buildSwiper() {
-  const up = h('button', { 'aria-label':'Previous section', onclick:e => { e.stopPropagation(); swipeTo(-1); } }, '︿');
-  const down = h('button', { 'aria-label':'Next section', onclick:e => { e.stopPropagation(); swipeTo(1); } }, '﹀');
-  const win = h('div', { class:'sw-win' });
-  const hint = h('span', { class:'hint' + (swFirst ? '' : ' gone') }, 'Swipe up');
-  const el = h('div', { class:'swiper ' + S.swiper, role:'group', 'aria-label':'Swipe to move between sections', tabindex:'0' }, up, win, down, hint);
+  const dot = h('span', { class:'sw-dot' });
+  const el = h('div', { class:'swiper ' + S.swiper, role:'slider', tabindex:'0', 'aria-label':'Drag up or down to move between sections', 'aria-orientation':'vertical' },
+    h('span', { class:'sw-track' }), dot);
   el.addEventListener('click', e => e.stopPropagation());
   el.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); swipeTo(1); } if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); swipeTo(-1); } });
+  const REACH = 40; // how far the dot can travel from centre
 
   let drag = null;
   el.addEventListener('pointerdown', e => {
-    if (e.target.closest('button')) return;
     cancelAnimationFrame(swipeAnim); swipeDirect = true;
     const base = scrollY, i = settledAt(base), back = base > starts[i] + 2; // mid-section: "back" first returns to its start
     swBase = i;
@@ -1234,16 +1233,16 @@ function buildSwiper() {
     const settled = Math.abs(base - starts[i]) < 3;
     const hNext = settled && starts[i + 1] != null ? holds[i] / (starts[i + 1] - starts[i]) : null;
     const hPrev = settled && i > 0 ? holds[i - 1] / (starts[i] - starts[i - 1]) : null;
-    drag = { id:e.pointerId, y0:e.clientY, base, i, next: starts[i + 1], prev: back ? starts[i] : starts[i - 1], backCards: back ? 0 : 1, hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
+    drag = { id:e.pointerId, y0:e.clientY, t0:e.timeStamp, moved:0, base, i, next: starts[i + 1], prev: back ? starts[i] : starts[i - 1], hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
     try { el.setPointerCapture(e.pointerId); } catch (err) {}
     el.classList.add('dragging');
     document.documentElement.classList.remove('magnet');
-    if (swFirst) { swFirst = false; hint.classList.add('gone'); }
   });
   el.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.id) return;
     drag.samples.push([e.timeStamp, e.clientY]); if (drag.samples.length > 6) drag.samples.shift();
-    let p = (drag.y0 - e.clientY) / SW_DIST; // + = up = forward
+    const dy = drag.y0 - e.clientY; drag.moved = Math.max(drag.moved, Math.abs(dy));
+    let p = dy / SW_DIST; // + = up = forward
     const hasNext = drag.next != null, hasPrev = drag.prev != null;
     if ((p > 0 && !hasNext) || (p < 0 && !hasPrev)) p = Math.sign(p) * (1 - 1 / (1 + Math.abs(p) * .6)) * .25; // rubber band
     p = clamp(p, -1, 1); drag.p = p;
@@ -1252,44 +1251,41 @@ function buildSwiper() {
     if (p > 0 && drag.hNext != null) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
     if (p < 0 && drag.hPrev != null) { const tr = 1 - drag.hPrev; f = a < 1 - q ? tr * a / (1 - q) : tr + drag.hPrev * (a - (1 - q)) / q; }
     const y = p >= 0 ? drag.base + f * ((hasNext ? drag.next : drag.base) - drag.base) : drag.base - f * (drag.base - (hasPrev ? drag.prev : drag.base));
-    setY(y); drag.cards = p >= 0 ? (hasNext ? p : 0) : (hasPrev ? p * drag.backCards : 0); swiperCards(drag.cards);
+    setY(y);
+    // the dot follows the finger, easing off as it nears the ends of the pill
+    const reach = (hasNext || dy < 0) && (hasPrev || dy > 0) ? REACH : REACH * .35;
+    dot.style.transform = `translateY(${-reach * Math.tanh(dy / (REACH * 1.6))}px) scale(1.12)`;
   });
   const end = e => {
     if (!drag || e.pointerId !== drag.id) return;
     el.classList.remove('dragging');
+    dot.style.transform = ''; // springs back to centre
     const S0 = drag.samples[0], S1 = drag.samples[drag.samples.length - 1];
     const v = (S0[1] - S1[1]) / Math.max(1, S1[0] - S0[0]); // px/ms, + = up
     const p = drag.p || 0, flick = Math.abs(v) > .32;
     let dir = 0;
-    if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
-    if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
+    if (drag.moved < 6 && e.timeStamp - drag.t0 < 300) { // a tap: top half goes back, bottom half goes forward
+      const r = el.getBoundingClientRect(); dir = e.clientY < r.top + r.height / 2 ? -1 : 1;
+      if (dir > 0 && drag.next == null) dir = 0; if (dir < 0 && drag.prev == null) dir = 0;
+    } else {
+      if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
+      if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
+    }
     const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base;
-    const p0 = drag.cards || 0; drag = null;
-    animateTo(target, Math.abs(v) * Math.abs(target - scrollY) / SW_DIST, p0);
+    drag = null;
+    animateTo(target, Math.abs(v) * Math.abs(target - scrollY) / SW_DIST);
   };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
-  $sw = el; swiperCards();
+  $sw = el; swiperEnds();
   return el;
 }
-/* The little stack inside the swiper: previous, current and next cards,
-   moving with the finger. p: -1..1 progress toward prev/next. */
-function swiperCards(p = 0) {
+// at the first or last section, the track fades on the side you can't go
+function swiperEnds() {
   if (!$sw || !$sw.isConnected) return;
-  const win = $sw.querySelector('.sw-win');
-  const base = swBase != null ? swBase : curI;
-  if (win.dataset.i !== String(base)) {
-    win.dataset.i = base;
-    win.replaceChildren(...[-1, 0, 1].map(d => { const s = S.sections[base + d];
-      return h('div', { class:'sw-card', 'data-d':d }, s ? poolThumb(s) : null); }),
-      h('span', { class:'sw-n' }, `${base + 1}/${S.sections.length}`));
-    const [u, dn] = $sw.querySelectorAll('button'); u.disabled = base === 0; dn.disabled = base === S.sections.length - 1;
-  }
-  const gap = 44;
-  win.querySelectorAll('.sw-card').forEach(c => {
-    const d = +c.dataset.d - p, a = Math.abs(d);
-    c.style.transform = `translateY(${d * gap}px) scale(${1 - Math.min(a, 1.4) * .16})`;
-    c.style.opacity = a > 1.3 ? 0 : 1 - a * .45;
-  });
+  const k = swBase != null ? swBase : curI;
+  $sw.classList.toggle('end-top', k === 0); $sw.classList.toggle('end-bottom', k === S.sections.length - 1);
+  $sw.setAttribute('aria-valuenow', k + 1); $sw.setAttribute('aria-valuemin', 1); $sw.setAttribute('aria-valuemax', S.sections.length);
+  $sw.setAttribute('aria-valuetext', `Section ${k + 1} of ${S.sections.length}`);
 }
 let raf = 0, ys = scrollY, lastT = 0;
 function tick(now) {
@@ -1933,7 +1929,6 @@ function renderInspector() {
 /* ---------- global controls ---------- */
 function renderGlobals() {
   $('magnet').replaceChildren(...seg([[true,'Magnet'],[false,'Free']], S.magnet, act(v => S.magnet = v)).childNodes);
-  $('showname').replaceChildren(...seg([[false,'Off'],[true,'On']], S.showName, act(v => S.showName = v)).childNodes);
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
   $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
