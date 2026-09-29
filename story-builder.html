@@ -806,20 +806,50 @@ const PRESETS = {
 /* ---------- state ---------- */
 const KEY = 'storyBuilder.v2';
 let S, sel = null, history = [];
-const normalize = d => ({
+/* Loading a saved or imported story: anything missing or the wrong shape falls
+   back to the default for that part, so a damaged file can't break the builder. */
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+function sanitize(base, val) {
+  if (Array.isArray(base)) {
+    if (!Array.isArray(val)) return clone(base);
+    return isObj(base[0]) ? val.map((it, k) => sanitize(base[k] || base[0], it)) : val.slice();
+  }
+  if (isObj(base)) {
+    if (!isObj(val)) return clone(base);
+    const out = {};
+    for (const k in base) out[k] = sanitize(base[k], val[k]);
+    for (const k in val) if (!(k in base)) out[k] = val[k]; // keep anything newer we don't know about
+    return out;
+  }
+  if (base === null) return val === undefined ? null : val;          // e.g. feel: null or a number
+  return val === undefined || val === null || typeof val !== typeof base ? base : val;
+}
+// the choices each setting allows; anything else falls back to the default
+const ENUMS = {
+  'media.kind':['video','image','gallery','none'], 'media.layout':['full','left','right','inset'], 'media.inset':['s','m','l'],
+  'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic'], 'media.fit':['auto','fill','fit'],
+  'text.x':['left','center','right'], 'text.y':['top','middle','bottom'], 'text.align':['auto','left','center','right'],
+  'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
+  'card.x':['left','center','right'], 'card.y':['top','middle','bottom'],
+};
+const validArc = a => isObj(a) && Array.isArray(a.points) && a.points.length > 1 && a.points.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite));
+const normalize = d => { d = isObj(d) ? d : {}; return {
   magnet: d.magnet !== false,
   showName: d.showName === true,
   trans: clamp(+d.trans || 1, .5, 2),
   holdAmt: clamp(+d.holdAmt || 1, .4, 2),
   pace: clamp(+d.pace || 1.5, .6, 2.5),
-  arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
+  arc: validArc(d.arc) ? d.arc : null,
   smooth: d.smooth !== false,
   swiper: d.swiper === 'off' ? 'off' : 'on',
   scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
   player: d.player !== false,
   playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
-  sections: (d.sections || []).map(s => {
-    const x = merge(BASE(), s);
+  sections: (Array.isArray(d.sections) ? d.sections : []).map(s => {
+    const base = BASE(), x = sanitize(base, s);
+    if (typeof x.id !== 'string' || !x.id) x.id = base.id;
+    for (const [path, ok] of Object.entries(ENUMS)) { const [a, b] = path.split('.'); if (!ok.includes(x[a][b])) x[a][b] = base[a][b]; }
+    x.media.count = clamp(Math.round(+x.media.count) || 3, 2, 4); x.dwell = clamp(+x.dwell || 1, .4, 3);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
     if (!Array.isArray(x.media.items)) x.media.items = [];
     if (x.media.url) { x.media.items[0] = 'l:' + x.media.url; delete x.media.url; }
@@ -828,9 +858,10 @@ const normalize = d => ({
     if (!TYPE_ANIMS[x.text.anim]) x.text.anim = 'rise';
     return x;
   }),
-});
+}; };
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', scrollMode:'chapter', player:true, playSpeed:1, sections: PRESETS.pool() };
+if (!S) S = normalize({});
+if (!S.sections.length) S.sections = PRESETS.pool(); // an empty or first-time story starts with City Run; its page settings are kept
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -1189,7 +1220,8 @@ let lastNarrow = null;
 
 let frames = [], layers = [], starts = [], holds = [], TR = 0, UNIT = 1, curI = 0, shownI = -1;
 function renderStage() {
-  W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720; SAFE = lastNarrow ? safeInsets() : { t:0, b:0 };
+  cancelJump(); // a jump in flight belongs to the old stage
+  W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720; lastH = H; SAFE = lastNarrow ? safeInsets() : { t:0, b:0 };
   const fw = h('div', { class:'frames' }), tw = h('div', { class:'texts' });
   frames = Array.from({ length:FR }, () => fw.appendChild(h('div', { class:'frame' })));
   layers = S.sections.map((s, i) => {
@@ -1432,7 +1464,7 @@ function drawPair(i, j, t, ui, uj) {
 function setCurrent(i) {
   curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
-  $list.querySelectorAll('.row').forEach((r, k) => r.classList.toggle('is-cur', k === i));
+  $list.querySelectorAll('.row').forEach(r => r.classList.toggle('is-cur', +r.dataset.i === i));
 }
 /* Going to a section. A neighbour is reached by scrolling to it, so its own
    transition plays. Anything further away jumps: the stage moves straight from
@@ -1442,12 +1474,14 @@ let jumping = false, jumpRaf = 0;
 const goTo = i => {
   if (!starts.length) return;
   i = clamp(i, 0, starts.length - 1);
-  stopPlay(); cancelAnimationFrame(jumpRaf);
+  stopPlay(); cancelJump();
   const from = curI;
   swiperHeld = false;
   if (Math.abs(i - from) <= 1 || !layers[from] || !layers[i]) { swBase = null; animateTo(starts[i]); return; }
   jumpTo(from, i);
 };
+// stop a jump part-way: the stage must go back to following the page, or it freezes
+function cancelJump() { if (!jumping) return; cancelAnimationFrame(jumpRaf); jumping = false; magnetOn(); }
 function jumpTo(from, to) {
   cancelAnimationFrame(swipeAnim); swipeDirect = false;
   const t0 = performance.now(), dur = 1000 * clamp(S.trans, .7, 1.3);
@@ -1455,6 +1489,7 @@ function jumpTo(from, to) {
   jumping = true; document.documentElement.classList.remove('magnet');
   const step = now => {
     const t = clamp((now - t0) / dur);
+    if (!layers[from] || !layers[to]) { jumping = false; magnetOn(); update(); return; } // the story changed under the jump
     drawPair(from, to, t, u0 + t * .35, -S.trans * (1 - t)); // hold motion carries on underneath, as when scrolling
     if (t < 1) { jumpRaf = requestAnimationFrame(step); return; }
     jumping = false;
@@ -1532,7 +1567,7 @@ const touchSwipe = () => S.swiper !== 'off' && isTouch() && S.sections.length > 
 const swipeDist = () => Math.max(180, H * .42); // finger travel for a full section
 let drag = null, tg = null, swallowClick = 0;
 function dragBegin(e) {
-  cancelAnimationFrame(swipeAnim); cancelAnimationFrame(jumpRaf); stopPlay(); swipeDirect = true;
+  cancelAnimationFrame(swipeAnim); cancelJump(); stopPlay(); swipeDirect = true;
   const base = scrollY, i = settledAt(base);
   swBase = i; swiperHeld = true;
   const next = starts[i + 1], prev = i > 0 ? restOf(i - 1) : (base > 2 ? 0 : undefined);
@@ -1687,7 +1722,11 @@ function tick(now) {
   if (!raf) lastT = 0;
 }
 addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive:true });
-addEventListener('resize', () => { if (($stage.clientWidth < 720) !== lastNarrow) renderStage(); else { measure(); update(); } });
+let lastH = 0;
+addEventListener('resize', () => {
+  const nw = $stage.clientWidth < 720, hh = $stage.clientHeight;
+  if (nw !== lastNarrow || (nw && Math.abs(hh - lastH) > 1)) { lastH = hh; renderStage(); } else { measure(); update(); }
+});
 /* drag from the Library (or Finder) straight onto a frame on the stage */
 let dropFrame = -1;
 function frameAt(x, y) {
@@ -1750,15 +1789,17 @@ function grid9(x, y, onPick) {
 function text(value, onInput, multi) {
   const el = h(multi ? 'textarea' : 'input', { type: multi ? null : 'text', rows: multi ? 3 : null });
   el.value = value || '';
-  el.addEventListener('focus', snapshot);
-  el.addEventListener('input', () => { onInput(el.value); renderStage(); renderList(); save(); });
+  let saved = false; // one undo step per editing session, taken at the first real change
+  el.addEventListener('focus', () => { saved = false; });
+  el.addEventListener('input', () => { if (!saved) { snapshot(); saved = true; } onInput(el.value); renderStage(); renderList(); save(); });
   return el;
 }
 function slider(min, max, step, value, fmt, onInput, live) {
   const r = h('input', { type:'range', min, max, step }); r.value = value;
   const out = h('small', {}, fmt(value));
-  r.addEventListener('pointerdown', snapshot);
-  r.addEventListener('input', () => { onInput(+r.value); out.textContent = fmt(+r.value); live(); save(); });
+  let saved = false;
+  r.addEventListener('pointerdown', () => { saved = false; }); r.addEventListener('keydown', () => { saved = false; });
+  r.addEventListener('input', () => { if (!saved) { snapshot(); saved = true; } onInput(+r.value); out.textContent = fmt(+r.value); live(); save(); });
   return h('div', { class:'pos' }, r, out);
 }
 /* discrete change: snapshot, mutate, full re-render */
@@ -1788,17 +1829,18 @@ function renderList() {
   renderBeatFilter();
   $list.replaceChildren(...S.sections.filter(s => beatFilter === 'all' || s.beat === beatFilter).map(s => [s, idx(s.id)]).map(([s, i]) => {
     const kind = s.media.kind === 'none' ? 'type only' : `${s.media.kind} · ${s.media.layout}`;
-    const row = h('div', { class:'row' + (s.id === sel ? ' is-sel' : '') + (i === curI ? ' is-cur' : ''), role:'listitem', draggable:'true', style:{ '--bc': BEATS[s.beat].color },
+    const row = h('div', { class:'row' + (s.id === sel ? ' is-sel' : '') + (i === curI ? ' is-cur' : ''), 'data-i':i, role:'listitem', draggable:'true', style:{ '--bc': BEATS[s.beat].color },
         onclick:e => { if (!e.target.closest('.acts')) select(s.id, true); } },
       h('span', { class:'grip', 'aria-hidden':'true' }, '⋮⋮'),
       mini(s),
       h('div', { class:'nm' }, h('b', {}, `${i + 1}. ${s.name}`), h('small', {}, h('i', { class:'bdot', style:{ '--bc': BEATS[s.beat].color } }), BEATS[s.beat].label, ' · ', i ? `${kind} · ${MOTIONS[s.motion][0]}` : kind)),
       h('div', { class:'acts' },
-        h('button', { class:'ib', title:'Move up', 'aria-label':'Move up', disabled: i === 0 ? true : null, onclick:act(() => move(i, i - 1)) }, '↑'),
-        h('button', { class:'ib', title:'Move down', 'aria-label':'Move down', disabled: i === S.sections.length - 1 ? true : null, onclick:act(() => move(i, i + 1)) }, '↓'),
+        h('button', { class:'ib', title:'Move up', 'aria-label':'Move up', disabled: neighbour(i, -1) < 0 ? true : null, onclick:act(() => move(i, neighbour(i, -1))) }, '↑'),
+        h('button', { class:'ib', title:'Move down', 'aria-label':'Move down', disabled: neighbour(i, 1) < 0 ? true : null, onclick:act(() => move(i, neighbour(i, 1))) }, '↓'),
         h('button', { class:'ib', title:'Duplicate', 'aria-label':'Duplicate', onclick:act(() => { const c = clone(s); c.id = uid(); c.name += ' copy'; S.sections.splice(i + 1, 0, c); sel = c.id; }) }, '⧉'),
         h('button', { class:'ib', title:'Delete', 'aria-label':'Delete', onclick:act(() => { S.sections.splice(i, 1); if (sel === s.id) sel = (S.sections[i] || S.sections[i - 1] || {}).id; }) }, '×'),
       ));
+    row.addEventListener('dragend', () => { dragFrom = -1; });
     row.addEventListener('dragstart', e => { if (beatFilter !== 'all') { e.preventDefault(); return; } dragFrom = i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); });
     row.addEventListener('dragover', e => {
       e.preventDefault(); const b = row.getBoundingClientRect(), below = e.clientY > b.top + b.height / 2;
@@ -1809,13 +1851,15 @@ function renderList() {
       e.preventDefault(); const below = row.classList.contains('drop-below'); row.classList.remove('drop-above', 'drop-below');
       const key = e.dataTransfer.getData(SEC);
       if (key) { insertSection(fromPool(key), i + (below ? 1 : 0)); return; }
-      if (dragFrom < 0) return; let to = i + (below ? 1 : 0); if (dragFrom < to) to--;
+      if (dragFrom < 0 || e.dataTransfer.types.includes('Files')) { dragFrom = -1; return; } let to = i + (below ? 1 : 0); if (dragFrom < to) to--;
       if (to !== dragFrom) { snapshot(); move(dragFrom, to); render(); }
       dragFrom = -1;
     });
     return row;
   }));
 }
+// the next section up or down that the list is showing (all of them, or just the filtered beat)
+function neighbour(i, dir) { for (let k = i + dir; k >= 0 && k < S.sections.length; k += dir) if (beatFilter === 'all' || S.sections[k].beat === beatFilter) return k; return -1; }
 function move(from, to) { const [s] = S.sections.splice(from, 1); S.sections.splice(to, 0, s); }
 function select(id, scroll) {
   sel = id; if (poolOpen) setPool(false);
@@ -1944,7 +1988,7 @@ function renderPool() {
         poolThumb(s),
         h('div', { class:'nm' }, h('b', {}, s.name),
           h('small', {}, h('i', { class:'bdot', style:{ '--bc':BEATS[s.beat].color } }), BEATS[s.beat].label, ' · ', kind)));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); card.click(); } });
       card.addEventListener('dragstart', e => { e.dataTransfer.setData(SEC, p.key); e.dataTransfer.setData('text/plain', s.name); e.dataTransfer.effectAllowed = 'copy'; });
       return card;
     })));
@@ -2008,6 +2052,9 @@ const resample = (pts, n) => Array.from({ length:n }, (_, k) => { const x = n > 
 const arcState = () => {
   if (!S.arc) S.arc = { preset:'crescendo', points:resample(ARCS.crescendo[2], clamp(S.sections.length || 9, 4, 12)), src:'photo', mode:'edit' };
   const A = S.arc;
+  if (!['edit','draw'].includes(A.mode)) A.mode = 'edit';
+  if (!['photo','blank','all'].includes(A.src)) A.src = 'photo';
+  if (!(A.preset in ARCS) && A.preset !== 'custom') A.preset = 'custom';
   if (A.points.length < ARC_MIN || A.points.length > ARC_MAX) A.points = resample(A.points, clamp(A.points.length, ARC_MIN, ARC_MAX));
   spaceEven(A); A.n = A.points.length;
   return A;
@@ -2099,7 +2146,7 @@ function fitCurrent(A) {
   snapshot(); S.sections = out; paceToArc(S.sections, slots.map(sl => sl.y)); sel = S.sections[0].id; render(); scrollTo(0, 0);
 }
 
-let arcDrag = null, arcDraw = null, arcOff = false, arcMoved = false;
+let arcDrag = null, arcDraw = null, arcOff = false, arcMoved = false, arcFuture = [];
 function renderArc() {
   const A = arcState();
   $('arc-mode').replaceChildren(...seg([['edit','Drag points'],['draw','Draw freehand']], A.mode, v => { A.mode = v; save(); renderArc(); }).childNodes);
@@ -2159,7 +2206,7 @@ function renderArcGraph() {
     const num = sv('text', { x:X(pt[0]), y:Y(pt[1]) + 3.5, 'text-anchor':'middle', 'font-size':9.5, 'font-weight':700, fill: on ? '#fff' : '#141414', 'font-family':'Saans, -apple-system, sans-serif', 'pointer-events':'none' });
     num.textContent = k + 1; g.append(num);
     if (A.mode === 'edit') {
-      g.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); snapshot(); arcDrag = k; arcSel = k; arcOff = false; arcMoved = false; box.setPointerCapture(e.pointerId); renderArcGraph(); });
+      g.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); arcFuture = future.slice(); snapshot(); arcDrag = k; arcSel = k; arcOff = false; arcMoved = false; box.setPointerCapture(e.pointerId); renderArcGraph(); });
       g.addEventListener('dblclick', e => { e.stopPropagation(); removeArcPoint(k); });
     }
     svg.append(g);
@@ -2210,7 +2257,7 @@ function renderArcGraph() {
     if (arcDrag != null) {
       const k = arcDrag; arcDrag = null;
       if (arcOff) { arcOff = false; removeArcPoint(k, true); return; } // undo returns the point to where the drag began
-      if (!arcMoved) { history.pop(); histButtons(); } // a plain click only selects; nothing to undo
+      if (!arcMoved) { history.pop(); future = arcFuture; histButtons(); } // a plain click only selects: nothing to undo, and Redo survives
       save(); renderArc();
     }
   };
@@ -2326,7 +2373,7 @@ function renderInspector() {
   const contentGrp = grp('Copy',
     field('Feeling', h('div', { class:'pos' },
       (() => { const r = h('input', { type:'range', min:0, max:100, step:1, 'aria-label':'Feeling' }); r.value = Math.round(feelOf(s) * 100);
-        r.addEventListener('pointerdown', snapshot); r.addEventListener('input', () => { s.feel = +r.value / 100; r.nextSibling.textContent = r.value + (s.feel == null ? ' · auto' : ''); renderSpark(); save(); }); return r; })(),
+        let saved = false; r.addEventListener('pointerdown', () => { saved = false; }); r.addEventListener('input', () => { if (!saved) { snapshot(); saved = true; } s.feel = +r.value / 100; r.nextSibling.textContent = r.value + (s.feel == null ? ' · auto' : ''); renderSpark(); save(); }); return r; })(),
       h('small', {}, Math.round(feelOf(s) * 100) + (s.feel == null ? ' · auto' : '')),
       s.feel != null && h('button', { class:'linkbtn', onclick:act(() => s.feel = null) }, 'Auto'))),
     h('p', { class:'hint' }, '0 is shopping and product, 100 is emotive story. Auto reads it from what is in the section.'),
@@ -2459,7 +2506,7 @@ addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
-  else if (e.key === ' ' && !typing && $('arc').hidden && !(e.target.closest && e.target.closest('button')) && S.player) { e.preventDefault(); togglePlay(); }
+  else if (e.key === ' ' && !typing && !e.defaultPrevented && $('arc').hidden && !(e.target.closest && e.target.closest('button,[role=button],.panel')) && S.player) { e.preventDefault(); togglePlay(); }
   else if (['ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key) && !typing && chapterMode() && $('arc').hidden) { e.preventDefault(); stopPlay(); swipeTo(e.key === 'ArrowDown' || e.key === 'PageDown' ? 1 : -1); }
   else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key) && !typing) stopPlay();
   else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
@@ -2607,7 +2654,7 @@ function placeControls() {
   const nodes = [$('preset'), $('arc-open'), $('remix').parentElement, document.querySelector('.hist'), $('pageset')];
   nodes.forEach(n => (phone ? pane : head).appendChild(n));
   if (!phone) { setDetail(false); if (!$('view-story').hidden) showTab('sections'); }
-  setDetail(mDetail); fitStage();
+  setDetail(mDetail || poolOpen); fitStage();
   if (phone) setSheet(sheet);
 }
 let wasPhone = null;
