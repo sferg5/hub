@@ -474,12 +474,16 @@ const lerpR = (a, b, t) => ({ x:lerp(a.x, b.x, t), y:lerp(a.y, b.y, t), w:lerp(a
    browser only (IndexedDB), so they never leave the machine. */
 const BUILTIN = [
   ['City Run', Array.from({ length:25 }, (_, k) => `story-library/cityrun-${String(k + 1).padStart(2, '0')}.jpg`)],
-  ['Run Vest', ['bag-4513','bag-4515','bag-4518','detail-4523','detail-4525','detail-4537','flat-4542','flat-4543','orbit-4522','orbit-4531','orbit-4539','orbit-4540','orbit-4541'].map(n => `runvest/${n}.webp`)],
+  ['Video', [
+    { path:'20260325_LULU_LILAC_16x9_15s_ProRes_Clean.mp4', name:'Lilac · 15s', type:'video' },
+    { path:'NA_May26_Wk3_Q2_MustWin_ShakeItOut_Paid_Reddit_6s_16x9_1920x1080.mp4', name:'Shake It Out · 6s', type:'video' },
+  ]],
 ];
 const ASSETS = {};           // id -> { id, name, type, src, group, user }
 const missing = new Set();   // built-ins that failed to load (e.g. not deployed)
-BUILTIN.forEach(([group, paths]) => paths.forEach(path => {
-  const id = 'b:' + path; ASSETS[id] = { id, name:path.split('/').pop(), type:'image', src:path, group };
+BUILTIN.forEach(([group, items]) => items.forEach(it => {
+  const { path, name, type } = typeof it === 'string' ? { path:it } : it;
+  const id = 'b:' + path; ASSETS[id] = { id, name: name || path.split('/').pop(), type: type || 'image', src:path, group };
 }));
 const typeOf = (mime, name) => /^video\//.test(mime) || /\.(mp4|webm|mov|m4v)$/i.test(name) ? 'video' : 'image';
 function asset(id) {
@@ -492,6 +496,7 @@ function assetEl(a, play) {
   if (a.type === 'video') {
     const v = h('video', { src: play ? a.src : a.src + '#t=0.5', loop:true, playsinline:true, preload: play ? 'auto' : 'metadata' });
     v.muted = true; if (play) v.autoplay = true;
+    if (a.id.startsWith('b:')) v.addEventListener('error', () => { if (!missing.has(a.id)) { missing.add(a.id); renderLibrary(); } });
     return v;
   }
   const img = h('img', { src:a.src, alt:'', loading: play ? null : 'lazy', decoding:'async' });
@@ -576,7 +581,9 @@ function renderLibrary() {
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
   drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); importFiles([...e.dataTransfer.files]); });
   kids.push(drop);
-  const groups = [...new Set(all.map(a => a.group))].sort((a, b) => (a === 'Your uploads' ? -1 : b === 'Your uploads' ? 1 : 0));
+  const order = ['Your uploads', 'Video'];
+  const rank = g => order.includes(g) ? order.indexOf(g) : order.length;
+  const groups = [...new Set(all.map(a => a.group))].sort((a, b) => rank(a) - rank(b));
   kids.push(seg([['all','All'],['image','Images'],['video','Video']], libFilter, v => { libFilter = v; renderLibrary(); }, 'Filter'));
   groups.forEach(g => {
     const items = all.filter(a => a.group === g && (libFilter === 'all' || a.type === libFilter));
@@ -587,7 +594,7 @@ function renderLibrary() {
       const tile = h('div', { class:'asset' + (picking ? ' picking' : ''), draggable:'true', title:a.name, role:'button', tabindex:'0',
         onclick:() => { if (picking) { const s = S.sections.find(x => x.id === picking.id), k = picking.k; picking = null; showTab('sections'); assign(s, k, a.id); } } },
         assetEl(a, false),
-        a.type === 'video' && h('span', { class:'badge' }, '▶ Video'),
+        a.type === 'video' && h('span', { class:'badge' }, '▶ ' + (a.group === 'Your uploads' ? 'Video' : a.name)),
         used.has(a.id) && h('span', { class:'used', title:'In use' }),
         a.user && h('button', { class:'del', 'aria-label':'Remove from library', title:'Remove', onclick:e => {
           e.stopPropagation(); if (!confirm(`Remove ${a.name} from the library?`)) return;
