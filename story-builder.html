@@ -221,6 +221,7 @@ input[type=range]{width:100%;accent-color:var(--p-fg)}
       <div class="gb">
         <div class="f"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
+        <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
     </details>
   </div>
@@ -276,7 +277,7 @@ const FR = 4; // frames on stage: one per gallery tile at most
 /* Every section shares one shape. "Type" only picks starting values,
    so any section can become any composition. */
 const BASE = () => ({
-  id: uid(), name: 'Section', motion: 'glide', dwell: 1,
+  id: uid(), name: 'Section', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', url: '', inset: 'm', mx: 'center', count: 3, arrange: 'row' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl' },
   overlay: 30, eyebrow: '', headline: 'Headline', body: '',
@@ -302,32 +303,32 @@ const STARTERS = {
 /* Presets are written as a sequence: each composition sets up the next move. */
 const PRESETS = {
   align: () => [
-    make({ name:'Arrival', media:{kind:'video',layout:'full'}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
+    make({ name:'Arrival', hold:'push', media:{kind:'video',layout:'full'}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
       eyebrow:'00:00 · Arrival', headline:'Feel nothing but the practice.', body:'One class, start to finish, in the Align pant.', cta:{show:true,label:'Shop Align'} }),
-    make({ name:'Breath', media:{kind:'video',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'},
+    make({ name:'Breath', hold:'drift', media:{kind:'video',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'},
       eyebrow:'04:00 · Breath', headline:'Buttery-soft. Weightless.' }),
-    make({ name:'Flow', media:{kind:'image',layout:'left'}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
+    make({ name:'Flow', hold:'pan', media:{kind:'image',layout:'left'}, text:{x:'left',y:'bottom',size:'m',width:'narrow'},
       eyebrow:'12:00 · Flow', headline:'Every transition, uninterrupted.', body:'Nulu fabric stays with you from down dog to warrior without a second thought.' }),
-    make({ name:'Balance', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger'}, overlay:0, text:{x:'left',y:'top',size:'s'}, motion:'rise',
+    make({ name:'Balance', hold:'drift', media:{kind:'gallery',layout:'full',count:3,arrange:'stagger'}, overlay:0, text:{x:'left',y:'top',size:'s'}, motion:'rise',
       eyebrow:'24:00 · Balance', headline:'Hold still. Nothing shifts.' }),
-    make({ name:'Close-up', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
+    make({ name:'Close-up', hold:'drift', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'},
       eyebrow:'31:00 · Detail', headline:'The pant.', body:'High rise, no side seams, a hidden waistband pocket.', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
-    make({ name:'Stretch', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'},
+    make({ name:'Stretch', hold:'pan', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'},
       eyebrow:'38:00 · Stretch', headline:'Built for the deep end of class.', stats:{on:true,items:[{v:'28″',l:'Inseam'},{v:'4-way',l:'Stretch'},{v:'0',l:'Side seams'}]} }),
     make({ name:'Savasana', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'},
       eyebrow:'55:00 · Savasana', headline:'I forgot I was wearing anything at all.', quote:{on:true,attr:'Placeholder quote'} }),
-    make({ name:'After class', media:{kind:'video',layout:'full'}, overlay:36, text:{x:'center',y:'middle',size:'l'}, motion:'iris',
+    make({ name:'After class', hold:'push', media:{kind:'video',layout:'full'}, overlay:36, text:{x:'center',y:'middle',size:'l'}, motion:'iris',
       eyebrow:'60:00 · After class', headline:'Take it with you.', cta:{show:true,label:'Shop the Align collection'} }),
   ],
   lockups: () => {
     const c = { eyebrow:'New · Align', headline:'Feel nothing but the practice.', body:'The same hero, six lockups.', cta:{show:true,label:'Shop Align'}, overlay:34 };
     return [
       make({ ...c, name:'Bottom left', text:{x:'left',y:'bottom',size:'xl'} }),
-      make({ ...c, name:'Centered', text:{x:'center',y:'middle',size:'xl',width:'wide'}, overlay:40 }),
-      make({ ...c, name:'Split · video right', media:{kind:'video',layout:'right'}, text:{x:'left',y:'bottom',size:'l',width:'narrow'} }),
-      make({ ...c, name:'Inset left', media:{kind:'video',layout:'inset',mx:'left',inset:'l'}, overlay:0, text:{x:'right',y:'middle',size:'m',width:'narrow'} }),
-      make({ ...c, name:'Inset center', media:{kind:'video',layout:'inset',mx:'center',inset:'s'}, overlay:0, text:{x:'center',y:'bottom',size:'m',width:'wide'}, body:'' }),
-      make({ ...c, name:'Top right', text:{x:'right',y:'top',size:'l',width:'narrow'}, motion:'iris', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
+      make({ ...c, name:'Centered', hold:'push', text:{x:'center',y:'middle',size:'xl',width:'wide'}, overlay:40 }),
+      make({ ...c, name:'Split · video right', hold:'pan', media:{kind:'video',layout:'right'}, text:{x:'left',y:'bottom',size:'l',width:'narrow'} }),
+      make({ ...c, name:'Inset left', hold:'drift', media:{kind:'video',layout:'inset',mx:'left',inset:'l'}, overlay:0, text:{x:'right',y:'middle',size:'m',width:'narrow'} }),
+      make({ ...c, name:'Inset center', hold:'drift', media:{kind:'video',layout:'inset',mx:'center',inset:'s'}, overlay:0, text:{x:'center',y:'bottom',size:'m',width:'wide'}, body:'' }),
+      make({ ...c, name:'Top right', hold:'pan', text:{x:'right',y:'top',size:'l',width:'narrow'}, motion:'iris', card:{on:true,x:'left',y:'bottom',name:'Align High-Rise Pant 28"',price:'$XX'} }),
     ];
   },
   blank: () => [make(STARTERS.hero.o)],
@@ -339,14 +340,16 @@ let S, sel = null, history = [];
 const normalize = d => ({
   magnet: d.magnet !== false,
   trans: clamp(+d.trans || 1, .5, 2),
+  holdAmt: clamp(+d.holdAmt || 1, .4, 2),
   sections: (d.sections || []).map(s => {
     const x = merge(BASE(), s);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
+    if (!['push','pan','drift'].includes(x.hold)) x.hold = 'push';
     return x;
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, trans:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, trans:1, holdAmt:1, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -494,9 +497,45 @@ function measure() {
   $spacer.style.height = (last < 0 ? vh : starts[last] + holds[last] + vh) + 'px';
 }
 
+/* Hold motion. The page never scrolls, so every scroll must move something.
+   u = screens scrolled since this section's start (negative while it is
+   still arriving), so hold motion runs straight through each transition. */
+const HOLDS = {
+  push:  ['Push in', 'A slow camera move into the imagery.'],
+  pan:   ['Pan',     'The imagery slides sideways inside its frame.'],
+  drift: ['Drift',   'Frames and type float at different speeds, like layers of depth.'],
+};
+const DEPTH = [.7, 1.35, .95, 1.15]; // per-frame parallax rates for tiles
+const amt = () => S.holdAmt;
+// never fully flat at the ends, so a transition always moves a little
+const glide = t => .82 * easeIO(t) + .18 * t;
+
+function kenBurns(s, u) {
+  const k = amt(), v = u + S.trans; // v >= 0 from the moment a section starts arriving
+  if (s.hold === 'pan') return { sc:1.14, x:clamp(-5 + v * 2.6 * k, -7, 7), y:0 };
+  if (s.hold === 'drift') return { sc:1.12, x:0, y:clamp(4 - v * 2.2 * k, -6, 6) };
+  return { sc:Math.min(1.02 + v * .035 * k, 1.3), x:0, y:0 };
+}
+const kbStr = (m, extraY = 0, extraS = 0) => `translate(${m.x}%,${m.y + extraY}%) scale(${m.sc + extraS})`;
+function driftRects(rs, s, u) {
+  // frames flush to the stage edge stay put (moving them would expose a gap); tiles and insets float
+  if (!rs || s.hold !== 'drift' || (s.media.kind !== 'gallery' && s.media.layout !== 'inset')) return rs;
+  const d = u - s.dwell / 2; // float through the resting spot at mid-hold
+  return rs.map((r, k) => ({ ...r, y: r.y - d * H * .03 * amt() * (s.media.kind === 'gallery' ? DEPTH[k] : 1) }));
+}
+function holdType(L, s, u) {
+  const k = amt(), d = u - s.dwell / 2;
+  L.copy.style.transform = `translateY(${-d * 26 * k}px)`;
+  if (L.card) L.card.style.transform = `translateY(${-d * 44 * k}px)`;
+  // type-only sections: words fill with ink as you read down the line
+  if (s.media.kind === 'none' && L.words.length) {
+    const f = clamp((u + .15) / Math.max(.4, s.dwell * .85)) * L.words.length;
+    L.words.forEach((w, n) => { w.style.color = `rgba(20,20,20,${.16 + .84 * clamp(f - n)})`; });
+  }
+}
+
 /* type choreography: the old copy lifts away word by word, the new copy rises in */
-function textOut(L, t, drift) {
-  L.copy.style.transform = `translateY(${drift}px)`;
+function textOut(L, t) {
   L.words.forEach((w, k) => { const q = easeIn(clamp((t - k * .015) / .28)); w.style.transform = `translateY(${-q * 110}%)`; });
   const rest = [L.eb, ...L.parts].filter(Boolean);
   rest.forEach((p, k) => { const q = easeIn(clamp((t - .02 - k * .03) / .3)); p.style.transform = `translateY(${-q * 28}px)`; p.style.opacity = 1 - q; });
@@ -504,7 +543,6 @@ function textOut(L, t, drift) {
 }
 function textIn(L, t, motion) {
   const base = motion === 'dissolve' ? .55 : .38, rise = motion === 'rise' ? 64 : 34;
-  L.copy.style.transform = 'translateY(8px)';
   if (L.eb) { const q = easeOut(clamp((t - base) / .35)); L.eb.style.transform = `translateY(${(1 - q) * rise * .6}px)`; L.eb.style.opacity = q; }
   L.words.forEach((w, k) => { const q = easeOut(clamp((t - base - .05 - k * .025) / .34)); w.style.transform = `translateY(${(1 - q) * 110}%)`; });
   L.parts.forEach((p, k) => { const q = easeOut(clamp((t - base - .14 - k * .05) / .36)); p.style.transform = `translateY(${(1 - q) * rise}px)`; p.style.opacity = q; });
@@ -513,12 +551,14 @@ function textIn(L, t, motion) {
 
 function update() {
   const N = layers.length; if (!N) return;
-  const y = scrollY; let i = 0;
+  const y = scrollY, vh = innerHeight; let i = 0;
   while (i < N - 1 && y >= starts[i + 1]) i++;
   const local = y - starts[i], hold = holds[i];
   const t = i < N - 1 ? clamp((local - hold) / TR) : 0;
   const j = t > 0 ? i + 1 : -1;
-  const motion = j >= 0 ? S.sections[j].motion : 'glide';
+  const si = S.sections[i], sj = j >= 0 ? S.sections[j] : null;
+  const motion = sj ? sj.motion : 'glide';
+  const ui = local / vh, uj = sj ? (y - starts[j]) / vh : 0;
 
   layers.forEach((L, k) => {
     const vis = k === i || k === j ? 'visible' : 'hidden';
@@ -526,13 +566,13 @@ function update() {
     L.media.forEach(m => { if (m) { m.style.visibility = vis; m.style.opacity = ''; m.style.clipPath = ''; } });
   });
 
-  // frames: glide from composition i to composition j
-  let a = rectsFor(S.sections[i]), b = j >= 0 ? rectsFor(S.sections[j]) : null, R = null;
+  // frames: glide from composition i to composition j, each already drifting
+  let a = driftRects(rectsFor(si), si, ui), b = sj ? driftRects(rectsFor(sj), sj, uj) : null, R = null;
   if (j < 0) R = a;
   else if (a || b) {
     if (!a) a = b.map(shrink); if (!b) b = a.map(shrink);
     if (motion === 'dissolve') R = t < .5 ? a.map(r => ({ ...r, o:r.o * (1 - easeIO(t * 2)) })) : b.map(r => ({ ...r, o:r.o * easeIO((t - .5) * 2) }));
-    else { const e = easeIO(t); R = a.map((r, k) => lerpR(r, b[k], e)); }
+    else { const e = glide(t); R = a.map((r, k) => lerpR(r, b[k], e)); }
   }
   frames.forEach((f, k) => {
     const r = R && R[k];
@@ -541,23 +581,24 @@ function update() {
     f.style.width = r.w + 'px'; f.style.height = r.h + 'px';
   });
 
-  // imagery inside the frames: slow settle while held, then hand over
-  const p = clamp(local / (hold + TR));
-  layers[i].media.forEach(m => m && (m.firstChild.style.transform = `scale(${1.05 - .05 * p})`));
-  if (j >= 0) {
+  // imagery inside the frames keeps moving with every scroll
+  const kbi = kenBurns(si, ui);
+  layers[i].media.forEach(m => m && (m.firstChild.style.transform = kbStr(kbi)));
+  if (sj) {
+    const kbj = kenBurns(sj, uj);
     const c = motion === 'dissolve' ? (t < .5 ? 0 : 1) : easeIO(clamp((t - .18) / .6));
     layers[i].media.forEach(m => m && (m.style.opacity = motion === 'iris' ? 1 : 1 - c));
     layers[j].media.forEach(m => {
       if (!m) return;
       const z = m.firstChild;
-      if (motion === 'iris') { const q = easeIO(clamp((t - .1) / .75)); m.style.opacity = 1; m.style.clipPath = `inset(${(1 - q) * 50}% ${(1 - q) * 50}%)`; z.style.transform = `scale(${1.05 + (1 - q) * .1})`; }
-      else if (motion === 'rise') { m.style.opacity = c; z.style.transform = `translateY(${(1 - c) * 10}%) scale(1.05)`; }
-      else { m.style.opacity = c; z.style.transform = 'scale(1.05)'; }
+      if (motion === 'iris') { const q = easeIO(clamp((t - .1) / .75)); m.style.opacity = 1; m.style.clipPath = `inset(${(1 - q) * 50}% ${(1 - q) * 50}%)`; z.style.transform = kbStr(kbj, 0, (1 - q) * .1); }
+      else if (motion === 'rise') { m.style.opacity = c; z.style.transform = kbStr(kbj, (1 - c) * 10); }
+      else { m.style.opacity = c; z.style.transform = kbStr(kbj); }
     });
   }
 
-  textOut(layers[i], t, (.5 - p) * 18);
-  if (j >= 0) textIn(layers[j], t, motion);
+  holdType(layers[i], si, ui); textOut(layers[i], t);
+  if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); }
   setCurrent(t > .5 ? i + 1 : i);
 }
 function setCurrent(i) {
@@ -578,7 +619,7 @@ $stage.addEventListener('click', e => {
 
 /* ---------- control widgets ---------- */
 const lbl = t => h('span', { class:'lbl' }, t);
-const openGroups = new Set(['Text position', 'Media', 'Motion in']);
+const openGroups = new Set(['Text position', 'Media', 'Motion']);
 const grp = (title, ...kids) => {
   const d = h('details', { class:'grp', open: openGroups.has(title) }, h('summary', {}, title), h('div', { class:'gb' }, ...kids));
   d.addEventListener('toggle', () => d.open ? openGroups.add(title) : openGroups.delete(title));
@@ -716,11 +757,16 @@ function renderInspector() {
     field('Card position', grid9(s.card.x, s.card.y, act((x, y) => { s.card.x = x; s.card.y = y; }))),
     h('div', { class:'f2' }, field('Product', text(s.card.name, v => s.card.name = v)), field('Price', text(s.card.price, v => s.card.price = v))));
 
+  const holdMode = s.media.kind === 'none'
+    ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'Type-only: the words fill with ink as the viewer scrolls, and the copy floats upward.')
+    : h('div', {}, field('Motion while held', seg(Object.entries(HOLDS).map(([k, v]) => [k, v[0]]), s.hold, up(v => s.hold = v))),
+        h('p', { class:'hint' }, HOLDS[s.hold][1]));
   const holdF = field('Hold length', slider(.4, 3, .1, s.dwell, v => v.toFixed(1) + ' screens', v => s.dwell = v, () => { measure(); update(); }));
-  const motionGrp = grp('Motion in',
+  const motionGrp = grp('Motion',
     i === 0 ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'The first section is where the story opens, so it has no motion in.') : h('div', {},
       field('How this composition arrives', seg(Object.entries(MOTIONS).map(([k, v]) => [k, v[0]]), s.motion, up(v => s.motion = v))),
       h('p', { class:'hint' }, MOTIONS[s.motion][1])),
+    holdMode,
     holdF,
   );
 
@@ -733,6 +779,7 @@ function renderInspector() {
 function renderGlobals() {
   $('magnet').replaceChildren(...seg([[true,'Magnet'],[false,'Free']], S.magnet, act(v => S.magnet = v)).childNodes);
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
+  $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
 function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); save(); }
@@ -755,6 +802,7 @@ $('remix').addEventListener('click', act(() => {
     s.text.x = pick(['left','center','right']); s.text.y = pick(['top','middle','bottom']); s.text.align = 'auto';
     if (s.card.on) { s.card.x = pick(['left','right']); s.card.y = pick(['top','bottom']); }
     if (i) s.motion = pick(['glide','glide','rise','iris','dissolve']);
+    s.hold = pick(['push','pan','drift']);
   });
 }));
 $undo.addEventListener('click', undo);
