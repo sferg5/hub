@@ -153,8 +153,13 @@ body.panel-open .stage{right:var(--panel-w)}
 .empty{position:absolute;inset:0;display:grid;place-items:center;color:#9A9A9A;font:400 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:24px}
 
 /* ================= control panel (lululemon.com style) ================= */
-.fab{position:fixed;right:16px;bottom:16px;z-index:60;height:44px;padding:0 22px;border-radius:4px;background:var(--p-accent);color:var(--p-accent-fg);font:600 14px/1 var(--sans);box-shadow:0 4px 16px rgba(0,0,0,.18);transition:right .35s var(--ease-out)}
-body.panel-open .fab{right:calc(var(--panel-w) + 16px)}
+.fab{position:fixed;right:0;top:10%;z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;width:26px;padding:12px 0;border-radius:8px 0 0 8px;
+  background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:rgba(20,20,20,.62);box-shadow:-2px 0 10px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.08);
+  font:600 11px/1 var(--sans);letter-spacing:.06em;transition:right .35s var(--ease-out),color .2s,background .2s}
+.fab:hover,.fab:focus-visible{color:var(--ink);background:#fff}
+.fab .fa{font-size:13px;line-height:1}
+.fab .ft{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+body.panel-open .fab{right:var(--panel-w)}
 .panel{position:fixed;top:0;right:0;bottom:0;width:var(--panel-w);z-index:50;background:var(--p-bg);color:var(--p-fg);border-left:1px solid var(--p-line);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s var(--ease-out);font:400 14px/1.45 var(--sans)}
 body.panel-open .panel{transform:none}
 .p-head{padding:20px 20px 16px;border-bottom:1px solid var(--p-line-2);display:grid;gap:14px}
@@ -330,8 +335,6 @@ body:not(.panel-open) .arc{right:0}
 .stp[disabled]{opacity:.3;border-color:var(--p-line);cursor:default}
 .stp-n{font:600 14px/1 var(--sans);min-width:92px;text-align:center}
 .arc-prev .ac{cursor:pointer}
-.arc-prev .ac.first{text-align:left}
-.arc-prev .ac.last{text-align:right}
 .arc-prev .ac.on .pt{outline:2px solid var(--p-fg);outline-offset:2px}
 .arc-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--p-mute)}
 .arc-legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--red);vertical-align:3px;margin-right:6px}
@@ -427,13 +430,60 @@ body:not(.panel-open) .arc{right:0}
 .frame.drop-target::after{content:"Drop to place";position:absolute;inset:0;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--red);background:rgba(210,32,48,.08);color:var(--red);font:600 13px/1 var(--sans);z-index:5}
 .stage.drop-new::after{content:"Drop to add media to this section";position:absolute;inset:24px;display:grid;place-items:center;border:2px dashed var(--red);color:var(--red);font:600 14px/1 var(--sans);z-index:20;pointer-events:none}
 
+.m-bar,#tab-story,.m-back{display:none}
 @media (max-width:760px){
   :root{--panel-w:100vw}
-  .panel{top:auto;height:64vh;width:100%;border-left:0;border-top:1px solid var(--p-line);transform:translateY(100%)}
+  /* the editor is a sheet: peek, half or full screen */
+  .panel{top:auto;height:var(--sheet-h,58vh);width:100%;border-left:0;border-radius:14px 14px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.14);transform:translateY(100%);transition:transform .35s var(--ease-out),height .3s var(--ease-out)}
+  .panel.resizing{transition:none}
   body.panel-open .stage{right:0}
-  body.panel-open .fab{right:16px;bottom:calc(64vh + 12px)}
-  body:not(.panel-open) .fab{top:12px;bottom:auto;right:12px;height:36px;padding:0 14px;font-size:13px} /* out of the way of the story */
-  .p-list{max-height:26vh}
+  body.panel-open .fab{display:none}
+  .m-bar{display:block;flex:none;border-bottom:1px solid var(--p-line-2)}
+  .m-handle{display:block;width:100%;height:22px;position:relative;touch-action:none;cursor:ns-resize}
+  .m-handle::after{content:"";position:absolute;left:50%;top:9px;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:#CFCFCF}
+  .m-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px 10px 16px}
+  .m-row > b{font:700 17px/1 var(--sans)}
+  .m-acts{display:flex;gap:6px;align-items:center}
+  .m-ib{width:38px;height:38px;border-radius:50%;border:1px solid var(--p-line);background:#fff;font:700 16px/1 var(--sans)}
+  .m-ib[disabled]{opacity:.3}
+  .m-done{height:38px;padding:0 16px;border-radius:19px;background:var(--p-accent);color:var(--p-accent-fg);font:600 14px/1 var(--sans)}
+  .p-head{display:none}
+  #tab-story{display:block}
+  .tabs{gap:20px;padding:0 16px}
+  .story-pane{flex:1;overflow:auto;padding:16px 16px 48px;display:grid;gap:14px;align-content:start}
+  .story-pane #pageset{margin:0!important;padding:0!important;border-top:1px solid var(--p-line-2)}
+  /* sections: the list, then a section's settings full-sheet */
+  .p-list{max-height:none;flex:1;border-bottom:0}
+  .p-insp{padding:0 16px 48px}
+  body:not(.m-detail) .p-insp{display:none}
+  body.m-detail .p-list{display:none}
+  .m-back{display:flex;position:sticky;top:0;z-index:2;background:#fff;align-items:center;justify-content:space-between;gap:8px;margin:0 -16px;padding:10px 12px;border-bottom:1px solid var(--p-line-2)}
+  .m-back .linkbtn{font-weight:600;font-size:15px;text-decoration:none;padding:8px 6px}
+  .m-back .m-step{display:flex;gap:6px}
+  .row{grid-template-columns:38px 1fr auto;padding:12px 12px 12px 13px}
+  .row .grip{display:none}
+  .ib{width:38px;height:38px;font-size:16px}
+  .p-list-h{padding:12px 16px 8px;flex-wrap:wrap}
+  input[type=text],textarea,select{font-size:16px} /* 16px stops iPhones zooming into the field */
+  .seg button{height:44px}
+  .g9{width:150px}
+  .lib{padding:14px 16px 48px}
+  /* the stage stays visible above the sheet, scaled to fit, so you see the whole composition you are editing */
+  body.panel-open{background:#E9E9E9}
+  body.panel-open .stage{transform:scale(var(--stage-k,1));transform-origin:50% 0;border-radius:calc(14px / var(--stage-k,1));transition:transform .3s var(--ease-out),right .35s var(--ease-out)}
+  body.panel-open.sheet-resizing .stage{transition:none}
+  /* narrative arc: full screen */
+  .arc:not([hidden]){right:0!important;z-index:120;display:block}
+  .arc-h{padding:16px 16px 8px}
+  .arc-h b{font-size:22px}
+  .arc-body{display:block;padding:4px 16px 32px}
+  .arc-main{gap:12px}
+  .arc-tools{gap:12px}
+  .arc-tools .f{min-width:0!important;width:100%}
+  .arc-side{display:flex!important;overflow-x:auto;gap:8px;margin:16px -16px 0;padding:0 16px 6px;scroll-snap-type:x mandatory}
+  .arc-side h4{display:none}
+  .arcp{min-width:230px;scroll-snap-align:start}
+  .arc-actions .btn{flex:1 1 100%;height:44px}
 }
 </style>
 </head>
@@ -442,9 +492,20 @@ body:not(.panel-open) .arc{right:0}
 <main class="stage" id="stage" aria-label="Story preview"></main>
 <div class="spacer" id="spacer" aria-hidden="true"></div>
 
-<button class="fab" id="fab" aria-controls="panel" aria-expanded="true">Close editor</button>
+<button class="fab" id="fab" aria-controls="panel" aria-expanded="true" title="Close the editor (E)"><span class="fa" aria-hidden="true">›</span><span class="ft">Close</span></button>
 
 <aside class="panel" id="panel" aria-label="Story controls">
+  <div class="m-bar">
+    <button class="m-handle" id="m-handle" aria-label="Resize the editor: drag, or tap to make it taller"></button>
+    <div class="m-row"><b>Story Builder</b>
+      <span class="m-acts">
+        <button class="m-ib" id="m-help" aria-label="How it works">?</button>
+        <button class="m-ib" id="m-undo" aria-label="Undo">↶</button>
+        <button class="m-ib" id="m-redo" aria-label="Redo">↷</button>
+        <button class="m-done" id="m-done">Done</button>
+      </span>
+    </div>
+  </div>
   <div class="p-head">
     <div class="p-title"><div class="p-title-row"><b>Story Builder</b><button class="help-btn" id="help-open" aria-label="How Story Builder works" title="How it works (?)">?</button></div><small>Scroll moves one composition into the next.</small></div>
     <select id="preset" aria-label="Load a preset">
@@ -472,7 +533,9 @@ body:not(.panel-open) .arc{right:0}
     <details class="grp" id="pageset" style="border-bottom:0;border-top:1px solid var(--p-line-2);margin:0 -20px -16px;padding:0 20px">
       <summary>Page settings</summary>
       <div class="gb">
-        <div class="f"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
+        <div class="f"><span class="lbl">Desktop scrolling</span><div class="seg" id="scrollmode" role="group" aria-label="Desktop scrolling"></div></div>
+        <p class="hint" id="scrollmode-hint"></p>
+        <div class="f" id="freeopts-magnet"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
         <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
         <p class="hint">Higher means less scrolling for each section.</p>
         <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
@@ -487,6 +550,7 @@ body:not(.panel-open) .arc{right:0}
   <nav class="tabs" role="tablist">
     <button role="tab" id="tab-sections" aria-selected="true">Sections</button>
     <button role="tab" id="tab-library" aria-selected="false">Library<span class="count" id="lib-count"></span></button>
+    <button role="tab" id="tab-story" aria-selected="false">Story</button>
   </nav>
   <div class="view" id="view-sections">
   <div class="p-list">
@@ -502,6 +566,9 @@ body:not(.panel-open) .arc{right:0}
   </div>
   <div class="view" id="view-library" hidden>
     <div class="lib" id="lib"></div>
+  </div>
+  <div class="view" id="view-story" hidden>
+    <div class="story-pane" id="story-pane"></div>
   </div>
   <input type="file" id="lib-file" accept="image/*,video/*" multiple hidden>
 </aside>
@@ -681,7 +748,7 @@ const PRESETS = {
     const P = (name, tag = '') => ({ name, price:'$XX', tag });
     return [
       // Hook — five ways to open
-      make({ beat:'hook', name:'Cold open', hold:'push', media:{kind:'image',layout:'full', ...I(11)}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
+      make({ beat:'hook', name:'Cold open', hold:'push', media:{kind:'video',layout:'full', items:['b:NA_May26_Wk3_Q2_MustWin_ShakeItOut_Paid_Reddit_6s_16x9_1920x1080.mp4']}, text:{x:'left',y:'bottom',size:'xl'}, overlay:34,
         eyebrow:'City Run', headline:'The city is the track.' }),
       make({ beat:'hook', name:'Statement open', media:{kind:'none'}, text:{anim:'letters',x:'center',y:'middle',size:'xl',width:'wide'},
         eyebrow:'City Run', headline:'Wake the legs.' }),
@@ -743,6 +810,7 @@ const normalize = d => ({
   arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
   smooth: d.smooth !== false,
   swiper: d.swiper === 'off' ? 'off' : 'on',
+  scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
   player: d.player !== false,
   playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
   sections: (d.sections || []).map(s => {
@@ -757,12 +825,12 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', player:true, playSpeed:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', scrollMode:'chapter', player:true, playSpeed:1, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 let future = []; // redo stack: cleared by any new change
-const histButtons = () => { $undo.disabled = !history.length; $('redo').disabled = !future.length; };
+const histButtons = () => { $undo.disabled = $('m-undo').disabled = !history.length; $('redo').disabled = $('m-redo').disabled = !future.length; };
 const snapshot = () => { history.push(JSON.stringify(S)); if (history.length > 80) history.shift(); future = []; histButtons(); };
 const restore = json => {
   S = normalize(JSON.parse(json));
@@ -1009,9 +1077,7 @@ function renderLibrary() {
   $lib.scrollTop = keep;
 }
 function showTab(t) {
-  $('tab-sections').setAttribute('aria-selected', String(t === 'sections'));
-  $('tab-library').setAttribute('aria-selected', String(t === 'library'));
-  $('view-sections').hidden = t !== 'sections'; $('view-library').hidden = t !== 'library';
+  ['sections','library','story'].forEach(k => { $('tab-' + k).setAttribute('aria-selected', String(t === k)); $('view-' + k).hidden = t !== k; });
   if (t === 'library') renderLibrary();
 }
 
@@ -1490,6 +1556,27 @@ $stage.addEventListener('pointerup', touchEnd); $stage.addEventListener('pointer
 // a swipe that ends over a button shouldn't also press it
 $stage.addEventListener('click', e => { if (performance.now() - swallowClick < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
 function swiperEnds() {} // (kept for callers; there is no visible control to update)
+
+/* Chapter swipe on a computer: one flick of the trackpad or wheel is one step.
+   A step plays the next section through and rests at its end, the same as a
+   swipe on a phone. Trackpads keep sending events as they coast, so after a
+   step the wheel stays quiet until those events die down. */
+const chapterMode = () => S.scrollMode === 'chapter' && !touchSwipe() && S.sections.length > 1;
+let wheelAcc = 0, wheelLock = false, wheelQuiet = 0;
+addEventListener('wheel', e => {
+  if (!chapterMode() || e.ctrlKey) return;               // pinch-zoom passes through
+  if (e.target.closest && e.target.closest('.panel, .arc, .help')) return; // the editor scrolls normally
+  e.preventDefault();
+  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+  clearTimeout(wheelQuiet);
+  wheelQuiet = setTimeout(() => { wheelLock = false; wheelAcc = 0; }, 200); // the gesture (and its coasting) is over
+  if (wheelLock) return;
+  wheelAcc += dy;
+  if (Math.abs(wheelAcc) < 24) return;                    // ignore the faintest nudges
+  wheelLock = true; stopPlay();
+  swipeTo(wheelAcc > 0 ? 1 : -1);
+  wheelAcc = 0;
+}, { passive:false });
 /* ---------- player ----------
    Plays the story as one continuous move, the way the viewer would scroll it.
    1× moves one story unit every two seconds, so a section (hold + transition)
@@ -1540,7 +1627,7 @@ function buildPlayer() {
   return el;
 }
 // the viewer taking over pauses playback
-['wheel', 'touchstart'].forEach(t => addEventListener(t, e => { stopPlay(); if (swiperHeld && !(touchSwipe() && $stage.contains(e.target))) { swiperHeld = false; magnetOn(); } }, { passive:true }));
+['wheel', 'touchstart'].forEach(t => addEventListener(t, e => { if (t === 'wheel' && chapterMode()) return; stopPlay(); if (swiperHeld && !(touchSwipe() && $stage.contains(e.target))) { swiperHeld = false; magnetOn(); } }, { passive:true }));
 $stage.addEventListener('pointerdown', e => { if (!e.target.closest('.player')) stopPlay(); });
 
 let raf = 0, ys = scrollY, lastT = 0;
@@ -1684,7 +1771,9 @@ function renderList() {
 }
 function move(from, to) { const [s] = S.sections.splice(from, 1); S.sections.splice(to, 0, s); }
 function select(id, scroll) {
-  sel = id; if (poolOpen) setPool(false); renderList(); renderInspector();
+  sel = id; if (poolOpen) setPool(false);
+  if (isPhone()) setDetail(true);
+  renderList(); renderInspector();
   if (scroll) goTo(idx(id));
 }
 
@@ -1813,11 +1902,11 @@ function renderPool() {
       return card;
     })));
   });
-  $insp.replaceChildren(h('div', { class:'pool' }, ...kids));
+  $insp.replaceChildren(mobileBack(null), h('div', { class:'pool' }, ...kids));
   $insp.scrollTop = keep;
 }
 function setPool(open) {
-  poolOpen = open;
+  poolOpen = open; if (isPhone()) setDetail(open); // on a phone the pool takes the sheet; Done goes back to the list
   $('add').setAttribute('aria-pressed', String(open));
   $('add').textContent = open ? 'Done adding' : '+ Add section';
   $insp.scrollTop = 0; renderInspector();
@@ -1984,8 +2073,9 @@ function renderArc() {
 }
 function renderArcGraph() {
   const A = arcState(), box = $('arc-graph');
-  const Wd = Math.max(420, box.clientWidth || 800), Hd = Math.round(Math.min(420, Math.max(260, Wd * .42)));
-  const L = 118, R = 22, T = 22, B = 40, iw = Wd - L - R, ih = Hd - T - B;
+  const Wd = Math.max(300, box.clientWidth || 800), Hd = Math.round(Math.min(420, Math.max(260, Wd * .42)));
+  const tight = Wd < 560; // a phone: shorter axis labels, more room for the arc
+  const L = tight ? 64 : 118, R = tight ? 14 : 22, T = 22, B = 40, iw = Wd - L - R, ih = Hd - T - B;
   const X = x => L + x * iw, Y = y => T + (1 - y) * ih, iX = px => clamp((px - L) / iw), iY = py => clamp(1 - (py - T) / ih);
   const svg = sv('svg', { viewBox:`0 0 ${Wd} ${Hd}`, role:'img', 'aria-label':'Narrative arc graph: time across, feeling up' });
   // bands and labels
@@ -1993,11 +2083,15 @@ function renderArcGraph() {
   svg.append(sv('rect', { x:L, y:T, width:iw, height:ih, fill:'url(#feelg)' }));
   [0, .25, .5, .75, 1].forEach(v => svg.append(sv('line', { x1:L, x2:L + iw, y1:Y(v), y2:Y(v), stroke:'#E6E6E6', 'stroke-width':1 })));
   const lab = (x, y, t, a = {}) => { const e = sv('text', { x, y, 'font-size':12, fill:'#6B6B6B', 'font-family':'Saans, -apple-system, sans-serif', ...a }); e.textContent = t; return e; };
-  svg.append(lab(L - 12, Y(1) + 4, 'Emotive · story', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+  if (tight) svg.append(lab(L - 8, Y(1) + 4, 'Emotive', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+    lab(L - 8, Y(.5) + 4, 'Balanced', { 'text-anchor':'end' }),
+    lab(L - 8, Y(0) + 4, 'Shopping', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }));
+  else svg.append(lab(L - 12, Y(1) + 4, 'Emotive · story', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
     lab(L - 12, Y(1) + 19, 'feeling, expression', { 'text-anchor':'end' }),
     lab(L - 12, Y(.5) + 4, 'Balanced', { 'text-anchor':'end' }),
     lab(L - 12, Y(0) - 11, 'Shopping · product', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
-    lab(L - 12, Y(0) + 4, 'grids, prices, detail', { 'text-anchor':'end' }),
+    lab(L - 12, Y(0) + 4, 'grids, prices, detail', { 'text-anchor':'end' }));
+  svg.append(
     lab(L, Hd - 12, 'Start'), lab(L + iw, Hd - 12, 'End', { 'text-anchor':'end' }), lab(L + iw / 2, Hd - 12, 'Time →', { 'text-anchor':'middle' }));
   // where each section will land
   A.points.forEach(p => svg.append(sv('line', { x1:X(p[0]), x2:X(p[0]), y1:T + ih, y2:T + ih + 6, stroke:'#9A9A9A' })));
@@ -2075,14 +2169,21 @@ function renderArcGraph() {
   };
 
   // the proposed story, under the graph at the same moments in time
-  const prev = $('arc-prev');
+  // Cards sit centred under their points. Their width comes from the spacing, so
+  // neighbours never touch; the end cards only nudge inward to stay inside the
+  // graph; when points are close, cards alternate between two rows.
+  const prev = $('arc-prev'), n = plan.length, gap = 8;
+  const d = n > 1 ? iw / (n - 1) : iw, rows = d < 64 ? 2 : 1, span = d * rows;
+  const nudge = w => Math.max(0, w / 2 - R, w / 2 - L); // how far an end card has to move in
+  let cw = Math.min(86, span - gap);
+  if (nudge(cw) > 0) cw = Math.min(cw, (span - gap + Math.min(R, L)) / 1.5); // room for the nudge too
+  cw = Math.max(30, Math.floor(cw));
+  const cardH = Math.round(cw * .625) + 40;
+  prev.style.height = (cardH * rows + (rows - 1) * 6) + 'px';
   prev.replaceChildren(...plan.map((pl, i) => { const it = poolItem(pl.key);
-    const cw = Math.max(44, Math.min(86, iw / plan.length - 6));
-    // the first card starts at its point and the last ends at its point, so neither runs off the graph
-    const edge = i === 0 ? 'first' : i === plan.length - 1 ? 'last' : '';
-    return h('div', { class:'ac' + (arcSel === i ? ' on' : '') + (edge ? ' ' + edge : ''), style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: cw + 'px',
-        marginLeft: (edge === 'first' ? -10 : edge === 'last' ? -cw + 10 : -cw / 2) + 'px' }, title:`${i + 1}. ${it.s.name}`,
-        onclick:() => { arcSel = i; renderArcGraph(); } },
+    const left = clamp(X(pl.x) - cw / 2, 0, Wd - cw);
+    return h('div', { class:'ac' + (arcSel === i ? ' on' : ''), style:{ left:(left / Wd * 100) + '%', top: (rows > 1 && i % 2 ? cardH + 6 : 0) + 'px', width:cw + 'px', marginLeft:'0px' },
+        title:`${i + 1}. ${it.s.name}`, onclick:() => { arcSel = i; renderArcGraph(); } },
       poolThumb(it.s), h('b', {}, `${i + 1}. ${it.s.name}`), h('small', {}, `${Math.round(feelOf(it.s) * 100)} feeling`)); }));
 }
 function openArc(open) {
@@ -2244,13 +2345,18 @@ function renderInspector() {
     holdF,
   );
 
-  const head = h('div', { class:'p-insp-h' }, h('small', {}, `Section ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
+  const head = h('div', { class:'p-insp-h' }, mobileBack(i), h('small', {}, `Section ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
   $insp.replaceChildren(head, textGrp, mediaGrp, motionGrp, contentGrp, modGrp);
   $insp.scrollTop = keepScroll;
 }
 
 /* ---------- global controls ---------- */
 function renderGlobals() {
+  $('scrollmode').replaceChildren(...seg([['chapter','Chapter swipe'],['free','Free scroll']], S.scrollMode, act(v => { S.scrollMode = v; if (v === 'free') { swiperHeld = false; magnetOn(); } })).childNodes);
+  $('scrollmode-hint').textContent = S.scrollMode === 'chapter'
+    ? 'Each flick of the trackpad or wheel plays the next section through and rests at its end, like swiping on a phone. Arrow keys step too.'
+    : 'The story follows the scroll continuously, as far and as fast as you scroll.';
+  $('freeopts-magnet').style.display = S.scrollMode === 'free' ? '' : 'none';
   $('magnet').replaceChildren(...seg([[true,'Magnet'],[false,'Free']], S.magnet, act(v => S.magnet = v)).childNodes);
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
@@ -2293,7 +2399,9 @@ $('file').addEventListener('change', async e => {
 const $fab = $('fab');
 function togglePanel(force) {
   const open = document.body.classList.toggle('panel-open', force);
-  $fab.textContent = open ? 'Close editor' : 'Edit story'; $fab.setAttribute('aria-expanded', String(open));
+  if (open && isPhone()) setSheet(sheet === 'full' ? 'half' : sheet); else fitStage();
+  $fab.querySelector('.fa').textContent = open ? '›' : '‹'; $fab.querySelector('.ft').textContent = open ? 'Close' : 'Edit story';
+  $fab.title = (open ? 'Close the editor' : 'Edit the story') + ' (E)'; $fab.setAttribute('aria-expanded', String(open));
   setTimeout(() => { measure(); update(); }, 380);
 }
 $fab.addEventListener('click', () => togglePanel());
@@ -2305,6 +2413,7 @@ addEventListener('keydown', e => {
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
   else if (e.key === ' ' && !typing && $('arc').hidden && !(e.target.closest && e.target.closest('button')) && S.player) { e.preventDefault(); togglePlay(); }
+  else if (['ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key) && !typing && chapterMode() && $('arc').hidden) { e.preventDefault(); stopPlay(); swipeTo(e.key === 'ArrowDown' || e.key === 'PageDown' ? 1 : -1); }
   else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key) && !typing) stopPlay();
   else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
 });
@@ -2396,6 +2505,67 @@ addEventListener('keydown', e => {
   const reloaded = nav.type === 'reload' || (performance.navigation && performance.navigation.type === 1);
   if (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0')) setTimeout(() => openHelp(0), 250);
 }
+
+/* ---------- editing on a phone ----------
+   The editor is a sheet with three heights. Above it the stage is scaled to
+   fit, so the whole composition stays in view while you edit. Story-level
+   controls move into a Story tab, and Sections works as list → settings. */
+const isPhone = () => matchMedia('(max-width:760px)').matches;
+let sheet = 'half', mDetail = false;
+const sheetPx = st => ({ peek:128, half:Math.round(innerHeight * .58), full:innerHeight - 10 })[st];
+function setSheet(st, px) {
+  sheet = st;
+  document.documentElement.style.setProperty('--sheet-h', (px ?? sheetPx(st)) + 'px');
+  fitStage(px);
+}
+function fitStage(px) {
+  const open = document.body.classList.contains('panel-open') && isPhone();
+  const h = px ?? sheetPx(sheet);
+  const k = open ? clamp((innerHeight - h - 14) / innerHeight, .2, 1) : 1;
+  document.documentElement.style.setProperty('--stage-k', k.toFixed(4));
+}
+function setDetail(on) {
+  const was = mDetail; mDetail = on; document.body.classList.toggle('m-detail', on && isPhone());
+  if (was && !on) requestAnimationFrame(() => { const pl = document.querySelector('.p-list'); if (pl) pl.scrollTop = 0; }); // back to the top of the list
+}
+function mobileBack(i) {
+  if (!isPhone()) return null;
+  const n = S.sections.length;
+  return h('div', { class:'m-back' },
+    h('button', { class:'linkbtn', onclick:() => { if (poolOpen) setPool(false); setDetail(false); renderList(); } }, '‹ Sections'),
+    i == null ? h('span') : h('span', { class:'m-step' },
+      h('button', { class:'ib', 'aria-label':'Previous section', disabled: i === 0 ? true : null, onclick:() => select(S.sections[i - 1].id, true) }, '↑'),
+      h('button', { class:'ib', 'aria-label':'Next section', disabled: i === n - 1 ? true : null, onclick:() => select(S.sections[i + 1].id, true) }, '↓')));
+}
+// the handle: drag to any height (it settles on the nearest), or tap to go taller
+(() => {
+  const hd = $('m-handle'); let g = null;
+  hd.addEventListener('pointerdown', e => { g = { y0:e.clientY, h0:sheetPx(sheet), moved:0 }; try { hd.setPointerCapture(e.pointerId); } catch (err) {} $('panel').classList.add('resizing'); document.body.classList.add('sheet-resizing'); });
+  hd.addEventListener('pointermove', e => { if (!g) return; const hh = clamp(g.h0 + (g.y0 - e.clientY), 96, innerHeight - 10); g.moved = Math.max(g.moved, Math.abs(e.clientY - g.y0)); g.h = hh; document.documentElement.style.setProperty('--sheet-h', hh + 'px'); fitStage(hh); });
+  const up = () => {
+    if (!g) return; $('panel').classList.remove('resizing'); document.body.classList.remove('sheet-resizing');
+    if (g.moved < 6) setSheet(sheet === 'peek' ? 'half' : sheet === 'half' ? 'full' : 'half');
+    else { const hh = g.h, opts = ['peek','half','full']; setSheet(opts.reduce((b, o) => Math.abs(sheetPx(o) - hh) < Math.abs(sheetPx(b) - hh) ? o : b, 'half')); }
+    g = null;
+  };
+  hd.addEventListener('pointerup', up); hd.addEventListener('pointercancel', up);
+})();
+$('m-done').addEventListener('click', () => togglePanel(false));
+$('m-help').addEventListener('click', () => openHelp(0));
+$('m-undo').addEventListener('click', undo); $('m-redo').addEventListener('click', redo);
+$('tab-story').addEventListener('click', () => { picking = null; showTab('story'); });
+// story-level controls live in the header on a computer and in the Story tab on a phone
+function placeControls() {
+  const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
+  const nodes = [$('preset'), $('arc-open'), $('remix').parentElement, document.querySelector('.hist'), $('pageset')];
+  nodes.forEach(n => (phone ? pane : head).appendChild(n));
+  if (!phone) { setDetail(false); if (!$('view-story').hidden) showTab('sections'); }
+  setDetail(mDetail); fitStage();
+  if (phone) setSheet(sheet);
+}
+let wasPhone = null;
+addEventListener('resize', () => { const p = isPhone(); if (p !== wasPhone) { wasPhone = p; placeControls(); renderInspector(); } else fitStage(); });
+wasPhone = isPhone(); placeControls();
 
 render();
 loadUserAssets();
