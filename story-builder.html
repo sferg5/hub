@@ -70,7 +70,7 @@ body.panel-open .stage{right:var(--panel-w)}
 .copy[data-align="right"]{text-align:right;justify-items:end}
 .eb{font:400 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 .hl{font-weight:700;line-height:.94;letter-spacing:-.025em;text-wrap:balance}
-.hl .w{display:inline-block;overflow:hidden;vertical-align:top;padding:0 .03em .12em;margin:0 -.03em -.12em}
+.hl .w{display:inline-block;overflow:hidden;vertical-align:top;padding:.04em .03em .26em;margin:-.04em -.03em -.26em} /* room for descenders like the tail of a y */
 .hl .c{display:inline-block}
 .hl .w > span{display:inline-block}
 .s-s .hl{font-size:clamp(28px,3.8cqw,56px)}
@@ -825,7 +825,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', scrollMode:'chapter', player:true, playSpeed:1, sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'on', scrollMode:'chapter', player:true, playSpeed:1, sections: PRESETS.pool() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -1269,14 +1269,21 @@ function addToBag(e, name) {
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600);
 }
 const kbStr = (m, extraY = 0, extraS = 0) => `translate(${m.x}%,${m.y + extraY}%) scale(${m.sc + extraS})`;
+/* Where a section comes to rest, in story units from its start. Swiping (phone,
+   or chapter mode on a computer) rests at the end of the hold; free scrolling
+   floats through the middle. The float is centred there, so when the page is
+   still everything sits exactly on its designed lockup. */
+const restU = s => (touchSwipe() || chapterMode()) ? s.dwell : s.dwell / 2;
 function driftRects(rs, s, u) {
   // frames flush to the stage edge stay put (moving them would expose a gap); tiles and insets float
   if (!rs || s.hold !== 'drift' || (s.media.kind !== 'gallery' && s.media.layout !== 'inset')) return rs;
-  const d = u - s.dwell / 2; // float through the resting spot at mid-hold
-  return rs.map((r, k) => ({ ...r, y: r.y - d * H * .03 * amt() * (s.media.kind === 'gallery' ? DEPTH[k] : 1) }));
+  const d = u - restU(s);
+  // tiles in a row, grid or mosaic float as one block so their edges always line up; only Stagger keeps the layered depth
+  const layered = s.media.kind === 'gallery' && s.media.arrange === 'stagger';
+  return rs.map((r, k) => ({ ...r, y: r.y - d * H * .03 * amt() * (layered ? DEPTH[k] : 1) }));
 }
 function holdType(L, s, u) {
-  const k = amt(), d = u - s.dwell / 2;
+  const k = amt(), d = u - restU(s);
   L.ty = -d * 26 * k; place(L);
   if (L.card) L.card.style.transform = `translateY(${-d * 44 * k}px)`;
   // type-only sections: words fill with ink as you read down the line
@@ -1304,11 +1311,19 @@ function textOut(L, t) {
   else if (anim === 'type') { const n = L.letters.length, f = (1 - clamp(t / .4)) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); restOut(); }
   else {
     const q = easeIn(clamp(t / .38));
-    if (anim === 'wipe') L.copy.style.clipPath = wipeSide(L) === 'left' ? `inset(0 ${q * 100}% 0 0)` : `inset(0 0 0 ${q * 100}%)`;
+    if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, 1 - q);
     else { L.el.style.opacity = 1 - q; L.ty2 = -q * 24; if (anim === 'blur') L.el.style.filter = `blur(${q * 12}px)`; if (anim === 'scale') L.sc = 1 - q * .06; }
   }
   if (L.card) { const q = easeIn(clamp((t - .06) / .3)); L.card.firstChild.style.transform = `translateY(${-q * 28}px)`; L.card.firstChild.style.opacity = 1 - q; }
   place(L);
+}
+/* The wipe reveals sideways only. Its clip reaches well past the top and bottom
+   of the copy so ascenders and descenders (the tail of a y, g or p) are never
+   cut, and it switches off entirely once the copy is fully shown. */
+function wipeClip(L, shown) {
+  if (shown >= .999) return '';
+  const hide = (1 - shown) * 100 + '%';
+  return wipeSide(L) === 'left' ? `inset(-30% ${hide} -50% -10%)` : `inset(-30% -10% -50% ${hide})`;
 }
 function textIn(L, t, motion) {
   resetType(L);
@@ -1321,7 +1336,7 @@ function textIn(L, t, motion) {
   else if (anim === 'type') { ebIn(); const n = L.letters.length, f = clamp((t - base - .02) / .45) * n; L.letters.forEach((c, k) => c.style.opacity = k < f ? 1 : 0); partsIn(.3); }
   else {
     const q = easeOut(clamp((t - base) / .48));
-    if (anim === 'wipe') { const w = easeIO(clamp((t - base) / .5)); L.copy.style.clipPath = wipeSide(L) === 'left' ? `inset(0 ${(1 - w) * 100}% 0 0)` : `inset(0 0 0 ${(1 - w) * 100}%)`; }
+    if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, easeIO(clamp((t - base) / .5)));
     else { L.el.style.opacity = q; L.ty2 = (1 - q) * rise * .5; if (anim === 'blur') L.el.style.filter = `blur(${(1 - q) * 14}px)`; if (anim === 'scale') L.sc = 1.1 - q * .1; }
   }
   if (L.card) { const q = easeOut(clamp((t - base - .2) / .36)); L.card.firstChild.style.transform = `translateY(${(1 - q) * rise}px)`; L.card.firstChild.style.opacity = q; }
