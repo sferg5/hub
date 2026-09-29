@@ -1283,6 +1283,7 @@ const goTo = i => {
   i = clamp(i, 0, starts.length - 1);
   stopPlay(); cancelAnimationFrame(jumpRaf);
   const from = curI;
+  swiperHeld = false;
   if (Math.abs(i - from) <= 1 || !layers[from] || !layers[i]) { swBase = null; animateTo(starts[i]); return; }
   jumpTo(from, i);
 };
@@ -1311,6 +1312,12 @@ const SW_DIST = 150;                   // finger travel for a full section
 const settledAt = y => { let k = 0; while (k < starts.length - 1 && y >= starts[k + 1] - 2) k++; return k; };
 // move the page and draw the stage in the same frame, without waiting for the scroll event
 const setY = y => { scrollTo({ top:y, behavior:'instant' }); ys = scrollY; update(); };
+/* With the swiper, each section rests at the END of its hold: the transition
+   in and the section's own animation have played, and the next swipe starts
+   the transition out. */
+const restOf = k => Math.min(endY(), starts[k] + holds[k]);
+let swiperHeld = false; // while the swiper is driving, magnet snapping stays off so rests aren't pulled to a snap point
+const magnetOn = () => document.documentElement.classList.toggle('magnet', S.magnet);
 function animateTo(target, v0 = 0) {
   cancelAnimationFrame(swipeAnim);
   const from = scrollY, dist = target - from, t0 = performance.now();
@@ -1322,13 +1329,39 @@ function animateTo(target, v0 = 0) {
     const t = clamp((now - t0) / dur), e = 1 - Math.pow(1 - t, 3.2);
     setY(from + dist * e);
     if (t < 1) swipeAnim = requestAnimationFrame(step);
-    else { swipeDirect = false; swBase = null; document.documentElement.classList.toggle('magnet', S.magnet); swiperEnds(); }
+    else { swipeDirect = false; swBase = null; if (!swiperHeld) magnetOn(); swiperEnds(); }
+  };
+  swipeAnim = requestAnimationFrame(step);
+}
+/* Forward with the swiper: carry the swipe through the transition into section k,
+   then keep playing k's held animation at the player's speed, easing to a stop at
+   its end. One continuous move, so there is no dead beat where the two phases meet. */
+function swipeForward(k, v0 = 0) {
+  cancelAnimationFrame(swipeAnim);
+  const from = scrollY, A = starts[k], B = restOf(k), dA = A - from, dB = B - A;
+  if (dB < 1) { animateTo(A, v0); return; }
+  if (swBase == null) swBase = settledAt(from);
+  const tA = clamp(Math.abs(dA) / Math.max(1.6, v0 * 3.2), 260, 620);
+  const base = UNIT / 2000 * S.playSpeed, tB = dB / base, vB = 2 * dB / tB; // ease-out hold: starts at 2× the play speed
+  const va = Math.min(v0, 3 * Math.abs(dA) / tA), t0 = performance.now();
+  document.documentElement.classList.remove('magnet'); swipeDirect = true;
+  const step = now => {
+    const el = now - t0; let y;
+    if (el < tA) { // Hermite: leaves at the finger's speed, arrives at the hold's opening speed
+      const s = el / tA, s2 = s * s, s3 = s2 * s;
+      y = from + (s3 - 2 * s2 + s) * tA * va + (-2 * s3 + 3 * s2) * dA + (s3 - s2) * tA * vB;
+    } else { const s = clamp((el - tA) / tB); y = A + dB * (1 - (1 - s) * (1 - s)); }
+    setY(y);
+    if (el < tA + tB) swipeAnim = requestAnimationFrame(step);
+    else { swipeDirect = false; swBase = null; swiperEnds(); }
   };
   swipeAnim = requestAnimationFrame(step);
 }
 function swipeTo(dir, v0) {
-  const i = settledAt(scrollY), k = clamp(i + dir, 0, starts.length - 1);
-  swBase = i; animateTo(starts[k], v0);
+  const i = settledAt(scrollY); swiperHeld = true; swBase = i;
+  if (dir > 0 && i < starts.length - 1) swipeForward(i + 1, v0);
+  else if (dir < 0 && i > 0) animateTo(restOf(i - 1), v0);
+  else if (dir < 0) animateTo(0, v0);
 }
 function buildSwiper() {
   const dot = h('span', { class:'sw-dot' });
@@ -1341,13 +1374,13 @@ function buildSwiper() {
   let drag = null;
   el.addEventListener('pointerdown', e => {
     cancelAnimationFrame(swipeAnim); swipeDirect = true;
-    const base = scrollY, i = settledAt(base), back = base > starts[i] + 2; // mid-section: "back" first returns to its start
-    swBase = i;
-    // from a resting point, the hold is the quiet part: pass through it in the first bit of travel, so the finger drives the transition
-    const settled = Math.abs(base - starts[i]) < 3;
-    const hNext = settled && starts[i + 1] != null ? holds[i] / (starts[i + 1] - starts[i]) : null;
-    const hPrev = settled && i > 0 ? holds[i - 1] / (starts[i] - starts[i - 1]) : null;
-    drag = { id:e.pointerId, y0:e.clientY, t0:e.timeStamp, moved:0, base, i, next: starts[i + 1], prev: back ? starts[i] : starts[i - 1], hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
+    const base = scrollY, i = settledAt(base);
+    swBase = i; swiperHeld = true;
+    const next = starts[i + 1], prev = i > 0 ? restOf(i - 1) : (base > 2 ? 0 : undefined);
+    // any part of this section's hold still ahead (or behind) goes by in the first bit of travel, so the finger drives the transition itself
+    const hNext = next != null ? Math.max(0, restOf(i) - base) / (next - base) : null;
+    const hPrev = prev != null && base > prev ? Math.max(0, base - starts[i]) / (base - prev) : null;
+    drag = { id:e.pointerId, y0:e.clientY, t0:e.timeStamp, moved:0, base, i, next, prev, hNext, hPrev, samples:[[e.timeStamp, e.clientY]] };
     try { el.setPointerCapture(e.pointerId); } catch (err) {}
     el.classList.add('dragging');
     document.documentElement.classList.remove('magnet');
@@ -1362,8 +1395,8 @@ function buildSwiper() {
     p = clamp(p, -1, 1); drag.p = p;
     const q = .12, a = Math.abs(p);
     let f = a; // share of the way to the neighbouring section
-    if (p > 0 && drag.hNext != null) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
-    if (p < 0 && drag.hPrev != null) { const tr = 1 - drag.hPrev; f = a < 1 - q ? tr * a / (1 - q) : tr + drag.hPrev * (a - (1 - q)) / q; }
+    if (p > 0 && drag.hNext > .02) f = a < q ? drag.hNext * a / q : drag.hNext + (1 - drag.hNext) * (a - q) / (1 - q);
+    if (p < 0 && drag.hPrev > .02) f = a < q ? drag.hPrev * a / q : drag.hPrev + (1 - drag.hPrev) * (a - q) / (1 - q);
     const y = p >= 0 ? drag.base + f * ((hasNext ? drag.next : drag.base) - drag.base) : drag.base - f * (drag.base - (hasPrev ? drag.prev : drag.base));
     setY(y);
     // the dot follows the finger, easing off as it nears the ends of the pill
@@ -1385,9 +1418,11 @@ function buildSwiper() {
       if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
       if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
     }
-    const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base;
+    const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base, k = drag.i;
     drag = null;
-    animateTo(target, Math.abs(v) * Math.abs(target - scrollY) / SW_DIST);
+    const v0 = Math.abs(v) * Math.abs(target - scrollY) / SW_DIST;
+    if (dir > 0) swipeForward(k + 1, v0); // on into the next section, then play it through and rest at its end
+    else animateTo(target, v0);            // back to the end of the previous section, or home if the swipe didn't commit
   };
   el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
   $sw = el; swiperEnds();
@@ -1451,7 +1486,7 @@ function buildPlayer() {
   return el;
 }
 // the viewer taking over pauses playback
-['wheel', 'touchstart'].forEach(t => addEventListener(t, () => stopPlay(), { passive:true }));
+['wheel', 'touchstart'].forEach(t => addEventListener(t, e => { stopPlay(); if (swiperHeld && !(e.target.closest && e.target.closest('.swiper'))) { swiperHeld = false; magnetOn(); } }, { passive:true }));
 $stage.addEventListener('pointerdown', e => { if (!e.target.closest('.player')) stopPlay(); });
 
 let raf = 0, ys = scrollY, lastT = 0;
