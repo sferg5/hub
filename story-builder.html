@@ -163,6 +163,12 @@ body.panel-open .panel{transform:none}
 .arc-cta b{display:block;font:600 16px/1.2 var(--sans)}
 .arc-cta small{display:block;font:400 12.5px/1.3 var(--sans);opacity:.72;margin-top:2px}
 .arc-cta i{font-style:normal;font-size:18px}
+.hist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:40px;border:1px solid var(--p-fg);border-radius:4px;background:#fff;font:600 14px/1 var(--sans)}
+.hbtn span{font-size:17px;line-height:1}
+.hbtn kbd{font:400 11px/1 var(--mono);color:var(--p-mute);letter-spacing:.04em}
+.hbtn:hover:not([disabled]){background:var(--p-soft)}
+.hbtn[disabled]{opacity:.35;cursor:default;border-color:var(--p-line)}
 .p-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .p-row .seg{flex:1}
 .btn{height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--p-fg);background:#fff;font:600 13px/1 var(--sans);white-space:nowrap}
@@ -254,6 +260,12 @@ body:not(.panel-open) .arc{right:0}
 .arc-graph{position:relative;border:1px solid var(--p-line);border-radius:4px;background:#fff;touch-action:none;user-select:none}
 .arc-graph svg{display:block;width:100%;height:auto}
 .arc-graph.draw{cursor:crosshair}
+.stp{width:34px;height:34px;border:1px solid var(--p-fg);border-radius:4px;background:#fff;font:600 18px/1 var(--sans)}
+.stp:hover:not([disabled]){background:var(--p-soft)}
+.stp[disabled]{opacity:.3;border-color:var(--p-line);cursor:default}
+.stp-n{font:600 14px/1 var(--sans);min-width:92px;text-align:center}
+.arc-prev .ac{cursor:pointer}
+.arc-prev .ac.on .pt{outline:2px solid var(--p-fg);outline-offset:2px}
 .arc-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--p-mute)}
 .arc-legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--red);vertical-align:3px;margin-right:6px}
 .arc-legend i.cur{border-top:2px dashed #8A8A8A}
@@ -384,8 +396,11 @@ body:not(.panel-open) .arc{right:0}
       <button class="btn" id="remix" title="Randomize layouts, keep copy">Remix layouts</button>
       <button class="btn" id="export">Export</button>
       <button class="btn" id="import">Import</button>
-      <button class="linkbtn" id="undo" title="Undo (⌘Z)">Undo</button>
       <input type="file" id="file" accept="application/json,.json" hidden>
+    </div>
+    <div class="hist" role="group" aria-label="History">
+      <button class="hbtn" id="undo" title="Undo (⌘Z)"><span aria-hidden="true">↶</span> Undo <kbd>⌘Z</kbd></button>
+      <button class="hbtn" id="redo" title="Redo (⇧⌘Z)"><span aria-hidden="true">↷</span> Redo <kbd>⇧⌘Z</kbd></button>
     </div>
     <details class="grp" id="pageset" style="border-bottom:0;border-top:1px solid var(--p-line-2);margin:0 -20px -16px;padding:0 20px">
       <summary>Page settings</summary>
@@ -431,7 +446,7 @@ body:not(.panel-open) .arc{right:0}
     <div class="arc-main">
       <div class="arc-tools">
         <div class="f"><span class="lbl">Shape the line</span><div class="seg" id="arc-mode"></div></div>
-        <div class="f" style="min-width:250px"><span class="lbl">Sections</span><div class="pos" id="arc-n" style="white-space:nowrap"></div></div>
+        <div class="f" style="min-width:250px"><span class="lbl">Sections · one per point</span><div class="pos" id="arc-n" style="white-space:nowrap;gap:8px"></div></div>
         <div class="f"><span class="lbl">Build from</span><div class="seg" id="arc-src"></div></div>
       </div>
       <div class="arc-graph" id="arc-graph"></div>
@@ -661,20 +676,23 @@ if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAm
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-const snapshot = () => { history.push(JSON.stringify(S)); if (history.length > 60) history.shift(); $undo.disabled = false; };
-const undo = () => {
-  if (!history.length) return;
-  S = normalize(JSON.parse(history.pop()));
+let future = []; // redo stack: cleared by any new change
+const histButtons = () => { $undo.disabled = !history.length; $('redo').disabled = !future.length; };
+const snapshot = () => { history.push(JSON.stringify(S)); if (history.length > 80) history.shift(); future = []; histButtons(); };
+const restore = json => {
+  S = normalize(JSON.parse(json));
   if (!S.sections.find(s => s.id === sel)) sel = S.sections[0] && S.sections[0].id;
-  $undo.disabled = !history.length; render();
+  histButtons(); render();
 };
+const undo = () => { if (!history.length) return; future.push(JSON.stringify(S)); restore(history.pop()); };
+const redo = () => { if (!future.length) return; history.push(JSON.stringify(S)); restore(future.pop()); };
 const cur = () => S.sections.find(s => s.id === sel);
 const idx = id => S.sections.findIndex(s => s.id === id);
 
 /* ---------- DOM refs ---------- */
 const $ = id => document.getElementById(id);
 const $stage = $('stage'), $spacer = $('spacer'), $list = $('list'), $insp = $('insp'), $undo = $('undo');
-$undo.disabled = true;
+$undo.disabled = true; $('redo').disabled = true;
 
 /* ---------- composition geometry ---------- */
 let W = 0, H = 0;
@@ -1642,12 +1660,45 @@ const feelOf = s => s.feel == null ? autoFeel(s) : s.feel;
 const ARCS = {
   crescendo: ['Crescendo',    'A steady climb to an emotional peak, then a quick landing on product.', [[0,.3],[.2,.42],[.4,.55],[.6,.7],[.8,.92],[.9,.97],[1,.34]]],
   journey:   ["Hero's journey", 'Open big, dip into the practical, climb to a bigger peak, resolve.', [[0,.78],[.2,.46],[.38,.26],[.58,.56],[.78,.9],[.9,.95],[1,.42]]],
-  hole:      ['Man in a hole', 'Start steady, fall to the product detail, rise higher than where you began.', [[0,.58],[.22,.34],[.42,.16],[.62,.44],[.82,.8],[1,.9]]],
+  hole:      ['Comeback',     'Start steady, fall to the product detail, rise higher than where you began.', [[0,.58],[.22,.34],[.42,.16],[.62,.44],[.82,.8],[1,.9]]],
   pulse:     ['Pulse',        'Alternate feeling and product, so every emotive beat pays off in a shoppable one.', [[0,.88],[.17,.3],[.34,.82],[.5,.26],[.67,.78],[.84,.22],[1,.64]]],
   coldopen:  ['Cold open',    'Start at full emotion and glide down into shopping.', [[0,.96],[.2,.86],[.42,.68],[.62,.48],[.82,.28],[1,.1]]],
   slowburn:  ['Slow burn',    'Product first, feeling builds late and ends on the story.', [[0,.18],[.22,.2],[.44,.3],[.64,.46],[.82,.72],[1,.94]]],
 };
-const arcState = () => S.arc || (S.arc = { preset:'crescendo', points:clone(ARCS.crescendo[2]), n:9, src:'photo', mode:'edit' });
+/* Every point on the arc is one section of the story. */
+const ARC_MIN = 3, ARC_MAX = 16;
+const resample = (pts, n) => Array.from({ length:n }, (_, k) => { const x = n > 1 ? k / (n - 1) : 0; return [x, curveAt(pts, x)]; });
+const arcState = () => {
+  if (!S.arc) S.arc = { preset:'crescendo', points:resample(ARCS.crescendo[2], clamp(S.sections.length || 9, 4, 12)), src:'photo', mode:'edit' };
+  const A = S.arc;
+  if (A.points.length < ARC_MIN || A.points.length > ARC_MAX) A.points = resample(A.points, clamp(A.points.length, ARC_MIN, ARC_MAX));
+  A.n = A.points.length;
+  return A;
+};
+let arcSel = null; // the selected point, if any
+function addArcPoint(x, y) {
+  const A = arcState(); if (A.points.length >= ARC_MAX) return null;
+  let k = A.points.findIndex(p => p[0] > x); if (k < 0) k = A.points.length;
+  if (k === 0) { x = 0; A.points[0][0] = Math.max(A.points[0][0], .04); } // a new first point pushes the old one inward
+  if (k === A.points.length) { x = 1; A.points[k - 1][0] = Math.min(A.points[k - 1][0], .96); }
+  A.points.splice(k, 0, [x, y]); A.preset = 'custom'; A.n = A.points.length;
+  return k;
+}
+function removeArcPoint(k, alreadySaved) {
+  const A = arcState(); if (A.points.length <= ARC_MIN || k == null || !A.points[k]) return;
+  if (!alreadySaved) snapshot();
+  A.points.splice(k, 1);
+  A.points[0][0] = 0; A.points[A.points.length - 1][0] = 1; // the arc always runs start to end
+  A.preset = 'custom'; A.n = A.points.length; arcSel = null; save(); renderArc();
+}
+// add a section where the arc has the widest gap, riding the curve
+function addArcSection() {
+  const A = arcState(); if (A.points.length >= ARC_MAX) return;
+  let gi = 0, gw = 0; for (let k = 0; k < A.points.length - 1; k++) { const w = A.points[k + 1][0] - A.points[k][0]; if (w > gw) { gw = w; gi = k; } }
+  const x = (A.points[gi][0] + A.points[gi + 1][0]) / 2;
+  snapshot(); arcSel = addArcPoint(x, curveAt(A.points, x)); save(); renderArc();
+}
+function evenArc() { const A = arcState(); snapshot(); A.points = A.points.map((p, k) => [k / (A.points.length - 1), p[1]]); save(); renderArc(); }
 
 /* Smooth curve through the points (Catmull-Rom), kept inside 0–1. */
 function curveAt(pts, x) {
@@ -1672,15 +1723,16 @@ const storyPoints = () => { const n = S.sections.length; return S.sections.map((
 function planFromArc(A) {
   const src = POOL.filter(p => A.src === 'blank' ? p.src === 'Blank layouts' : A.src === 'photo' ? p.src !== 'Blank layouts' : true);
   const used = new Set(), plan = []; let prev = null;
-  for (let i = 0; i < A.n; i++) {
-    const x = A.n > 1 ? i / (A.n - 1) : 0, y = curveAt(A.points, x);
+  const n = A.points.length;
+  for (let i = 0; i < n; i++) {
+    const [x, y] = A.points[i];
     let best = null, bestC = Infinity;
     src.forEach(p => {
       const s = p.s; let c = Math.abs(feelOf(s) - y) * 3;
       if (used.has(p.key)) c += 2;
       if (i === 0 && s.beat !== 'hook') c += .45;
-      if (i === A.n - 1 && s.beat !== 'close') c += .45;
-      if (i > 0 && i < A.n - 1 && (s.beat === 'hook' || s.beat === 'close')) c += .2;
+      if (i === n - 1 && s.beat !== 'close') c += .45;
+      if (i > 0 && i < n - 1 && (s.beat === 'hook' || s.beat === 'close')) c += .2;
       if (prev) { if (s.media.kind === prev.media.kind && s.media.layout === prev.media.layout) c += .28; if (s.media.kind === 'none' && prev.media.kind === 'none') c += .5; }
       if (c < bestC) { bestC = c; best = p; }
     });
@@ -1711,15 +1763,21 @@ function fitCurrent(A) {
   snapshot(); S.sections = out; paceToArc(S.sections, slots.map(sl => sl.y)); sel = S.sections[0].id; render(); scrollTo(0, 0);
 }
 
-let arcDrag = null, arcDraw = null;
+let arcDrag = null, arcDraw = null, arcOff = false, arcMoved = false;
 function renderArc() {
   const A = arcState();
   $('arc-mode').replaceChildren(...seg([['edit','Drag points'],['draw','Draw freehand']], A.mode, v => { A.mode = v; save(); renderArc(); }).childNodes);
-  $('arc-n').replaceChildren(...slider(4, 16, 1, A.n, v => v + ' sections', v => A.n = v, () => renderArcGraph()).childNodes);
+  $('arc-n').replaceChildren(
+    h('button', { class:'stp', 'aria-label':'Remove a section', disabled: A.points.length <= ARC_MIN ? true : null,
+      onclick:() => removeArcPoint(arcSel != null ? arcSel : Math.floor(A.points.length / 2)) }, '−'),
+    h('b', { class:'stp-n' }, `${A.points.length} sections`),
+    h('button', { class:'stp', 'aria-label':'Add a section', disabled: A.points.length >= ARC_MAX ? true : null, onclick:addArcSection }, '+'),
+    h('button', { class:'linkbtn', style:{ marginLeft:'8px' }, onclick:evenArc }, 'Space evenly'));
   $('arc-src').replaceChildren(...seg([['photo','Photo sections'],['blank','Blank layouts'],['all','Both']], A.src, v => { A.src = v; save(); renderArc(); }).childNodes);
-  $('arc-hint').textContent = A.mode === 'draw' ? 'Draw across the graph, left to right.' : 'Drag a point. Click the line area to add one; double-click a point to remove it.';
+  $('arc-hint').textContent = A.mode === 'draw' ? 'Draw across the graph, left to right. The line keeps the same number of sections.'
+    : 'Each point is a section. Click empty space to add one. Click a point, then press × or Delete to remove it, or drag it off the graph.';
   $('arc-side').replaceChildren(h('h4', {}, 'Stock arcs'), ...Object.entries(ARCS).map(([k, [name, desc, pts]]) =>
-    h('button', { class:'arcp', 'aria-pressed':String(A.preset === k), onclick:() => { snapshot(); A.preset = k; A.points = clone(pts); save(); renderArc(); } },
+    h('button', { class:'arcp', 'aria-pressed':String(A.preset === k), onclick:() => { snapshot(); A.preset = k; A.points = resample(pts, A.points.length); arcSel = null; save(); renderArc(); } },
       sparkSvg(pts, 78, 44), h('div', {}, h('b', {}, name), h('small', {}, desc)))),
     h('button', { class:'arcp', 'aria-pressed':String(A.preset === 'custom'), onclick:() => { A.preset = 'custom'; save(); renderArc(); } },
       sparkSvg(A.preset === 'custom' ? A.points : [[0,.5],[1,.5]], 78, 44, '#141414', 1.5), h('div', {}, h('b', {}, 'Your own'), h('small', {}, 'Drag the points or draw the line on the graph.'))));
@@ -1743,7 +1801,7 @@ function renderArcGraph() {
     lab(L - 12, Y(0) + 4, 'grids, prices, detail', { 'text-anchor':'end' }),
     lab(L, Hd - 12, 'Start'), lab(L + iw, Hd - 12, 'End', { 'text-anchor':'end' }), lab(L + iw / 2, Hd - 12, 'Time →', { 'text-anchor':'middle' }));
   // where each section will land
-  for (let i = 0; i < A.n; i++) { const x = A.n > 1 ? i / (A.n - 1) : 0; svg.append(sv('line', { x1:X(x), x2:X(x), y1:T + ih, y2:T + ih + 6, stroke:'#9A9A9A' })); }
+  A.points.forEach(p => svg.append(sv('line', { x1:X(p[0]), x2:X(p[0]), y1:T + ih, y2:T + ih + 6, stroke:'#9A9A9A' })));
   // the story as it is now
   const cur = storyPoints();
   if (cur.length > 1) {
@@ -1753,13 +1811,28 @@ function renderArcGraph() {
   // the arc
   svg.append(sv('path', { d:pathOf(x => curveAt(A.points, x), 0, 1, X, Y, 120), fill:'none', stroke:'#D22030', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round' }));
   const plan = planFromArc(A);
-  plan.forEach(pl => svg.append(sv('circle', { cx:X(pl.x), cy:Y(pl.y), r:4, fill:'#D22030' })));
-  if (A.mode === 'edit') A.points.forEach((pt, k) => {
-    const c = sv('circle', { cx:X(pt[0]), cy:Y(pt[1]), r:8, fill:'#fff', stroke:'#141414', 'stroke-width':2, style:'cursor:grab' });
-    c.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); snapshot(); arcDrag = k; box.setPointerCapture(e.pointerId); });
-    c.addEventListener('dblclick', e => { e.stopPropagation(); if (k === 0 || k === A.points.length - 1 || A.points.length <= 3) return; snapshot(); A.points.splice(k, 1); A.preset = 'custom'; save(); renderArc(); });
-    svg.append(c);
+  const OFF = 34; // drag a point this far outside the graph to remove it
+  A.points.forEach((pt, k) => {
+    const on = arcSel === k, gone = arcDrag === k && arcOff;
+    const g = sv('g', { style:'cursor:' + (A.mode === 'edit' ? 'grab' : 'default') });
+    g.append(sv('circle', { cx:X(pt[0]), cy:Y(pt[1]), r:on ? 10 : 8, fill: gone ? '#fff' : on ? '#141414' : '#fff', stroke: gone ? '#D22030' : '#141414', 'stroke-width':2, 'stroke-dasharray': gone ? '3 3' : null }));
+    const num = sv('text', { x:X(pt[0]), y:Y(pt[1]) + 3.5, 'text-anchor':'middle', 'font-size':9.5, 'font-weight':700, fill: on ? '#fff' : '#141414', 'font-family':'Saans, -apple-system, sans-serif', 'pointer-events':'none' });
+    num.textContent = k + 1; g.append(num);
+    if (A.mode === 'edit') {
+      g.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); snapshot(); arcDrag = k; arcSel = k; arcOff = false; arcMoved = false; box.setPointerCapture(e.pointerId); renderArcGraph(); });
+      g.addEventListener('dblclick', e => { e.stopPropagation(); removeArcPoint(k); });
+    }
+    svg.append(g);
+    if (on && A.mode === 'edit' && A.points.length > ARC_MIN && arcDrag == null) { // the remove badge
+      const bx = X(pt[0]) + 15, by = Y(pt[1]) - 15;
+      const del = sv('g', { style:'cursor:pointer', role:'button', 'aria-label':`Remove section ${k + 1}` },
+        sv('circle', { cx:bx, cy:by, r:10, fill:'#D22030' }),
+        sv('path', { d:`M${bx - 3.5},${by - 3.5}L${bx + 3.5},${by + 3.5}M${bx + 3.5},${by - 3.5}L${bx - 3.5},${by + 3.5}`, stroke:'#fff', 'stroke-width':2, 'stroke-linecap':'round' }));
+      del.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); removeArcPoint(k); });
+      svg.append(del);
+    }
   });
+  if (arcDrag != null && arcOff) svg.append(lab(X(A.points[arcDrag][0]), T + 14, 'Release to remove', { 'text-anchor':'middle', fill:'#D22030', 'font-weight':600 }));
   if (arcDraw && arcDraw.length > 1) svg.append(sv('path', { d:arcDraw.map((p, k) => `${k ? 'L' : 'M'}${X(p[0])},${Y(p[1])}`).join(''), fill:'none', stroke:'#141414', 'stroke-width':2, 'stroke-dasharray':'2 3' }));
   box.classList.toggle('draw', A.mode === 'draw');
   box.replaceChildren(svg);
@@ -1769,35 +1842,45 @@ function renderArcGraph() {
   box.onpointerdown = e => {
     const [px, py] = toSvg(e);
     if (A.mode === 'draw') { snapshot(); arcDraw = [[iX(px), iY(py)]]; box.setPointerCapture(e.pointerId); return; }
-    if (px < L || px > L + iw) return;
-    snapshot(); const x = iX(px); let k = A.points.findIndex(p => p[0] > x); if (k < 0) k = A.points.length;
-    A.points.splice(k, 0, [x, iY(py)]); A.preset = 'custom'; arcDrag = k; box.setPointerCapture(e.pointerId); renderArcGraph();
+    if (px < L || px > L + iw || py < T || py > T + ih) { arcSel = null; renderArcGraph(); return; }
+    if (A.points.length >= ARC_MAX) { arcSel = null; renderArcGraph(); return; }
+    snapshot(); const k = addArcPoint(iX(px), iY(py)); arcDrag = k; arcSel = k; arcOff = false; arcMoved = true; // adding is itself a change
+    box.setPointerCapture(e.pointerId); renderArc();
   };
   box.onpointermove = e => {
     const [px, py] = toSvg(e);
     if (arcDraw) { arcDraw.push([iX(px), iY(py)]); renderArcGraph(); return; }
     if (arcDrag == null) return;
     const P = A.points, k = arcDrag, lo = k === 0 ? 0 : P[k - 1][0] + .02, hi = k === P.length - 1 ? 1 : P[k + 1][0] - .02;
+    arcOff = P.length > ARC_MIN && (py < T - OFF || py > T + ih + OFF); arcMoved = true;
     P[k] = [k === 0 ? 0 : k === P.length - 1 ? 1 : clamp(iX(px), lo, hi), iY(py)]; A.preset = 'custom'; renderArcGraph();
   };
   box.onpointerup = () => {
     if (arcDraw) { // turn the stroke into nine smooth points
       const d = arcDraw.filter(p => p[0] >= 0 && p[0] <= 1).sort((a, b) => a[0] - b[0]); arcDraw = null;
       if (d.length > 3) {
-        A.points = Array.from({ length:9 }, (_, k) => { const x = k / 8, near = d.filter(p => Math.abs(p[0] - x) < .07);
+        const n = A.points.length;
+        A.points = Array.from({ length:n }, (_, k) => { const x = k / (n - 1), near = d.filter(p => Math.abs(p[0] - x) < .07);
           const y = near.length ? near.reduce((t, p) => t + p[1], 0) / near.length : d.reduce((b, p) => Math.abs(p[0] - x) < Math.abs(b[0] - x) ? p : b)[1]; return [x, y]; });
         A.preset = 'custom';
       }
       save(); renderArc(); return;
     }
-    if (arcDrag != null) { arcDrag = null; save(); renderArc(); }
+    if (arcDrag != null) {
+      const k = arcDrag; arcDrag = null;
+      if (arcOff) { arcOff = false; removeArcPoint(k, true); return; } // undo returns the point to where the drag began
+      if (!arcMoved) { history.pop(); histButtons(); } // a plain click only selects; nothing to undo
+      save(); renderArc();
+    }
   };
 
   // the proposed story, under the graph at the same moments in time
   const prev = $('arc-prev');
   prev.replaceChildren(...plan.map((pl, i) => { const it = poolItem(pl.key);
-    return h('div', { class:'ac', style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: Math.min(86, iw / A.n - 6) + 'px', marginLeft: -Math.min(86, iw / A.n - 6) / 2 + 'px' }, title:`${i + 1}. ${it.s.name}` },
-      poolThumb(it.s), h('b', {}, it.s.name), h('small', {}, `${Math.round(feelOf(it.s) * 100)} feeling`)); }));
+    const cw = Math.max(44, Math.min(86, iw / plan.length - 6));
+    return h('div', { class:'ac' + (arcSel === i ? ' on' : ''), style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: cw + 'px', marginLeft: -cw / 2 + 'px' }, title:`${i + 1}. ${it.s.name}`,
+        onclick:() => { arcSel = i; renderArcGraph(); } },
+      poolThumb(it.s), h('b', {}, `${i + 1}. ${it.s.name}`), h('small', {}, `${Math.round(feelOf(it.s) * 100)} feeling`)); }));
 }
 function openArc(open) {
   $('arc').hidden = !open;
@@ -1990,7 +2073,7 @@ $('remix').addEventListener('click', act(() => {
     s.hold = pick(['push','pan','drift']);
   });
 }));
-$undo.addEventListener('click', undo);
+$undo.addEventListener('click', undo); $('redo').addEventListener('click', redo);
 $('export').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type:'application/json' });
   const a = h('a', { href:URL.createObjectURL(blob), download:'story-layout.json' }); document.body.append(a); a.click(); a.remove();
@@ -2012,7 +2095,9 @@ function togglePanel(force) {
 $fab.addEventListener('click', () => togglePanel());
 addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); undo(); }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
+  else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
   else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
 });
