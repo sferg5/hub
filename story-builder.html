@@ -128,9 +128,25 @@ body.panel-open .stage{right:var(--panel-w)}
   .has-swiper .dots{display:none} /* the swiper does the dots' job on a phone */
   .card{width:min(270px,78%)}
   .stage .swiper.right{bottom:20px}
+  /* on a phone the player stacks upright above the swiper, clear of the copy */
+  .has-swiper .player{left:auto;right:20px;transform:none;bottom:146px;flex-direction:column;border-radius:24px}
+  .has-swiper.sw-left .player{right:auto;left:20px}
+  .has-swiper .player.open .speeds{flex-direction:column}
 }
 
 /* stage chrome */
+/* player: plays the story as one continuous move */
+.player{position:absolute;left:50%;bottom:20px;z-index:12;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:5px;border-radius:26px;background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 6px 18px rgba(0,0,0,.1),inset 0 0 0 1px rgba(0,0,0,.06)}
+.player .pp{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.player .pp svg{width:14px;height:14px;display:block}
+.player .spd{height:38px;min-width:46px;padding:0 10px;border-radius:19px;font:600 13px/1 var(--sans);color:var(--ink)}
+.player .spd:hover{background:rgba(20,20,20,.06)}
+.player .spd[aria-pressed="true"]{background:var(--ink);color:#fff}
+.player .speeds{display:none;gap:2px}
+.player.open .speeds{display:flex}
+.player.open .cur{display:none}
+.pbar{position:absolute;left:0;bottom:0;height:3px;background:var(--ink);z-index:13;width:0;opacity:0;transition:opacity .3s}
+.pbar.on{opacity:1}
 /* swiper: a small pill with one dot. Drag the dot, the story follows; let go and it springs back to centre */
 .swiper{position:absolute;bottom:24px;z-index:12;width:40px;height:116px;border-radius:20px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   box-shadow:0 6px 18px rgba(0,0,0,.1),inset 0 0 0 1px rgba(0,0,0,.06);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
@@ -265,6 +281,8 @@ body:not(.panel-open) .arc{right:0}
 .stp[disabled]{opacity:.3;border-color:var(--p-line);cursor:default}
 .stp-n{font:600 14px/1 var(--sans);min-width:92px;text-align:center}
 .arc-prev .ac{cursor:pointer}
+.arc-prev .ac.first{text-align:left}
+.arc-prev .ac.last{text-align:right}
 .arc-prev .ac.on .pt{outline:2px solid var(--p-fg);outline-offset:2px}
 .arc-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--p-mute)}
 .arc-legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--red);vertical-align:3px;margin-right:6px}
@@ -409,6 +427,7 @@ body:not(.panel-open) .arc{right:0}
         <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
         <p class="hint">Higher means less scrolling for each section.</p>
         <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
+        <div class="f"><span class="lbl">Play button</span><div class="seg" id="playeron" role="group" aria-label="Play button"></div></div>
         <div class="f"><span class="lbl">Swiper</span><div class="seg" id="swiperpos" role="group" aria-label="Swiper position"></div></div>
         <p class="hint">A thumb-sized control for touch screens: flick up or down to move one section.</p>
         <div class="f"><span class="lbl">Transition length</span><div class="pos" id="trans"></div></div>
@@ -660,6 +679,8 @@ const normalize = d => ({
   arc: d.arc && Array.isArray(d.arc.points) && d.arc.points.length > 1 ? d.arc : null,
   smooth: d.smooth !== false,
   swiper: ['left','right','off'].includes(d.swiper) ? d.swiper : 'right',
+  player: d.player !== false,
+  playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
   sections: (d.sections || []).map(s => {
     const x = merge(BASE(), s);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
@@ -672,7 +693,7 @@ const normalize = d => ({
   }),
 });
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
-if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'right', sections: PRESETS.align() };
+if (!S || !S.sections.length) S = { magnet:true, showName:false, trans:1, holdAmt:1, pace:1.5, smooth:true, swiper:'right', player:true, playSpeed:1, sections: PRESETS.align() };
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
@@ -1061,7 +1082,9 @@ function renderStage() {
       style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
       S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
   $stage.classList.toggle('has-swiper', S.swiper !== 'off' && S.sections.length > 1);
+  $stage.classList.toggle('sw-left', S.swiper === 'left');
   if (S.swiper !== 'off' && S.sections.length > 1) $stage.append(buildSwiper());
+  if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
   shownI = -1; measure(); ys = scrollY; update();
 }
@@ -1342,6 +1365,59 @@ function swiperEnds() {
   $sw.setAttribute('aria-valuenow', k + 1); $sw.setAttribute('aria-valuemin', 1); $sw.setAttribute('aria-valuemax', S.sections.length);
   $sw.setAttribute('aria-valuetext', `Section ${k + 1} of ${S.sections.length}`);
 }
+/* ---------- player ----------
+   Plays the story as one continuous move, the way the viewer would scroll it.
+   1× moves one story unit every two seconds, so a section (hold + transition)
+   takes about four seconds. Any touch, wheel, key or swipe hands control back. */
+const SPEEDS = [.5, 1, 1.5, 2, 3];
+let playing = false, playRaf = 0, playLast = 0;
+const ICON_PLAY = '<svg viewBox="0 0 14 14"><path d="M3 1.5v11l9.5-5.5z" fill="currentColor"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 14 14"><rect x="2.5" y="1.5" width="3.2" height="11" rx="1" fill="currentColor"/><rect x="8.3" y="1.5" width="3.2" height="11" rx="1" fill="currentColor"/></svg>';
+const endY = () => Math.max(0, parseFloat($spacer.style.height) - innerHeight);
+function playStep(now) {
+  const dt = playLast ? Math.min(64, now - playLast) : 16.7; playLast = now;
+  const y = Math.min(endY(), scrollY + UNIT / 2000 * S.playSpeed * dt);
+  setY(y);
+  const bar = $('pbar'); if (bar) bar.style.width = (endY() ? y / endY() * 100 : 0) + '%';
+  if (y >= endY() - .5) { stopPlay(); return; }
+  playRaf = requestAnimationFrame(playStep);
+}
+function startPlay() {
+  if (!S.player) return;
+  if (scrollY >= endY() - 2) setY(0); // at the end, play from the top
+  cancelAnimationFrame(swipeAnim); swipeDirect = false;
+  playing = true; playLast = 0; document.documentElement.classList.remove('magnet');
+  $('pbar') && $('pbar').classList.add('on'); playerIcon();
+  playRaf = requestAnimationFrame(playStep);
+}
+function stopPlay() {
+  if (!playing) return;
+  playing = false; cancelAnimationFrame(playRaf);
+  document.documentElement.classList.toggle('magnet', S.magnet);
+  $('pbar') && $('pbar').classList.remove('on'); playerIcon();
+}
+const togglePlay = () => playing ? stopPlay() : startPlay();
+function playerIcon() {
+  const b = $stage.querySelector('.player .pp'); if (!b) return;
+  b.innerHTML = playing ? ICON_PAUSE : ICON_PLAY; b.setAttribute('aria-label', playing ? 'Pause' : 'Play the story');
+}
+function buildPlayer() {
+  const pp = h('button', { class:'pp', onclick:e => { e.stopPropagation(); togglePlay(); } });
+  const label = v => (v === .5 ? '½' : v) + '×';
+  const curB = h('button', { class:'spd cur', 'aria-label':'Playback speed', title:'Playback speed', onclick:e => { e.stopPropagation(); el.classList.add('open'); } }, label(S.playSpeed));
+  const speeds = h('div', { class:'speeds', role:'group', 'aria-label':'Playback speed' }, SPEEDS.map(v =>
+    h('button', { class:'spd', 'aria-pressed':String(v === S.playSpeed), onclick:e => { e.stopPropagation(); S.playSpeed = v; save(); el.classList.remove('open');
+      curB.textContent = label(v); speeds.querySelectorAll('.spd').forEach((b, k) => b.setAttribute('aria-pressed', String(SPEEDS[k] === v))); } }, label(v))));
+  const el = h('div', { class:'player', role:'group', 'aria-label':'Play the story' }, pp, curB, speeds);
+  el.addEventListener('click', e => e.stopPropagation());
+  el.addEventListener('pointerdown', e => e.stopPropagation());
+  setTimeout(playerIcon);
+  return el;
+}
+// the viewer taking over pauses playback
+['wheel', 'touchstart'].forEach(t => addEventListener(t, () => stopPlay(), { passive:true }));
+$stage.addEventListener('pointerdown', e => { if (!e.target.closest('.player')) stopPlay(); });
+
 let raf = 0, ys = scrollY, lastT = 0;
 function tick(now) {
   const target = scrollY, dt = lastT ? Math.min(64, now - lastT) : 16.7; lastT = now;
@@ -1672,33 +1748,32 @@ const arcState = () => {
   if (!S.arc) S.arc = { preset:'crescendo', points:resample(ARCS.crescendo[2], clamp(S.sections.length || 9, 4, 12)), src:'photo', mode:'edit' };
   const A = S.arc;
   if (A.points.length < ARC_MIN || A.points.length > ARC_MAX) A.points = resample(A.points, clamp(A.points.length, ARC_MIN, ARC_MAX));
-  A.n = A.points.length;
+  spaceEven(A); A.n = A.points.length;
   return A;
 };
 let arcSel = null; // the selected point, if any
+// story points always sit evenly across the timeline
+const spaceEven = A => { const n = A.points.length; A.points.forEach((p, k) => p[0] = n > 1 ? k / (n - 1) : 0); };
 function addArcPoint(x, y) {
   const A = arcState(); if (A.points.length >= ARC_MAX) return null;
   let k = A.points.findIndex(p => p[0] > x); if (k < 0) k = A.points.length;
-  if (k === 0) { x = 0; A.points[0][0] = Math.max(A.points[0][0], .04); } // a new first point pushes the old one inward
-  if (k === A.points.length) { x = 1; A.points[k - 1][0] = Math.min(A.points[k - 1][0], .96); }
-  A.points.splice(k, 0, [x, y]); A.preset = 'custom'; A.n = A.points.length;
+  A.points.splice(k, 0, [x, y]); spaceEven(A); A.preset = 'custom'; A.n = A.points.length;
   return k;
 }
 function removeArcPoint(k, alreadySaved) {
   const A = arcState(); if (A.points.length <= ARC_MIN || k == null || !A.points[k]) return;
   if (!alreadySaved) snapshot();
   A.points.splice(k, 1);
-  A.points[0][0] = 0; A.points[A.points.length - 1][0] = 1; // the arc always runs start to end
-  A.preset = 'custom'; A.n = A.points.length; arcSel = null; save(); renderArc();
+  spaceEven(A); A.preset = 'custom'; A.n = A.points.length; arcSel = null; save(); renderArc();
 }
 // add a section where the arc has the widest gap, riding the curve
 function addArcSection() {
   const A = arcState(); if (A.points.length >= ARC_MAX) return;
-  let gi = 0, gw = 0; for (let k = 0; k < A.points.length - 1; k++) { const w = A.points[k + 1][0] - A.points[k][0]; if (w > gw) { gw = w; gi = k; } }
+  // add where the feeling changes most between neighbours, on the curve, then re-space
+  let gi = 0, gw = -1; for (let k = 0; k < A.points.length - 1; k++) { const w = Math.abs(A.points[k + 1][1] - A.points[k][1]); if (w > gw) { gw = w; gi = k; } }
   const x = (A.points[gi][0] + A.points[gi + 1][0]) / 2;
   snapshot(); arcSel = addArcPoint(x, curveAt(A.points, x)); save(); renderArc();
 }
-function evenArc() { const A = arcState(); snapshot(); A.points = A.points.map((p, k) => [k / (A.points.length - 1), p[1]]); save(); renderArc(); }
 
 /* Smooth curve through the points (Catmull-Rom), kept inside 0–1. */
 function curveAt(pts, x) {
@@ -1771,11 +1846,10 @@ function renderArc() {
     h('button', { class:'stp', 'aria-label':'Remove a section', disabled: A.points.length <= ARC_MIN ? true : null,
       onclick:() => removeArcPoint(arcSel != null ? arcSel : Math.floor(A.points.length / 2)) }, '−'),
     h('b', { class:'stp-n' }, `${A.points.length} sections`),
-    h('button', { class:'stp', 'aria-label':'Add a section', disabled: A.points.length >= ARC_MAX ? true : null, onclick:addArcSection }, '+'),
-    h('button', { class:'linkbtn', style:{ marginLeft:'8px' }, onclick:evenArc }, 'Space evenly'));
+    h('button', { class:'stp', 'aria-label':'Add a section', disabled: A.points.length >= ARC_MAX ? true : null, onclick:addArcSection }, '+'));
   $('arc-src').replaceChildren(...seg([['photo','Photo sections'],['blank','Blank layouts'],['all','Both']], A.src, v => { A.src = v; save(); renderArc(); }).childNodes);
   $('arc-hint').textContent = A.mode === 'draw' ? 'Draw across the graph, left to right. The line keeps the same number of sections.'
-    : 'Each point is a section. Click empty space to add one. Click a point, then press × or Delete to remove it, or drag it off the graph.';
+    : 'Each point is a section, evenly spaced in time. Drag a point up or down to change its feeling. Click empty space to add one. Click a point, then press × or Delete, or drag it off the graph, to remove it.';
   $('arc-side').replaceChildren(h('h4', {}, 'Stock arcs'), ...Object.entries(ARCS).map(([k, [name, desc, pts]]) =>
     h('button', { class:'arcp', 'aria-pressed':String(A.preset === k), onclick:() => { snapshot(); A.preset = k; A.points = resample(pts, A.points.length); arcSel = null; save(); renderArc(); } },
       sparkSvg(pts, 78, 44), h('div', {}, h('b', {}, name), h('small', {}, desc)))),
@@ -1835,6 +1909,7 @@ function renderArcGraph() {
   if (arcDrag != null && arcOff) svg.append(lab(X(A.points[arcDrag][0]), T + 14, 'Release to remove', { 'text-anchor':'middle', fill:'#D22030', 'font-weight':600 }));
   if (arcDraw && arcDraw.length > 1) svg.append(sv('path', { d:arcDraw.map((p, k) => `${k ? 'L' : 'M'}${X(p[0])},${Y(p[1])}`).join(''), fill:'none', stroke:'#141414', 'stroke-width':2, 'stroke-dasharray':'2 3' }));
   box.classList.toggle('draw', A.mode === 'draw');
+  if (A.mode === 'edit') svg.querySelectorAll('svg > g').forEach(g => g.style.cursor = 'ns-resize');
   box.replaceChildren(svg);
 
   // pointer handling (in svg units)
@@ -1851,9 +1926,9 @@ function renderArcGraph() {
     const [px, py] = toSvg(e);
     if (arcDraw) { arcDraw.push([iX(px), iY(py)]); renderArcGraph(); return; }
     if (arcDrag == null) return;
-    const P = A.points, k = arcDrag, lo = k === 0 ? 0 : P[k - 1][0] + .02, hi = k === P.length - 1 ? 1 : P[k + 1][0] - .02;
+    const P = A.points, k = arcDrag; // points stay on their spot in time; dragging changes the feeling
     arcOff = P.length > ARC_MIN && (py < T - OFF || py > T + ih + OFF); arcMoved = true;
-    P[k] = [k === 0 ? 0 : k === P.length - 1 ? 1 : clamp(iX(px), lo, hi), iY(py)]; A.preset = 'custom'; renderArcGraph();
+    P[k][1] = iY(py); A.preset = 'custom'; renderArcGraph();
   };
   box.onpointerup = () => {
     if (arcDraw) { // turn the stroke into nine smooth points
@@ -1878,7 +1953,10 @@ function renderArcGraph() {
   const prev = $('arc-prev');
   prev.replaceChildren(...plan.map((pl, i) => { const it = poolItem(pl.key);
     const cw = Math.max(44, Math.min(86, iw / plan.length - 6));
-    return h('div', { class:'ac' + (arcSel === i ? ' on' : ''), style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: cw + 'px', marginLeft: -cw / 2 + 'px' }, title:`${i + 1}. ${it.s.name}`,
+    // the first card starts at its point and the last ends at its point, so neither runs off the graph
+    const edge = i === 0 ? 'first' : i === plan.length - 1 ? 'last' : '';
+    return h('div', { class:'ac' + (arcSel === i ? ' on' : '') + (edge ? ' ' + edge : ''), style:{ left: `calc(${(X(pl.x) / Wd) * 100}%)`, width: cw + 'px',
+        marginLeft: (edge === 'first' ? -10 : edge === 'last' ? -cw + 10 : -cw / 2) + 'px' }, title:`${i + 1}. ${it.s.name}`,
         onclick:() => { arcSel = i; renderArcGraph(); } },
       poolThumb(it.s), h('b', {}, `${i + 1}. ${it.s.name}`), h('small', {}, `${Math.round(feelOf(it.s) * 100)} feeling`)); }));
 }
@@ -2052,6 +2130,7 @@ function renderGlobals() {
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
   $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
+  $('playeron').replaceChildren(...seg([[true,'On'],[false,'Off']], S.player, act(v => { S.player = v; if (!v) stopPlay(); })).childNodes);
   $('swiperpos').replaceChildren(...seg([['left','Bottom left'],['right','Bottom right'],['off','Off']], S.swiper, act(v => S.swiper = v)).childNodes);
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
@@ -2099,6 +2178,8 @@ addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
+  else if (e.key === ' ' && !typing && $('arc').hidden && !(e.target.closest && e.target.closest('button')) && S.player) { e.preventDefault(); togglePlay(); }
+  else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key) && !typing) stopPlay();
   else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
 });
 
