@@ -46,7 +46,7 @@ body.panel-open .stage{right:var(--panel-w)}
 .scrim{position:absolute;inset:0;pointer-events:none}
 .ph{position:absolute;inset:0;display:grid;place-items:center;background:var(--ph);
   background-image:repeating-linear-gradient(135deg,var(--ph-line) 0 1px,transparent 1px 14px)}
-.ph span{font:400 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ph-fg);text-align:center;padding:0 12px}
+.ph span{font:400 11px/1.6 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ph-fg);text-align:center;padding:0 12px;max-width:34ch}
 .ph--video::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);background-size:250% 100%;animation:sheen 6s linear infinite}
 @keyframes sheen{from{background-position:120% 0}to{background-position:-120% 0}}
 @media (prefers-reduced-motion:reduce){.ph--video::after{animation:none}}
@@ -525,6 +525,9 @@ body:not(.panel-open) .arc{right:0}
       <option value="">Start from a preset</option>
       <option value="align">Sample arc · 8 sections</option>
       <option value="lockups">Hero lockups (same hero, 6 ways)</option>
+      <option value="alignStory">Align · franchise story (8 sections)</option>
+      <option value="golf">Golf · activity story (8 sections)</option>
+      <option value="vest">Fast and Free Vest · new product story (7 sections)</option>
       <option value="pool">City Run pool · 20 sections, 5 per beat</option>
       <option value="blank">Blank · one hero</option>
     </select>
@@ -687,7 +690,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
    so any section can become any composition. */
 const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
-  media: { kind: 'video', layout: 'full', items: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
+  media: { kind: 'video', layout: 'full', items: [], shots: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
@@ -812,6 +815,88 @@ const PRESETS = {
         eyebrow:'City Run', headline:'See you at the start.', cta:{show:true,label:'Shop the kit'} }),
     ];
   },
+  /* ALIGN · franchise. One idea: the feeling of nothing. It builds from the
+     sensation, proves why it disappears, and lands on the range. Arc: rises to a
+     quiet peak, dips into the detail, peaks again on a real voice, then shops. */
+  alignStory: () => {
+    const P = (name, tag = '') => ({ name, price:'$XX', tag });
+    return [
+      make({ beat:'hook', name:'Feel nothing', hold:'push', media:{ kind:'video', layout:'full', shots:['Hero video · slow flow in soft studio light, the fabric moving with the body'] },
+        overlay:30, text:{ x:'left', y:'bottom', size:'xl', anim:'rise' }, showEyebrow:true, eyebrow:'Align', headline:'Feel nothing.' }),
+      make({ beat:'build', name:'Nothing to notice', media:{ kind:'none' }, motion:'dissolve',
+        text:{ x:'center', y:'middle', size:'l', width:'wide', anim:'letters' }, headline:'No waistband digging in. No seams to notice. No second thoughts.' }),
+      make({ beat:'build', name:'The stretch', hold:'pan', media:{ kind:'image', layout:'left', shots:['Deep stretch, close crop from hip to ankle'] },
+        text:{ x:'left', y:'bottom', size:'m', width:'narrow', anim:'cascade' }, headline:'Just the stretch you meant to make.', body:'Buttery-soft Nulu fabric that moves the way you do.' }),
+      make({ beat:'build', name:'Every body', hold:'drift', motion:'rise', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:3, arrange:'stagger', shots:['Standing pose', 'Seated fold', 'Balance pose'] },
+        text:{ x:'left', y:'top', size:'m', anim:'wipe' }, headline:'Every body. Every pose.' }),
+      make({ beat:'proof', name:'Why it disappears', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'l', shots:['Align pant close-up, waistband to knee, or a flat lay'] },
+        spots:{ on:true, items:[{ x:34, y:24, label:'Nulu fabric', sub:'Weightless, buttery-soft' }, { x:66, y:44, label:'High rise', sub:'Stays where you put it' }, { x:40, y:74, label:'Placeholder detail', sub:'Confirm with the product team' }] },
+        text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'fade' }, headline:'Why it disappears.', body:'Three details you’ll never feel.' }),
+      make({ beat:'proof', name:'In their words', media:{ kind:'none' }, motion:'dissolve',
+        text:{ x:'center', y:'middle', size:'xl', width:'wide', anim:'type' }, headline:'Twenty minutes in, I forgot I was wearing anything.', quote:{ on:true, attr:'Align wearer · placeholder quote' } }),
+      make({ beat:'close', name:'Find your Align', hold:'drift', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:4, arrange:'row', shots:['Align pant flat lay', 'Align tank flat lay', 'Align short flat lay', 'Align jogger flat lay'] },
+        shop:{ on:true, items:[P('Align High-Rise Pant', 'Icon'), P('Align Tank'), P('Align Short'), P('Align Jogger', 'New')] },
+        text:{ x:'left', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'Find your Align.' }),
+      make({ beat:'close', name:'Do everything', hold:'push', motion:'iris', overlay:40, media:{ kind:'video', layout:'full', shots:['Closing video · one long exhale at the end of class, then movement again'] },
+        text:{ x:'center', y:'middle', size:'l', width:'medium', ink:'light', anim:'scale' }, headline:'Feel nothing. Do everything.', cta:{ show:true, label:'Shop Align' } }),
+    ];
+  },
+  /* GOLF · activity. One round, told by the hole number. The quiet between shots
+     is the story; the kit keeps up with all of it. Arc: a pulse, swinging between
+     the feeling of the course and what you wear on it. */
+  golf: () => {
+    const P = (name, tag = '') => ({ name, price:'$XX', tag });
+    return [
+      make({ beat:'hook', name:'First group out', hold:'push', media:{ kind:'video', layout:'full', shots:['Hero video · dew on the first fairway at dawn, a golfer walks into frame'] },
+        overlay:36, text:{ x:'left', y:'bottom', size:'xl', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'6:40 am', headline:'First group out.', body:'The course before anyone else wakes up.' }),
+      make({ beat:'build', name:'One outfit', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'left', inset:'l', shots:['Walking to the first tee, bag on the shoulder'] },
+        text:{ x:'right', y:'middle', size:'m', width:'narrow', anim:'cascade' }, showEyebrow:true, eyebrow:'Hole 1', headline:'Eighteen holes. Four hours. One outfit that keeps up.' }),
+      make({ beat:'proof', name:'The full turn', hold:'pan', media:{ kind:'image', layout:'right', shots:['Top of the backswing, shot from the side'] },
+        text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'cascade' }, showEyebrow:true, eyebrow:'Hole 7', headline:'Built for the full turn.',
+        feats:{ on:true, items:[{ t:'Four-way stretch', d:'Nothing pulls at the top of the swing.' }, { t:'Breathable, quick-drying', d:'Placeholder: cool through the back nine.' }, { t:'Pockets that stay put', d:'Placeholder: tees, marker, scorecard.' }] } }),
+      make({ beat:'build', name:'The long walk', media:{ kind:'none' }, motion:'dissolve',
+        text:{ x:'left', y:'middle', size:'l', width:'wide', anim:'letters' }, showEyebrow:true, eyebrow:'Hole 12', headline:'Between shots, golf is a long walk.' }),
+      make({ beat:'build', name:'Read, walk, swing', hold:'drift', motion:'rise', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:3, arrange:'mosaic', shots:['Reading the green, crouched low', 'Walking the fairway', 'Follow-through'] },
+        text:{ x:'left', y:'top', size:'s', anim:'wipe' }, headline:'Read. Walk. Swing.' }),
+      make({ beat:'proof', name:'The polo, up close', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'l', shots:['Golf polo flat lay'] },
+        spots:{ on:true, items:[{ x:34, y:22, label:'Collar that holds its shape', sub:'Placeholder' }, { x:70, y:46, label:'Sleeve cut for the swing', sub:'Placeholder' }, { x:40, y:78, label:'Hem that stays tucked', sub:'Placeholder' }] },
+        card:{ on:true, x:'left', y:'bottom', name:'Golf Polo', price:'$XX' },
+        text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'fade' }, showEyebrow:true, eyebrow:'Hole 16', headline:'Every detail, down to the tee pocket.' }),
+      make({ beat:'close', name:'Tee to clubhouse', hold:'drift', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:3, arrange:'row', shots:['Golf polo flat lay', 'Golf pant flat lay', 'Golf half-zip flat lay'] },
+        shop:{ on:true, items:[P('Golf Polo'), P('Golf Pant', 'New'), P('Golf Half-Zip')] },
+        text:{ x:'center', y:'top', size:'m', width:'wide', anim:'cascade' }, headline:'Tee to clubhouse.' }),
+      make({ beat:'close', name:'Same time next week', hold:'push', motion:'iris', overlay:34, media:{ kind:'image', layout:'full', shots:['Golden hour at the 18th green, the group walking off'] },
+        text:{ x:'left', y:'bottom', size:'l', width:'narrow', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'Hole 19', headline:'Same time next week?', cta:{ show:true, label:'Shop golf' } }),
+    ];
+  },
+  /* FAST AND FREE MODULAR RUNNING VEST · new product. A launch told through what a
+     run needs you to carry. Reveal, prove, show it working, shop. Arc: open big,
+     drop into the product, climb back to the run. */
+  vest: () => [
+    make({ beat:'hook', name:'Run light', hold:'push', media:{ kind:'video', layout:'full', shots:['Hero video · a runner at pace, the vest barely moving'] },
+      overlay:34, text:{ x:'left', y:'bottom', size:'xl', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'New · Fast and Free', headline:'Run light. Carry more.' }),
+    make({ beat:'build', name:'Nothing bouncing', media:{ kind:'none' }, motion:'dissolve',
+      text:{ x:'center', y:'middle', size:'l', width:'wide', anim:'letters' }, headline:'Phone. Keys. Gel. Nothing bouncing.' }),
+    make({ beat:'proof', name:'Meet the vest', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'l', shots:['Vest flat lay, bag clipped on'] },
+      spots:{ on:true, items:[{ x:62, y:30, label:'Clip-on bag', sub:'Moves to where you need it' }, { x:30, y:46, label:'Phone sleeve', sub:'Placeholder' }, { x:50, y:80, label:'Adjustable sides', sub:'Placeholder' }] },
+      text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'fade' }, showEyebrow:true, eyebrow:'New', headline:'Meet the Modular Running Vest.' }),
+    make({ beat:'proof', name:'Built around the run', hold:'pan', media:{ kind:'image', layout:'left', shots:['Clipping the bag to the front of the vest, mid-stride'] },
+      text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'cascade' }, headline:'Built around the run.',
+      feats:{ on:true, items:[{ t:'Clip anywhere', d:'Move the bag to the front, the back or the side.' }, { t:'Collapses flat', d:'Placeholder: packs down when you don’t need it.' }, { t:'Fits as you move', d:'Placeholder: adjusts on the go.' }] } }),
+    make({ beat:'build', name:'Every distance', hold:'drift', motion:'rise', overlay:0,
+      media:{ kind:'gallery', layout:'full', count:3, arrange:'stagger', shots:['Vest only · an easy 5K', 'Bag clipped on · the long run', 'Race-day setup'] },
+      text:{ x:'left', y:'top', size:'m', anim:'wipe' }, headline:'Short run. Long run. Race day.' }),
+    make({ beat:'proof', name:'Shop the look', hold:'drift', overlay:0, media:{ kind:'image', layout:'right', shots:['Runner wearing the vest and Fast and Free shorts, full length'] },
+      spots:{ on:true, items:[{ x:52, y:34, label:'Modular Running Vest', sub:'$XX' }, { x:50, y:70, label:'Fast and Free Short', sub:'$XX' }, { x:0, y:0, label:'', sub:'' }] },
+      text:{ x:'left', y:'bottom', size:'l', width:'narrow', anim:'rise' }, headline:'Shop the look.' }),
+    make({ beat:'close', name:'Go further', hold:'push', motion:'iris', overlay:40, media:{ kind:'video', layout:'full', shots:['Closing video · the runner eases off at the end, breath visible'] },
+      card:{ on:true, x:'right', y:'bottom', name:'Women’s Fast and Free Modular Running Vest', price:'$XX' },
+      text:{ x:'center', y:'middle', size:'l', width:'medium', ink:'light', anim:'scale' }, headline:'Go further, lighter.', cta:{ show:true, label:'Shop the vest' } }),
+  ],
   blank: () => [make(STARTERS.hero.o)],
 };
 
@@ -1157,9 +1242,11 @@ function mediaInner(s, k) {
     if (fit === 'contain') el.dataset.bg = a.bg || FLAT_BG;
     return el;
   }
-  if (m.kind === 'gallery') return h('div', { class:'ph' }, h('span', {}, `Image ${k + 1}`));
+  // an empty frame names the shot it is waiting for, so a story doubles as a shot list
+  const shot = (m.shots || [])[k];
+  if (m.kind === 'gallery') return h('div', { class:'ph' }, h('span', {}, shot || `Image ${k + 1}`));
   const where = m.layout === 'full' ? 'full bleed' : m.layout === 'inset' ? 'inset ' + m.inset.toUpperCase() : 'half ' + m.layout;
-  return h('div', { class:'ph' + (m.kind === 'video' ? ' ph--video' : '') }, h('span', {}, `${m.kind === 'video' ? '▶ ' : ''}${m.kind} · ${where}`));
+  return h('div', { class:'ph' + (m.kind === 'video' ? ' ph--video' : '') }, h('span', {}, `${m.kind === 'video' ? '▶ ' : ''}${shot || m.kind + ' · ' + where}`));
 }
 // the product card shows the section's own image when it has one
 function cardThumb(s) {
