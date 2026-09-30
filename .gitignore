@@ -2,3 +2,8 @@
 log/
 
 .DS_Store
+
+# Oversized golf originals: web copies (golf-*.mp4, golf-tee-hill.jpg) are what the builder uses
+story-library/golf/*.tif
+story-library/golf/Lululemon-MWL-YET-30s-16x9_H264.mp4
+story-library/golf/NA_Mar26_Q1_2026Masters_StoryPage_Alpine_Hero_D.mp4
