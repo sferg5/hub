@@ -6,31 +6,62 @@
 @font-face{font-family:"Saans SemiBold";src:url(lululemon-saans-semibold.woff2) format("woff2")}
 @font-face{font-family:"Saans Display";src:url(saans-display-bold.woff2) format("woff2")}
 @font-face{font-family:"Saans Mono";src:url(saans-mono-regular.woff2) format("woff2")}
-:root{--s:.5}
+:root{--s:.5;--ink:#111110;--paper:#EDEBE6;--mute:#8E8B84;--line:#3A3935;--acc:#B8B46A}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-snap-type:y mandatory;background:#0b0b0a}
-body{background:#0b0b0a;color:#EDEBE6;font-family:"Saans",Arial,sans-serif}
+body{background:#0b0b0a;color:var(--paper);font-family:"Saans",Arial,sans-serif}
 .frame{height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;scroll-snap-align:start;overflow:hidden}
 .frame>section{position:relative;flex:none;width:1920px;height:1080px;overflow:hidden;transform:scale(var(--s));margin:calc((var(--s) - 1)*540px) calc((var(--s) - 1)*960px)}
 section img{display:block;object-fit:cover}
 section svg{display:block}
 section hr{border:0;width:100%}
+/* bento */
+.bento{background:var(--ink)}
+.tile{position:absolute;overflow:hidden;background:#1F1E1C;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tile>img,.tile>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.tile .no,.tile .sz{position:absolute;font:24px/1 "Saans Mono","Courier New",monospace;color:var(--mute);pointer-events:none}
+.tile .no{left:24px;top:20px}.tile .sz{right:24px;bottom:20px;color:#5E5C56}
+.tile.has-media .no,.tile.has-media .sz{display:none}
+.tile:nth-child(3n+1){background:#1C1B19}.tile:nth-child(4n+2){background:#242320}.tile:nth-child(5n+3){background:#2A2926}
+.tile.title{background:var(--ink);border:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 24px}
+.title .row{display:flex;justify-content:space-between;font:24px/1 "Saans Mono","Courier New",monospace;color:var(--mute)}
+.title .row span:first-child{color:var(--acc)}
+.title h2{font:700 64px/1 "Saans Display",Arial,sans-serif;letter-spacing:-1px;color:var(--paper);outline:none}
+/* edit mode */
+.editing .bento::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;
+ background-image:linear-gradient(to right,rgba(184,180,106,.28) 1px,transparent 1px),linear-gradient(to bottom,rgba(184,180,106,.28) 1px,transparent 1px);background-size:160px 135px}
+.editing .tile{cursor:move}
+.editing .tile .no,.editing .tile .sz{display:block;background:rgba(17,17,16,.7);padding:4px 6px;z-index:2}
+.editing .tile.sel{outline:3px solid var(--acc);outline-offset:-3px;z-index:40}
+.tile .h,.tile .x{display:none}
+.editing .tile .h{display:block;position:absolute;right:0;bottom:0;width:44px;height:44px;cursor:nwse-resize;z-index:3;
+ background:linear-gradient(135deg,transparent 50%,var(--acc) 50%)}
+.editing .tile .x{display:block;position:absolute;right:8px;top:8px;width:40px;height:40px;z-index:3;border:0;cursor:pointer;
+ background:rgba(17,17,16,.8);color:var(--paper);font:28px/40px "Saans Mono",monospace;text-align:center}
+.editing .tile.drop{outline:3px dashed var(--acc);outline-offset:-3px}
+.editing .title h2{cursor:text}
+/* chrome */
+#toggle{position:fixed;right:16px;top:16px;z-index:100;font:13px/1 "Saans Mono","Courier New",monospace;background:rgba(17,17,16,.85);color:var(--paper);border:1px solid var(--line);padding:9px 12px;cursor:pointer}
+#bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:100;display:none;gap:1px;background:var(--line);border:1px solid var(--line);max-width:calc(100vw - 32px);flex-wrap:wrap}
+.editing #bar{display:flex}
+#bar button,#bar span{font:13px/1 "Saans Mono","Courier New",monospace;background:var(--ink);color:var(--paper);border:0;padding:10px 14px;cursor:pointer;white-space:nowrap}
+#bar span{color:var(--mute);cursor:default}
+#bar span.ok{color:var(--acc)}
+#toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:101;font:13px/1 "Saans Mono",monospace;background:var(--acc);color:var(--ink);padding:10px 14px;display:none}
 </style></head><body>
-<div class="frame"><section id="a-mood" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:0px;display:grid;grid-template-columns:320px 320px 320px 320px 320px 320px;grid-template-rows:270px 270px 270px 270px;gap:0px">
-<img src="runvest/ref-orbit.jpg" alt="Reference: figure in an olive shell jacket on dark ground under a fog-white sky" style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;object-fit:cover">
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">02</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">03</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">04</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">05</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">06</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×540</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#1C1B19;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">07</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">08</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">09</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">10</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 3;grid-row:span 1;width:960px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">11</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">960×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">12</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="position:absolute;left:0px;top:404px;width:640px;height:136px;display:flex;flex-direction:column;justify-content:space-between;background:#111110;padding:20px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">A — Mood</p><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">01 / 06</p></div><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">Orbit</h2></div>
-</section></div>
+<button id="toggle" title="Edit layout (E)">Edit layout</button>
+<div id="bar">
+ <span id="info">—</span>
+ <button data-a="add">+ Box</button>
+ <button data-a="file">Add media</button>
+ <button data-a="clear">Clear media</button>
+ <button data-a="reset">Reset slide</button>
+ <button data-a="copy">Copy layout</button>
+ <button data-a="done">Done</button>
+</div>
+<div id="toast"></div>
+<input id="picker" type="file" accept="image/*,video/*" hidden>
+<div class="frame"><section id="a-mood" class="bento" data-letter="A" data-title="Orbit" data-num="01"></section></div>
 <div class="frame"><section id="a-idea" data-transition="fade" style="display:flex; flex-direction:column; gap:32px; padding:64px 40px; background:#111110">
   <div style="display:flex; flex-direction:row; align-items:end; justify-content:space-between; padding:0 24px">
     <p style="font-family:Saans, Arial, sans-serif; font-size:28px; color:#edebe6">Speed</p>
@@ -66,51 +97,135 @@ section hr{border:0;width:100%}
     </div>
   </div>
 </section></div>
-<div class="frame"><section id="b-mood" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:0px;display:grid;grid-template-columns:320px 320px 320px 320px 320px 320px;grid-template-rows:270px 270px 270px 270px;gap:0px">
-<div style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#1C1B19;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">01</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×540</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">02</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">03</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">04</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">05</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">06</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×540</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#1C1B19;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">07</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">08</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">09</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">10</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 3;grid-row:span 1;width:960px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">11</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">960×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">12</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="position:absolute;left:0px;top:404px;width:640px;height:136px;display:flex;flex-direction:column;justify-content:space-between;background:#111110;padding:20px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">B — Mood</p><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">03 / 06</p></div><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">[Title]</h2></div>
-</section></div>
+<div class="frame"><section id="b-mood" class="bento" data-letter="B" data-title="[Title]" data-num="03"></section></div>
 <div class="frame"><section id="b-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
 <div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">B — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">Camera + Staging = Concept · 04 / 06</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
-<div class="frame"><section id="c-mood" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:0px;display:grid;grid-template-columns:320px 320px 320px 320px 320px 320px;grid-template-rows:270px 270px 270px 270px;gap:0px">
-<div style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#1C1B19;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">01</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×540</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">02</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">03</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">04</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">05</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 2;grid-row:span 2;width:640px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">06</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×540</p></div>
-<div style="grid-column:span 1;grid-row:span 2;width:320px;height:540px;display:flex;flex-direction:column;justify-content:space-between;background:#1C1B19;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">07</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×540</p></div>
-<div style="grid-column:span 2;grid-row:span 1;width:640px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#242320;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">08</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">640×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#1F1E1C;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">09</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#2A2926;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">10</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="grid-column:span 3;grid-row:span 1;width:960px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#211F1D;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">11</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">960×270</p></div>
-<div style="grid-column:span 1;grid-row:span 1;width:320px;height:270px;display:flex;flex-direction:column;justify-content:space-between;background:#262522;border-right:1px solid #3A3935;border-bottom:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">12</p><p style="font-size:24px;color:#5E5C56;font-family:'Saans Mono', 'Courier New', monospace;text-align:right">320×270</p></div>
-<div style="position:absolute;left:0px;top:404px;width:640px;height:136px;display:flex;flex-direction:column;justify-content:space-between;background:#111110;padding:20px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">C — Mood</p><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">05 / 06</p></div><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">[Title]</h2></div>
-</section></div>
+<div class="frame"><section id="c-mood" class="bento" data-letter="C" data-title="[Title]" data-num="05"></section></div>
 <div class="frame"><section id="c-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
 <div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">C — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">Camera + Staging = Concept · 06 / 06</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
 <script>
+const frames=[...document.querySelectorAll('.frame')];
+const COLS=12,ROWS=8,CW=160,CH=135;
+const BASE=[[0,0,2,2],[2,0,1,1],[3,0,2,1],[5,0,1,2],[2,1,1,1],[3,1,2,2],[0,2,1,2],[1,2,2,1],[5,2,1,1],[1,3,1,1],[2,3,3,1],[5,3,1,1]];
+const DEFAULT_MEDIA={'a-mood/t1':'runvest/ref-orbit.jpg'};
+function defaults(sec){
+  const tiles=BASE.map(([x,y,w,h],i)=>({id:'t'+(i+1),x:x*2,y:y*2,w:w*2,h:h*2}));
+  tiles.push({id:'title',kind:'title',x:0,y:3,w:4,h:1,text:sec.dataset.title});
+  return {tiles,next:13};
+}
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+// media in IndexedDB, stays in this browser only
+let dbp=null;
+function db(){ if(!dbp) dbp=new Promise((res,rej)=>{const r=indexedDB.open('vest-directions',1);r.onupgradeneeded=()=>r.result.createObjectStore('media');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}); return dbp; }
+async function mget(k){try{const d=await db();return await new Promise(r=>{const q=d.transaction('media').objectStore('media').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}}
+async function mset(k,v){try{const d=await db();await new Promise(r=>{const t=d.transaction('media','readwrite');v==null?t.objectStore('media').delete(k):t.objectStore('media').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}}
+const urls={};
+let sel=null; // {board, tile}
+const boards={};
+document.querySelectorAll('.bento').forEach(sec=>{boards[sec.id]={sec,layout:store.get('vd-layout-'+sec.id)||defaults(sec)};render(sec.id)});
+function save(id){store.set('vd-layout-'+id,boards[id].layout);info(id)}
+function render(id){
+  const {sec,layout}=boards[id]; sec.innerHTML='';
+  const order=[...layout.tiles.filter(t=>t.kind!=='title'),...layout.tiles.filter(t=>t.kind==='title')];
+  for(const t of order){
+    const el=document.createElement('div'); el.className='tile'+(t.kind==='title'?' title':''); el.dataset.id=t.id;
+    if(t.kind==='title'){
+      el.innerHTML=`<div class="row"><span>${sec.dataset.letter} — Mood</span><span>${sec.dataset.num} / 06</span></div><h2></h2><div class="h"></div>`;
+      const h2=el.querySelector('h2'); h2.textContent=t.text||sec.dataset.title;
+      h2.addEventListener('input',()=>{t.text=h2.textContent;save(id)});
+    } else {
+      const n=layout.tiles.filter(x=>x.kind!=='title').indexOf(t)+1;
+      el.innerHTML=`<span class="no">${String(n).padStart(2,'0')}</span><span class="sz"></span><div class="h"></div><button class="x" title="Delete box">×</button>`;
+      const key=id+'/'+t.id; loadMedia(el,key);
+      el.addEventListener('dragover',e=>{if(!document.body.classList.contains('editing'))return;e.preventDefault();el.classList.add('drop')});
+      el.addEventListener('dragleave',()=>el.classList.remove('drop'));
+      el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drop');const f=e.dataTransfer.files[0];if(f)putMedia(id,t.id,f)});
+      el.querySelector('.x').addEventListener('pointerdown',e=>{e.stopPropagation();layout.tiles=layout.tiles.filter(x=>x!==t);mset(key,null);save(id);render(id)});
+    }
+    place(el,t); sec.appendChild(el);
+    el.addEventListener('pointerdown',e=>startDrag(e,id,t,el));
+    if(sel&&sel.board===id&&sel.tile===t) el.classList.add('sel');
+  }
+  info(id);
+}
+async function loadMedia(el,key){
+  let m=null; try{m=await Promise.race([mget(key),new Promise(r=>setTimeout(()=>r(null),1500))])}catch(e){}
+  let src=null,isVid=false;
+  if(m&&m.blob){ urls[key]&&URL.revokeObjectURL(urls[key]); src=urls[key]=URL.createObjectURL(m.blob); isVid=m.type.startsWith('video'); }
+  else if(!(m&&m.cleared)&&DEFAULT_MEDIA[key]){ src=DEFAULT_MEDIA[key]; }
+  if(!src||!el.isConnected) return;
+  const md=document.createElement(isVid?'video':'img'); md.src=src; if(isVid){md.muted=true;md.loop=true;md.autoplay=true;md.playsInline=true}
+  el.prepend(md); el.classList.add('has-media');
+}
+function place(el,t){el.style.left=t.x*CW+'px';el.style.top=t.y*CH+'px';el.style.width=t.w*CW+'px';el.style.height=t.h*CH+'px';
+  const sz=el.querySelector('.sz'); if(sz) sz.textContent=`${t.w*CW}×${t.h*CH}`;}
+async function putMedia(id,tid,f){ if(!/^(image|video)\//.test(f.type)) return toast('Images or videos only'); await mset(id+'/'+tid,{blob:f,type:f.type}); render(id); }
+function scale(){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s'))||1}
+function startDrag(e,id,t,el){
+  if(!document.body.classList.contains('editing')) return;
+  if(e.target.tagName==='H2'&&t.kind==='title'){select(id,t);return}
+  e.preventDefault(); select(id,t);
+  const resize=e.target.classList.contains('h'), s=scale(), sx=e.clientX, sy=e.clientY, o={...t};
+  el.setPointerCapture(e.pointerId);
+  const mv=ev=>{
+    const dx=Math.round((ev.clientX-sx)/s/CW), dy=Math.round((ev.clientY-sy)/s/CH);
+    if(resize){ t.w=Math.max(1,Math.min(COLS-o.x,o.w+dx)); t.h=Math.max(1,Math.min(ROWS-o.y,o.h+dy)); }
+    else { t.x=Math.max(0,Math.min(COLS-o.w,o.x+dx)); t.y=Math.max(0,Math.min(ROWS-o.h,o.y+dy)); }
+    place(el,t); info(id);
+  };
+  const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);save(id)};
+  el.addEventListener('pointermove',mv); el.addEventListener('pointerup',up);
+}
+function select(id,t){sel={board:id,tile:t};document.querySelectorAll('.tile.sel').forEach(x=>x.classList.remove('sel'));
+  const el=boards[id].sec.querySelector(`[data-id="${t.id}"]`); el&&el.classList.add('sel'); info(id);}
+function current(){const i=Math.round(scrollY/innerHeight);const sec=frames[i]&&frames[i].querySelector('.bento');return sec?sec.id:null}
+function info(id){ if(id!==current()&&!(sel&&sel.board===id)) {} 
+  const b=boards[id]; if(!b) return; const g=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+  b.layout.tiles.filter(t=>t.kind!=='title').forEach(t=>{for(let y=t.y;y<t.y+t.h;y++)for(let x=t.x;x<t.x+t.w;x++)if(g[y])g[y][x]++});
+  const empty=g.flat().filter(v=>v===0).length, over=g.flat().filter(v=>v>1).length;
+  const el=document.getElementById('info'); const boxes=b.layout.tiles.length-1;
+  el.textContent=`${boxes} boxes · ${empty?empty+' empty cells':'fully covered'}${over?' · '+over+' overlapping':''}`;
+  el.className=(!empty&&!over)?'ok':'';
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',1800)}
+function firstEmpty(l){const g=Array.from({length:ROWS},()=>Array(COLS).fill(0));l.tiles.filter(t=>t.kind!=='title').forEach(t=>{for(let y=t.y;y<t.y+t.h;y++)for(let x=t.x;x<t.x+t.w;x++)g[y][x]=1});
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(!g[y][x])return[x,y];return[0,0]}
+document.getElementById('bar').addEventListener('click',async e=>{
+  const a=e.target.dataset.a; if(!a) return; const id=current(); 
+  if(a==='done') return setEdit(false);
+  if(!id) return toast('Scroll to a mood board first');
+  const b=boards[id];
+  if(a==='add'){const [x,y]=firstEmpty(b.layout);const t={id:'t'+(b.layout.next++),x,y,w:2,h:2};t.w=Math.min(t.w,COLS-x);t.h=Math.min(t.h,ROWS-y);b.layout.tiles.splice(b.layout.tiles.length-1,0,t);sel={board:id,tile:t};save(id);render(id)}
+  if(a==='file'){ if(!sel||sel.board!==id||sel.tile.kind==='title') return toast('Select a box first'); document.getElementById('picker').click(); }
+  if(a==='clear'){ if(!sel||sel.board!==id||sel.tile.kind==='title') return toast('Select a box first'); await mset(id+'/'+sel.tile.id,{cleared:true}); render(id); }
+  if(a==='reset'){ if(!confirm('Reset this mood board to the default layout? Media you added stays in its boxes.')) return; store.del('vd-layout-'+id); b.layout=defaults(b.sec); sel=null; render(id); }
+  if(a==='copy'){ const txt=JSON.stringify({slide:id,cell:[CW,CH],tiles:b.layout.tiles.map(({id,x,y,w,h,kind,text})=>({id,x,y,w,h,kind,text}))}); try{await navigator.clipboard.writeText(txt);toast('Layout copied')}catch(err){prompt('Copy this layout:',txt)} }
+});
+document.getElementById('picker').addEventListener('change',e=>{const f=e.target.files[0];if(f&&sel)putMedia(sel.board,sel.tile.id,f);e.target.value=''});
+function setEdit(on){document.body.classList.toggle('editing',on);document.getElementById('toggle').textContent=on?'Done editing':'Edit layout';if(!on){sel=null;document.querySelectorAll('.tile.sel').forEach(x=>x.classList.remove('sel'))}
+  document.querySelectorAll('.title h2').forEach(h=>h.contentEditable=on?'plaintext-only':'false'); const id=current(); id&&info(id)}
+document.getElementById('toggle').addEventListener('click',()=>setEdit(!document.body.classList.contains('editing')));
 function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
 addEventListener('resize',fit);fit();
-const f=[...document.querySelectorAll('.frame')];
-addEventListener('keydown',e=>{const i=Math.round(scrollY/innerHeight);
- if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();f[Math.min(i+1,f.length-1)].scrollIntoView({behavior:'smooth'})}
- if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();f[Math.max(i-1,0)].scrollIntoView({behavior:'smooth'})}});
+addEventListener('scroll',()=>{const id=current();id&&info(id)},{passive:true});
+addEventListener('keydown',e=>{
+  if(e.target.isContentEditable||e.target.tagName==='INPUT') return;
+  const editing=document.body.classList.contains('editing');
+  if(e.key==='e'||e.key==='E'){setEdit(!editing);return}
+  if(editing&&sel&&(e.key==='Delete'||e.key==='Backspace')&&sel.tile.kind!=='title'){const b=boards[sel.board];b.layout.tiles=b.layout.tiles.filter(x=>x!==sel.tile);mset(sel.board+'/'+sel.tile.id,null);save(sel.board);const id=sel.board;sel=null;render(id);return}
+  if(editing&&sel&&e.key.startsWith('Arrow')){e.preventDefault();const t=sel.tile,big=e.shiftKey;
+    const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+    if(big){t.w=Math.max(1,Math.min(COLS-t.x,t.w+d[0]));t.h=Math.max(1,Math.min(ROWS-t.y,t.h+d[1]))}
+    else{t.x=Math.max(0,Math.min(COLS-t.w,t.x+d[0]));t.y=Math.max(0,Math.min(ROWS-t.h,t.y+d[1]))}
+    const el=boards[sel.board].sec.querySelector(`[data-id="${t.id}"]`);place(el,t);save(sel.board);return}
+  const i=Math.round(scrollY/innerHeight);
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();frames[Math.min(i+1,frames.length-1)].scrollIntoView({behavior:'smooth'})}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();frames[Math.max(i-1,0)].scrollIntoView({behavior:'smooth'})}
+});
 </script></body></html>
