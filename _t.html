@@ -565,7 +565,7 @@ body:not(.panel-open) .arc{right:0}
 }
 </style>
 </head>
-<body class="panel-open">
+<body>
 
 <main class="stage" id="stage" aria-label="Story preview"></main>
 <div class="spacer" id="spacer" aria-hidden="true"></div>
@@ -700,6 +700,7 @@ body:not(.panel-open) .arc{right:0}
 <aside hidden>
 </aside>
 
+<script>window.scrollTo=()=>{};window.onerror=(m,u,l)=>{document.title='ERR '+m+' @'+l};</script>
 <script>
 (() => {
 /* ---------- helpers ---------- */
@@ -1694,7 +1695,7 @@ function textIn(L, t, motion) {
 
 function update() {
   const N = layers.length; if (!N || jumping) return;
-  const y = ys; let i = 0;
+  const y = window.__y != null ? window.__y : ys; let i = 0;
   while (i < N - 1 && y >= starts[i + 1]) i++;
   const local = y - starts[i], hold = holds[i];
   const t = i < N - 1 ? clamp((local - hold) / TR) : 0;
@@ -3097,7 +3098,7 @@ addEventListener('keydown', e => {
 { // first visit, or a refresh
   const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
   const reloaded = nav.type === 'reload' || (performance.navigation && performance.navigation.type === 1);
-  if (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0')) setTimeout(() => openHelp(0), 250);
+  if (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0')) 0;
 }
 
 /* ---------- editing on a phone ----------
@@ -3181,6 +3182,13 @@ wasPhone = isPhone(); placeControls();
 
 render();
 loadUserAssets();
+const [hold, ph] = location.hash.slice(1).split('-');
+const g = PRESETS.golf(); S.sections = [g[0], g[4], g[2]]; S.sections.forEach(x => x.hold = hold); render();
+const k = 1; window.__y = ph === 'rest' ? restOf(k) : starts[k] + 2; update();
+setTimeout(() => {
+  const L = layers[k], f = frames.filter(x => +x.style.opacity > .5).map(x => Math.round(x.getBoundingClientRect().top)), z = L.media[0];
+  document.title = `${hold} ${ph}: transform=${z.firstChild.style.transform} clip=${z.style.clipPath || 'none'} blur=${z.firstChild.style.filter || 'none'} copyTy=${Math.round(L.ty)} tileTops=${f.join('/')}`;
+}, 300);
 })();
 </script>
 </body>
