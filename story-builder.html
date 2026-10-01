@@ -192,9 +192,9 @@ body.panel-open .stage{right:var(--panel-w)}
 .stage.has-swiper{touch-action:none;overscroll-behavior:none}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
 /* filled dots; the section on stage is the solid one. Padding gives a bigger target without a bigger dot */
-.dots button{box-sizing:content-box;width:7px;height:7px;padding:4px;margin:-4px;border-radius:50%;background:#fff;background-clip:content-box;opacity:.3;transition:opacity .25s}
-.dots button:hover{opacity:.65}
-.dots button.on{opacity:1}
+.dots button{box-sizing:content-box;width:7px;height:7px;padding:4px;margin:-4px;border-radius:50%;background:#fff;background-clip:content-box;
+  opacity:calc(.3 + .7 * var(--a,0));transform:scale(calc(1 + .7 * var(--a,0)));transition:opacity .25s} /* --a: 0 → 1 as its section arrives, set every frame */
+.dots button:hover{opacity:max(.65, calc(.3 + .7 * var(--a,0)));transform:scale(calc(1.2 + .5 * var(--a,0)))}
 .empty{position:absolute;inset:0;display:grid;place-items:center;color:#9A9A9A;font:400 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:24px}
 
 /* ================= control panel (lululemon.com style) ================= */
@@ -1640,6 +1640,15 @@ function update() {
 /* Draw the stage between composition i (leaving) and j (arriving) at
    transition progress t. Scrolling always pairs neighbours; a jump from the
    list or the dots pairs any two sections, in either direction. */
+// the dot of the leaving section shrinks as the arriving one grows, in step with the move
+let dotLit = [];
+function dotScale(i, j, e) {
+  const ds = $stage.querySelectorAll('.dots button'); if (!ds.length) return;
+  dotLit.forEach(k => { if (k !== i && k !== j && ds[k]) ds[k].style.setProperty('--a', 0); });
+  if (ds[i]) ds[i].style.setProperty('--a', (1 - e).toFixed(3));
+  if (j >= 0 && ds[j]) ds[j].style.setProperty('--a', e.toFixed(3));
+  dotLit = j >= 0 ? [i, j] : [i];
+}
 function drawPair(i, j, t, ui, uj) {
   const si = S.sections[i], sj = j >= 0 ? S.sections[j] : null;
   const motion = sj ? sj.motion : 'glide';
@@ -1692,6 +1701,7 @@ function drawPair(i, j, t, ui, uj) {
 
   holdType(layers[i], si, ui); textOut(layers[i], t); holdSpots(layers[i], ui);
   if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); holdSpots(layers[j], uj); }
+  dotScale(i, j, j >= 0 ? easeIO(t) : 0);
   setCurrent(t > .5 && j >= 0 ? j : i);
 }
 function setCurrent(i) {
