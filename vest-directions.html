@@ -56,6 +56,11 @@ section hr{border:0;width:100%}
 .mini .lbl{position:absolute;left:12px;top:-34px;font:22px/1 "Saans Mono","Courier New",monospace;color:var(--paper);background:rgba(17,17,16,.85);padding:5px 8px;pointer-events:none;white-space:nowrap}
 .editing .tile.vid .sz{bottom:64px}
 .editing .tile.vid .h{bottom:48px}
+.pp{position:absolute;left:24px;bottom:24px;z-index:5;width:72px;height:72px;border:1px solid var(--line);background:rgba(17,17,16,.78);cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.pp svg{width:28px;height:28px;fill:var(--paper)}
+.tile:hover .pp,.pp:focus-visible,.tile.paused .pp{opacity:1}
+@media (hover:none){.pp{opacity:1}}
+.editing .pp{display:none}
 #side{position:fixed;right:16px;top:64px;z-index:100;width:280px;display:none;background:var(--ink);border:1px solid var(--line);font:13px/1.4 "Saans Mono","Courier New",monospace;color:var(--paper)}
 .editing #side{display:block}
 #side .hd{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--acc)}
@@ -113,7 +118,7 @@ section hr{border:0;width:100%}
 <div class="frame"><section id="a-idea" data-transition="fade" style="display:flex; flex-direction:column; gap:32px; padding:64px 40px; background:#111110">
   <div style="display:flex; flex-direction:row; align-items:end; justify-content:space-between; padding:0 24px">
     <p style="font-family:Saans, Arial, sans-serif; font-size:28px; color:#edebe6">Speed</p>
-    <p style="font-family:'Saans Mono', 'Courier New', monospace; font-size:24px; color:#8e8b84">Camera + Staging = Concept · 02 / 06</p>
+    <p style="font-family:'Saans Mono', 'Courier New', monospace; font-size:24px; color:#8e8b84"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 02 / 06</p>
   </div>
   <div style="height:1px; flex:0 0 auto; background:#3a3935;width:100%"></div>
   <div style="display:flex; flex-direction:row">
@@ -147,13 +152,13 @@ section hr{border:0;width:100%}
 </section></div>
 <div class="frame"><section id="b-mood" class="bento" data-letter="B" data-title="[Title]" data-num="03"></section></div>
 <div class="frame"><section id="b-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
-<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">B — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">Camera + Staging = Concept · 04 / 06</p></div>
+<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">B — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 04 / 06</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
 <div class="frame"><section id="c-mood" class="bento" data-letter="C" data-title="[Title]" data-num="05"></section></div>
 <div class="frame"><section id="c-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
-<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">C — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">Camera + Staging = Concept · 06 / 06</p></div>
+<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">C — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 06 / 06</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
@@ -184,7 +189,7 @@ function render(id){
   for(const t of order){
     const el=document.createElement('div'); el.className='tile'+(t.kind==='title'?' title':''); el.dataset.id=t.id;
     if(t.kind==='title'){
-      el.innerHTML=`<div class="row"><span>${sec.dataset.letter} — Mood</span><span>${sec.dataset.num} / 06</span></div><h2></h2><div class="h"></div>`;
+      el.innerHTML=`<div class="row"><span>${sec.dataset.letter} — Mood board</span><span>${sec.dataset.num} / 06</span></div><h2></h2><div class="h"></div>`;
       const h2=el.querySelector('h2'); h2.textContent=t.text||sec.dataset.title;
       h2.addEventListener('input',()=>{t.text=h2.textContent;save(id)});
     } else {
@@ -215,7 +220,14 @@ async function loadMedia(el,key){
   if(!src||!el.isConnected) return;
   const md=document.createElement(isVid?'video':'img'); md.src=src; if(isVid){md.muted=true;md.loop=true;md.autoplay=true;md.playsInline=true}
   el.prepend(md); el.classList.add('has-media');
-  if(isVid){ md.addEventListener('error',()=>{el._vErr=true}); el.classList.add('vid'); addMini(el,md); md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
+  if(isVid){ const pp=document.createElement('button'); pp.className='pp'; pp.setAttribute('aria-label','Pause video');
+    const ico=()=>{const p=md.paused; el.classList.toggle('paused',p); pp.setAttribute('aria-label',p?'Play video':'Pause video');
+      pp.innerHTML=p?'<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'};
+    ico(); md.addEventListener('play',ico); md.addEventListener('pause',ico);
+    pp.addEventListener('pointerdown',e=>e.stopPropagation());
+    pp.addEventListener('click',e=>{e.stopPropagation(); md.paused?md.play().catch(()=>{}):md.pause()});
+    el.appendChild(pp);
+    md.addEventListener('error',()=>{el._vErr=true}); el.classList.add('vid'); addMini(el,md); md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
 }
 function place(el,t){el.style.left=t.x*CW+'px';el.style.top=t.y*CH+'px';el.style.width=t.w*CW+'px';el.style.height=t.h*CH+'px';
   const sz=el.querySelector('.sz'); if(sz) sz.textContent=`${t.w*CW}×${t.h*CH}`;}
