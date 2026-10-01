@@ -47,6 +47,15 @@ section hr{border:0;width:100%}
 #bar button,#bar span{font:13px/1 "Saans Mono","Courier New",monospace;background:var(--ink);color:var(--paper);border:0;padding:10px 14px;cursor:pointer;white-space:nowrap}
 #bar span{color:var(--mute);cursor:default}
 #bar span.ok{color:var(--acc)}
+.mini{display:none;position:absolute;left:0;right:0;bottom:0;height:48px;z-index:4;background:rgba(11,11,10,.78);cursor:pointer;touch-action:none}
+.editing .tile.vid .mini{display:block}
+.mini .dim{position:absolute;top:0;bottom:0;background:rgba(11,11,10,.75);pointer-events:none}
+.mini .rng{position:absolute;top:0;bottom:0;border-top:3px solid var(--acc);border-bottom:3px solid var(--acc);pointer-events:none}
+.mini .hd{position:absolute;top:-6px;bottom:-6px;width:18px;margin-left:-9px;background:var(--acc);cursor:ew-resize}
+.mini .ph{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--paper);pointer-events:none}
+.mini .lbl{position:absolute;left:12px;top:-34px;font:22px/1 "Saans Mono","Courier New",monospace;color:var(--paper);background:rgba(17,17,16,.85);padding:5px 8px;pointer-events:none;white-space:nowrap}
+.editing .tile.vid .sz{bottom:64px}
+.editing .tile.vid .h{bottom:48px}
 #tl{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:100;display:none;width:min(960px,calc(100vw - 32px));background:var(--ink);border:1px solid var(--line);padding:12px 14px;font:13px/1 "Saans Mono","Courier New",monospace;color:var(--paper)}
 #tl.on{display:block}
 #tl .top{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
@@ -194,11 +203,11 @@ async function loadMedia(el,key){
   if(!src||!el.isConnected) return;
   const md=document.createElement(isVid?'video':'img'); md.src=src; if(isVid){md.muted=true;md.loop=true;md.autoplay=true;md.playsInline=true}
   el.prepend(md); el.classList.add('has-media');
-  if(isVid){ md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
+  if(isVid){ el.classList.add('vid'); addMini(el,md); md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
 }
 function place(el,t){el.style.left=t.x*CW+'px';el.style.top=t.y*CH+'px';el.style.width=t.w*CW+'px';el.style.height=t.h*CH+'px';
   const sz=el.querySelector('.sz'); if(sz) sz.textContent=`${t.w*CW}×${t.h*CH}`;}
-async function putMedia(id,tid,f){ if(!/^(image|video)\//.test(f.type)) return toast('Images or videos only'); await mset(id+'/'+tid,{blob:f,type:f.type}); const t=boards[id].layout.tiles.find(x=>x.id===tid); if(t){delete t.trim; save(id)} render(id); }
+async function putMedia(id,tid,f){ if(!/^(image|video)\//.test(f.type)) return toast('Images or videos only'); await mset(id+'/'+tid,{blob:f,type:f.type}); const t=boards[id].layout.tiles.find(x=>x.id===tid); if(t){delete t.trim; save(id); sel={board:id,tile:t}} render(id); }
 function scale(){return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s'))||1}
 function startDrag(e,id,t,el){
   if(!document.body.classList.contains('editing')) return;
@@ -241,7 +250,7 @@ document.getElementById('bar').addEventListener('click',async e=>{
   if(a==='copy'){ const txt=JSON.stringify({slide:id,cell:[CW,CH],tiles:b.layout.tiles.map(({id,x,y,w,h,kind,text,trim})=>({id,x,y,w,h,kind,text,trim}))}); try{await navigator.clipboard.writeText(txt);toast('Layout copied')}catch(err){prompt('Copy this layout:',txt)} }
 });
 document.getElementById('picker').addEventListener('change',e=>{const f=e.target.files[0];if(f&&sel)putMedia(sel.board,sel.tile.id,f);e.target.value=''});
-function setEdit(on){setTimeout(tlShow,0);document.body.classList.toggle('editing',on);document.getElementById('toggle').textContent=on?'Done editing':'Edit layout';if(!on){sel=null;document.querySelectorAll('.tile.sel').forEach(x=>x.classList.remove('sel'))}
+function setEdit(on){setTimeout(tlShow,0); if(on&&document.querySelector('.tile.vid')) toast('Drag the olive handles on a video to set its loop');document.body.classList.toggle('editing',on);document.getElementById('toggle').textContent=on?'Done editing':'Edit layout';if(!on){sel=null;document.querySelectorAll('.tile.sel').forEach(x=>x.classList.remove('sel'))}
   document.querySelectorAll('.title h2').forEach(h=>h.contentEditable=on?'plaintext-only':'false'); const id=current(); id&&info(id)}
 document.getElementById('toggle').addEventListener('click',()=>setEdit(!document.body.classList.contains('editing')));
 // ---- timeline: trim a video box to a section; it loops inside the in/out points
@@ -260,8 +269,29 @@ function tlDraw(){ if(!tlV) return; const d=tlV.duration, tr=trimOf(tlT,tlV), p=
   document.getElementById('tlNow').textContent=fmt(tlV.currentTime); document.getElementById('tlIn').textContent=fmt(tr.in);
   document.getElementById('tlOut').textContent=fmt(tr.out); document.getElementById('tlLen').textContent=fmt(tr.out-tr.in);
   document.getElementById('tlPlay').textContent=tlV.paused?'Play':'Pause'; }
-function setTrim(a,b){ const d=tlV.duration, gap=Math.min(.2,d); let i=Math.max(0,Math.min(a,d-gap)), o=Math.max(i+gap,Math.min(b,d));
-  tlT.trim=(i<=0.001&&o>=d-0.001)?undefined:{in:+i.toFixed(3),out:+o.toFixed(3)}; if(!tlT.trim) delete tlT.trim; save(sel.board); tlDraw(); }
+function trimSet(board,t,v,a,b){ const d=v.duration, gap=Math.min(.2,d); const i=Math.max(0,Math.min(a,d-gap)), o=Math.max(i+gap,Math.min(b,d));
+  if(i<=0.001&&o>=d-0.001) delete t.trim; else t.trim={in:+i.toFixed(3),out:+o.toFixed(3)}; save(board); }
+function addMini(el,v){
+  const m=document.createElement('div'); m.className='mini';
+  m.innerHTML='<div class="dim l"></div><div class="dim r"></div><div class="rng"></div><div class="hd in" title="Loop start"></div><div class="hd out" title="Loop end"></div><div class="ph"></div><div class="lbl"></div>';
+  el.appendChild(m); el._mini=m;
+  m.addEventListener('pointerdown',e=>{ e.stopPropagation(); if(!v.duration) return; e.preventDefault();
+    const t=el._tile, board=el._board; select(board,t); m.setPointerCapture(e.pointerId);
+    const mode=e.target.classList.contains('in')?'in':e.target.classList.contains('out')?'out':'scrub'; const was=!v.paused; v.pause();
+    const at=ev=>{const r=m.getBoundingClientRect();return Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width))*v.duration};
+    const mv=ev=>{ const x=at(ev), tr=trimOf(t,v);
+      if(mode==='in') trimSet(board,t,v,x,tr.out); else if(mode==='out') trimSet(board,t,v,tr.in,x);
+      const nt=trimOf(t,v); v.currentTime=mode==='scrub'?Math.max(nt.in,Math.min(nt.out,x)):(mode==='in'?nt.in:nt.out); };
+    const up=()=>{ m.removeEventListener('pointermove',mv); m.removeEventListener('pointerup',up);
+      if(mode!=='scrub') v.currentTime=trimOf(t,v).in; if(was||mode!=='scrub') v.play().catch(()=>{}); };
+    m.addEventListener('pointermove',mv); m.addEventListener('pointerup',up); mv(e); });
+}
+function drawMini(el,v){ const m=el._mini; if(!m||!v.duration) return; const d=v.duration, tr=trimOf(el._tile,v), p=x=>(x/d*100)+'%';
+  m.querySelector('.l').style.cssText=`left:0;width:${p(tr.in)}`; m.querySelector('.r').style.cssText=`right:0;width:${100-tr.out/d*100}%`;
+  const r=m.querySelector('.rng'); r.style.left=p(tr.in); r.style.width=p(tr.out-tr.in);
+  m.querySelector('.in').style.left=p(tr.in); m.querySelector('.out').style.left=p(tr.out); m.querySelector('.ph').style.left=p(v.currentTime);
+  m.querySelector('.lbl').textContent=`Loop ${fmt(tr.in)} – ${fmt(tr.out)} · ${fmt(v.currentTime)}`; }
+function setTrim(a,b){ trimSet(sel.board,tlT,tlV,a,b); tlDraw(); }
 function tAt(e){const r=track.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*tlV.duration}
 track.addEventListener('pointerdown',e=>{ if(!tlV) return; e.preventDefault(); track.setPointerCapture(e.pointerId);
   const mode=e.target.id==='tlHIn'?'in':e.target.id==='tlHOut'?'out':'scrub'; const was=!tlV.paused; tlV.pause();
@@ -288,6 +318,7 @@ async function thumbs(src){ tlThumbFor=src; track.style.backgroundImage='none';
 // keep every trimmed video inside its section, in view mode too
 (function loop(){ document.querySelectorAll('.tile video').forEach(v=>{ const t=v.parentElement._tile; if(!t||!t.trim||!v.duration) return;
     if(v.currentTime>=t.trim.out-0.03||v.currentTime<t.trim.in-0.05){ v.currentTime=t.trim.in; } });
+  if(document.body.classList.contains('editing')) document.querySelectorAll('.tile.vid').forEach(el=>{const v=el.querySelector('video'); v&&drawMini(el,v)});
   if(tlV) tlDraw(); requestAnimationFrame(loop); })();
 function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
 addEventListener('resize',fit);fit();
