@@ -121,6 +121,26 @@ body.panel-open .stage{right:var(--panel-w)}
 .feats em{font:400 11px/1.5 var(--mono);letter-spacing:.08em;font-style:normal;color:var(--mute);grid-row:span 2}
 .feats b{font:600 15px/1.25 var(--sans)}
 .feats small{font:400 14px/1.4 var(--sans);color:var(--mute)}
+/* story modules */
+.launch{display:inline-flex;align-items:center;gap:8px;width:max-content;padding:7px 12px 7px 10px;border:1px solid currentColor;border-radius:999px;font:400 13px/1 var(--sans)}
+.launch i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:lpulse 1.6s ease-in-out infinite}
+.launch b{font-weight:600}
+@keyframes lpulse{50%{opacity:.25}}
+.byline{display:flex;align-items:center;gap:12px;text-align:left}
+.byline .av{width:44px;height:44px;border-radius:50%;flex:none;background:var(--ph) center/cover;box-shadow:inset 0 0 0 1px rgba(127,127,127,.25)}
+.byline b{display:block;font:600 15px/1.2 var(--sans)}
+.byline small{display:block;font:400 13px/1.3 var(--sans);color:var(--mute)}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:0 24px;width:min(100%,40ch);margin:0;text-align:left}
+.specs dt,.specs dd{margin:0;padding:9px 0;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);font:400 14px/1.3 var(--sans)}
+.specs dt{font:400 11px/1.9 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.swatches{display:flex;gap:14px;flex-wrap:wrap}
+.swatches span{display:flex;align-items:center;gap:7px;font:400 13px/1 var(--sans)}
+.swatches i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(127,127,127,.35)}
+.cap{position:absolute;z-index:2;max-width:70%;font:400 10.5px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45);margin:14px}
+.cap[data-pos="bl"]{left:0;bottom:0}.cap[data-pos="br"]{right:0;bottom:0;text-align:right}.cap[data-pos="tl"]{left:0;top:0}.cap[data-pos="tr"]{right:0;top:0;text-align:right}
+.ticker{position:absolute;left:0;right:0;z-index:3;overflow:hidden;visibility:hidden;pointer-events:none;mix-blend-mode:difference;color:#fff}
+.ticker[data-y="bottom"]{bottom:calc(var(--g) * .6)}.ticker[data-y="top"]{top:calc(var(--g) * .6 + 24px)}
+.ticker .tk{white-space:nowrap;font:700 clamp(40px,7cqw,104px)/1 var(--sans);letter-spacing:-.025em;will-change:transform}
 .toast{position:absolute;left:50%;bottom:24px;z-index:30;transform:translate(-50%,16px);opacity:0;background:var(--ink);color:#fff;padding:12px 18px;border-radius:4px;font:600 13px/1 var(--sans);pointer-events:none;transition:opacity .25s,transform .35s var(--ease-out)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -721,6 +741,13 @@ const BASE = () => ({
   shop: { on: false, items: [0, 1, 2, 3].map(() => ({ name: 'Product name', price: '$XX', tag: '' })) },
   spots: { on: false, items: [{ x: 30, y: 35, label: 'Feature', sub: '' }, { x: 62, y: 55, label: 'Feature', sub: '' }, { x: 40, y: 72, label: '', sub: '' }] },
   feats: { on: false, items: [{ t: 'Feature', d: 'One line on why it matters.' }, { t: 'Feature', d: 'One line on why it matters.' }, { t: '', d: '' }] },
+  // story modules for other kinds of stories
+  byline: { on: false, name: 'Athlete name', role: 'Ambassador · City' },            // athlete or community stories
+  caption: { on: false, text: 'Location · Season', pos: 'bl' },                       // editorial: a credit pinned to the image
+  ticker: { on: false, text: 'Run the city · Run the city · ', y: 'bottom' },         // a band of type that runs with the scroll
+  specs: { on: false, items: [{ k: 'Fabric', v: 'Placeholder' }, { k: 'Fit', v: 'Placeholder' }, { k: 'Length', v: 'Placeholder' }, { k: '', v: '' }] }, // product stories
+  swatches: { on: false, items: [{ n: 'Black', c: '#141414' }, { n: 'Bone', c: '#E6DFD3' }, { n: 'Sage', c: '#9AAE97' }, { n: '', c: '#cccccc' }] },
+  launch: { on: false, label: 'Drops', date: 'Oct 15' },                              // launches: a dated badge
   card: { on: false, x: 'right', y: 'bottom', name: 'Product name', price: '$XX' },
 });
 const make = o => merge(BASE(), clone(o));
@@ -744,6 +771,11 @@ const STARTERS = {
   product:   { label:'Product · image + card', o:{ name:'Product', beat:'proof', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'The product, in the story', body:'Short product line.', card:{on:true,x:'left',y:'bottom'} } },
   quote:     { label:'Quote', o:{ name:'Quote', beat:'proof', media:{kind:'none'}, text:{x:'center',y:'middle',size:'xl',width:'wide'}, headline:'A line from a real person.', quote:{on:true,attr:'Name, role'} } },
   stats:     { label:'Stats · numbers row', o:{ name:'Stats', beat:'proof', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'By the numbers', stats:{on:true,items:[{v:'01',l:'Detail'},{v:'02',l:'Detail'},{v:'03',l:'Detail'}]} } },
+  athlete:   { label:'Athlete · portrait + byline', o:{ name:'Athlete', beat:'build', media:{kind:'image',layout:'left'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'I run before the city wakes up.', quote:{on:true,attr:''}, byline:{on:true,name:'Athlete name',role:'Ambassador · City'}, caption:{on:true,text:'Location · 5:48 am',pos:'bl'} } },
+  launch:    { label:'Launch · dated drop', o:{ name:'Launch', beat:'hook', media:{kind:'image',layout:'inset',mx:'right',inset:'l'}, overlay:0, text:{x:'left',y:'middle',size:'l',width:'narrow'}, headline:'Something new is coming.', launch:{on:true,label:'Drops',date:'Oct 15'}, swatches:{on:true}, cta:{show:true,label:'Notify me'} } },
+  specsheet: { label:'Spec sheet · product facts', o:{ name:'Spec sheet', beat:'proof', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'medium'}, headline:'The details.', specs:{on:true}, swatches:{on:true}, card:{on:false} } },
+  ticker:    { label:'Ticker · full bleed + running type', o:{ name:'Ticker', beat:'build', media:{kind:'video',layout:'full'}, overlay:0, text:{x:'left',y:'top',size:'s'}, headline:'', ticker:{on:true,text:'Run the city ·',y:'bottom'} } },
+  editorial: { label:'Editorial · framed image + caption', o:{ name:'Editorial', beat:'build', media:{kind:'image',layout:'inset',mx:'center',inset:'m'}, overlay:0, text:{x:'center',y:'bottom',size:'s',width:'wide'}, headline:'One frame, held.', caption:{on:true,text:'Photographer · Location',pos:'br'} } },
   closer:    { label:'Closer · end CTA', o:{ name:'Closer', beat:'close', media:{kind:'video',layout:'full'}, overlay:40, text:{x:'center',y:'middle',size:'l',width:'medium'}, headline:'Where the story ends', cta:{show:true,label:'Shop the collection'} } },
 };
 
@@ -951,6 +983,7 @@ const ENUMS = {
   'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
   'text.blend':['auto','normal','difference','exclusion','multiply','overlay','soft-light'],
   'card.x':['left','center','right'], 'card.y':['top','middle','bottom'],
+  'caption.pos':['bl','br','tl','tr'], 'ticker.y':['top','bottom'],
 };
 const validArc = a => isObj(a) && Array.isArray(a.points) && a.points.length > 1 && a.points.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite));
 const normalize = d => { d = isObj(d) ? d : {}; return {
@@ -1306,6 +1339,18 @@ function cardThumb(s) {
   const a = asset(s.media.items[0]);
   return a && a.type === 'image' ? { backgroundImage:`url("${a.src}")`, backgroundSize:'cover', backgroundPosition:'center' } : null;
 }
+// colours and photos inside copy that's drawn inverted (Invert / Soft invert) are pre-inverted, so they show true on the page
+const invertsCopy = s => /difference|exclusion/.test(blendOf(s));
+function inkSafe(s, hex) {
+  if (!invertsCopy(s)) return hex;
+  const n = parseInt((hex || '#cccccc').replace('#', '').padEnd(6, '0').slice(0, 6), 16);
+  return '#' + (0xFFFFFF ^ n).toString(16).padStart(6, '0');
+}
+function bylineAvatar(s) {
+  const st = cardThumb(s) || {};
+  if (invertsCopy(s) && st.backgroundImage) st.filter = 'invert(1)';
+  return st;
+}
 function textLayer(s, i) {
   const t = s.text, align = t.align === 'auto' ? t.x : t.align;
   const layout = s.media.kind === 'none' ? 'none' : s.media.layout;
@@ -1324,6 +1369,10 @@ function textLayer(s, i) {
     eb, hl,
     P(s.quote.on && s.quote.attr ? h('p', { class:'attr' }, '— ' + s.quote.attr) : null),
     P(s.body ? h('p', { class:'bd' }, s.body) : null),
+    P(s.launch.on ? h('p', { class:'launch' }, h('i'), h('b', {}, s.launch.label), ' ', s.launch.date) : null),
+    P(s.byline.on ? h('div', { class:'byline' }, h('span', { class:'av', style: bylineAvatar(s) }), h('div', {}, h('b', {}, s.byline.name), h('small', {}, s.byline.role))) : null),
+    P(s.specs.on ? h('dl', { class:'specs' }, s.specs.items.filter(x => x.k).flatMap(x => [h('dt', {}, x.k), h('dd', {}, x.v)])) : null),
+    P(s.swatches.on ? h('div', { class:'swatches' }, s.swatches.items.filter(x => x.n).map(x => h('span', {}, h('i', { style:{ background: inkSafe(s, x.c) } }), x.n))) : null),
     P(s.feats.on ? h('div', { class:'feats' }, s.feats.items.filter(x => x.t).map((x, k) => h('div', {}, h('em', {}, String(k + 1).padStart(2, '0')), h('b', {}, x.t), x.d && h('small', {}, x.d)))) : null),
     P(s.stats.on ? h('div', { class:'stats' }, s.stats.items.filter(x => x.v || x.l).map(x => h('div', {}, h('b', {}, x.v), h('small', {}, x.l)))) : null),
     P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => e.preventDefault() }, s.cta.label, ' →') : null),
@@ -1333,7 +1382,12 @@ function textLayer(s, i) {
   if (s.card.on) card = h('div', { class:'cw', 'data-x':s.card.x, 'data-y':s.card.y },
     h('div', { class:'card' }, h('div', { class:'th', style: cardThumb(s) }), h('div', {}, h('p', {}, s.card.name), h('small', {}, s.card.price)),
       h('button', { class:'add', 'aria-label':'Add to bag', onclick:e => addToBag(e, s.card.name) }, '+')));
-  return { s, el, copy, eb, words, letters, parts, card, ty:0, ty2:0, sc:1 };
+  const extras = [];
+  if (s.ticker.on && s.ticker.text) { // a band of type across the stage that runs as you scroll
+    const run = (s.ticker.text + ' ').repeat(8);
+    extras.push(h('div', { class:'ticker', 'data-y':s.ticker.y }, h('div', { class:'tk' }, run, run)));
+  }
+  return { s, el, copy, eb, words, letters, parts, card, extras, ty:0, ty2:0, sc:1 };
 }
 
 // on a phone a split stacks media over copy; long copy (a feature list) gets a little more of the screen
@@ -1393,6 +1447,7 @@ function renderStage() {
         lay.append(h('div', { class:'sl' }, h('div', {}, h('b', {}, it.name || 'Product'), h('small', {}, it.price || '')),
           h('button', { class:'qa', 'aria-label':`Add ${it.name || 'product'} to bag`, onclick:e => addToBag(e, it.name) }, '+')));
       }
+      if (s.caption.on && s.caption.text && k === 0) lay.append(h('span', { class:'cap', 'data-pos':s.caption.pos }, s.caption.text)); // credit line, rides with the frame
       if (s.spots.on && k === 0) {
         const wrap = h('div', { class:'spots' });
         s.spots.items.forEach(sp => {
@@ -1409,7 +1464,7 @@ function renderStage() {
     });
     const T = textLayer(s, i);
     if (W < 720) phoneCopy(s, T);
-    tw.append(T.el); if (T.card) tw.append(T.card);
+    tw.append(T.el); if (T.card) tw.append(T.card); T.extras.forEach(e => tw.append(e));
     return { media, spots, ...T };
   });
   $stage.replaceChildren(fw, tw,
@@ -1494,6 +1549,7 @@ function holdType(L, s, u) {
   const k = amt(), d = u - restU(s);
   L.ty = -d * 26 * k; place(L);
   if (L.card) L.card.style.transform = `translateY(${-d * 44 * k}px)`;
+  L.extras.forEach(e => { const tk = e.firstChild; tk.style.transform = `translateX(${-(((u + 4) * 22 * k) % 50)}%)`; }); // the ticker runs with the scroll
   // type-only sections: words fill with ink as you read down the line
   if (s.media.kind === 'none' && L.words.length) {
     const f = clamp((u + .15) / Math.max(.4, s.dwell * .85)) * L.words.length;
@@ -1523,6 +1579,7 @@ function textOut(L, t) {
     if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, 1 - q);
     else { L.copy.style.opacity = 1 - q; L.ty2 = -q * 24; if (anim === 'blur') L.copy.style.filter = `blur(${q * 12}px)`; if (anim === 'scale') L.sc = 1 - q * .06; }
   }
+  L.extras.forEach(e => { e.style.opacity = 1 - easeIn(clamp((t - .04) / .3)); });
   if (L.card) { const q = easeIn(clamp((t - .06) / .3)); L.card.firstChild.style.transform = `translateY(${-q * 28}px)`; L.card.firstChild.style.opacity = 1 - q; }
   place(L);
 }
@@ -1548,6 +1605,7 @@ function textIn(L, t, motion) {
     if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, easeIO(clamp((t - base) / .5)));
     else { L.copy.style.opacity = q; L.ty2 = (1 - q) * rise * .5; if (anim === 'blur') L.copy.style.filter = `blur(${(1 - q) * 14}px)`; if (anim === 'scale') L.sc = 1.1 - q * .1; }
   }
+  L.extras.forEach(e => { e.style.opacity = easeOut(clamp((t - base - .1) / .36)); });
   if (L.card) { const q = easeOut(clamp((t - base - .2) / .36)); L.card.firstChild.style.transform = `translateY(${(1 - q) * rise}px)`; L.card.firstChild.style.opacity = q; }
   place(L);
 }
@@ -1572,7 +1630,7 @@ function drawPair(i, j, t, ui, uj) {
     const on = k === i || k === j;
     if (L.on !== on) {
       L.on = on; const vis = on ? 'visible' : 'hidden';
-      L.el.style.visibility = vis; if (L.card) L.card.style.visibility = vis;
+      L.el.style.visibility = vis; if (L.card) L.card.style.visibility = vis; L.extras.forEach(e => e.style.visibility = vis);
       L.media.forEach(m => { if (!m) return; m.style.visibility = vis;
         const v = m.querySelector('video[data-stage]'); if (v) on ? v.play().catch(() => {}) : v.pause(); });
     }
@@ -2232,6 +2290,8 @@ function autoFeel(s) {
   if (s.spots.on) f -= .16;
   if (s.stats.on) f -= .12;
   if (s.feats.on) f -= .14;
+  if (s.specs.on) f -= .12; if (s.swatches.on) f -= .1; if (s.launch.on) f -= .05;
+  if (s.byline.on) f += .06; if (s.caption.on) f += .03; if (s.ticker.on) f += .04;
   if (s.cta.show) f -= .06;
   f += { s:-.04, m:0, l:.04, xl:.08 }[s.text.size] || 0;
   f += { hook:.04, build:.06, proof:-.08, close:-.04 }[s.beat] || 0;
@@ -2620,6 +2680,25 @@ function renderInspector() {
           field('Down', slider(0, 100, 1, sp.y, v => v + '%', v => sp.y = v, renderStage)))));
     }
   }
+  const onoff = (label, o) => md.append(field(label, seg([[false,'Off'],[true,'On']], o.on, up(v => o.on = v))));
+  onoff('Launch badge', s.launch);
+  if (s.launch.on) md.append(h('div', { class:'f2' }, field('Label', text(s.launch.label, v => s.launch.label = v)), field('Date', text(s.launch.date, v => s.launch.date = v))));
+  onoff('Byline (athlete or author)', s.byline);
+  if (s.byline.on) md.append(h('div', { class:'f2' }, field('Name', text(s.byline.name, v => s.byline.name = v)), field('Role', text(s.byline.role, v => s.byline.role = v))),
+    h('p', { class:'hint' }, 'The portrait uses this section’s first image.'));
+  onoff('Spec table', s.specs);
+  if (s.specs.on) s.specs.items.forEach((it, k) => md.append(h('div', { class:'f2' }, field(`Spec ${k + 1}`, text(it.k, v => it.k = v)), field('Value', text(it.v, v => it.v = v)))));
+  onoff('Colourways', s.swatches);
+  if (s.swatches.on) s.swatches.items.forEach((it, k) => { const c = h('input', { type:'color', 'aria-label':'Colour', style:{ width:'44px', height:'40px', padding:'2px', border:'1px solid var(--p-line)', borderRadius:'4px', background:'#fff' } }); c.value = it.c;
+    c.addEventListener('change', act(() => it.c = c.value));
+    md.append(h('div', { class:'f2', style:{ gridTemplateColumns:'1fr auto' } }, field(`Colour ${k + 1}`, text(it.n, v => it.n = v)), field('Swatch', c))); });
+  if (m.kind !== 'none') {
+    onoff('Caption on the image', s.caption);
+    if (s.caption.on) md.append(field('Caption', text(s.caption.text, v => s.caption.text = v)), field('Corner', seg([['tl','Top left'],['tr','Top right'],['bl','Bottom left'],['br','Bottom right']], s.caption.pos, up(v => s.caption.pos = v))));
+  }
+  onoff('Ticker', s.ticker);
+  if (s.ticker.on) md.append(field('Ticker text', text(s.ticker.text, v => s.ticker.text = v)), field('Ticker position', seg([['top','Top'],['bottom','Bottom']], s.ticker.y, up(v => s.ticker.y = v))),
+    h('p', { class:'hint' }, 'A band of type across the stage that runs as the viewer scrolls. It inverts over images.'));
   md.append(field('Feature list', seg([[false,'Off'],[true,'On']], s.feats.on, up(v => s.feats.on = v))));
   if (s.feats.on) s.feats.items.forEach((it, k) => md.append(h('div', { class:'f2' },
     field(`Feature ${k + 1}`, text(it.t, v => it.t = v)), field('Description', text(it.d, v => it.d = v)))));
