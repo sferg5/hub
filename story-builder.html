@@ -418,6 +418,10 @@ body:not(.panel-open) .arc{right:0}
 .pool-f{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 4px}
 .pool h4{font:600 14px/1.2 var(--sans);margin:18px 0 10px;display:flex;justify-content:space-between}
 .pool h4 small{font-weight:400;color:var(--p-mute)}
+.lay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lay-opt{display:grid;gap:5px;padding:4px 4px 6px;border:1px solid var(--p-line);border-radius:4px;background:#fff;text-align:left;font:400 11px/1.2 var(--sans);color:var(--p-fg)}
+.lay-opt:hover{border-color:var(--p-fg)}
+.lay-opt[aria-pressed="true"]{border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg);font-weight:600}
 .pool-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pc{display:grid;gap:7px;text-align:left;padding:6px 6px 8px;border:1px solid var(--p-line);border-radius:4px;background:#fff;cursor:grab}
 .pc:hover{border-color:var(--p-fg)}
@@ -2029,7 +2033,7 @@ $stage.addEventListener('click', e => {
 
 /* ---------- control widgets ---------- */
 const lbl = t => h('span', { class:'lbl' }, t);
-const openGroups = new Set(['Text position', 'Media', 'Motion']);
+const openGroups = new Set(['Layout', 'Text position', 'Media', 'Motion']);
 const grp = (title, ...kids) => {
   const d = h('details', { class:'grp', open: openGroups.has(title) }, h('summary', {}, title), h('div', { class:'gb' }, ...kids));
   d.addEventListener('toggle', () => d.open ? openGroups.add(title) : openGroups.delete(title));
@@ -2193,6 +2197,47 @@ function insertSection(sec, at) {
 
 /* A drawing of the composition: frames where the media sits (with the real
    image when there is one), bars for the copy, a box for the product card. */
+/* Switch a section's layout and keep everything else. A layout only moves things:
+   text position and width, where the media sits, frame size and side, gallery
+   arrangement, product card position. Copy, images, modules, motion and feeling stay,
+   and "Type only" just hides the media, so switching back brings it straight back. */
+const LAYOUTS = [
+  ['Full · bottom left',  { kind:'single', media:{ layout:'full' }, text:{ x:'left', y:'bottom', width:'medium' } }],
+  ['Full · centred',      { kind:'single', media:{ layout:'full' }, text:{ x:'center', y:'middle', width:'wide' } }],
+  ['Full · top right',    { kind:'single', media:{ layout:'full' }, text:{ x:'right', y:'top', width:'narrow' } }],
+  ['Split · image left',  { kind:'single', media:{ layout:'left' }, text:{ x:'left', y:'middle', width:'narrow' } }],
+  ['Split · image right', { kind:'single', media:{ layout:'right' }, text:{ x:'left', y:'middle', width:'narrow' } }],
+  ['Framed · right',      { kind:'single', media:{ layout:'inset', mx:'right', inset:'m' }, text:{ x:'left', y:'middle', width:'narrow' } }],
+  ['Framed · left',       { kind:'single', media:{ layout:'inset', mx:'left', inset:'m' }, text:{ x:'right', y:'middle', width:'narrow' } }],
+  ['Framed · centred',    { kind:'single', media:{ layout:'inset', mx:'center', inset:'m' }, text:{ x:'center', y:'bottom', width:'wide' } }],
+  ['Gallery · row',       { kind:'gallery', media:{ layout:'full', arrange:'row' }, text:{ x:'left', y:'top', width:'wide' } }],
+  ['Gallery · stagger',   { kind:'gallery', media:{ layout:'full', arrange:'stagger' }, text:{ x:'left', y:'top', width:'medium' } }],
+  ['Gallery · mosaic',    { kind:'gallery', media:{ layout:'full', arrange:'mosaic' }, text:{ x:'left', y:'top', width:'medium' } }],
+  ['Gallery · split grid',{ kind:'gallery', media:{ layout:'right', arrange:'grid' }, text:{ x:'left', y:'middle', width:'narrow' } }],
+  ['Type only',           { kind:'none', text:{ x:'center', y:'middle', width:'wide' } }],
+];
+function withLayout(s, L) {
+  const x = clone(s), m = x.media, firstType = (asset(m.items.find(Boolean)) || {}).type;
+  if (L.kind === 'none') m.kind = 'none';
+  else if (L.kind === 'gallery') { if (m.kind !== 'gallery') m.count = clamp(m.items.filter(Boolean).length || 3, 2, 4); m.kind = 'gallery'; }
+  else if (m.kind === 'gallery' || m.kind === 'none') m.kind = firstType === 'video' ? 'video' : 'image';
+  Object.assign(m, L.media || {});
+  Object.assign(x.text, L.text, { align:'auto' });
+  if (x.card.on) { x.card.x = x.text.x === 'left' ? 'right' : 'left'; x.card.y = 'bottom'; } // the product card sits opposite the copy
+  return x;
+}
+const sameLayout = (s, L) => { const x = withLayout(s, L); return x.media.kind === s.media.kind && ['layout','mx','inset','arrange'].every(k => x.media.kind === 'none' || x.media[k] === s.media[k]) && x.text.x === s.text.x && x.text.y === s.text.y; };
+function layoutGrp(s) {
+  const i = idx(s.id);
+  return grp('Layout',
+    h('p', { class:'hint', style:{ margin:'0 0 12px' } }, 'Switch the arrangement and keep this section’s copy, images and modules.'),
+    h('div', { class:'lay-grid' }, LAYOUTS.map(([name, L]) => {
+      const cur = sameLayout(s, L);
+      return h('button', { class:'lay-opt', 'aria-pressed':String(cur), title:name,
+          onclick:act(() => { const nx = withLayout(s, L); S.sections[i] = Object.assign(s, { media:nx.media, text:nx.text, card:nx.card }); }) },
+        poolThumb(withLayout(s, L)), h('span', {}, name));
+    })));
+}
 function poolThumb(s) {
   const box = h('div', { class:'pt' });
   const sw = W, sh = H; W = 1600; H = 1000; // measure at a desktop size, then scale
@@ -2724,7 +2769,7 @@ function renderInspector() {
   );
 
   const head = h('div', { class:'p-insp-h' }, mobileBack(i), h('small', {}, `Section ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
-  $insp.replaceChildren(head, textGrp, mediaGrp, motionGrp, contentGrp, modGrp);
+  $insp.replaceChildren(head, layoutGrp(s), textGrp, mediaGrp, motionGrp, contentGrp, modGrp);
   $insp.scrollTop = keepScroll;
 }
 
