@@ -56,7 +56,18 @@ section hr{border:0;width:100%}
 .mini .lbl{position:absolute;left:12px;top:-34px;font:22px/1 "Saans Mono","Courier New",monospace;color:var(--paper);background:rgba(17,17,16,.85);padding:5px 8px;pointer-events:none;white-space:nowrap}
 .editing .tile.vid .sz{bottom:64px}
 .editing .tile.vid .h{bottom:48px}
-#tl{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:100;display:none;width:min(960px,calc(100vw - 32px));background:var(--ink);border:1px solid var(--line);padding:12px 14px;font:13px/1 "Saans Mono","Courier New",monospace;color:var(--paper)}
+#side{position:fixed;right:16px;top:64px;z-index:100;width:280px;display:none;background:var(--ink);border:1px solid var(--line);font:13px/1.4 "Saans Mono","Courier New",monospace;color:var(--paper)}
+.editing #side{display:block}
+#side .hd{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--acc)}
+#side .bd{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#side .mt{color:var(--mute)}
+#side label{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#side input{width:120px;font:inherit;background:#1C1B19;color:var(--paper);border:1px solid var(--line);padding:7px 8px;text-align:right}
+#side input:focus{outline:1px solid var(--acc)}
+#side .btns{display:flex;gap:6px;flex-wrap:wrap}
+#side button{font:inherit;background:#1F1E1C;color:var(--paper);border:1px solid var(--line);padding:7px 9px;cursor:pointer}
+#side .warn{color:#E0B85C}
+#tl{display:none!important;position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:100;display:none;width:min(960px,calc(100vw - 32px));background:var(--ink);border:1px solid var(--line);padding:12px 14px;font:13px/1 "Saans Mono","Courier New",monospace;color:var(--paper)}
 #tl.on{display:block}
 #tl .top{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
 #tl button{font:inherit;background:#1F1E1C;color:var(--paper);border:1px solid var(--line);padding:8px 10px;cursor:pointer}
@@ -95,6 +106,7 @@ section hr{border:0;width:100%}
  </div>
  <div id="tlTrack"><div id="tlDimL"></div><div id="tlDimR"></div><div id="tlSel"></div><div class="tlH" id="tlHIn"></div><div class="tlH" id="tlHOut"></div><div id="tlHead"></div></div>
 </div>
+<div id="side"><div class="hd" id="sdHead">No box selected</div><div class="bd" id="sdBody"><span class="mt">Click a box to see its details.</span></div></div>
 <div id="toast"></div>
 <input id="picker" type="file" accept="image/*,video/*" hidden>
 <div class="frame"><section id="a-mood" class="bento" data-letter="A" data-title="Orbit" data-num="01"></section></div>
@@ -203,7 +215,7 @@ async function loadMedia(el,key){
   if(!src||!el.isConnected) return;
   const md=document.createElement(isVid?'video':'img'); md.src=src; if(isVid){md.muted=true;md.loop=true;md.autoplay=true;md.playsInline=true}
   el.prepend(md); el.classList.add('has-media');
-  if(isVid){ el.classList.add('vid'); addMini(el,md); md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
+  if(isVid){ md.addEventListener('error',()=>{el._vErr=true}); el.classList.add('vid'); addMini(el,md); md.addEventListener('loadedmetadata',()=>{const tr=el._tile&&el._tile.trim; if(tr) md.currentTime=tr.in; if(sel&&sel.tile===el._tile) tlShow()}); }
 }
 function place(el,t){el.style.left=t.x*CW+'px';el.style.top=t.y*CH+'px';el.style.width=t.w*CW+'px';el.style.height=t.h*CH+'px';
   const sz=el.querySelector('.sz'); if(sz) sz.textContent=`${t.w*CW}×${t.h*CH}`;}
@@ -320,6 +332,39 @@ async function thumbs(src){ tlThumbFor=src; track.style.backgroundImage='none';
     if(v.currentTime>=t.trim.out-0.03||v.currentTime<t.trim.in-0.05){ v.currentTime=t.trim.in; } });
   if(document.body.classList.contains('editing')) document.querySelectorAll('.tile.vid').forEach(el=>{const v=el.querySelector('video'); v&&drawMini(el,v)});
   if(tlV) tlDraw(); requestAnimationFrame(loop); })();
+// ---- side panel: details for the selected box, with typed loop start / end for videos
+const parseT=v=>{v=String(v).trim(); if(!v) return NaN; const p=v.split(':'); return p.length>1?(+p[0])*60+(+p[1]):+v};
+let sdKey=null;
+function sdEls(){ if(!document.body.classList.contains('editing')||!sel) return null; const b=boards[sel.board]; const el=b&&b.sec.querySelector(`[data-id="${sel.tile.id}"]`); return el?{el,t:sel.tile,board:sel.board,v:el.querySelector('video')}:null }
+function sdBuild(){ const x=sdEls(), H=document.getElementById('sdHead'), B=document.getElementById('sdBody');
+  const key=x?x.board+'/'+x.t.id+'/'+(x.v?'v':x.el.classList.contains('has-media')?'i':'e'):null; if(key===sdKey) return; sdKey=key;
+  if(!x){ H.textContent='No box selected'; B.innerHTML='<span class="mt">Click a box to see its details.</span>'; return }
+  if(x.t.kind==='title'){ H.textContent='Title block'; B.innerHTML='<span class="mt">Click the title text to rename it.</span>'; return }
+  H.textContent='Box '+(x.el.querySelector('.no')||{}).textContent;
+  if(!x.v){ B.innerHTML=`<span class="mt" id="sdSize"></span><span class="mt">${x.el.classList.contains('has-media')?'Image':'Empty — drop an image or video here'}</span>`; sdTick(); return }
+  B.innerHTML=`<span class="mt" id="sdSize"></span><span id="sdStat" class="mt">Loading video…</span>
+   <label>Loop start <input id="sdIn" placeholder="0:00.0"></label>
+   <label>Loop end <input id="sdOut" placeholder="0:00.0"></label>
+   <span class="mt">Now <span id="sdNow">0:00.0</span> · Loop <span id="sdLen">0:00.0</span></span>
+   <div class="btns"><button id="sdPlay">Pause</button><button id="sdSetIn">Start = now</button><button id="sdSetOut">End = now</button><button id="sdFull">Full clip</button></div>`;
+  const ap=()=>{ const y=sdEls(); if(!y||!y.v||!y.v.duration) return; const a=parseT(document.getElementById('sdIn').value), b=parseT(document.getElementById('sdOut').value), tr=trimOf(y.t,y.v);
+    trimSet(y.board,y.t,y.v,isNaN(a)?tr.in:a,isNaN(b)?tr.out:b); y.v.currentTime=trimOf(y.t,y.v).in; y.v.play().catch(()=>{}); document.activeElement.blur(); };
+  ['sdIn','sdOut'].forEach(id=>{const i=document.getElementById(id); i.addEventListener('change',ap); i.addEventListener('keydown',e=>{if(e.key==='Enter')ap()})});
+  document.getElementById('sdPlay').onclick=()=>{const y=sdEls(); y&&y.v&&(y.v.paused?y.v.play().catch(()=>{}):y.v.pause())};
+  document.getElementById('sdSetIn').onclick=()=>{const y=sdEls(); if(y&&y.v&&y.v.duration){trimSet(y.board,y.t,y.v,y.v.currentTime,trimOf(y.t,y.v).out)}};
+  document.getElementById('sdSetOut').onclick=()=>{const y=sdEls(); if(y&&y.v&&y.v.duration){trimSet(y.board,y.t,y.v,trimOf(y.t,y.v).in,y.v.currentTime)}};
+  document.getElementById('sdFull').onclick=()=>{const y=sdEls(); if(y){delete y.t.trim; save(y.board)}};
+  sdTick(); }
+function sdTick(){ const x=sdEls(); if(!x) return; const sz=document.getElementById('sdSize'); if(sz) sz.textContent=`${x.t.w*CW}×${x.t.h*CH} px · ${x.t.w}×${x.t.h} cells`;
+  if(!x.v) return; const st=document.getElementById('sdStat'); if(!st) return;
+  if(x.el._vErr){ st.className='warn'; st.textContent="This video can't play in this browser. Export it as H.264 MP4 or WebM."; return }
+  if(!x.v.duration){ st.className='mt'; st.textContent='Loading video…'; return }
+  const tr=trimOf(x.t,x.v); st.className='mt'; st.textContent='Video · '+fmt(x.v.duration)+' long';
+  const i=document.getElementById('sdIn'), o=document.getElementById('sdOut');
+  if(document.activeElement!==i) i.value=fmt(tr.in); if(document.activeElement!==o) o.value=fmt(tr.out);
+  document.getElementById('sdNow').textContent=fmt(x.v.currentTime); document.getElementById('sdLen').textContent=fmt(tr.out-tr.in);
+  document.getElementById('sdPlay').textContent=x.v.paused?'Play':'Pause'; }
+(function sdLoop(){ sdBuild(); sdTick(); requestAnimationFrame(sdLoop) })();
 function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
 addEventListener('resize',fit);fit();
 addEventListener('scroll',()=>{const id=current();id&&info(id)},{passive:true});
