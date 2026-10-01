@@ -57,8 +57,15 @@ body.panel-open .stage{right:var(--panel-w)}
 /* Dark copy is drawn in white with a difference blend: over the white page it reads
    black, and wherever it crosses a photo or video that part flips to the image's
    inverse, so it stays legible. */
-.tr[data-ink="dark"] .copy{color:#fff;mix-blend-mode:difference;--mute:rgba(255,255,255,.52)}
-.tr[data-ink="dark"] .cta{background:#fff;color:var(--ink)} /* inverts to a black button with white type */
+/* How copy meets the imagery under it. The invert modes draw the copy in white and
+   blend it, so over the white page it still reads black. */
+.tr[data-blend="difference"] .copy,.tr[data-blend="exclusion"] .copy{color:#fff;--mute:rgba(255,255,255,.52)}
+.tr[data-blend="difference"] .copy{mix-blend-mode:difference}
+.tr[data-blend="exclusion"] .copy{mix-blend-mode:exclusion}
+.tr[data-blend="difference"] .cta,.tr[data-blend="exclusion"] .cta{background:#fff;color:var(--ink)} /* inverts to a black button with white type */
+.tr[data-blend="multiply"] .copy{mix-blend-mode:multiply}
+.tr[data-blend="overlay"] .copy{mix-blend-mode:overlay}
+.tr[data-blend="soft-light"] .copy{mix-blend-mode:soft-light}
 .tr[data-ink="light"] .cta{background:#fff;color:var(--ink)}
 .tr[data-layout="left"]{left:50%}
 .tr[data-layout="right"]{right:50%}
@@ -706,7 +713,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
 const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], shots: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
-  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise' },
+  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
@@ -942,6 +949,7 @@ const ENUMS = {
   'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic'], 'media.fit':['auto','fill','fit'],
   'text.x':['left','center','right'], 'text.y':['top','middle','bottom'], 'text.align':['auto','left','center','right'],
   'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
+  'text.blend':['auto','normal','difference','exclusion','multiply','overlay','soft-light'],
   'card.x':['left','center','right'], 'card.y':['top','middle','bottom'],
 };
 const validArc = a => isObj(a) && Array.isArray(a.points) && a.points.length > 1 && a.points.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite));
@@ -1259,6 +1267,13 @@ function showTab(t) {
 }
 
 /* ---------- stage rendering ---------- */
+/* Blend modes that keep each ink readable. Dark copy has to stay solid black on the
+   white page; white copy only ever sits over imagery. */
+const BLENDS = {
+  dark:  [['difference','Invert','The copy flips to the image’s inverse wherever it crosses it.'], ['exclusion','Soft invert','A gentler inverse, lower contrast in the mid-tones.'], ['multiply','Multiply','The copy darkens the image like printed ink; the photo shows through the letters.'], ['normal','Normal','Plain black, no blending.']],
+  light: [['normal','Normal','Plain white.'], ['difference','Invert','The copy flips to the image’s inverse.'], ['overlay','Overlay','The letters brighten and saturate the image beneath them, so they glow out of it.'], ['soft-light','Soft light','A quieter version of Overlay.']],
+};
+const blendOf = s => { const ink = inkOf(s), b = s.text.blend; return BLENDS[ink].some(o => o[0] === b) ? b : (ink === 'dark' ? 'difference' : 'normal'); };
 const inkOf = s => s.media.kind !== 'none' && s.text.ink === 'light' ? 'light' : 'dark';
 // the wash sits behind the text: white under dark type, soft black under white type
 function scrimFor(s) {
@@ -1313,7 +1328,7 @@ function textLayer(s, i) {
     P(s.stats.on ? h('div', { class:'stats' }, s.stats.items.filter(x => x.v || x.l).map(x => h('div', {}, h('b', {}, x.v), h('small', {}, x.l)))) : null),
     P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => e.preventDefault() }, s.cta.label, ' →') : null),
   );
-  const el = h('div', { class:'tr', 'data-x':t.x, 'data-y':t.y, 'data-layout':layout, 'data-ink': inkOf(s) }, copy);
+  const el = h('div', { class:'tr', 'data-x':t.x, 'data-y':t.y, 'data-layout':layout, 'data-ink': inkOf(s), 'data-blend': blendOf(s) }, copy);
   let card = null;
   if (s.card.on) card = h('div', { class:'cw', 'data-x':s.card.x, 'data-y':s.card.y },
     h('div', { class:'card' }, h('div', { class:'th', style: cardThumb(s) }), h('div', {}, h('p', {}, s.card.name), h('small', {}, s.card.price)),
@@ -1482,7 +1497,8 @@ function holdType(L, s, u) {
   // type-only sections: words fill with ink as you read down the line
   if (s.media.kind === 'none' && L.words.length) {
     const f = clamp((u + .15) / Math.max(.4, s.dwell * .85)) * L.words.length;
-    L.words.forEach((w, n) => { w.style.color = `rgba(255,255,255,${.16 + .84 * clamp(f - n)})`; }); // inverted by the copy's blend
+    const base = /difference|exclusion/.test(blendOf(s)) ? '255,255,255' : '20,20,20'; // white is inverted to ink by the blend
+    L.words.forEach((w, n) => { w.style.color = `rgba(${base},${.16 + .84 * clamp(f - n)})`; });
   }
 }
 
@@ -2534,6 +2550,9 @@ function renderInspector() {
     field('Headline size', seg([['s','S'],['m','M'],['l','L'],['xl','XL']], t.size, up(v => t.size = v))),
     field('Text width', seg([['narrow','Narrow'],['medium','Medium'],['wide','Wide']], t.width, up(v => t.width = v))),
     m.kind !== 'none' && field('Text color', seg([['dark','Dark'],['light','White']], t.ink, up(v => t.ink = v))),
+    m.kind !== 'none' && (() => { const ink = inkOf(s), cur = blendOf(s), opt = BLENDS[ink].find(o => o[0] === cur);
+      return h('div', {}, field('Over imagery', seg(BLENDS[ink].map(([k, label]) => [k, label]), cur, up(v => t.blend = v), 'Blend over imagery')),
+        h('p', { class:'hint' }, opt[2], ' ', h('button', { class:'linkbtn', onclick:act(() => S.sections.forEach(x => { if (inkOf(x) === ink) x.text.blend = cur; })) }, 'Use on every section'))); })(),
   );
 
   const mediaGrp = grp('Media',
