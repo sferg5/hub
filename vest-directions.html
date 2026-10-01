@@ -11,6 +11,7 @@
 html{scroll-snap-type:y mandatory;background:#0b0b0a}
 body{background:#0b0b0a;color:var(--paper);font-family:"Saans",Arial,sans-serif}
 .frame{height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;scroll-snap-align:start;overflow:hidden}
+.pg{position:absolute;left:16px;bottom:12px;z-index:60;font:16px/1 "Saans Mono","Courier New",monospace;color:#6F6C66;pointer-events:none}
 .frame>section{position:relative;flex:none;width:1920px;height:1080px;overflow:hidden;transform:scale(var(--s));margin:calc((var(--s) - 1)*540px) calc((var(--s) - 1)*960px)}
 section img{display:block;object-fit:cover}
 section svg{display:block}
@@ -24,9 +25,9 @@ section hr{border:0;width:100%}
 .tile.has-media .no,.tile.has-media .sz{display:none}
 .tile:nth-child(3n+1){background:#1C1B19}.tile:nth-child(4n+2){background:#242320}.tile:nth-child(5n+3){background:#2A2926}
 .tile.title{z-index:1;background:var(--ink);border:0;display:flex;flex-direction:column;justify-content:space-between;padding:20px 24px}
-.title .row{display:flex;justify-content:space-between;font:24px/1 "Saans Mono","Courier New",monospace;color:var(--mute)}
+.title .row{display:flex;justify-content:space-between;font:18px/1 "Saans Mono","Courier New",monospace;color:var(--mute)}
 .title .row span:first-child{color:var(--acc)}
-.title h2{font:700 64px/1 "Saans Display",Arial,sans-serif;letter-spacing:-1px;color:var(--paper);outline:none}
+.title h2{font:700 40px/1 "Saans Display",Arial,sans-serif;letter-spacing:-1px;color:var(--paper);outline:none}
 /* edit mode */
 .editing .bento::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;
  background-image:linear-gradient(to right,rgba(184,180,106,.28) 1px,transparent 1px),linear-gradient(to bottom,rgba(184,180,106,.28) 1px,transparent 1px);background-size:160px 135px}
@@ -118,7 +119,7 @@ section hr{border:0;width:100%}
 <div class="frame"><section id="a-idea" data-transition="fade" style="display:flex; flex-direction:column; gap:32px; padding:64px 40px; background:#111110">
   <div style="display:flex; flex-direction:row; align-items:end; justify-content:space-between; padding:0 24px">
     <p style="font-family:Saans, Arial, sans-serif; font-size:28px; color:#edebe6">Speed</p>
-    <p style="font-family:'Saans Mono', 'Courier New', monospace; font-size:24px; color:#8e8b84"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 02 / 06</p>
+    <p style="font-family:'Saans Mono', 'Courier New', monospace; font-size:24px; color:#8e8b84"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept</p>
   </div>
   <div style="height:1px; flex:0 0 auto; background:#3a3935;width:100%"></div>
   <div style="display:flex; flex-direction:row">
@@ -152,13 +153,13 @@ section hr{border:0;width:100%}
 </section></div>
 <div class="frame"><section id="b-mood" class="bento" data-letter="B" data-title="[Title]" data-num="03"></section></div>
 <div class="frame"><section id="b-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
-<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">B — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 04 / 06</p></div>
+<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">B — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
 <div class="frame"><section id="c-mood" class="bento" data-letter="C" data-title="[Title]" data-num="05"></section></div>
 <div class="frame"><section id="c-idea" data-transition="fade" style="background:#111110;color:#EDEBE6;font-family:'Saans', Arial, sans-serif;padding:64px 40px;display:flex;flex-direction:column;gap:32px">
-<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">C — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept · 06 / 06</p></div>
+<div style="display:flex;justify-content:space-between;align-items:end;padding:0px 24px"><h2 style="font-family:'Saans Display', Arial, sans-serif;letter-spacing:-1px;font-size:64px;font-weight:700;line-height:1.0;color:#EDEBE6">C — [Title]</h2><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace"><span style="color:#B8B46A">Approach</span> · Camera + Staging = Concept</p></div>
 <hr style="border-top:1px solid #3A3935">
 <div style="display:flex"><div style="flex:1;display:flex;flex-direction:column;gap:24px;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">A · Camera</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace"></p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Camera visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the camera technique.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">B · Staging</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">+</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Staging visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on how we stage the bag.]</p></div><div style="flex:1;display:flex;flex-direction:column;gap:24px;border-left:1px solid #3A3935;padding:0px 24px"><div style="display:flex;justify-content:space-between"><p style="font-size:24px;color:#EDEBE6;font-family:'Saans Mono', 'Courier New', monospace">C · Concept</p><p style="font-size:24px;color:#B8B46A;font-family:'Saans Mono', 'Courier New', monospace">=</p></div><div style="width:549px;height:600px;display:flex;flex-direction:column;justify-content:end;background:#1C1B19;border:1px solid #3A3935;padding:20px 24px"><p style="font-size:24px;color:#8E8B84;font-family:'Saans Mono', 'Courier New', monospace">[Concept visual]</p></div><p style="font-size:28px;line-height:1.4;color:#C9C6BF">[One sentence on the concept.]</p></div></div>
 </section></div>
@@ -189,7 +190,7 @@ function render(id){
   for(const t of order){
     const el=document.createElement('div'); el.className='tile'+(t.kind==='title'?' title':''); el.dataset.id=t.id;
     if(t.kind==='title'){
-      el.innerHTML=`<div class="row"><span>${sec.dataset.letter} — Mood board</span><span>${sec.dataset.num} / 06</span></div><h2></h2><div class="h"></div>`;
+      el.innerHTML=`<div class="row"><span>${sec.dataset.letter} — Mood board</span></div><h2></h2><div class="h"></div>`;
       const h2=el.querySelector('h2'); h2.textContent=t.text||sec.dataset.title;
       h2.addEventListener('input',()=>{t.text=h2.textContent;save(id)});
     } else {
@@ -377,6 +378,7 @@ function sdTick(){ const x=sdEls(); if(!x) return; const sz=document.getElementB
   document.getElementById('sdNow').textContent=fmt(x.v.currentTime); document.getElementById('sdLen').textContent=fmt(tr.out-tr.in);
   document.getElementById('sdPlay').textContent=x.v.paused?'Play':'Pause'; }
 (function sdLoop(){ sdBuild(); sdTick(); requestAnimationFrame(sdLoop) })();
+document.querySelectorAll('.frame>section').forEach((sec,i,all)=>{const n=()=>{if(!sec.querySelector('.pg')){const p=document.createElement('span');p.className='pg';p.textContent=String(i+1).padStart(2,'0')+' / '+String(all.length).padStart(2,'0');sec.appendChild(p)}};n();new MutationObserver(n).observe(sec,{childList:true})});
 function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
 addEventListener('resize',fit);fit();
 addEventListener('scroll',()=>{const id=current();id&&info(id)},{passive:true});
