@@ -112,6 +112,8 @@ body.panel-open .stage{right:var(--panel-w)}
 .spots{position:absolute;inset:0}
 .spot{position:absolute;display:flex;align-items:center;gap:8px}
 .spot.flip{flex-direction:row-reverse}
+body.panel-open .spot i{cursor:grab;pointer-events:auto}
+.spots,.spot{pointer-events:none}
 .spot i{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.35),0 2px 8px rgba(0,0,0,.25);flex:none}
 .spot span{background:#fff;color:var(--ink);border-radius:2px;padding:6px 9px;font:600 12px/1.25 var(--sans);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .spot span small{display:block;font-weight:400;color:var(--mute);font-size:11.5px}
@@ -418,6 +420,12 @@ body:not(.panel-open) .arc{right:0}
 .pool-f{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 4px}
 .pool h4{font:600 14px/1.2 var(--sans);margin:18px 0 10px;display:flex;justify-content:space-between}
 .pool h4 small{font-weight:400;color:var(--p-mute)}
+.spad{position:relative;margin:0 auto 12px;border-radius:3px;overflow:hidden;cursor:copy;background:var(--p-soft);touch-action:none}
+.spad img,.spad video{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
+.sdot{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#fff;color:var(--p-fg);font:700 11px/22px var(--sans);text-align:center;font-style:normal;box-shadow:0 0 0 2px var(--p-fg),0 2px 8px rgba(0,0,0,.3);cursor:grab;touch-action:none}
+.spotrow{display:grid;grid-template-columns:22px 1fr 1fr 30px;gap:8px;align-items:end}
+.spotrow .snum{width:22px;height:22px;margin-bottom:24px;border-radius:50%;background:var(--p-fg);color:#fff;font:700 11px/22px var(--sans);text-align:center}
+.spotrow .ib{margin-bottom:22px}
 .crops{display:grid;gap:14px}
 .crops.many{grid-template-columns:1fr 1fr}
 .crop{display:grid;gap:8px}
@@ -729,7 +737,7 @@ const MOTIONS = {
   iris:     ['Iris',     'New imagery opens from the center of each frame as it moves.'],
   dissolve: ['Dissolve', 'The last composition fades to white, then this one fades up.'],
 };
-const FR = 4; // frames on stage: one per gallery tile at most
+const FR = 6; // frames on stage: one per gallery tile at most
 
 /* How a section's copy arrives (and leaves). All scroll-driven, so every one scrubs backwards. */
 const TYPE_ANIMS = {
@@ -754,7 +762,7 @@ const BASE = () => ({
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
   stats: { on: false, items: [{ v: '', l: '' }, { v: '', l: '' }, { v: '', l: '' }] },
-  shop: { on: false, items: [0, 1, 2, 3].map(() => ({ name: 'Product name', price: '$XX', tag: '' })) },
+  shop: { on: false, items: [0, 1, 2, 3, 4, 5].map(() => ({ name: 'Product name', price: '$XX', tag: '' })) },
   spots: { on: false, items: [{ x: 30, y: 35, label: 'Feature', sub: '' }, { x: 62, y: 55, label: 'Feature', sub: '' }, { x: 40, y: 72, label: '', sub: '' }] },
   feats: { on: false, items: [{ t: 'Feature', d: 'One line on why it matters.' }, { t: 'Feature', d: 'One line on why it matters.' }, { t: '', d: '' }] },
   // story modules for other kinds of stories
@@ -994,7 +1002,7 @@ function sanitize(base, val) {
 // the choices each setting allows; anything else falls back to the default
 const ENUMS = {
   'media.kind':['video','image','gallery','none'], 'media.layout':['full','left','right','inset'], 'media.inset':['s','m','l'],
-  'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic'], 'media.fit':['auto','fill','fit'],
+  'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic','cdp'], 'media.fit':['auto','fill','fit'],
   'text.x':['left','center','right'], 'text.y':['top','middle','bottom'], 'text.align':['auto','left','center','right'],
   'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
   'text.blend':['auto','normal','difference','exclusion','multiply','overlay','soft-light'],
@@ -1020,7 +1028,7 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
     const base = BASE(), x = sanitize(base, s);
     if (typeof x.id !== 'string' || !x.id) x.id = base.id;
     for (const [path, ok] of Object.entries(ENUMS)) { const [a, b] = path.split('.'); if (!ok.includes(x[a][b])) x[a][b] = base[a][b]; }
-    x.media.count = clamp(Math.round(+x.media.count) || 3, 2, 4); x.dwell = clamp(+x.dwell || 1, .4, 3);
+    x.media.count = clamp(Math.round(+x.media.count) || 3, 2, 6); x.dwell = clamp(+x.dwell || 1, .4, 3);
     if (!MOTIONS[x.motion]) x.motion = 'glide';
     if (!Array.isArray(x.media.items)) x.media.items = [];
     if (x.media.url) { x.media.items[0] = 'l:' + x.media.url; delete x.media.url; }
@@ -1087,7 +1095,19 @@ function rectsFor(s) {
     I.h -= SAFE.b + H * .05;
   }
   const gap = g * .35, tiles = [];
-  if (m.arrange === 'mosaic' && n > 1) {
+  if (m.arrange === 'cdp') {
+    /* Product grid, like a category page: square image tiles in tidy rows (3 across on a
+       computer, 2 on a phone), the name and price strip under each, centred in the space. */
+    const strip = s.shop.on ? 64 : 0, fit = c => { const rw = Math.ceil(n / c); return Math.min((I.w - gap * (c - 1)) / c, (I.h - gap * (rw - 1)) / rw - strip); };
+    let cols = 1; for (let c = 2; c <= Math.min(n, narrow ? 2 : 4); c++) if (fit(c) > fit(cols) + .5) cols = c; // the column count that gives the biggest tiles
+    const rows = Math.ceil(n / cols), sz = Math.max(40, fit(cols));
+    const bw = cols * sz + gap * (cols - 1), bh = rows * (sz + strip) + gap * (rows - 1);
+    const x0 = I.x + (I.w - bw) / 2, y0 = I.y + (I.h - bh) / 2;
+    for (let k = 0; k < n; k++) {
+      const r = Math.floor(k / cols), inRow = Math.min(cols, n - r * cols), rx = x0 + (cols - inRow) * (sz + gap) / 2; // a short last row sits centred
+      tiles.push({ x:rx + (k % cols) * (sz + gap), y:y0 + r * (sz + strip + gap), w:sz, h:sz + strip });
+    }
+  } else if (m.arrange === 'mosaic' && n > 1) {
     const bw = (I.w - gap) * .58, rx = I.x + bw + gap, rw = I.w - bw - gap, rest = n - 1;
     tiles.push({ x:I.x, y:I.y, w:bw, h:I.h });
     if (rest <= 2) { const th = (I.h - gap * (rest - 1)) / rest; for (let k = 0; k < rest; k++) tiles.push({ x:rx, y:I.y + k * (th + gap), w:rw, h:th }); }
@@ -1470,12 +1490,14 @@ function renderStage() {
       if (s.caption.on && s.caption.text && k === 0) lay.append(h('span', { class:'cap', 'data-pos':s.caption.pos }, s.caption.text)); // credit line, rides with the frame
       if (s.spots.on && k === 0) {
         const wrap = h('div', { class:'spots' });
-        s.spots.items.forEach(sp => {
+        s.spots.items.forEach((sp, sk) => {
           if (!sp.label) return;
           // a label opens toward whichever side has room for it inside the frame
           const fw = (rectsFor(s) || [])[0]?.w || W, px = sp.x / 100 * fw, lw = W < 720 ? 150 : 210;
           const el = h('div', { class:'spot' + (px + lw > fw && px > fw - px ? ' flip' : ''), style:{ left:sp.x + '%', top:sp.y + '%' } },
-            h('i'), h('span', {}, sp.label, sp.sub && h('small', {}, sp.sub)));
+            h('i', { title:'Drag to move this hotspot' }), h('span', {}, sp.label, sp.sub && h('small', {}, sp.sub)));
+          el.dataset.k = sk;
+          el.querySelector('i').addEventListener('pointerdown', e => dragSpot(e, s, sp, el, wrap));
           spots.push(el); wrap.append(el);
         });
         lz.append(wrap);
@@ -1519,7 +1541,7 @@ const HOLDS = {
   pan:   ['Pan',     'The imagery slides sideways inside its frame.'],
   drift: ['Drift',   'Frames and type float at different speeds, like layers of depth.'],
 };
-const DEPTH = [.7, 1.35, .95, 1.15]; // per-frame parallax rates for tiles
+const DEPTH = [.7, 1.35, .95, 1.15, .85, 1.25]; // per-frame parallax rates for tiles
 const amt = () => S.holdAmt;
 // never fully flat at the ends, so a transition always moves a little
 const glide = t => .82 * easeIO(t) + .18 * t;
@@ -1537,6 +1559,16 @@ function kenBurnsRaw(s, u) {
   return { sc:Math.min(1.02 + v * .035 * k, 1.3), x:0, y:0 };
 }
 // hotspots pop in one after another while the section is held
+/* Move a hotspot by dragging its dot on the stage (editor open). Positions are % of the frame. */
+function dragSpot(e, s, sp, el, wrap) {
+  if (!document.body.classList.contains('panel-open') || e.pointerType === 'touch') return;
+  e.preventDefault(); e.stopPropagation(); snapshot(); stopPlay();
+  const move = ev => { const r = wrap.getBoundingClientRect();
+    sp.x = Math.round(clamp((ev.clientX - r.left) / r.width) * 100); sp.y = Math.round(clamp((ev.clientY - r.top) / r.height) * 100);
+    el.style.left = sp.x + '%'; el.style.top = sp.y + '%'; };
+  const up = () => { removeEventListener('pointermove', move); removeEventListener('pointerup', up); save(); renderStage(); renderInspector(); };
+  addEventListener('pointermove', move); addEventListener('pointerup', up);
+}
 function holdSpots(L, u) {
   L.spots.forEach((el, k) => {
     const q = easeOut(clamp((u + .25 - k * .28) / .3));
@@ -2189,6 +2221,14 @@ const SHOP_POOL = () => {
       media:{ kind:'gallery', layout:'full', count:4, arrange:'row', items:[im(3), im(4), im(6), im(9)] },
       shop:{ on:true, items:[P('Fleece Jacket', 'New'), P('Gradient Tank'), P('Wind Jacket', 'New'), P('Mesh Tank')] },
       text:{ x:'left', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'Shop the run kit.' }),
+    make({ beat:'close', name:'Flat lay grid · 6', hold:'drift', overlay:0,
+      media:{ kind:'gallery', layout:'full', count:6, arrange:'cdp', items:[im(3), im(4), im(5), im(6), im(7), im(9)] },
+      shop:{ on:true, items:[P('Fleece Jacket'), P('Gradient Tank'), P('Gradient Short', 'New'), P('Wind Jacket'), P('Layered Tank', 'New'), P('Mesh Tank')] },
+      text:{ x:'center', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'The full kit.' }),
+    make({ beat:'proof', name:'Flat lay grid · split', hold:'drift', overlay:0,
+      media:{ kind:'gallery', layout:'right', count:4, arrange:'cdp', items:[im(4), im(7), im(9), im(5)] },
+      shop:{ on:true, items:[P('Gradient Tank'), P('Layered Tank', 'New'), P('Mesh Tank'), P('Gradient Short')] },
+      text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'cascade' }, headline:'Layers for every mile.', body:'Four pieces that work together.', cta:{ show:true, label:'Shop tops' } }),
     make({ beat:'close', name:'Product grid · 3', hold:'drift', overlay:0,
       media:{ kind:'gallery', layout:'full', count:3, arrange:'stagger', items:[im(7), im(8), im(5)] },
       shop:{ on:true, items:[P('Layered Tank', 'New'), P('Run Short'), P('Gradient Short')] },
@@ -2256,12 +2296,14 @@ const LAYOUTS = [
   ['Gallery · stagger',   { kind:'gallery', media:{ layout:'full', arrange:'stagger' }, text:{ x:'left', y:'top', width:'medium' } }],
   ['Gallery · mosaic',    { kind:'gallery', media:{ layout:'full', arrange:'mosaic' }, text:{ x:'left', y:'top', width:'medium' } }],
   ['Gallery · split grid',{ kind:'gallery', media:{ layout:'right', arrange:'grid' }, text:{ x:'left', y:'middle', width:'narrow' } }],
+  ['Product grid',        { kind:'gallery', media:{ layout:'full', arrange:'cdp' }, text:{ x:'center', y:'top', width:'wide' } }],
+  ['Product grid · split',{ kind:'gallery', media:{ layout:'right', arrange:'cdp' }, text:{ x:'left', y:'middle', width:'narrow' } }],
   ['Type only',           { kind:'none', text:{ x:'center', y:'middle', width:'wide' } }],
 ];
 function withLayout(s, L) {
   const x = clone(s), m = x.media, firstType = (asset(m.items.find(Boolean)) || {}).type;
   if (L.kind === 'none') m.kind = 'none';
-  else if (L.kind === 'gallery') { if (m.kind !== 'gallery') m.count = clamp(m.items.filter(Boolean).length || 3, 2, 4); m.kind = 'gallery'; }
+  else if (L.kind === 'gallery') { if (m.kind !== 'gallery') m.count = clamp(m.items.filter(Boolean).length || 3, 2, 6); m.kind = 'gallery'; }
   else if (m.kind === 'gallery' || m.kind === 'none') m.kind = firstType === 'video' ? 'video' : 'image';
   Object.assign(m, L.media || {});
   Object.assign(x.text, L.text, { align:'auto' });
@@ -2663,6 +2705,29 @@ function sharpness(s, k) {
 /* ---------- inspector ---------- */
 /* Crop position: the whole picture with a dot. Drag the dot (or click the picture)
    to choose what the frame keeps in view; the stage follows live. */
+/* Hotspot placement pad: the frame as it looks on the stage, with numbered dots.
+   Drag a dot to move it; click the picture to add a hotspot there. */
+function spotPad(s) {
+  const a = asset(s.media.items[0]), r = (rectsFor(s) || [])[0];
+  const ar = r ? r.w / r.h : 1.4;
+  const pic = a ? (a.type === 'video' ? assetEl(a, false) : h('img', { src:a.src, alt:'' })) : h('div', { class:'ph' });
+  if (a) { pic.style.objectFit = fitOf(s, a); pic.style.objectPosition = focusPos(s, 0, a); if (fitOf(s, a) === 'contain') pic.style.background = a.bg || FLAT_BG; }
+  const pad = h('div', { class:'spad', style:{ aspectRatio:String(ar), width:`min(100%, ${Math.round(220 * ar)}px)` } }, pic);
+  const at = e => { const b = pad.getBoundingClientRect(); return [Math.round(clamp((e.clientX - b.left) / b.width) * 100), Math.round(clamp((e.clientY - b.top) / b.height) * 100)]; };
+  s.spots.items.forEach((sp, k) => {
+    const d = h('i', { class:'sdot', style:{ left:sp.x + '%', top:sp.y + '%' }, title:sp.label || `Hotspot ${k + 1}` }, k + 1);
+    d.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation(); snapshot(); try { d.setPointerCapture(e.pointerId); } catch (err) {}
+      const mv = ev => { [sp.x, sp.y] = at(ev); d.style.left = sp.x + '%'; d.style.top = sp.y + '%';
+        const L = layers[idx(s.id)], el = L && L.spots.find(x => +x.dataset.k === k); if (el) { el.style.left = sp.x + '%'; el.style.top = sp.y + '%'; } };
+      const up = () => { d.removeEventListener('pointermove', mv); d.removeEventListener('pointerup', up); save(); renderStage(); };
+      d.addEventListener('pointermove', mv); d.addEventListener('pointerup', up);
+    });
+    pad.append(d);
+  });
+  pad.addEventListener('pointerdown', e => { if (e.target.closest('.sdot') || s.spots.items.length >= 6) return; const [x, y] = at(e); act(() => s.spots.items.push({ x, y, label:'New hotspot', sub:'' }))(); });
+  return pad;
+}
 function cropEditors(s) {
   const i = idx(s.id), boxes = [];
   for (let k = 0; k < count(s); k++) {
@@ -2752,8 +2817,8 @@ function renderInspector() {
       field('Inset size', seg([['s','S'],['m','M'],['l','L']], m.inset, up(v => m.inset = v))),
       field('Inset side', seg([['left','L'],['center','C'],['right','R']], m.mx, up(v => m.mx = v)))));
     if (m.kind === 'gallery') mg.append(h('div', { class:'f2' },
-      field('Tiles', seg([[2,'2'],[3,'3'],[4,'4']], m.count, up(v => m.count = v))),
-      field('Arrangement', seg([['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
+      field('Tiles', seg([[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6']], m.count, up(v => m.count = v))),
+      field('Arrangement', seg([['cdp','Product grid'],['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
     mg.append(field(m.kind === 'gallery' ? 'Tiles · drag from the Library, or click to choose' : 'Content · drag from the Library, or click to choose', slotsFor(s)));
     { const crops = cropEditors(s); if (crops) mg.append(field(count(s) > 1 ? 'Crop position · per tile' : 'Crop position', crops)); }
     mg.append(field('Image fit', seg([['auto','Auto'],['fill','Fill frame'],['fit','Show whole']], m.fit, up(v => m.fit = v))),
@@ -2801,12 +2866,12 @@ function renderInspector() {
     }
     md.append(field('Hotspots on the image', seg([[false,'Off'],[true,'On']], s.spots.on, up(v => s.spots.on = v))));
     if (s.spots.on) {
-      md.append(h('p', { class:'hint' }, 'Points pinned to the image. They appear one by one as the viewer scrolls. Leave a label empty to hide it.'));
-      s.spots.items.forEach((sp, k) => md.append(
-        h('div', { class:'f2' }, field(`Hotspot ${k + 1}`, text(sp.label, v => sp.label = v)), field('Detail', text(sp.sub, v => sp.sub = v))),
-        h('div', { class:'f2' },
-          field('Across', slider(0, 100, 1, sp.x, v => v + '%', v => sp.x = v, renderStage)),
-          field('Down', slider(0, 100, 1, sp.y, v => v + '%', v => sp.y = v, renderStage)))));
+      md.append(h('p', { class:'hint' }, 'Drag a dot here, or on the stage, to place it. Click the picture to add one. They appear one by one as the viewer scrolls.'), spotPad(s));
+      s.spots.items.forEach((sp, k) => md.append(h('div', { class:'spotrow' },
+        h('b', { class:'snum' }, k + 1),
+        field('Label', text(sp.label, v => sp.label = v)), field('Detail', text(sp.sub, v => sp.sub = v)),
+        h('button', { class:'ib', title:'Remove this hotspot', 'aria-label':`Remove hotspot ${k + 1}`, onclick:act(() => s.spots.items.splice(k, 1)) }, '×'))));
+      if (s.spots.items.length < 6) md.append(h('button', { class:'btn', style:{ marginBottom:'16px' }, onclick:act(() => s.spots.items.push({ x:50, y:50, label:'New hotspot', sub:'' })) }, '+ Add hotspot'));
     }
   }
   const onoff = (label, o) => md.append(field(label, seg([[false,'Off'],[true,'On']], o.on, up(v => o.on = v))));
