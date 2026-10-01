@@ -418,6 +418,16 @@ body:not(.panel-open) .arc{right:0}
 .pool-f{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 4px}
 .pool h4{font:600 14px/1.2 var(--sans);margin:18px 0 10px;display:flex;justify-content:space-between}
 .pool h4 small{font-weight:400;color:var(--p-mute)}
+.crops{display:grid;gap:14px}
+.crops.many{grid-template-columns:1fr 1fr}
+.crop{display:grid;gap:8px}
+.cpad{position:relative;margin:0 auto;border-radius:3px;overflow:hidden;cursor:crosshair;background:var(--p-soft);touch-action:none}
+.cpad img,.cpad video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.cdot{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid #fff;background:rgba(20,20,20,.55);box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.3);pointer-events:none}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cgrid{display:grid;grid-template-columns:repeat(3,14px);gap:3px}
+.cgrid button{width:14px;height:14px;border-radius:2px;border:1px solid var(--p-line);background:#fff}
+.cgrid button[aria-pressed="true"]{background:var(--p-fg);border-color:var(--p-fg)}
 .lay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .lay-opt{display:grid;gap:5px;padding:4px 4px 6px;border:1px solid var(--p-line);border-radius:4px;background:#fff;text-align:left;font:400 11px/1.2 var(--sans);color:var(--p-fg)}
 .lay-opt:hover{border-color:var(--p-fg)}
@@ -736,7 +746,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
    so any section can become any composition. */
 const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
-  media: { kind: 'video', layout: 'full', items: [], shots: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
+  media: { kind: 'video', layout: 'full', items: [], shots: [], focus: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
@@ -1323,12 +1333,16 @@ function scrimFor(s) {
 /* How an image sits in its frame. Auto: flat lays show whole on their studio
    grey (never cropped into the product); editorial fills the frame, cropped
    around its focus. */
+/* Where a cropped image sits in its frame: the section's own choice for that frame,
+   or the image's built-in focus. */
+const focusOf = (s, k, a) => { const f = (s.media.focus || [])[k]; return f && Number.isFinite(f.x) && Number.isFinite(f.y) ? f : { x:50, y:(a && a.fy) ?? 50 }; };
+const focusPos = (s, k, a) => { const f = focusOf(s, k, a); return `${f.x}% ${f.y}%`; };
 const fitOf = (s, a) => s.media.fit === 'fill' ? 'cover' : s.media.fit === 'fit' ? 'contain' : a.look === 'flat' ? 'contain' : 'cover';
 function mediaInner(s, k) {
   const m = s.media, a = asset(m.items[k]);
   if (a) {
     const el = assetEl(a, true), fit = fitOf(s, a);
-    el.style.objectFit = fit; el.style.objectPosition = `50% ${a.fy ?? 50}%`;
+    el.style.objectFit = fit; el.style.objectPosition = focusPos(s, k, a);
     if (fit === 'contain') el.dataset.bg = a.bg || FLAT_BG;
     return el;
   }
@@ -2248,7 +2262,7 @@ function poolThumb(s) {
     const f = h('i', { class:'pf' + (s.shop.on ? ' shop' : ''), style:{ left:r.x / 16 + '%', top:r.y / 10 + '%', width:r.w / 16 + '%', height:r.h / 10 + '%',
       backgroundImage: a && a.type === 'image' ? `url("${a.src}")` : null,
       backgroundSize: a && fitOf(s, a) === 'contain' ? 'contain' : null, backgroundColor: a && a.look === 'flat' ? a.bg : null,
-      backgroundPosition: a ? `50% ${a.fy ?? 50}%` : null } });
+      backgroundPosition: a ? focusPos(s, k, a) : null } });
     if (s.spots.on && k === 0) s.spots.items.filter(sp => sp.label).forEach(sp => f.append(h('b', { class:'pdot', style:{ left:sp.x + '%', top:sp.y + '%' } })));
     box.append(f);
   });
@@ -2619,6 +2633,39 @@ function sharpness(s, k) {
 }
 
 /* ---------- inspector ---------- */
+/* Crop position: the whole picture with a dot. Drag the dot (or click the picture)
+   to choose what the frame keeps in view; the stage follows live. */
+function cropEditors(s) {
+  const i = idx(s.id), boxes = [];
+  for (let k = 0; k < count(s); k++) {
+    const a = asset(s.media.items[k]); if (!a || fitOf(s, a) !== 'cover') continue;
+    boxes.push(cropEditor(s, i, k, a));
+  }
+  return boxes.length ? h('div', { class:'crops' + (boxes.length > 1 ? ' many' : '') }, boxes) : null;
+}
+function cropEditor(s, i, k, a) {
+  const f = focusOf(s, k, a);
+  const pic = a.type === 'video' ? assetEl(a, false) : h('img', { src:a.src, alt:'' });
+  const dot = h('i', { class:'cdot', style:{ left:f.x + '%', top:f.y + '%' } });
+  const ar = a.w && a.h ? a.w / a.h : .8; // keep the picture's own shape, at most 200px tall
+  const pad = h('div', { class:'cpad', style:{ aspectRatio:String(ar), width:`min(100%, ${Math.round(200 * ar)}px)` }, title:'Drag to choose what the frame shows' }, pic, dot);
+  const live = (x, y) => {
+    dot.style.left = x + '%'; dot.style.top = y + '%';
+    const m = layers[i] && layers[i].media[k]; const el = m && m.querySelector('img,video'); if (el) el.style.objectPosition = `${x}% ${y}%`;
+  };
+  const setAt = (x, y) => { s.media.focus = s.media.focus || []; s.media.focus[k] = { x:Math.round(x), y:Math.round(y) }; };
+  let drag = false;
+  const at = e => { const r = pad.getBoundingClientRect(); return [clamp((e.clientX - r.left) / r.width) * 100, clamp((e.clientY - r.top) / r.height) * 100]; };
+  pad.addEventListener('pointerdown', e => { e.preventDefault(); snapshot(); drag = true; try { pad.setPointerCapture(e.pointerId); } catch (err) {} const [x, y] = at(e); setAt(x, y); live(x, y); });
+  pad.addEventListener('pointermove', e => { if (!drag) return; const [x, y] = at(e); setAt(x, y); live(x, y); });
+  const up = () => { if (!drag) return; drag = false; save(); renderList(); };
+  pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
+  const presets = h('div', { class:'cgrid', role:'group', 'aria-label':'Crop presets' },
+    [0, 50, 100].flatMap(y => [0, 50, 100].map(x => h('button', { 'aria-label':`Crop to ${['top','centre','bottom'][y / 50]} ${['left','centre','right'][x / 50]}`,
+      'aria-pressed':String(Math.abs(f.x - x) < 1 && Math.abs(f.y - y) < 1), onclick:act(() => setAt(x, y)) }))));
+  return h('div', { class:'crop' }, pad, h('div', { class:'crow' }, presets,
+    h('button', { class:'linkbtn', onclick:act(() => { if (s.media.focus) s.media.focus[k] = null; }) }, 'Reset')));
+}
 function slotsFor(s) {
   const n = count(s);
   return h('div', { class:'slots' }, Array.from({ length:n }, (_, k) => {
@@ -2672,6 +2719,7 @@ function renderInspector() {
       field('Tiles', seg([[2,'2'],[3,'3'],[4,'4']], m.count, up(v => m.count = v))),
       field('Arrangement', seg([['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
     mg.append(field(m.kind === 'gallery' ? 'Tiles · drag from the Library, or click to choose' : 'Content · drag from the Library, or click to choose', slotsFor(s)));
+    { const crops = cropEditors(s); if (crops) mg.append(field(count(s) > 1 ? 'Crop position · per tile' : 'Crop position', crops)); }
     mg.append(field('Image fit', seg([['auto','Auto'],['fill','Fill frame'],['fit','Show whole']], m.fit, up(v => m.fit = v))),
       h('p', { class:'hint' }, m.fit === 'fill' ? 'Crops the image to fill the frame.' : m.fit === 'fit' ? 'Shows the whole image on a matching background.' : 'Product flat lays show whole on their grey; editorial photos fill the frame.'));
     if (m.kind !== 'gallery') {
