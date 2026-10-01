@@ -192,9 +192,9 @@ body.panel-open .stage{right:var(--panel-w)}
 .stage.has-swiper{touch-action:none;overscroll-behavior:none}
 .dots{position:absolute;right:14px;top:50%;transform:translateY(-50%);display:grid;gap:10px;z-index:10;mix-blend-mode:difference}
 /* filled dots; the section on stage is the solid one. Padding gives a bigger target without a bigger dot */
-.dots button{box-sizing:content-box;width:7px;height:7px;padding:4px;margin:-4px;border-radius:50%;background:#fff;background-clip:content-box;
-  opacity:calc(.3 + .7 * var(--a,0));transform:scale(calc(1 + .7 * var(--a,0)));transition:opacity .25s} /* --a: 0 → 1 as its section arrives, set every frame */
-.dots button:hover{opacity:max(.65, calc(.3 + .7 * var(--a,0)));transform:scale(calc(1.2 + .5 * var(--a,0)))}
+.dots button{box-sizing:content-box;width:5px;height:5px;padding:5px;margin:-5px;border-radius:50%;background:#fff;background-clip:content-box;
+  opacity:calc(.3 + .7 * var(--a,0));transform:scale(calc(1 + .4 * var(--a,0)));transition:opacity .25s} /* --a: 0 → 1 as its section arrives, set every frame */
+.dots button:hover{opacity:max(.65, calc(.3 + .7 * var(--a,0)));transform:scale(calc(1.15 + .25 * var(--a,0)))}
 .empty{position:absolute;inset:0;display:grid;place-items:center;color:#9A9A9A;font:400 12px/1.4 var(--mono);letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:24px}
 
 /* ================= control panel (lululemon.com style) ================= */
