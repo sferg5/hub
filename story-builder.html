@@ -1597,10 +1597,11 @@ const kbStr = (m, extraY = 0, extraS = 0) => `translate(${m.x}%,${m.y + extraY}%
 /* The hold motion for one frame, anchored on that frame's crop position: the zoom grows
    from the chosen point, and a pan or drift only travels as far as the image has room
    for on each side, so "top" stays top and no edge ever shows. */
-// how far a section has come toward its resting point (0 as it starts arriving, 1 at rest)
-const restQ = (s, u) => clamp((u + S.trans) / (restU(s) + S.trans));
+// how far a section has come toward its resting point: 0 when it arrives, 1 at rest. Unveil and Focus
+// play over the hold, so the viewer sees them resolve after the transition, not hidden inside it.
+const restQ = (s, u) => clamp(u / Math.max(.2, restU(s)));
 function holdFX(s, m, u) {
-  const q = easeOut(restQ(s, u));
+  const q = easeIO(restQ(s, u));
   if (s.hold === 'unveil') m.style.clipPath = `inset(${(1 - q) * 14}% ${(1 - q) * 18}%)`;
   const blur = s.hold === 'focus' ? (1 - q) * 10 : 0;
   m.firstChild.style.filter = blur > .05 ? `blur(${blur.toFixed(1)}px)` : '';
