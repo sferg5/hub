@@ -54,6 +54,11 @@ body.panel-open .stage{right:var(--panel-w)}
 /* text: one layer per section, positioned on a 3x3 grid */
 .tr{position:absolute;inset:0;display:grid;padding:var(--top) var(--g) var(--g);visibility:hidden;color:var(--ink)}
 .tr[data-ink="light"]{color:#fff;--mute:rgba(255,255,255,.78)}
+/* Dark copy is drawn in white with a difference blend: over the white page it reads
+   black, and wherever it crosses a photo or video that part flips to the image's
+   inverse, so it stays legible. */
+.tr[data-ink="dark"] .copy{color:#fff;mix-blend-mode:difference;--mute:rgba(255,255,255,.52)}
+.tr[data-ink="dark"] .cta{background:#fff;color:var(--ink)} /* inverts to a black button with white type */
 .tr[data-ink="light"] .cta{background:#fff;color:var(--ink)}
 .tr[data-layout="left"]{left:50%}
 .tr[data-layout="right"]{right:50%}
@@ -175,7 +180,7 @@ body.panel-open .stage{right:var(--panel-w)}
 body.panel-open .fab{right:var(--panel-w)}
 .panel{position:fixed;top:0;right:0;bottom:0;width:var(--panel-w);z-index:50;background:var(--p-bg);color:var(--p-fg);border-left:1px solid var(--p-line);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s var(--ease-out);font:400 14px/1.45 var(--sans)}
 body.panel-open .panel{transform:none}
-.p-head{padding:20px 20px 16px;border-bottom:1px solid var(--p-line-2);display:grid;gap:14px}
+.p-head{padding:14px 16px 12px;border-bottom:1px solid var(--p-line-2);display:grid;gap:10px}
 .p-title{display:grid;gap:4px}
 .p-title-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--p-fg);background:#fff;font:700 15px/1 var(--sans);flex:none}
@@ -238,16 +243,16 @@ body.panel-open .panel{transform:none}
 .hv-keys kbd{font:600 18px/1 var(--mono);border:1px solid #CFCFCF;border-bottom-width:4px;border-radius:8px;padding:14px 16px;background:#fff;text-align:center;min-width:64px}
 @media (prefers-reduced-motion:reduce){.hv *{animation:none!important}}
 @media (max-width:760px){.help{padding:0;place-items:end stretch}.help-card{grid-template-columns:1fr;grid-template-rows:168px minmax(0,1fr);border-radius:12px 12px 0 0;height:min(680px,90vh)}.help-vis{min-height:0;border-radius:12px 12px 0 0}.help-body{padding:22px 20px 18px}.help-body h2{font-size:23px}}
-.p-title b{font:700 22px/1.1 var(--sans);letter-spacing:-.01em}
-.p-title small{font-size:13px;color:var(--p-mute)}
-.arc-cta{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:14px;width:100%;min-height:60px;padding:10px 16px;border-radius:4px;background:var(--p-accent);color:var(--p-accent-fg);text-align:left;transition:background .2s}
+.p-title b{font:700 19px/1.1 var(--sans);letter-spacing:-.01em}
+.p-title small{display:none} /* the guide explains the tool; the header stays short */
+.arc-cta{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:12px;width:100%;min-height:46px;padding:7px 14px;border-radius:4px;background:var(--p-accent);color:var(--p-accent-fg);text-align:left;transition:background .2s}
 .arc-cta:hover{background:#333}
 .arc-cta svg{width:40px;height:20px;color:#FF5A66}
-.arc-cta b{display:block;font:600 16px/1.2 var(--sans)}
+.arc-cta b{display:block;font:600 15px/1.2 var(--sans)}
 .arc-cta small{display:block;font:400 12.5px/1.3 var(--sans);opacity:.72;margin-top:2px}
 .arc-cta i{font-style:normal;font-size:18px}
 .hist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:40px;border:1px solid var(--p-fg);border-radius:4px;background:#fff;font:600 14px/1 var(--sans)}
+.hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:34px;border:1px solid var(--p-fg);border-radius:4px;background:#fff;font:600 14px/1 var(--sans)}
 .hbtn span{font-size:17px;line-height:1}
 .hbtn kbd{font:400 11px/1 var(--mono);color:var(--p-mute);letter-spacing:.04em}
 .hbtn:hover:not([disabled]){background:var(--p-soft)}
@@ -261,7 +266,14 @@ body.panel-open .panel{transform:none}
 .btn[disabled]{opacity:.35;cursor:default}
 .linkbtn{font:400 13px/1 var(--sans);text-decoration:underline;text-underline-offset:3px;color:var(--p-fg);padding:4px 0}
 .linkbtn[disabled]{opacity:.35;cursor:default}
-.p-list{border-bottom:1px solid var(--p-line-2);max-height:36vh;overflow:auto}
+.p-list{flex:0 0 var(--list-h,38%);min-height:0;overflow:auto}
+/* the divider between the story order and the section's settings: drag to share the room, double-click to reset */
+.p-split{flex:none;height:12px;position:relative;cursor:row-resize;border-top:1px solid var(--p-line-2);border-bottom:1px solid var(--p-line-2);background:var(--p-soft);touch-action:none}
+.p-split::after{content:"";position:absolute;left:50%;top:50%;width:36px;height:4px;margin:-2px 0 0 -18px;border-radius:2px;background:#C8C8C8}
+.p-split:hover::after,.p-split.dragging::after{background:var(--p-fg)}
+.story-pane{flex:1;overflow:auto;padding:16px 16px 48px;display:grid;gap:14px;align-content:start}
+.story-pane #pageset{margin:0!important;padding:0!important;border-top:1px solid var(--p-line-2)}
+.story-pane .lbl.sp-h{font:600 15px/1.2 var(--sans);margin-top:4px}
 .p-list-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px 10px;position:sticky;top:0;background:#fff;z-index:1}
 .p-list-h b{font:600 15px/1 var(--sans)}
 .lbl{font:600 13px/1.2 var(--sans);color:var(--p-fg)}
@@ -444,7 +456,7 @@ body:not(.panel-open) .arc{right:0}
 .frame.drop-target::after{content:"Drop to place";position:absolute;inset:0;display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--red);background:rgba(210,32,48,.08);color:var(--red);font:600 13px/1 var(--sans);z-index:5}
 .stage.drop-new::after{content:"Drop to add media to this section";position:absolute;inset:24px;display:grid;place-items:center;border:2px dashed var(--red);color:var(--red);font:600 14px/1 var(--sans);z-index:20;pointer-events:none}
 
-.m-bar,#tab-story,.m-back{display:none}
+.m-bar,.m-back{display:none}
 @media (max-width:760px){
   :root{--panel-w:100vw}
   /* the editor is a sheet: peek, half or full screen */
@@ -468,6 +480,7 @@ body:not(.panel-open) .arc{right:0}
   .story-pane #pageset{margin:0!important;padding:0!important;border-top:1px solid var(--p-line-2)}
   /* sections: the list, then a section's settings full-sheet */
   .p-list{max-height:none;flex:1;border-bottom:0}
+  .p-split{display:none}
   .p-insp{padding:0 16px 48px}
   body:not(.m-detail) .p-insp{display:none}
   body.m-detail .p-list{display:none}
@@ -583,6 +596,7 @@ body:not(.panel-open) .arc{right:0}
     <div class="beats" id="beatfilter" role="group" aria-label="Filter by beat"></div>
     <div id="list" role="list"></div>
   </div>
+  <div class="p-split" id="p-split" role="separator" aria-orientation="horizontal" aria-label="Drag to resize the section list" title="Drag to resize · double-click to reset"></div>
   <div class="p-insp" id="insp"></div>
   </div>
   <div class="view" id="view-library" hidden>
@@ -1468,7 +1482,7 @@ function holdType(L, s, u) {
   // type-only sections: words fill with ink as you read down the line
   if (s.media.kind === 'none' && L.words.length) {
     const f = clamp((u + .15) / Math.max(.4, s.dwell * .85)) * L.words.length;
-    L.words.forEach((w, n) => { w.style.color = `rgba(20,20,20,${.16 + .84 * clamp(f - n)})`; });
+    L.words.forEach((w, n) => { w.style.color = `rgba(255,255,255,${.16 + .84 * clamp(f - n)})`; }); // inverted by the copy's blend
   }
 }
 
@@ -1477,7 +1491,7 @@ const place = L => { L.copy.style.transform = `translateY(${L.ty + L.ty2}px)` + 
 function resetType(L) {
   const st = el => { el.style.transform = ''; el.style.opacity = ''; };
   L.words.forEach(st); L.letters.forEach(st); L.parts.forEach(st); if (L.eb) st(L.eb);
-  L.el.style.opacity = ''; L.el.style.filter = ''; L.copy.style.clipPath = ''; L.ty2 = 0; L.sc = 1;
+  L.copy.style.opacity = ''; L.copy.style.filter = ''; L.copy.style.clipPath = ''; L.ty2 = 0; L.sc = 1;
 }
 const wipeSide = L => (L.copy.dataset.align === 'right' ? 'right' : 'left');
 function textOut(L, t) {
@@ -1491,7 +1505,7 @@ function textOut(L, t) {
   else {
     const q = easeIn(clamp(t / .38));
     if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, 1 - q);
-    else { L.el.style.opacity = 1 - q; L.ty2 = -q * 24; if (anim === 'blur') L.el.style.filter = `blur(${q * 12}px)`; if (anim === 'scale') L.sc = 1 - q * .06; }
+    else { L.copy.style.opacity = 1 - q; L.ty2 = -q * 24; if (anim === 'blur') L.copy.style.filter = `blur(${q * 12}px)`; if (anim === 'scale') L.sc = 1 - q * .06; }
   }
   if (L.card) { const q = easeIn(clamp((t - .06) / .3)); L.card.firstChild.style.transform = `translateY(${-q * 28}px)`; L.card.firstChild.style.opacity = 1 - q; }
   place(L);
@@ -1516,7 +1530,7 @@ function textIn(L, t, motion) {
   else {
     const q = easeOut(clamp((t - base) / .48));
     if (anim === 'wipe') L.copy.style.clipPath = wipeClip(L, easeIO(clamp((t - base) / .5)));
-    else { L.el.style.opacity = q; L.ty2 = (1 - q) * rise * .5; if (anim === 'blur') L.el.style.filter = `blur(${(1 - q) * 14}px)`; if (anim === 'scale') L.sc = 1.1 - q * .1; }
+    else { L.copy.style.opacity = q; L.ty2 = (1 - q) * rise * .5; if (anim === 'blur') L.copy.style.filter = `blur(${(1 - q) * 14}px)`; if (anim === 'scale') L.sc = 1.1 - q * .1; }
   }
   if (L.card) { const q = easeOut(clamp((t - base - .2) / .36)); L.card.firstChild.style.transform = `translateY(${(1 - q) * rise}px)`; L.card.firstChild.style.opacity = q; }
   place(L);
@@ -1549,7 +1563,7 @@ function drawPair(i, j, t, ui, uj) {
     if (on) { // the arriving composition always sits on top, whichever way the story is moving
       const z = k === j ? 2 : 1;
       L.media.forEach(m => { if (m) { m.style.opacity = ''; m.style.clipPath = ''; m.style.zIndex = z; } });
-      L.el.style.zIndex = z; if (L.card) L.card.style.zIndex = z;
+      if (L.card) L.card.style.zIndex = z; // (no z-index on the copy layer: it would isolate the copy's blend from the page)
     }
   });
 
@@ -2825,12 +2839,30 @@ $('tab-story').addEventListener('click', () => { picking = null; showTab('story'
 // story-level controls live in the header on a computer and in the Story tab on a phone
 function placeControls() {
   const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
-  const nodes = [$('preset'), $('arc-open'), $('remix').parentElement, document.querySelector('.hist'), $('pageset')];
-  nodes.forEach(n => (phone ? pane : head).appendChild(n));
-  if (!phone) { setDetail(false); if (!$('view-story').hidden) showTab('sections'); }
+  const inHead = [$('arc-open'), document.querySelector('.hist')];
+  const inStory = [$('preset'), $('remix').parentElement, $('pageset')];
+  (phone ? [...inStory.slice(0, 1), inHead[0], ...inStory.slice(1), inHead[1]] : inStory).forEach(n => pane.appendChild(n));
+  if (!phone) inHead.forEach(n => head.appendChild(n));
+  $('pageset').open = !phone; // on a computer the Story tab shows the page settings straight away
+  if (!phone) setDetail(false);
   setDetail(mDetail || poolOpen); fitStage();
   if (phone) setSheet(sheet);
 }
+// the divider between the story order and the section settings; its height is remembered per browser
+(() => {
+  const sp = $('p-split'), view = $('view-sections'), pl = document.querySelector('.p-list'), KEY = 'storyBuilder.listH';
+  const apply = px => px ? view.style.setProperty('--list-h', px + 'px') : view.style.removeProperty('--list-h');
+  apply(+lsGet(KEY) || 0);
+  let g = null;
+  sp.addEventListener('pointerdown', e => { g = { y0:e.clientY, h0:pl.getBoundingClientRect().height }; try { sp.setPointerCapture(e.pointerId); } catch (err) {} sp.classList.add('dragging'); e.preventDefault(); });
+  sp.addEventListener('pointermove', e => { if (!g) return; g.h = clamp(g.h0 + e.clientY - g.y0, 90, Math.max(90, view.clientHeight - 150)); apply(g.h); });
+  const up = () => { if (!g) return; sp.classList.remove('dragging'); if (g.h) lsSet(KEY, Math.round(g.h)); g = null; };
+  sp.addEventListener('pointerup', up); sp.addEventListener('pointercancel', up);
+  sp.addEventListener('dblclick', () => { lsSet(KEY, ''); apply(0); });
+  sp.addEventListener('keydown', e => { if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; e.preventDefault();
+    const hh = clamp(pl.getBoundingClientRect().height + (e.key === 'ArrowDown' ? 24 : -24), 90, view.clientHeight - 150); apply(hh); lsSet(KEY, Math.round(hh)); });
+  sp.tabIndex = 0;
+})();
 let wasPhone = null;
 addEventListener('resize', () => { const p = isPhone(); if (p !== wasPhone) { wasPhone = p; placeControls(); renderInspector(); } else fitStage(); });
 wasPhone = isPhone(); placeControls();
