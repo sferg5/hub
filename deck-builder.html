@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" class="magnet">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Story Builder</title>
+<title>Deck Builder</title>
 <style>
 @font-face{font-family:"Saans";src:url("lululemon-saans-regular.woff2") format("woff2");font-weight:400;font-display:swap}
 @font-face{font-family:"Saans";src:url("lululemon-saans-semibold.woff2") format("woff2");font-weight:600;font-display:swap}
@@ -276,24 +276,6 @@ body.panel-open .panel{transform:none}
 .p-title small{display:none} /* the guide explains the tool; the header stays short */
 .arc-cta{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:12px;width:100%;min-height:46px;padding:7px 14px;border-radius:4px;background:var(--p-accent);color:var(--p-accent-fg);text-align:left;transition:background .2s}
 .arc-cta:hover{background:#333}
-.feed-cta{background:#fff;color:var(--p-fg);border:1px solid var(--p-fg)}
-.feed-cta:hover{background:var(--p-soft)}
-.feed-cta svg{color:var(--p-fg)}
-.views{font-size:12.5px;color:var(--p-mute)}
-.views ol{margin:6px 0 4px 18px;padding:0;color:var(--p-fg)}
-.views li{margin:2px 0}
-/* feed mode: a viewer, not an editor */
-body.feed .panel,body.feed .fab,body.feed .dots{display:none!important}
-body.feed .stage{right:0!important;transform:none!important}
-.fhud{position:fixed;left:0;right:0;top:0;z-index:70;padding:10px 14px 0;display:none;pointer-events:none}
-body.feed .fhud{display:block}
-.fsegs{display:flex;gap:3px}
-.fsegs i{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.4);overflow:hidden;mix-blend-mode:difference}
-.fsegs i b{display:block;height:100%;width:0;background:#fff}
-.frow{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
-.fname{font:600 12px/1 var(--sans);letter-spacing:.02em;color:#fff;mix-blend-mode:difference}
-.fname small{font-weight:400;opacity:.7;margin-left:6px}
-.fexit{pointer-events:auto;height:30px;padding:0 12px;border-radius:15px;background:rgba(20,20,20,.55);color:#fff;font:600 12px/1 var(--sans);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .arc-cta svg{width:40px;height:20px;color:#FF5A66}
 .arc-cta b{display:block;font:600 15px/1.2 var(--sans)}
 .arc-cta small{display:block;font:400 12.5px/1.3 var(--sans);opacity:.72;margin-top:2px}
@@ -581,12 +563,84 @@ body:not(.panel-open) .arc{right:0}
   .arcp{min-width:230px;scroll-snap-align:start}
   .arc-actions .btn{flex:1 1 100%;height:44px}
 }
+
+/* ================= deck =================
+   The stage is a fixed 1920×1080 slide, scaled to fit whatever room is left
+   beside the editor (or the whole screen while presenting). Everything on it is
+   laid out at slide size, so the editor, the room and the PDF all match. */
+html{scrollbar-width:none}
+html::-webkit-scrollbar{display:none}
+body{background:var(--lb,#E4E3E0)}
+body.theme-dark{--lb:#050505}
+body.presenting{--lb:#000}
+.stage{width:1920px!important;height:1080px!important;right:auto!important;bottom:auto!important;transform-origin:0 0;
+  transition:transform .35s var(--ease-out)!important;border-radius:0!important;box-shadow:0 1px 3px rgba(0,0,0,.08),0 18px 50px rgba(0,0,0,.10);
+  --g:88px;--top:calc(var(--g) + 8px)}
+body.presenting .stage,body.printing .stage{box-shadow:none}
+body.sheet-resizing .stage{transition:none!important}
+/* slide-size type: nothing on a projected slide is smaller than about 22px */
+.eb{font-size:20px}
+.s-s .hl{font-size:68px}.s-m .hl{font-size:100px}.s-l .hl{font-size:132px}.s-xl .hl{font-size:172px}
+.s-xl .hl.q{font-size:116px}
+.copy{gap:28px}
+.copy.w-narrow{--cw:680px}.copy.w-medium{--cw:1040px}.copy.w-wide{--cw:1560px}
+.attr{font-size:20px}
+.bd{font-size:32px;line-height:1.4;max-width:34ch}
+.stats{gap:80px}.stats b{font-size:88px}.stats small{font-size:20px}
+.feats{gap:20px;width:min(100%,52ch)}
+.feats div{grid-template-columns:56px 1fr;padding-top:20px;gap:6px 16px}
+.feats em{font-size:20px}.feats b{font-size:32px}.feats small{font-size:26px}
+.specs{width:min(100%,46ch);gap:0 40px}
+.specs dt,.specs dd{font-size:28px;padding:16px 0}.specs dt{font-size:20px;line-height:2.2}
+.swatches span,.byline small,.launch{font-size:22px}
+.byline b{font-size:26px}.byline .av{width:72px;height:72px}
+.cap{font-size:18px;margin:24px}
+.cta{height:72px;padding:0 36px;font-size:24px}
+.ticker .tk{font-size:150px}
+.sl b{font-size:22px}.sl small{font-size:20px}
+.spot span{font-size:20px;padding:10px 14px}.spot span small{font-size:18px}
+.card{width:440px;grid-template-columns:88px 1fr 48px;padding:14px}
+.card .th{width:88px;height:104px}.card p{font-size:22px}.card small{font-size:19px}
+.card .add{width:48px;height:48px}
+/* wide copy: four or more points sit in two columns, and tables use the width */
+.copy.w-wide .feats.many{width:100%;grid-template-columns:1fr 1fr;column-gap:72px}
+.copy.w-wide .specs{width:min(100%,1320px)}
+/* accent: eyebrows and the slide number pick it up when one is set */
+.stage[style*="--accent"] .eb{color:var(--accent)}
+/* dark theme: a black studio instead of the white one */
+body.theme-dark{--white:#111110;--ink:#EDEBE6;--mute:rgba(237,235,230,.62);--ph:#1C1B19;--ph-line:rgba(237,235,230,.05);--ph-fg:rgba(237,235,230,.42)}
+body.theme-dark .lay.shop,body.theme-dark .sl{background:var(--white)}
+body.theme-dark .card{border-color:#3A3935}
+/* tile captions: a label (and a + or = sign) over each tile, one line under it */
+.lay.tiles{background:var(--white)}
+.lay.tiles .lz{top:64px;bottom:150px;overflow:hidden}
+.tcap{position:absolute;left:0;right:0;color:var(--ink);pointer-events:none}
+.tcap.top{top:0;height:64px;display:flex;justify-content:space-between;align-items:flex-start;padding-top:4px;font:400 22px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.tcap.top .op{color:var(--accent,var(--ink));font-size:30px;line-height:1}
+.tcap.bot{bottom:0;height:150px;padding-top:22px;font:400 28px/1.4 var(--sans);color:var(--mute)}
+/* slide number and deck title along the foot of the slide */
+.slideno{position:absolute;left:var(--g);right:var(--g);bottom:36px;z-index:9;display:flex;justify-content:space-between;pointer-events:none;
+  font:400 20px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;mix-blend-mode:difference;opacity:.62}
+.stage[style*="--accent"] .slideno b{font-weight:400;color:var(--accent);mix-blend-mode:normal}
+body.presenting .fab,body.presenting .dots,body.presenting .player,body.presenting .pbar{display:none!important}
+body.presenting.idle{cursor:none}
+.pres-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;margin-top:12px}
+.btn.present{background:var(--p-accent);color:var(--p-accent-fg);border-color:var(--p-accent)}
+.print-pages{display:none}
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{background:none!important;width:1920px}
+  body>*:not(.print-pages){display:none!important}
+  .print-pages{display:block}
+  .print-page{position:relative;width:1920px;height:1080px;overflow:hidden;break-after:page;page-break-after:always}
+  .print-page .stage{position:absolute!important;left:0;top:0;transform:none!important;transition:none!important}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body class="panel-open">
 
-<main class="stage" id="stage" aria-label="Story preview"></main>
-<div class="fhud" id="fhud" aria-live="polite"><div class="fsegs" id="fsegs"></div><div class="frow"><span class="fname" id="fname"></span><button class="fexit" id="fexit">Exit feed</button></div></div>
+<main class="stage" id="stage" aria-label="Slide"></main>
 <div class="spacer" id="spacer" aria-hidden="true"></div>
 
 <button class="fab" id="fab" aria-controls="panel" aria-expanded="true" title="Close the editor (E)"><span class="fa" aria-hidden="true">›</span><span class="ft">Close</span></button>
@@ -594,7 +648,7 @@ body:not(.panel-open) .arc{right:0}
 <aside class="panel" id="panel" aria-label="Story controls">
   <div class="m-bar">
     <button class="m-handle" id="m-handle" aria-label="Resize the editor: drag, or tap to make it taller"></button>
-    <div class="m-row"><b>Story Builder</b>
+    <div class="m-row"><b>Deck Builder</b>
       <span class="m-acts">
         <button class="m-ib" id="m-help" aria-label="How it works">?</button>
         <button class="m-ib" id="m-undo" aria-label="Undo">↶</button>
@@ -604,26 +658,22 @@ body:not(.panel-open) .arc{right:0}
     </div>
   </div>
   <div class="p-head">
-    <div class="p-title"><div class="p-title-row"><b>Story Builder</b><button class="help-btn" id="help-open" aria-label="How Story Builder works" title="How it works (?)">?</button></div><small>Scroll moves one composition into the next.</small></div>
-    <button class="arc-cta feed-cta" id="feed-open" title="Play stories back to back, endlessly">
-      <svg viewBox="0 0 40 20" aria-hidden="true"><rect x="2" y="3" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="15" y="3" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="28" y="3" width="10" height="14" rx="2" fill="currentColor"/></svg>
-      <span><b>Play the feed</b><small>Stories back to back, with a sale page every 4th</small></span>
-      <i aria-hidden="true">→</i>
-    </button>
-    <div class="views" id="views"></div>
-    <select id="preset" aria-label="Load a preset">
-      <option value="">Start from a preset</option>
-      <option value="align">Sample arc · 8 sections</option>
-      <option value="lockups">Hero lockups (same hero, 6 ways)</option>
-      <option value="alignStory">Align · franchise story (8 sections)</option>
-      <option value="golf">Golf · activity story (8 sections)</option>
-      <option value="vest">Fast and Free Vest · new product story (7 sections)</option>
-      <option value="pool">City Run pool · 20 sections, 5 per beat</option>
-      <option value="blank">Blank · one hero</option>
+    <div class="p-title"><div class="p-title-row"><b>Deck Builder</b><button class="help-btn" id="help-open" aria-label="How Deck Builder works" title="How it works (?)">?</button></div><small>Each click moves one composition into the next.</small></div>
+    <div class="pres-row">
+      <button class="btn present" id="present" title="Present from the first slide (P presents from this slide)">▶ Present</button>
+      <button class="btn" id="presenter" title="Notes, next slide and a timer in a second window (S)">Presenter view</button>
+      <button class="btn" id="pdf" title="Opens the print dialog: choose Save as PDF">PDF</button>
+    </div>
+    <select id="preset" aria-label="Load a deck">
+      <option value="">Start from a deck</option>
+      <option value="wip">Work in Progress · office installation (11 slides)</option>
+      <option value="pitch">Pitch · idea to ask (8 slides)</option>
+      <option value="product">Product story · Align (8 slides)</option>
+      <option value="blank">Blank · one title slide</option>
     </select>
-    <button class="arc-cta" id="arc-open" title="Shape the story by feeling over time">
+    <button class="arc-cta" id="arc-open" title="Shape the deck by feeling over time">
       <svg viewBox="0 0 40 20" aria-hidden="true"><path d="M2 16 C10 15 14 12 20 8 S30 1 34 3 S37 12 38 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <span><b>Build a Narrative Arc</b><small>Shape the story by feeling over time</small></span>
+      <span><b>Build a Narrative Arc</b><small>Shape the deck by feeling over time</small></span>
       <i aria-hidden="true">→</i>
     </button>
     <div class="p-row">
@@ -637,42 +687,46 @@ body:not(.panel-open) .arc{right:0}
       <button class="hbtn" id="redo" title="Redo (⇧⌘Z)"><span aria-hidden="true">↷</span> Redo <kbd>⇧⌘Z</kbd></button>
     </div>
     <details class="grp" id="pageset" style="border-bottom:0;border-top:1px solid var(--p-line-2);margin:0 -20px -16px;padding:0 20px">
-      <summary>Page settings</summary>
+      <summary>Deck settings</summary>
       <div class="gb">
-        <div class="f"><span class="lbl">Desktop scrolling</span><div class="seg" id="scrollmode" role="group" aria-label="Desktop scrolling"></div></div>
-        <p class="hint" id="scrollmode-hint"></p>
+        <div class="f"><span class="lbl">Deck title</span><div id="decktitle"></div></div>
+        <div class="f"><span class="lbl">Theme</span><div class="seg" id="theme" role="group" aria-label="Theme"></div></div>
+        <div class="f"><span class="lbl">Accent</span><div class="pos" id="accent"></div></div>
+        <p class="hint">Eyebrows, signs on tile captions and the slide number take the accent.</p>
+        <div class="f"><span class="lbl">Slide numbers</span><div class="seg" id="numbers" role="group" aria-label="Slide numbers"></div></div>
+        <div class="f" hidden><span class="lbl">Desktop scrolling</span><div class="seg" id="scrollmode" role="group" aria-label="Desktop scrolling"></div></div>
+        <p class="hint" id="scrollmode-hint" hidden></p>
         <div class="f" id="freeopts-magnet"><span class="lbl">Scroll feel</span><div class="seg" id="magnet" role="group" aria-label="Scroll feel"></div></div>
-        <div class="f"><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
-        <p class="hint">Higher means less scrolling for each section.</p>
-        <div class="f"><span class="lbl">Section motion duration</span><div class="pos" id="motiontime"></div></div>
-        <p class="hint">How long a section plays through once it has arrived, after a swipe, flick, arrow key or dot click.</p>
+        <div class="f" hidden><span class="lbl">Scroll speed</span><div class="pos" id="pace"></div></div>
+        <div class="f"><span class="lbl">Slide motion duration</span><div class="pos" id="motiontime"></div></div>
+        <p class="hint">How long a slide keeps moving once it has arrived: the camera move, hotspots popping in.</p>
         <div class="f"><span class="lbl">Transition duration</span><div class="pos" id="transtime"></div></div>
-        <p class="hint">How long the move from one section into the next takes. A hard flick trims it a little; a jump to a far-away section takes a little longer.</p>
-        <div class="f"><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
-        <div class="f"><span class="lbl">Play button</span><div class="seg" id="playeron" role="group" aria-label="Play button"></div></div>
+        <p class="hint">How long the move from one slide into the next takes. A jump to a far-away slide takes a little longer.</p>
+        <div class="f" hidden><span class="lbl">Smoothing</span><div class="seg" id="smooth" role="group" aria-label="Smoothing"></div></div>
+        <div class="f"><span class="lbl">Rehearse button</span><div class="seg" id="playeron" role="group" aria-label="Play button"></div></div>
         <div class="f"><span class="lbl">Touch swiping</span><div class="seg" id="swiperpos" role="group" aria-label="Touch swiping"></div></div>
-        <p class="hint">On phones and tablets, swiping anywhere moves one section at a time: each swipe plays the next section through and rests at its end. Desktop scrolls as usual.</p>
-        <div class="f"><span class="lbl">Transition scroll length</span><div class="pos" id="trans"></div></div>
+        <p class="hint">On phones and tablets, swiping up or down moves one slide at a time.</p>
+        <div class="f" hidden><span class="lbl">Transition scroll length</span><div class="pos" id="trans"></div></div>
         <div class="f"><span class="lbl">Motion while held · strength</span><div class="pos" id="holdamt"></div></div>
       </div>
     </details>
   </div>
   <nav class="tabs" role="tablist">
-    <button role="tab" id="tab-sections" aria-selected="true">Sections</button>
+    <button role="tab" id="tab-sections" aria-selected="true">Slides</button>
     <button role="tab" id="tab-library" aria-selected="false">Library<span class="count" id="lib-count"></span></button>
-    <button role="tab" id="tab-story" aria-selected="false">Story</button>
+    <button role="tab" id="tab-story" aria-selected="false">Deck</button>
   </nav>
   <div class="view" id="view-sections">
   <div class="p-list">
     <div class="p-list-h">
-      <b>Story order</b>
-      <button class="spark" id="spark" title="How this story feels over time. Open the arc builder."></button>
-      <button class="btn" id="add" aria-pressed="false">+ Add section</button>
+      <b>Slide order</b>
+      <button class="spark" id="spark" title="How this deck feels over time. Open the arc builder."></button>
+      <button class="btn" id="add" aria-pressed="false">+ Add slide</button>
     </div>
     <div class="beats" id="beatfilter" role="group" aria-label="Filter by beat"></div>
     <div id="list" role="list"></div>
   </div>
-  <div class="p-split" id="p-split" role="separator" aria-orientation="horizontal" aria-label="Drag to resize the section list" title="Drag to resize · double-click to reset"></div>
+  <div class="p-split" id="p-split" role="separator" aria-orientation="horizontal" aria-label="Drag to resize the slide list" title="Drag to resize · double-click to reset"></div>
   <div class="p-insp" id="insp"></div>
   </div>
   <div class="view" id="view-library" hidden>
@@ -700,23 +754,23 @@ body:not(.panel-open) .arc{right:0}
 </div>
 <section class="arc" id="arc" hidden aria-label="Narrative arc builder">
   <div class="arc-h">
-    <div><b>Narrative arc</b><small>Time runs left to right. Feeling runs from shopping and product at the bottom to emotive story at the top. Pick an arc or shape your own, then build a story that follows it.</small></div>
+    <div><b>Narrative arc</b><small>Time runs left to right. Feeling runs from detail and facts at the bottom to vision and feeling at the top. Pick an arc or shape your own, then build a deck that follows it.</small></div>
     <button class="arc-x" id="arc-close" aria-label="Close the arc builder">×</button>
   </div>
   <div class="arc-body">
     <div class="arc-main">
       <div class="arc-tools">
         <div class="f"><span class="lbl">Shape the line</span><div class="seg" id="arc-mode"></div></div>
-        <div class="f" style="min-width:250px"><span class="lbl">Sections · one per point</span><div class="pos" id="arc-n" style="white-space:nowrap;gap:8px"></div></div>
+        <div class="f" style="min-width:250px"><span class="lbl">Slides · one per point</span><div class="pos" id="arc-n" style="white-space:nowrap;gap:8px"></div></div>
         <div class="f"><span class="lbl">Build from</span><div class="seg" id="arc-src"></div></div>
       </div>
       <div class="arc-graph" id="arc-graph"></div>
       <div class="arc-legend"><span><i></i>Your arc</span><span><i class="cur"></i>The story as it is now</span><span id="arc-hint"></span></div>
       <div class="arc-prev" id="arc-prev"></div>
       <div class="arc-actions">
-        <button class="btn pri" id="arc-build">Build a new story from this arc</button>
-        <button class="btn" id="arc-fit">Re-order my current sections to fit</button>
-        <small>Pacing follows the arc too: emotive moments hold longer, big rises get bigger entrances. Undo brings back the old story.</small>
+        <button class="btn pri" id="arc-build">Build a new deck from this arc</button>
+        <button class="btn" id="arc-fit">Re-order my current slides to fit</button>
+        <small>Pacing follows the arc too: big moments hold longer, big rises get bigger entrances. Undo brings back the old deck.</small>
       </div>
     </div>
     <div class="arc-side" id="arc-side"></div>
@@ -783,7 +837,7 @@ const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], shots: [], focus: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto' },
-  overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
+  overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '', notes: '',
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
   stats: { on: false, items: [{ v: '', l: '' }, { v: '', l: '' }, { v: '', l: '' }] },
@@ -798,16 +852,18 @@ const BASE = () => ({
   swatches: { on: false, items: [{ n: 'Black', c: '#141414' }, { n: 'Bone', c: '#E6DFD3' }, { n: 'Sage', c: '#9AAE97' }, { n: '', c: '#cccccc' }] },
   launch: { on: false, label: 'Drops', date: 'Oct 15' },                              // launches: a dated badge
   card: { on: false, x: 'right', y: 'bottom', name: 'Product name', price: '$XX' },
+  // decks: a label (and a + or = sign) over each gallery tile and a line under it, for A + B = C slides
+  tiles: { on: false, items: [0, 1, 2, 3, 4, 5].map(k => ({ t: 'Tile ' + (k + 1), op: '', d: 'One line about this tile.' })) },
 });
 const make = o => merge(BASE(), clone(o));
 
 /* Story beats. Every section carries one; a story reads Hook → Feel → Proof → Close,
    so any pool of tagged sections can be re-ordered into a new story. */
 const BEATS = {
-  hook:  { label:'Hook',  color:'#c8202f', hint:'Opens the story. One image, one line, a reason to keep going.' },
-  build: { label:'Build', color:'#d98a1f', hint:'Develops the idea. Atmosphere, movement, the world of the story.' },
-  proof: { label:'Proof', color:'#2f6fb3', hint:'Why to believe it. Detail, numbers, a real voice.' },
-  close: { label:'Close', color:'#1f8a5b', hint:'Where it lands. The ask and the way out.' },
+  hook:  { label:'Open',    color:'#c8202f', hint:'Opens the deck. One image, one line, the reason the room should care.' },
+  build: { label:'Context', color:'#d98a1f', hint:'Sets up the idea: the problem, the world it lives in, what it feels like.' },
+  proof: { label:'Proof',   color:'#2f6fb3', hint:'Why to believe it. How it works, numbers, a real voice.' },
+  close: { label:'Ask',     color:'#1f8a5b', hint:'Where it lands. What you need from the room, and what happens next.' },
 };
 const BEAT_ORDER = Object.keys(BEATS);
 
@@ -826,6 +882,15 @@ const STARTERS = {
   ticker:    { label:'Ticker · full bleed + running type', o:{ name:'Ticker', beat:'build', media:{kind:'video',layout:'full'}, overlay:0, text:{x:'left',y:'top',size:'s'}, headline:'', ticker:{on:true,text:'Run the city ·',y:'bottom'} } },
   editorial: { label:'Editorial · framed image + caption', o:{ name:'Editorial', beat:'build', media:{kind:'image',layout:'inset',mx:'center',inset:'m'}, overlay:0, text:{x:'center',y:'bottom',size:'s',width:'wide'}, headline:'One frame, held.', caption:{on:true,text:'Photographer · Location',pos:'br'} } },
   closer:    { label:'Closer · end CTA', o:{ name:'Closer', beat:'close', media:{kind:'video',layout:'full'}, overlay:40, text:{x:'center',y:'middle',size:'l',width:'medium'}, headline:'Where the story ends', cta:{show:true,label:'Shop the collection'} } },
+  title:     { label:'Title · full bleed', o:{ name:'Title', beat:'hook', media:{kind:'image',layout:'full'}, overlay:40, text:{x:'left',y:'bottom',size:'xl',width:'wide',ink:'light'}, showEyebrow:true, eyebrow:'Concept · [Team]', headline:'Deck title', body:'One line on what this is.' } },
+  divider:   { label:'Divider · chapter title', o:{ name:'Chapter', beat:'build', media:{kind:'none'}, text:{x:'left',y:'bottom',size:'xl',width:'wide'}, showEyebrow:true, eyebrow:'Part 02', headline:'Chapter title' } },
+  bignum:    { label:'Big number', o:{ name:'Big number', beat:'proof', media:{kind:'image',layout:'right'}, text:{x:'left',y:'middle',size:'m',width:'narrow'}, headline:'The one number that matters.', stats:{on:true,items:[{v:'[00]',l:'What it counts'},{v:'',l:''},{v:'',l:''}]} } },
+  equation:  { label:'Three-up · A + B = C', o:{ name:'Three-up', beat:'proof', hold:'drift', overlay:0, media:{kind:'gallery',layout:'full',count:3,arrange:'row'}, text:{x:'left',y:'top',size:'s',width:'wide'}, headline:'How it comes together',
+    tiles:{on:true,items:[{t:'A · First part',op:'',d:'One line on the first part.'},{t:'B · Second part',op:'+',d:'One line on the second part.'},{t:'C · Result',op:'=',d:'One line on what they add up to.'}]} } },
+  steps:     { label:'Steps · numbered points', o:{ name:'Steps', beat:'proof', media:{kind:'image',layout:'left'}, text:{x:'left',y:'middle',size:'m',width:'medium'}, headline:'How it works',
+    feats:{on:true,items:[{t:'First step',d:'One line on what happens.'},{t:'Second step',d:'One line on what happens.'},{t:'Third step',d:'One line on what happens.'}]} } },
+  plan:      { label:'Plan · table', o:{ name:'Plan', beat:'close', media:{kind:'image',layout:'inset',mx:'right',inset:'m'}, overlay:0, text:{x:'left',y:'middle',size:'m',width:'medium'}, headline:'What we need',
+    specs:{on:true,items:[{k:'Owner',v:'[Name]'},{k:'Budget',v:'[$__]'},{k:'Timing',v:'[Date]'},{k:'Decision',v:'[What we need today]'}]} } },
 };
 
 /* Presets are written as a sequence: each composition sets up the next move. */
@@ -1000,11 +1065,93 @@ const PRESETS = {
       card:{ on:true, x:'right', y:'bottom', name:'Women’s Fast and Free Modular Running Vest', price:'$XX' },
       text:{ x:'center', y:'middle', size:'l', width:'medium', ink:'light', anim:'scale' }, headline:'Go further, lighter.', cta:{ show:true, label:'Shop the vest' } }),
   ],
-  blank: () => [make(STARTERS.hero.o)],
+  /* WORK IN PROGRESS · office installation. Three screens in the office that show
+     UX while it is still being built. Open on the room, land the idea, show the
+     stations and the two moments, then how it runs and the ask. */
+  wip: () => {
+    const im = n => 'b:story-library/wip/' + n + '.jpg';
+    return [
+      make({ beat:'hook', name:'Work in Progress', hold:'push', media:{ kind:'image', layout:'full', items:[im('room')] }, overlay:46,
+        text:{ x:'left', y:'bottom', size:'xl', width:'wide', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'Concept · Office installation',
+        headline:'Work in Progress', body:'A walk-up gallery for the UX we’re still building.',
+        notes:'The ask in one line: give our in-development UX a permanent spot in the office where anyone can walk up and try it.' }),
+      make({ beat:'build', name:'The idea', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'The idea',
+        headline:'Put the UX we’re building on the floor, where anyone walking by can try it.',
+        feats:{ on:true, items:[{ t:'Make the work visible before it ships.', d:'' }, { t:'Get real reactions while they can still change it.', d:'' }, { t:'Show the office what the team is making.', d:'' }] },
+        notes:'Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.' }),
+      make({ beat:'proof', name:'Three stations', hold:'drift', motion:'rise', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:3, arrange:'row', items:[im('tryon'), im('motion'), im('pdp')], focus:[{ x:50, y:40 }, { x:50, y:22 }, { x:50, y:50 }], shots:['Try-on screen', 'Motion screen', 'Product page screen'] },
+        text:{ x:'left', y:'top', size:'s', width:'wide', anim:'wipe' }, headline:'Three stations',
+        tiles:{ on:true, items:[{ t:'01 · Try-on', op:'', d:'Swap colours on a live model and compare them side by side.' }, { t:'02 · Motion', op:'+', d:'A portrait screen that loops how the product moves.' }, { t:'03 · Product page', op:'+', d:'Tap a swatch, add to bag, feel the flow.' }] },
+        notes:'Each screen shows one piece of in-progress work. These three are examples; the real line-up would be [the current projects].' }),
+      make({ beat:'build', name:'Walk up', hold:'push', media:{ kind:'image', layout:'full', items:[im('walkup')] }, overlay:44,
+        text:{ x:'right', y:'bottom', size:'l', width:'narrow', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'Moment 1',
+        headline:'Walk up.', body:'No login, no link. Stop in front of a screen and the work is already playing.',
+        notes:'The screens have cameras on top in the renders. What they do is still open: [presence only, to wake the screen? gesture? nothing?].' }),
+      make({ beat:'build', name:'Try it', hold:'pan', media:{ kind:'image', layout:'left', items:[im('touch')], focus:[{ x:72, y:45 }] },
+        text:{ x:'left', y:'middle', size:'l', width:'narrow', anim:'cascade' }, showEyebrow:true, eyebrow:'Moment 2',
+        headline:'Try it.', body:'Touch it the way a customer would. Every tap shows the team what works and what doesn’t.',
+        notes:'This is the payoff: the people who build it see real hands on it, weeks before launch.' }),
+      make({ beat:'proof', name:'How it runs', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'Ship → Try → Learn',
+        headline:'How it runs',
+        feats:{ on:true, items:[{ t:'Ship to the wall', d:'New work goes up [every sprint], labelled with what it is and who is building it.' }, { t:'People try it', d:'Anyone in the office can walk up. No meeting, no deck, no context needed.' }, { t:'Feedback goes back', d:'Reactions reach the team through [a QR survey / a one-tap rating / a Teams channel].' }] },
+        notes:'Keep it light: one owner refreshes the screens, and feedback lands somewhere the team already looks.' }),
+      make({ beat:'build', name:'Behind the screens', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'l', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'The kiosk manager',
+        headline:'One control room for all three screens.', body:'A small site that holds the work, sets the running order and timing for each screen, and sends changes to them live.',
+        notes:'Built with Claude. Three player pages, one per TV, and one manager page for whoever runs the installation.' }),
+      make({ beat:'proof', name:'Any format in', hold:'drift', motion:'rise', overlay:0,
+        media:{ kind:'gallery', layout:'full', count:4, arrange:'row', shots:['Figma prototype', 'Built HTML page', 'ProtoPie prototype', 'Video loop'] },
+        text:{ x:'left', y:'top', size:'s', width:'wide', anim:'wipe' }, headline:'Any format in',
+        tiles:{ on:true, items:[{ t:'Figma', op:'', d:'Paste a prototype link.' }, { t:'HTML', op:'', d:'Upload a built page or a link to one.' }, { t:'ProtoPie', op:'', d:'Paste a share link.' }, { t:'Video', op:'', d:'Upload an mp4 that loops.' }] },
+        notes:'Designers bring the work in whatever it was made in. Nobody exports a special version for the wall.' }),
+      make({ beat:'proof', name:'A playlist per screen', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'fade' }, showEyebrow:true, eyebrow:'Order · Duration · Live',
+        headline:'A playlist per screen',
+        specs:{ on:true, items:[{ k:'Screen 1', v:'[Try-on prototype · 2 min] → [Video · 30 s] → repeat' }, { k:'Screen 2', v:'[Motion loop · 45 s] → [ProtoPie · 2 min] → repeat' }, { k:'Screen 3', v:'[Product page · until someone walks away] → repeat' }, { k:'Controls', v:'Drag to reorder, set each duration, pause, skip, push now' }] },
+        notes:'Interactive pieces hold while someone is using them, then pick the playlist back up after [30 s] with no touches.' }),
+      make({ beat:'proof', name:'No seams showing', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'Clean stage',
+        headline:'Nothing gives away where it came from',
+        feats:{ on:true, items:[
+          { t:'The tool’s own controls, switched off', d:'Figma’s embed settings can hide its toolbar, footer and click hints.' },
+          { t:'Cropped past the edges', d:'Each piece is drawn a little larger than the screen, so any leftover bar falls outside it.' },
+          { t:'Revealed when ready', d:'The next piece loads out of sight and fades in once it has drawn. No spinners, no logos.' },
+          { t:'Video as the fallback', d:'Anything that still shows a seam gets recorded and plays as a clean loop.' }] },
+        notes:'The first three keep things interactive. The fourth is the safety net for pieces that only need to be watched.' }),
+      make({ beat:'close', name:'What we need', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'m', items:[im('room')] },
+        text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'fade' }, showEyebrow:true, eyebrow:'The ask', headline:'What we need',
+        specs:{ on:true, items:[{ k:'Space', v:'[Floor / area] with foot traffic' }, { k:'Hardware', v:'3 touch screens on stands, each with a small PC' }, { k:'Owner', v:'[Name] keeps them fresh' }, { k:'Launch', v:'[Target date]' }] },
+        notes:'Open questions to settle before ordering hardware: where the kiosk manager is hosted (it holds unreleased work, so it should sit behind company sign-in); what the cameras do and how we tell people; which work is OK to show everyone who passes; which feedback channel the team will actually read.' }),
+    ];
+  },
+  /* PITCH · idea to ask. A general structure with every slot waiting for real content. */
+  pitch: () => [
+    make({ beat:'hook', name:'Title', hold:'push', media:{ kind:'image', layout:'full', shots:['Hero image · the idea in one picture'] }, overlay:40,
+      text:{ x:'left', y:'bottom', size:'xl', width:'wide', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'[Team] · [Date]', headline:'[Deck title]', body:'[One line on what this is.]' }),
+    make({ beat:'build', name:'The problem', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'l', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'The problem',
+      headline:'[The problem, in one sentence the room already feels.]' }),
+    make({ beat:'build', name:'What we heard', media:{ kind:'none' }, text:{ x:'center', y:'middle', size:'xl', width:'wide', anim:'type' },
+      headline:'[A real line from a customer or colleague.]', quote:{ on:true, attr:'[Name, role]' } }),
+    make({ beat:'hook', name:'The idea', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'l', shots:['The idea, shown'] },
+      text:{ x:'left', y:'middle', size:'l', width:'narrow', anim:'rise' }, showEyebrow:true, eyebrow:'The idea', headline:'[The idea, in five words.]' }),
+    make({ beat:'proof', name:'How it works', hold:'drift', motion:'rise', overlay:0, media:{ kind:'gallery', layout:'full', count:3, arrange:'row', shots:['Part A', 'Part B', 'Result'] },
+      text:{ x:'left', y:'top', size:'s', width:'wide', anim:'wipe' }, headline:'How it works',
+      tiles:{ on:true, items:[{ t:'A · [Part]', op:'', d:'[One line.]' }, { t:'B · [Part]', op:'+', d:'[One line.]' }, { t:'C · [Result]', op:'=', d:'[One line.]' }] } }),
+    make({ beat:'proof', name:'Proof', hold:'pan', media:{ kind:'image', layout:'right', shots:['Evidence: a test, a prototype, a pilot'] },
+      text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'cascade' }, headline:'[What we’ve seen so far.]',
+      stats:{ on:true, items:[{ v:'[00]', l:'[Measure]' }, { v:'[00]', l:'[Measure]' }, { v:'', l:'' }] } }),
+    make({ beat:'close', name:'The plan', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'m', shots:['Timeline or team photo'] },
+      text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'fade' }, headline:'The plan',
+      specs:{ on:true, items:[{ k:'Phase 1', v:'[What · when]' }, { k:'Phase 2', v:'[What · when]' }, { k:'Owner', v:'[Name]' }, { k:'Cost', v:'[$__]' }] } }),
+    make({ beat:'close', name:'The ask', hold:'push', motion:'iris', media:{ kind:'image', layout:'full', shots:['Closing image'] }, overlay:44,
+      text:{ x:'center', y:'middle', size:'l', width:'medium', ink:'light', anim:'scale' }, headline:'[What you need from this room today.]' }),
+  ],
+  product: () => PRESETS.alignStory(),
+  blank: () => [make(STARTERS.title.o)],
 };
+/* the deck-level look a preset asks for */
+const PRESET_LOOK = { wip:{ theme:'dark', accent:'#B8B46A', title:'Work in Progress' }, pitch:{ theme:'light', accent:'', title:'[Deck title]' }, product:{ theme:'light', accent:'', title:'Align' }, blank:{} };
 
 /* ---------- state ---------- */
-const KEY = 'storyBuilder.v2';
+const KEY = 'deckBuilder.v1';
 let S, sel = null, history = [];
 /* Loading a saved or imported story: anything missing or the wrong shape falls
    back to the default for that part, so a damaged file can't break the builder. */
@@ -1044,11 +1191,15 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
   arc: validArc(d.arc) ? d.arc : null,
   smooth: d.smooth !== false,
   swiper: d.swiper === 'off' ? 'off' : 'on',
-  scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
-  player: d.player !== false,
+  scrollMode: 'chapter', // a deck always steps, one slide at a time
+  player: d.player === true,
+  theme: d.theme === 'dark' ? 'dark' : 'light',
+  accent: typeof d.accent === 'string' && /^#[0-9a-f]{6}$/i.test(d.accent) ? d.accent : '',
+  numbers: d.numbers !== false,
+  title: typeof d.title === 'string' ? d.title.slice(0, 80) : '',
   playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
-  motionTime: clamp(+d.motionTime || 2, .8, 5), // seconds for a section to play through after a swipe, flick or dot click
-  transTime: clamp(+d.transTime || .45, .25, 2.5), // seconds for the move from one section into the next
+  motionTime: clamp(+d.motionTime || 1.4, .8, 5), // seconds for a section to play through after a swipe, flick or dot click
+  transTime: clamp(+d.transTime || .8, .25, 2.5), // seconds for the move from one section into the next
   sections: (Array.isArray(d.sections) ? d.sections : []).map(s => {
     const base = BASE(), x = sanitize(base, s);
     if (typeof x.id !== 'string' || !x.id) x.id = base.id;
@@ -1065,11 +1216,10 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
 }; };
 try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
 if (!S) S = normalize({});
-if (!S.sections.length) S.sections = PRESETS.pool(); // an empty or first-time story starts with City Run; its page settings are kept
+if (!S.sections.length) { S.sections = PRESETS.wip(); Object.assign(S, PRESET_LOOK.wip); } // a first-time deck opens on Work in Progress
 sel = S.sections[0] && S.sections[0].id;
 
-const save = () => { if (FEED) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }; // the feed is a viewer: it never overwrites the saved story
-let FEED = null;
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 let future = []; // redo stack: cleared by any new change
 const histButtons = () => { $undo.disabled = $('m-undo').disabled = !history.length; $('redo').disabled = $('m-redo').disabled = !future.length; };
 const snapshot = () => { history.push(JSON.stringify(S)); if (history.length > 80) history.shift(); future = []; histButtons(); };
@@ -1078,8 +1228,8 @@ const restore = json => {
   if (!S.sections.find(s => s.id === sel)) sel = S.sections[0] && S.sections[0].id;
   histButtons(); render();
 };
-const undo = () => { if (FEED || !history.length) return; future.push(JSON.stringify(S)); restore(history.pop()); };
-const redo = () => { if (FEED || !future.length) return; history.push(JSON.stringify(S)); restore(future.pop()); };
+const undo = () => { if (!history.length) return; future.push(JSON.stringify(S)); restore(history.pop()); };
+const redo = () => { if (!future.length) return; history.push(JSON.stringify(S)); restore(future.pop()); };
 const cur = () => S.sections.find(s => s.id === sel);
 const idx = id => S.sections.findIndex(s => s.id === id);
 
@@ -1193,6 +1343,10 @@ const BUILTIN = [
     ['NA_SU26_SeasonalQ2_Paid_Affiliates_250x250_Golf.jpg', 'Vest portrait (thumbnail)', 250, 250, 'edit', 40],
     ['NA_SU26_SeasonalQ2_Paid_Affiliates_300x250_Golf.jpg', 'Chip shot (thumbnail)', 300, 250, 'edit', 45],
   ].map(([f, name, w, h, look, fy]) => ({ path:'story-library/golf/' + f, name, w, h, type: look === 'video' ? 'video' : 'image', look: look === 'video' ? 'edit' : look, fy }))],
+  ['Work in Progress', [
+    ['room', 'Installation · the room', 1536, 1024, 50], ['walkup', 'Installation · walk up', 1536, 1024, 50], ['touch', 'Installation · touch', 1536, 1024, 45],
+    ['tryon', 'Station · try-on', 500, 415, 40], ['motion', 'Station · motion', 176, 398, 50], ['pdp', 'Station · product page', 394, 360, 50],
+  ].map(([f, name, w, h, fy]) => ({ path:'story-library/wip/' + f + '.jpg', name, w, h, type:'image', look:'edit', fy }))],
   ['Video', [
     { path:'20260325_LULU_LILAC_16x9_15s_ProRes_Clean.mp4', name:'Lilac · 15s', type:'video' },
     { path:'NA_May26_Wk3_Q2_MustWin_ShakeItOut_Paid_Reddit_6s_16x9_1920x1080.mp4', name:'Shake It Out · 6s', type:'video' },
@@ -1329,7 +1483,7 @@ function renderLibrary() {
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
   drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); importFiles([...e.dataTransfer.files]); });
   kids.push(drop);
-  const order = ['Your uploads', 'Golf', 'Video'];
+  const order = ['Your uploads', 'Work in Progress', 'Golf', 'Video'];
   const rank = g => order.includes(g) ? order.indexOf(g) : order.length;
   const groups = [...new Set(all.map(a => a.group))].sort((a, b) => rank(a) - rank(b));
   kids.push(seg([['all','All'],['image','Images'],['video','Video']], libFilter, v => { libFilter = v; renderLibrary(); }, 'Filter'));
@@ -1373,7 +1527,7 @@ const inkOf = s => s.media.kind !== 'none' && s.text.ink === 'light' ? 'light' :
 // the wash sits behind the text: white under dark type, soft black under white type
 function scrimFor(s) {
   const a = s.overlay / 100; if (!a) return '';
-  const c = inkOf(s) === 'light' ? '20,20,20' : '255,255,255';
+  const c = inkOf(s) === 'light' || S.theme === 'dark' ? '20,20,20' : '255,255,255'; // on the dark theme even dark-ink copy reads light
   const { x, y } = s.text;
   const dir = y === 'bottom' ? 'to top' : y === 'top' ? 'to bottom' : x === 'left' ? 'to right' : x === 'right' ? 'to left' : null;
   return dir ? `linear-gradient(${dir},rgba(${c},${a}) 0%,rgba(${c},${a * .5}) 38%,rgba(${c},0) 72%)` : `rgba(${c},${a * .6})`;
@@ -1408,7 +1562,7 @@ function cardThumb(s) {
 // colours and photos inside copy that's drawn inverted (Invert / Soft invert) are pre-inverted, so they show true on the page
 const invertsCopy = s => /difference|exclusion/.test(blendOf(s));
 function inkSafe(s, hex) {
-  if (!invertsCopy(s)) return hex;
+  if (!invertsCopy(s) || S.theme === 'dark') return hex; // over the black studio the inverse lands back on the colour itself
   const n = parseInt((hex || '#cccccc').replace('#', '').padEnd(6, '0').slice(0, 6), 16);
   return '#' + (0xFFFFFF ^ n).toString(16).padStart(6, '0');
 }
@@ -1430,7 +1584,7 @@ function textLayer(s, i) {
       words.push(inner); hl.append(h('span', { class:'w' }, inner), ' ');
     });
   }
-  const eb = s.showEyebrow && s.eyebrow ? h('p', { class:'eb' }, s.eyebrow) : null;
+  const eb = s.showEyebrow && s.eyebrow ? h('p', { class:'eb', style: S.accent ? { color: inkSafe(s, S.accent) } : null }, s.eyebrow) : null;
   const copy = h('div', { class:`copy s-${t.size} w-${t.width}`, 'data-align':align },
     eb, hl,
     P(s.quote.on && s.quote.attr ? h('p', { class:'attr' }, '— ' + s.quote.attr) : null),
@@ -1439,7 +1593,7 @@ function textLayer(s, i) {
     P(s.byline.on ? h('div', { class:'byline' }, h('span', { class:'av', style: bylineAvatar(s) }), h('div', {}, h('b', {}, s.byline.name), h('small', {}, s.byline.role))) : null),
     P(s.specs.on ? h('dl', { class:'specs' }, s.specs.items.filter(x => x.k).flatMap(x => [h('dt', {}, x.k), h('dd', {}, x.v)])) : null),
     P(s.swatches.on ? h('div', { class:'swatches' }, s.swatches.items.filter(x => x.n).map(x => h('span', {}, h('i', { style:{ background: inkSafe(s, x.c) } }), x.n))) : null),
-    P(s.feats.on ? h('div', { class:'feats' }, s.feats.items.filter(x => x.t).map((x, k) => h('div', {}, h('em', {}, String(k + 1).padStart(2, '0')), h('b', {}, x.t), x.d && h('small', {}, x.d)))) : null),
+    P(s.feats.on ? h('div', { class:'feats' + (s.feats.items.filter(x => x.t).length > 3 ? ' many' : '') }, s.feats.items.filter(x => x.t).map((x, k) => h('div', {}, h('em', {}, String(k + 1).padStart(2, '0')), h('b', {}, x.t), x.d && h('small', {}, x.d)))) : null),
     P(s.stats.on ? h('div', { class:'stats' }, s.stats.items.filter(x => x.v || x.l).map(x => h('div', {}, h('b', {}, x.v), h('small', {}, x.l)))) : null),
     P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => e.preventDefault() }, s.cta.label, ' →') : null),
   );
@@ -1504,7 +1658,7 @@ function renderStage() {
       if (k >= n) return null;
       const inner = mediaInner(s, k);
       const lz = h('div', { class:'lz' }, inner);
-      const lay = h('div', { class:'lay' + (s.shop.on ? ' shop' : '') }, lz);
+      const lay = h('div', { class:'lay' + (s.shop.on ? ' shop' : s.tiles.on && !single ? ' tiles' : '') }, lz);
       if (inner.dataset && inner.dataset.bg) { lay.style.background = inner.dataset.bg; lz.style.inset = '5%'; if (s.shop.on) lz.style.bottom = 'calc(64px + 4%)'; }
       if (single && !s.shop.on && (s.media.layout === 'full' || s.media.layout === 'inset')) { const sb = scrimFor(s); if (sb) lay.append(h('div', { class:'scrim', style:{ background:sb } })); }
       if (s.shop.on) {
@@ -1513,6 +1667,8 @@ function renderStage() {
         lay.append(h('div', { class:'sl' }, h('div', {}, h('b', {}, it.name || 'Product'), h('small', {}, it.price || '')),
           h('button', { class:'qa', 'aria-label':`Add ${it.name || 'product'} to bag`, onclick:e => addToBag(e, it.name) }, '+')));
       }
+      if (s.tiles.on && !single && !s.shop.on) { const it = s.tiles.items[k] || {};
+        lay.append(h('div', { class:'tcap top' }, h('span', {}, it.t || ''), h('span', { class:'op' }, it.op || '')), h('div', { class:'tcap bot' }, it.d || '')); }
       if (s.caption.on && s.caption.text && k === 0) lay.append(h('span', { class:'cap', 'data-pos':s.caption.pos }, s.caption.text)); // credit line, rides with the frame
       if (s.spots.on && k === 0) {
         const wrap = h('div', { class:'spots' });
@@ -1542,6 +1698,8 @@ function renderStage() {
       S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
   $stage.classList.toggle('has-swiper', touchSwipe());
   if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
+  if (S.numbers && S.sections.length) $stage.append(h('div', { class:'slideno', id:'slideno' }, h('span', {}, S.title || ''), h('b', {})));
+  S.accent ? $stage.style.setProperty('--accent', S.accent) : $stage.style.removeProperty('--accent');
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
   shownI = -1; measure(); ys = scrollY; update();
 }
@@ -1580,7 +1738,7 @@ const glide = t => .82 * easeIO(t) + .18 * t;
 function kenBurns(s, u) {
   const r = kenBurnsRaw(s, u);
   // hotspots and product cards sit on the image, so keep its move gentle
-  if (s.spots.on || s.shop.on) { r.sc = 1 + (r.sc - 1) * .35; r.x *= .35; r.y *= .35; }
+  if (s.spots.on || s.shop.on || s.tiles.on) { r.sc = 1 + (r.sc - 1) * .35; r.x *= .35; r.y *= .35; }
   return r;
 }
 function kenBurnsRaw(s, u) {
@@ -1797,9 +1955,10 @@ function drawPair(i, j, t, ui, uj) {
 }
 function setCurrent(i) {
   curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
-  if (FEED) feedOnSection(i);
   $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
   $list.querySelectorAll('.row').forEach(r => r.classList.toggle('is-cur', +r.dataset.i === i));
+  const no = $('slideno'); if (no) no.lastChild.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(S.sections.length).padStart(2, '0');
+  updatePresenter();
 }
 /* Going to a section. A neighbour is reached by scrolling to it, so its own
    transition plays. Anything further away jumps: the stage moves straight from
@@ -2314,8 +2473,9 @@ const SHOP_POOL = () => {
   ];
 };
 const POOL = [
-  ...SHOP_POOL().map((s, k) => ({ key:'sh' + k, src:'Shop', s })),
-  ...PRESETS.pool().map((s, k) => ({ key:'cr' + k, src:'City Run', s })),
+  ...SHOP_POOL().map((s, k) => ({ key:'sh' + k, src:'Product', s })),
+  ...PRESETS.wip().map((s, k) => ({ key:'wp' + k, src:'Work in Progress', s })),
+  ...PRESETS.pitch().map((s, k) => ({ key:'pi' + k, src:'Pitch', s })),
   ...Object.entries(STARTERS).map(([k, v]) => ({ key:'st-' + k, src:'Blank layouts', s:make(v.o) })),
 ];
 const poolItem = key => POOL.find(p => p.key === key);
@@ -2411,10 +2571,10 @@ function renderPool() {
     ...BEAT_ORDER.map(k => h('button', { class:'bf' + (poolBeat === k ? ' on' : ''), style:{ '--bc':BEATS[k].color }, onclick:() => { poolBeat = k; renderPool(); } },
       h('i', { class:'bdot' }), BEATS[k].label, h('small', {}, counts[k] || 0))));
   const after = cur();
-  const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a section'),
-      h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the story order above.` : 'Click to add, or drag a card into the story order above.')),
+  const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a slide'),
+      h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the slide order above.` : 'Click to add, or drag a card into the slide order above.')),
     filter];
-  ['Shop', 'City Run', 'Blank layouts'].forEach(src => {
+  ['Blank layouts', 'Pitch', 'Work in Progress', 'Product'].forEach(src => {
     const items = POOL.filter(p => p.src === src && (poolBeat === 'all' || p.s.beat === poolBeat));
     if (!items.length) return;
     kids.push(h('h4', {}, src, h('small', {}, items.length)));
@@ -2436,7 +2596,7 @@ function renderPool() {
 function setPool(open) {
   poolOpen = open; if (isPhone()) setDetail(open); // on a phone the pool takes the sheet; Done goes back to the list
   $('add').setAttribute('aria-pressed', String(open));
-  $('add').textContent = open ? 'Done adding' : '+ Add section';
+  $('add').textContent = open ? 'Done adding' : '+ Add slide';
   $insp.scrollTop = 0; renderInspector();
 }
 // dropping a pool card past the last row appends it
@@ -2470,6 +2630,7 @@ function autoFeel(s) {
   if (s.specs.on) f -= .12; if (s.swatches.on) f -= .1; if (s.launch.on) f -= .05;
   if (s.byline.on) f += .06; if (s.caption.on) f += .03; if (s.ticker.on) f += .04;
   if (s.cta.show) f -= .06;
+  if (s.tiles.on) f -= .1;
   f += { s:-.04, m:0, l:.04, xl:.08 }[s.text.size] || 0;
   f += { hook:.04, build:.06, proof:-.08, close:-.04 }[s.beat] || 0;
   return clamp(f, .02, .98);
@@ -2478,12 +2639,12 @@ const feelOf = s => s.feel == null ? autoFeel(s) : s.feel;
 
 /* Six stock arcs, as points on 0–1 time × 0–1 feeling. */
 const ARCS = {
-  crescendo: ['Crescendo',    'A steady climb to an emotional peak, then a quick landing on product.', [[0,.3],[.2,.42],[.4,.55],[.6,.7],[.8,.92],[.9,.97],[1,.34]]],
-  journey:   ["Hero's journey", 'Open big, dip into the practical, climb to a bigger peak, resolve.', [[0,.78],[.2,.46],[.38,.26],[.58,.56],[.78,.9],[.9,.95],[1,.42]]],
-  hole:      ['Comeback',     'Start steady, fall to the product detail, rise higher than where you began.', [[0,.58],[.22,.34],[.42,.16],[.62,.44],[.82,.8],[1,.9]]],
-  pulse:     ['Pulse',        'Alternate feeling and product, so every emotive beat pays off in a shoppable one.', [[0,.88],[.17,.3],[.34,.82],[.5,.26],[.67,.78],[.84,.22],[1,.64]]],
-  coldopen:  ['Cold open',    'Start at full emotion and glide down into shopping.', [[0,.96],[.2,.86],[.42,.68],[.62,.48],[.82,.28],[1,.1]]],
-  slowburn:  ['Slow burn',    'Product first, feeling builds late and ends on the story.', [[0,.18],[.22,.2],[.44,.3],[.64,.46],[.82,.72],[1,.94]]],
+  crescendo: ['Crescendo',    'A steady climb to the big idea, then a quick landing on the ask.', [[0,.3],[.2,.42],[.4,.55],[.6,.7],[.8,.92],[.9,.97],[1,.34]]],
+  journey:   ["Hero's journey", 'Open big, dip into the practical, climb to a bigger peak, resolve on the ask.', [[0,.78],[.2,.46],[.38,.26],[.58,.56],[.78,.9],[.9,.95],[1,.42]]],
+  hole:      ['Comeback',     'Start steady, fall into the problem, rise higher than where you began.', [[0,.58],[.22,.34],[.42,.16],[.62,.44],[.82,.8],[1,.9]]],
+  pulse:     ['Pulse',        'Alternate vision and evidence, so every big claim is backed up on the next slide.', [[0,.88],[.17,.3],[.34,.82],[.5,.26],[.67,.78],[.84,.22],[1,.64]]],
+  coldopen:  ['Cold open',    'Start on the vision and glide down into the plan.', [[0,.96],[.2,.86],[.42,.68],[.62,.48],[.82,.28],[1,.1]]],
+  slowburn:  ['Slow burn',    'Facts first, the feeling builds late and ends on the vision.', [[0,.18],[.22,.2],[.44,.3],[.64,.46],[.82,.72],[1,.94]]],
 };
 /* Every point on the arc is one section of the story. */
 const ARC_MIN = 3, ARC_MAX = 16;
@@ -2594,7 +2755,7 @@ function renderArc() {
       onclick:() => removeArcPoint(arcSel != null ? arcSel : Math.floor(A.points.length / 2)) }, '−'),
     h('b', { class:'stp-n' }, `${A.points.length} sections`),
     h('button', { class:'stp', 'aria-label':'Add a section', disabled: A.points.length >= ARC_MAX ? true : null, onclick:addArcSection }, '+'));
-  $('arc-src').replaceChildren(...seg([['photo','Photo sections'],['blank','Blank layouts'],['all','Both']], A.src, v => { A.src = v; save(); renderArc(); }).childNodes);
+  $('arc-src').replaceChildren(...seg([['photo','Deck slides'],['blank','Blank layouts'],['all','Both']], A.src, v => { A.src = v; save(); renderArc(); }).childNodes);
   $('arc-hint').textContent = A.mode === 'draw' ? 'Draw across the graph, left to right. The line keeps the same number of sections.'
     : 'Each point is a section, evenly spaced in time. Drag a point up or down to change its feeling. Click empty space to add one. Click a point, then press × or Delete, or drag it off the graph, to remove it.';
   $('arc-side').replaceChildren(h('h4', {}, 'Stock arcs'), ...Object.entries(ARCS).map(([k, [name, desc, pts]]) =>
@@ -2616,13 +2777,13 @@ function renderArcGraph() {
   svg.append(sv('rect', { x:L, y:T, width:iw, height:ih, fill:'url(#feelg)' }));
   [0, .25, .5, .75, 1].forEach(v => svg.append(sv('line', { x1:L, x2:L + iw, y1:Y(v), y2:Y(v), stroke:'#E6E6E6', 'stroke-width':1 })));
   const lab = (x, y, t, a = {}) => { const e = sv('text', { x, y, 'font-size':12, fill:'#6B6B6B', 'font-family':'Saans, -apple-system, sans-serif', ...a }); e.textContent = t; return e; };
-  if (tight) svg.append(lab(L - 8, Y(1) + 4, 'Emotive', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+  if (tight) svg.append(lab(L - 8, Y(1) + 4, 'Vision', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
     lab(L - 8, Y(.5) + 4, 'Balanced', { 'text-anchor':'end' }),
-    lab(L - 8, Y(0) + 4, 'Shopping', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }));
-  else svg.append(lab(L - 12, Y(1) + 4, 'Emotive · story', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+    lab(L - 8, Y(0) + 4, 'Detail', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }));
+  else svg.append(lab(L - 12, Y(1) + 4, 'Vision · feeling', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
     lab(L - 12, Y(1) + 19, 'feeling, expression', { 'text-anchor':'end' }),
     lab(L - 12, Y(.5) + 4, 'Balanced', { 'text-anchor':'end' }),
-    lab(L - 12, Y(0) - 11, 'Shopping · product', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
+    lab(L - 12, Y(0) - 11, 'Detail · facts', { 'text-anchor':'end', fill:'#141414', 'font-weight':600 }),
     lab(L - 12, Y(0) + 4, 'grids, prices, detail', { 'text-anchor':'end' }));
   svg.append(
     lab(L, Hd - 12, 'Start'), lab(L + iw, Hd - 12, 'End', { 'text-anchor':'end' }), lab(L + iw / 2, Hd - 12, 'Time →', { 'text-anchor':'middle' }));
@@ -2883,15 +3044,17 @@ function renderInspector() {
         let saved = false; r.addEventListener('pointerdown', () => { saved = false; }); r.addEventListener('input', () => { if (!saved) { snapshot(); saved = true; } s.feel = +r.value / 100; r.nextSibling.textContent = r.value + (s.feel == null ? ' · auto' : ''); renderSpark(); save(); }); return r; })(),
       h('small', {}, Math.round(feelOf(s) * 100) + (s.feel == null ? ' · auto' : '')),
       s.feel != null && h('button', { class:'linkbtn', onclick:act(() => s.feel = null) }, 'Auto'))),
-    h('p', { class:'hint' }, '0 is shopping and product, 100 is emotive story. Auto reads it from what is in the section.'),
+    h('p', { class:'hint' }, '0 is detail and facts, 100 is vision and feeling. Auto reads it from what is on the slide.'),
     field('Beat', seg(BEAT_ORDER.map(k => [k, BEATS[k].label]), s.beat, up(v => s.beat = v), 'Beat')),
     h('p', { class:'hint' }, BEATS[s.beat].hint),
-    field('Section name', text(s.name, v => s.name = v)),
+    field('Slide name', text(s.name, v => s.name = v)),
     h('div', { class:'f2' },
       field('Eyebrow', seg([[false,'Off'],[true,'On']], s.showEyebrow, up(v => s.showEyebrow = v))),
       s.showEyebrow ? field('Eyebrow text', text(s.eyebrow, v => s.eyebrow = v)) : h('span')),
     field('Headline', text(s.headline, v => s.headline = v, true)),
     field('Body', text(s.body, v => s.body = v, true)),
+    field('Speaker notes', text(s.notes, v => { s.notes = v; updatePresenter(); }, true)),
+    h('p', { class:'hint' }, 'Only you see these, in the presenter view.'),
     h('div', { class:'f2' },
       field('Button', seg([[false,'Off'],[true,'On']], s.cta.show, up(v => s.cta.show = v))),
       s.cta.show ? field('Button label', text(s.cta.label, v => s.cta.label = v)) : h('span')),
@@ -2928,8 +3091,8 @@ function renderInspector() {
   onoff('Byline (athlete or author)', s.byline);
   if (s.byline.on) md.append(h('div', { class:'f2' }, field('Name', text(s.byline.name, v => s.byline.name = v)), field('Role', text(s.byline.role, v => s.byline.role = v))),
     h('p', { class:'hint' }, 'The portrait uses this section’s first image.'));
-  onoff('Spec table', s.specs);
-  if (s.specs.on) s.specs.items.forEach((it, k) => md.append(h('div', { class:'f2' }, field(`Spec ${k + 1}`, text(it.k, v => it.k = v)), field('Value', text(it.v, v => it.v = v)))));
+  onoff('Table (label · value)', s.specs);
+  if (s.specs.on) s.specs.items.forEach((it, k) => md.append(h('div', { class:'f2' }, field(`Row ${k + 1}`, text(it.k, v => it.k = v)), field('Value', text(it.v, v => it.v = v)))));
   onoff('Colourways', s.swatches);
   if (s.swatches.on) s.swatches.items.forEach((it, k) => { const c = h('input', { type:'color', 'aria-label':'Colour', style:{ width:'44px', height:'40px', padding:'2px', border:'1px solid var(--p-line)', borderRadius:'4px', background:'#fff' } }); c.value = it.c;
     c.addEventListener('change', act(() => it.c = c.value));
@@ -2941,21 +3104,27 @@ function renderInspector() {
   onoff('Ticker', s.ticker);
   if (s.ticker.on) md.append(field('Ticker text', text(s.ticker.text, v => s.ticker.text = v)), field('Ticker position', seg([['top','Top'],['bottom','Bottom']], s.ticker.y, up(v => s.ticker.y = v))),
     h('p', { class:'hint' }, 'A band of type across the stage that runs as the viewer scrolls. It inverts over images.'));
-  md.append(field('Feature list', seg([[false,'Off'],[true,'On']], s.feats.on, up(v => s.feats.on = v))));
+  if (m.kind === 'gallery') {
+    onoff('Tile captions (A + B = C)', s.tiles);
+    if (s.tiles.on) for (let k = 0; k < count(s); k++) { const it = s.tiles.items[k] || (s.tiles.items[k] = { t:'Tile ' + (k + 1), op:'', d:'' });
+      md.append(h('div', { class:'f2', style:{ gridTemplateColumns:'1.4fr .6fr' } }, field(`Tile ${k + 1} label`, text(it.t, v => it.t = v)), field('Sign', seg([['',  '–'],['+','+'],['=','=']], it.op, up(v => it.op = v)))),
+        field('Line under it', text(it.d, v => it.d = v))); }
+  }
+  md.append(field('Numbered points', seg([[false,'Off'],[true,'On']], s.feats.on, up(v => s.feats.on = v))));
   if (s.feats.on) s.feats.items.forEach((it, k) => md.append(h('div', { class:'f2' },
-    field(`Feature ${k + 1}`, text(it.t, v => it.t = v)), field('Description', text(it.d, v => it.d = v)))));
+    field(`Point ${k + 1}`, text(it.t, v => it.t = v)), field('Detail', text(it.d, v => it.d = v)))));
   md.append(field('Product card', seg([[false,'Off'],[true,'On']], s.card.on, up(v => s.card.on = v))));
   if (s.card.on) md.append(
     field('Card position', grid9(s.card.x, s.card.y, act((x, y) => { s.card.x = x; s.card.y = y; }))),
     h('div', { class:'f2' }, field('Product', text(s.card.name, v => s.card.name = v)), field('Price', text(s.card.price, v => s.card.price = v))));
 
   const holdMode = s.media.kind === 'none'
-    ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'Type-only: the words fill with ink as the viewer scrolls, and the copy floats upward.')
+    ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'Type-only: the words fill with ink as the slide settles, and the copy floats upward.')
     : h('div', {}, field('Motion while held', seg(Object.entries(HOLDS).map(([k, v]) => [k, v[0]]), s.hold, up(v => s.hold = v))),
         h('p', { class:'hint' }, HOLDS[s.hold][1]));
-  const holdF = field('Hold length', slider(.4, 3, .1, s.dwell, v => v.toFixed(1) + ' screens', v => s.dwell = v, () => { measure(); update(); }));
+  const holdF = field('Motion on the slide', slider(.4, 3, .1, s.dwell, v => v.toFixed(1) + '×', v => s.dwell = v, () => { measure(); update(); }));
   const motionGrp = grp('Motion',
-    i === 0 ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'The first section is where the story opens, so it has no motion in.') : h('div', {},
+    i === 0 ? h('p', { class:'hint', style:{ margin:'0 0 16px' } }, 'The first slide is where the deck opens, so it has no motion in.') : h('div', {},
       field('How this composition arrives', seg(Object.entries(MOTIONS).map(([k, v]) => [k, v[0]]), s.motion, up(v => s.motion = v))),
       h('p', { class:'hint' }, MOTIONS[s.motion][1])),
     i === 0 ? null : h('div', {},
@@ -2965,13 +3134,21 @@ function renderInspector() {
     holdF,
   );
 
-  const head = h('div', { class:'p-insp-h' }, mobileBack(i), h('small', {}, `Section ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
+  const head = h('div', { class:'p-insp-h' }, mobileBack(i), h('small', {}, `Slide ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
   $insp.replaceChildren(head, layoutGrp(s), textGrp, mediaGrp, motionGrp, contentGrp, modGrp);
   $insp.scrollTop = keepScroll;
 }
 
 /* ---------- global controls ---------- */
 function renderGlobals() {
+  document.body.classList.toggle('theme-dark', S.theme === 'dark');
+  $('theme').replaceChildren(...seg([['light','Light'],['dark','Dark']], S.theme, act(v => S.theme = v)).childNodes);
+  $('numbers').replaceChildren(...seg([[true,'On'],[false,'Off']], S.numbers, act(v => S.numbers = v)).childNodes);
+  { const t = $('decktitle'); if (!t.firstChild) { const el = h('input', { type:'text', placeholder:'Shown at the foot of each slide' }); el.addEventListener('input', () => { S.title = el.value.slice(0, 80); renderStage(); save(); updatePresenter(); }); t.append(el); }
+    if (document.activeElement !== t.firstChild) t.firstChild.value = S.title; }
+  { const c = h('input', { type:'color', 'aria-label':'Accent colour', style:{ width:'44px', height:'36px', padding:'2px', border:'1px solid var(--p-line)', borderRadius:'4px', background:'#fff' } }); c.value = S.accent || '#B8B46A';
+    c.addEventListener('change', act(() => S.accent = c.value));
+    $('accent').replaceChildren(c, S.accent ? h('button', { class:'linkbtn', onclick:act(() => S.accent = '') }, 'None') : h('small', {}, 'None set')); }
   $('scrollmode').replaceChildren(...seg([['chapter','Chapter swipe'],['free','Free scroll']], S.scrollMode, act(v => { S.scrollMode = v; if (v === 'free') { swiperHeld = false; magnetOn(); } })).childNodes);
   $('scrollmode-hint').textContent = S.scrollMode === 'chapter'
     ? 'Each flick of the trackpad or wheel plays the next section through and rests at its end, like swiping on a phone. Arrow keys step too.'
@@ -2993,7 +3170,7 @@ function render() { renderGlobals(); renderStage(); renderList(); renderInspecto
 $('add').addEventListener('click', () => setPool(!poolOpen));
 $('preset').addEventListener('change', e => {
   const k = e.target.value; e.target.value = ''; if (!k) return;
-  snapshot(); S.sections = PRESETS[k](); sel = S.sections[0].id; render(); scrollTo(0, 0);
+  snapshot(); S.sections = PRESETS[k](); Object.assign(S, PRESET_LOOK[k] || {}); sel = S.sections[0].id; render(); scrollTo(0, 0);
 });
 $('remix').addEventListener('click', act(() => {
   S.sections.forEach((s, i) => {
@@ -3008,22 +3185,22 @@ $('remix').addEventListener('click', act(() => {
 $undo.addEventListener('click', undo); $('redo').addEventListener('click', redo);
 $('export').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type:'application/json' });
-  const a = h('a', { href:URL.createObjectURL(blob), download:'story-layout.json' }); document.body.append(a); a.click(); a.remove();
+  const a = h('a', { href:URL.createObjectURL(blob), download:(S.title || 'deck').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() + '.deck.json' }); document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 $('import').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try { const d = normalize(JSON.parse(await f.text())); if (!d.sections.length) throw 0; snapshot(); S = d; sel = S.sections[0].id; render(); }
-  catch (err) { alert('That file is not a Story Builder layout.'); }
+  catch (err) { alert('That file is not a Deck Builder or Story Builder layout.'); }
 });
 
 const $fab = $('fab');
 function togglePanel(force) {
   const open = document.body.classList.toggle('panel-open', force);
   if (open && isPhone()) setSheet(sheet === 'full' ? 'half' : sheet); else fitStage();
-  $fab.querySelector('.fa').textContent = open ? '›' : '‹'; $fab.querySelector('.ft').textContent = open ? 'Close' : 'Edit story';
-  $fab.title = (open ? 'Close the editor' : 'Edit the story') + ' (E)'; $fab.setAttribute('aria-expanded', String(open));
+  $fab.querySelector('.fa').textContent = open ? '›' : '‹'; $fab.querySelector('.ft').textContent = open ? 'Close' : 'Edit deck';
+  $fab.title = (open ? 'Close the editor' : 'Edit the deck') + ' (E)'; $fab.setAttribute('aria-expanded', String(open));
   setTimeout(() => { measure(); update(); }, 380);
 }
 $fab.addEventListener('click', () => togglePanel());
@@ -3034,40 +3211,178 @@ addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
-  else if (e.key === 'Escape' && FEED) exitFeed();
-  else if (e.key === ' ' && !typing && !e.defaultPrevented && $('arc').hidden && !(e.target.closest && e.target.closest('button,[role=button],.panel')) && S.player) { e.preventDefault(); togglePlay(); }
-  else if (['ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key) && !typing && chapterMode() && $('arc').hidden) { e.preventDefault(); stopPlay(); swipeTo(e.key === 'ArrowDown' || e.key === 'PageDown' ? 1 : -1); }
-  else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key) && !typing) stopPlay();
-  else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) togglePanel();
+  else if (e.key === 'Escape' && presenting()) { e.preventDefault(); present(false); }
+  else if (!typing && $('arc').hidden && stepKey(e) && !(e.key === ' ' && e.target.closest && e.target.closest('button,[role=button],.panel'))) { e.preventDefault(); stopPlay(); swipeTo(stepKey(e)); }
+  else if (!typing && $('arc').hidden && (e.key === 'Home' || e.key === 'End')) { e.preventDefault(); stopPlay(); goTo(e.key === 'Home' ? 0 : S.sections.length - 1); }
+  else if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); present(); }
+  else if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); openPresenter(); }
+  else if (!typing && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey && !presenting()) togglePanel();
 });
+
+
+/* ---------- deck ----------
+   The slide is drawn at 1920×1080 and scaled into the room beside the editor, or
+   onto the whole screen while presenting. */
+const presenting = () => document.body.classList.contains('presenting');
+function fitDeck(sheetPxNow) {
+  const pres = presenting(), open = !pres && document.body.classList.contains('panel-open'), phone = isPhone();
+  const pw = open && !phone ? $('panel').offsetWidth : 0;
+  const ph = open && phone ? (sheetPxNow ?? sheetPx(sheet)) : 0;
+  const pad = pres ? 0 : phone ? 8 : 28;
+  const aw = Math.max(80, innerWidth - pw - pad * 2), ah = Math.max(45, innerHeight - ph - pad * 2);
+  const k = Math.min(aw / 1920, ah / 1080);
+  const x = pad + (aw - 1920 * k) / 2, y = pad + (ah - 1080 * k) / 2;
+  $stage.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${k.toFixed(5)})`;
+}
+// arrows, space, page keys (what presentation clickers send) and Enter step one slide
+function stepKey(e) {
+  if (e.metaKey || e.ctrlKey || e.altKey) return 0;
+  if (['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)) return e.key === ' ' && e.shiftKey ? -1 : 1;
+  if (['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)) return -1;
+  return 0;
+}
+let panelWasOpen = true, idleT = 0;
+function present(on = !presenting(), fromStart = false) {
+  if (on === presenting()) return;
+  if (on) {
+    panelWasOpen = document.body.classList.contains('panel-open');
+    stopPlay(); if (panelWasOpen) togglePanel(false);
+    document.body.classList.add('presenting');
+    const fs = document.documentElement.requestFullscreen; if (fs) document.documentElement.requestFullscreen().catch(() => {});
+    if (fromStart) goTo(0);
+  } else {
+    document.body.classList.remove('presenting', 'idle');
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    if (panelWasOpen) togglePanel(true);
+  }
+  fitDeck(); setTimeout(fitDeck, 120); setTimeout(fitDeck, 450);
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presenting()) present(false); fitDeck(); });
+// while presenting, a click anywhere moves on; the pointer hides when it rests
+$stage.addEventListener('click', e => { if (presenting() && !e.target.closest('button,a,.player')) swipeTo(1); });
+addEventListener('pointermove', () => { if (!presenting()) return; document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => presenting() && document.body.classList.add('idle'), 1800); });
+$('present').addEventListener('click', () => present(true, true));
+$('presenter').addEventListener('click', () => openPresenter());
+$('pdf').addEventListener('click', () => exportPDF());
+
+/* Presenter view: a second window with the notes, this slide and the next, and a
+   timer. It is driven from here, so its buttons and keys move the deck. */
+let pv = null, pvT0 = 0, pvTick = 0;
+const PV_CSS = `
+body{margin:0;background:#141414;color:#EDEBE6;font:400 16px/1.45 Saans,-apple-system,Helvetica,Arial,sans-serif;height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+.pv-h{display:flex;align-items:center;gap:20px;padding:14px 22px;border-bottom:1px solid #2A2926;font:400 13px/1 "Saans Mono",ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#8E8B84}
+.pv-h b{color:#EDEBE6;font-weight:400}.pv-h .sp{flex:1}
+.pv-h button{font:inherit;letter-spacing:inherit;text-transform:inherit;color:#EDEBE6;background:#2A2926;border:0;border-radius:4px;padding:8px 12px;cursor:pointer}
+.pv-m{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;padding:22px;min-height:0}
+.pv-col{display:grid;align-content:start;gap:12px;min-height:0}
+.pv-l{font:400 12px/1 "Saans Mono",ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8E8B84}
+.pv-col .pt{background:#fff;border-radius:4px}
+.pv-hl{font-weight:600;font-size:18px;line-height:1.3}
+.pv-notes{font-size:24px;line-height:1.5;white-space:pre-wrap;overflow:auto;min-height:0;padding-right:8px}
+.pv-notes.none{color:#5E5C56;font-size:18px}
+.pv-next .pv-hl{color:#C9C6BF}
+.pv-f{display:flex;gap:10px;padding:14px 22px;border-top:1px solid #2A2926}
+.pv-f button{flex:1;height:54px;font:600 17px/1 inherit;font-family:inherit;color:#EDEBE6;background:#2A2926;border:0;border-radius:6px;cursor:pointer}
+.pv-f button.go{background:#EDEBE6;color:#141414}`;
+function openPresenter() {
+  if (pv && !pv.closed) { pv.focus(); updatePresenter(); return; }
+  pv = open('', 'deck-presenter', 'width=1100,height=700');
+  if (!pv) { alert('Allow pop-ups for this page to open the presenter view.'); return; }
+  const d = pv.document;
+  d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><title>Presenter view</title></head><body></body></html>'); d.close();
+  d.head.append(document.querySelector('style').cloneNode(true)); // the slide drawings use the builder's own styles
+  const st = d.createElement('style'); st.textContent = PV_CSS; d.head.append(st);
+  const btn = (label, fn, cls) => { const b = d.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.addEventListener('click', fn); return b; };
+  const head = d.createElement('div'); head.className = 'pv-h';
+  head.innerHTML = '<span>Slide <b id="pv-no"></b></span><span id="pv-deck"></span><span class="sp"></span><span>Elapsed <b id="pv-time">0:00</b></span><span>Clock <b id="pv-clock"></b></span>';
+  head.append(btn('Reset timer', () => { pvT0 = Date.now(); tickPresenter(); }), btn(presenting() ? 'Stop presenting' : 'Present', () => { present(); updatePresenter(); }));
+  const main = d.createElement('div'); main.className = 'pv-m';
+  main.innerHTML = '<div class="pv-col"><span class="pv-l">Now</span><div id="pv-now"></div><div class="pv-hl" id="pv-nowhl"></div><span class="pv-l" style="margin-top:10px">Notes</span><div class="pv-notes" id="pv-notes"></div></div>'
+    + '<div class="pv-col pv-next"><span class="pv-l">Next</span><div id="pv-next"></div><div class="pv-hl" id="pv-nexthl"></div></div>';
+  const foot = d.createElement('div'); foot.className = 'pv-f';
+  foot.append(btn('← Back', () => swipeTo(-1)), btn('Next →', () => swipeTo(1), 'go'));
+  d.body.append(head, main, foot);
+  pv.addEventListener('keydown', e => { const k = stepKey(e); if (k) { e.preventDefault(); swipeTo(k); } else if (e.key.toLowerCase() === 'p') present(); });
+  pvT0 = Date.now(); clearInterval(pvTick); pvTick = setInterval(tickPresenter, 500);
+  updatePresenter(); tickPresenter();
+}
+function tickPresenter() {
+  if (!pv || pv.closed) { clearInterval(pvTick); return; }
+  const s = Math.floor((Date.now() - pvT0) / 1000), d = pv.document;
+  const t = d.getElementById('pv-time'); if (t) t.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const c = d.getElementById('pv-clock'); if (c) c.textContent = new Date().toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+}
+function updatePresenter() {
+  if (!pv || pv.closed) return;
+  const d = pv.document, n = S.sections.length, s = S.sections[curI], nx = S.sections[curI + 1];
+  const set = (id, v) => { const el = d.getElementById(id); if (el) el.textContent = v; };
+  set('pv-no', `${curI + 1} / ${n}`); set('pv-deck', S.title || '');
+  set('pv-nowhl', s ? `${s.name} · ${s.headline || ''}` : '');
+  set('pv-nexthl', nx ? `${nx.name} · ${nx.headline || ''}` : 'End of the deck');
+  const notes = d.getElementById('pv-notes');
+  if (notes) { notes.textContent = s && s.notes ? s.notes : 'No notes for this slide. Add them under Copy › Speaker notes.'; notes.classList.toggle('none', !(s && s.notes)); }
+  const draw = (id, sec) => { const el = d.getElementById(id); if (el) el.replaceChildren(...(sec ? [poolThumb(sec)] : [])); };
+  draw('pv-now', s); draw('pv-next', nx);
+}
+
+/* PDF: every slide at its resting composition, one page each, through the print
+   dialog (choose Save as PDF). Video frames are captured as stills. */
+function exportPDF() {
+  if (!S.sections.length) return;
+  stopPlay(); cancelJump(); cancelAnimationFrame(swipeAnim); swipeDirect = false;
+  const keepY = scrollY, pages = h('div', { class:'print-pages' });
+  S.sections.forEach((s, k) => {
+    setY(restOf(k));
+    const c = $stage.cloneNode(true);
+    c.removeAttribute('id'); c.style.transform = 'none';
+    c.querySelectorAll('.dots,.player,.pbar,.toast').forEach(el => el.remove());
+    c.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    const live = [...$stage.querySelectorAll('video')], copies = [...c.querySelectorAll('video')];
+    live.forEach((v, n) => {
+      const cv = copies[n]; if (!cv) return;
+      try {
+        if (v.readyState < 2 || !v.videoWidth) return;
+        const can = document.createElement('canvas'); can.width = v.videoWidth; can.height = v.videoHeight;
+        can.getContext('2d').drawImage(v, 0, 0);
+        const im = new Image(); im.src = can.toDataURL('image/jpeg', .86); im.style.cssText = v.style.cssText; cv.replaceWith(im);
+      } catch (e) {}
+    });
+    pages.append(h('div', { class:'print-page' }, c));
+  });
+  document.body.append(pages); document.body.classList.add('printing');
+  const done = () => { pages.remove(); document.body.classList.remove('printing'); setY(keepY); removeEventListener('afterprint', done); };
+  addEventListener('afterprint', done);
+  const t = document.title; document.title = S.title || 'Deck';
+  setTimeout(() => { print(); document.title = t; }, 350);
+}
 
 /* ---------- help tour ----------
    Shown on a first visit and whenever the page is refreshed (browsers report a
    hard refresh and a normal refresh the same way). The checkbox turns off the
    refresh showing. Esc closes, arrow keys step through. */
 const HELP = [
-  { t:'Welcome to Story Builder', v:'morph',
-    b:`<p>Build a story page that plays as people scroll.</p><p>The page itself stays still. As the viewer moves through it, the images and words glide from one composition into the next, like a scene changing in front of an audience. There is always something moving.</p>` },
-  { t:'A story is a list of sections', v:'rows',
-    b:`<p>Each section is one composition, tagged with a beat: <b>Hook</b>, <b>Build</b>, <b>Proof</b> or <b>Close</b>.</p><p>In <b>Story order</b>, drag a section to reorder it. Click one to edit it, and the stage moves straight to it, even if it's far away.</p>` },
-  { t:'Fine-tune each section', v:'edit',
-    b:`<p>Under the section list, choose where the words sit on a 3×3 grid, where the media goes (full, half, framed or a gallery), and how the section moves in and moves while it's on screen.</p><p>Add shoppable extras too: product labels with a quick-add, hotspots on the image, a feature list or a product card. <b>Feeling</b> sets how emotive or shopping-led the section is.</p>` },
-  { t:'Add sections from the pool', v:'pool',
-    b:`<p>Press <b>+ Add section</b> for ready-made sections: <b>Shop</b> grids and hotspots, <b>City Run</b> story moments, and blank layouts.</p><p>Click a card to add it after the section you're on, or drag it into the exact spot in Story order.</p>` },
+  { t:'Welcome to Deck Builder', v:'morph',
+    b:`<p>Build a presentation where each slide moves into the next.</p><p>The slide stays put. When you click, the images and words glide from one composition into the next, like a scene changing in front of an audience. It runs on the same engine as Story Builder, one slide at a time.</p>` },
+  { t:'A deck is a list of slides', v:'rows',
+    b:`<p>Each slide is one composition, tagged with a beat: <b>Open</b>, <b>Context</b>, <b>Proof</b> or <b>Ask</b>.</p><p>In <b>Slide order</b>, drag a slide to reorder it. Click one to edit it, and the stage moves straight to it.</p>` },
+  { t:'Any slide can become any layout', v:'edit',
+    b:`<p>Every slide has the same parts, so you are never stuck in a template. Pick a <b>Layout</b>, place the words on a 3×3 grid, and choose how the slide moves in.</p><p>Turn on modules for the job: a big number, numbered points, a table, a quote, <b>tile captions</b> for A + B = C slides, hotspots, a product card. Add <b>speaker notes</b> under Copy.</p>` },
+  { t:'Add slides from the pool', v:'pool',
+    b:`<p>Press <b>+ Add slide</b> for ready-made slides: blank layouts (title, divider, big number, three-up, steps, plan), a full pitch, the Work in Progress deck and product slides.</p><p>Click a card to add it after the slide you're on, or drag it into the exact spot in Slide order.</p>` },
   { t:'Drop in images and video', v:'drop',
-    b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the stage. It glows red where it will land. <b>Add files</b> brings in your own; they stay in this browser.</p><p>Product flat lays show whole on their grey. Editorial photos fill the frame. If a photo is too small for its frame, the section's media box says so.</p>` },
+    b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the slide. <b>Add files</b> brings in your own; they stay in this browser, and Story Builder sees them too.</p><p>An empty frame names the shot it's waiting for, so a draft deck doubles as a shot list.</p>` },
   { t:'Shape it with a narrative arc', v:'arc',
-    b:`<p><b>Build a Narrative Arc</b> maps the feeling of the story over time: shopping and product at the bottom, emotive story at the top.</p><p>Each point is one section, evenly spaced. Drag a point up or down. Click empty space or <b>+</b> to add one. Select a point, then press <b>×</b> or <b>Delete</b>, or drag it off the graph, to remove it. Then build a new story or re-order the one you have.</p>` },
-  { t:'Watch it like a viewer', v:'play',
-    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p>` },
+    b:`<p><b>Build a Narrative Arc</b> maps how the deck feels over time: detail and facts at the bottom, vision and feeling at the top.</p><p>Each point is one slide. Drag points to shape it, then build a new deck or re-order the one you have. Big moments get longer holds and bigger entrances.</p>` },
+  { t:'Present it', v:'play',
+    b:`<p><b>▶ Present</b> goes full screen from the first slide. Click, or press <kbd>→</kbd>, <kbd>Space</kbd> or a clicker, to move on. <kbd>←</kbd> goes back, <kbd>Esc</kbd> stops.</p><p><b>Presenter view</b> opens a second window with your notes, the next slide and a timer. <b>PDF</b> saves every slide as a page.</p>` },
   { t:'Handy to know', v:'keys',
     b:`<ul>
-      <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo. The buttons are under Export.</span></li>
-      <li><kbd>E</kbd><span>Hide or show the editor to see the page clean.</span></li>
-      <li><kbd>Space</kbd><span>Play or pause.</span></li>
-      <li><kbd>Remix</kbd><span>Shuffles the layouts and keeps your words.</span></li>
-      <li><kbd>Export</kbd><span>Saves the story as a file. <b>Import</b> opens one again.</span></li>
-      <li><kbd>Settings</kbd><span><b>Page settings</b> tunes scroll speed, smoothing, transitions, the Play button and touch swiping.</span></li>
+      <li><kbd>P</kbd><span>Present from the slide you're on. <kbd>S</kbd> opens the presenter view.</span></li>
+      <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo.</span></li>
+      <li><kbd>E</kbd><span>Hide or show the editor.</span></li>
+      <li><kbd>Home</kbd><span>First slide. <kbd>End</kbd> goes to the last.</span></li>
+      <li><kbd>Export</kbd><span>Saves the deck as a file. <b>Import</b> opens one again, including Story Builder stories.</span></li>
+      <li><kbd>Deck</kbd><span>The Deck tab holds the title, theme, accent, slide numbers and timing.</span></li>
       <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
     </ul>` },
 ];
@@ -3084,7 +3399,7 @@ const HELP_VIS = {
   play:`<div class="hv"><div class="hv-stage"><i class="hv-f img" style="left:0;top:0;width:100%;height:100%"></i><div class="hv-pill" style="left:36%;bottom:8%;width:28%;height:44px;display:flex;align-items:center;gap:8px;padding:0 6px"><i style="width:32px;height:32px;border-radius:50%;background:#141414;display:grid;place-items:center;color:#fff;font-style:normal;font-size:12px">▶</i><b style="font:600 13px var(--sans)">1×</b></div><span class="hv-dot" style="left:78%;top:62%;width:26px;height:26px;margin:-13px;background:rgba(255,255,255,.85);box-shadow:0 0 0 6px rgba(255,255,255,.35)"></span></div></div>`,
   keys:`<div class="hv"><div class="hv-keys"><kbd>⌘Z</kbd><kbd>E</kbd><kbd>␣</kbd><kbd>⇧⌘Z</kbd><kbd>?</kbd><kbd>Esc</kbd></div></div>`,
 };
-const HELP_SEEN = 'storyBuilder.helpSeen', HELP_RELOAD = 'storyBuilder.helpOnReload';
+const HELP_SEEN = 'deckBuilder.helpSeen', HELP_RELOAD = 'deckBuilder.helpOnReload';
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 let helpI = 0, helpReturn = null;
@@ -3142,6 +3457,7 @@ function setSheet(st, px) {
   fitStage(px);
 }
 function fitStage(px) {
+  fitDeck(px);
   const open = document.body.classList.contains('panel-open') && isPhone();
   const h = px ?? sheetPx(sheet);
   const k = open ? clamp((innerHeight - h - 14) / innerHeight, .2, 1) : 1;
@@ -3181,7 +3497,7 @@ $('tab-story').addEventListener('click', () => { picking = null; showTab('story'
 function placeControls() {
   const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
   const inHead = [$('arc-open'), document.querySelector('.hist')];
-  const inStory = [$('feed-open'), $('views'), $('preset'), $('remix').parentElement, $('pageset')];
+  const inStory = [$('preset'), $('remix').parentElement, $('pageset')];
   (phone ? [...inStory.slice(0, 1), inHead[0], ...inStory.slice(1), inHead[1]] : inStory).forEach(n => pane.appendChild(n));
   if (!phone) inHead.forEach(n => head.appendChild(n));
   $('pageset').open = !phone; // on a computer the Story tab shows the page settings straight away
@@ -3191,7 +3507,7 @@ function placeControls() {
 }
 // the divider between the story order and the section settings; its height is remembered per browser
 (() => {
-  const sp = $('p-split'), view = $('view-sections'), pl = document.querySelector('.p-list'), KEY = 'storyBuilder.listH';
+  const sp = $('p-split'), view = $('view-sections'), pl = document.querySelector('.p-list'), KEY = 'deckBuilder.listH';
   const apply = px => px ? view.style.setProperty('--list-h', px + 'px') : view.style.removeProperty('--list-h');
   apply(+lsGet(KEY) || 0);
   let g = null;
@@ -3208,114 +3524,11 @@ let wasPhone = null;
 addEventListener('resize', () => { const p = isPhone(); if (p !== wasPhone) { wasPhone = p; placeControls(); renderInspector(); } else fitStage(); });
 wasPhone = isPhone(); placeControls();
 
-/* ---------- the feed ----------
-   Stories play back to back as one endless scroll. Each story ends on an "Up next"
-   card whose small frame grows into the next story's opening, so the break is clear
-   but the motion never stops. Every 4th slot is a sale page built from what this
-   viewer lingered on: time on screen is added up per product (grid tiles, product
-   cards, priced hotspots) and kept in this browser only. */
-const FEED_STORIES = [['Align', 'alignStory'], ['Golf', 'golf'], ['Fast and Free Vest', 'vest']];
-const VIEWS_KEY = 'storyBuilder.productViews';
-let VIEWS = {}; try { VIEWS = JSON.parse(lsGet(VIEWS_KEY) || '{}') || {}; } catch (e) { VIEWS = {}; }
-const realName = n => n && !/^(product( name)?|the full look|new hotspot|feature)$/i.test(n.trim());
-// the products a section puts in front of the viewer, each with its image and price
-function productsIn(s) {
-  const out = [], img = k => s.media.items[k] || s.media.items.find(Boolean) || null;
-  if (s.shop.on && s.media.kind !== 'none') for (let k = 0; k < count(s); k++) { const it = s.shop.items[k]; if (it && realName(it.name)) out.push({ name:it.name, price:it.price, img:img(k) }); }
-  if (s.card.on && realName(s.card.name)) out.push({ name:s.card.name, price:s.card.price, img:img(0) });
-  if (s.spots.on) s.spots.items.forEach(sp => { if (realName(sp.label) && /\$/.test(sp.sub || '')) out.push({ name:sp.label, price:sp.sub, img:img(0) }); });
-  return out;
-}
-let feedTick = 0, feedLastT = 0;
-function trackViews() {
-  const now = performance.now(), dt = feedLastT ? Math.min(1000, now - feedLastT) : 0; feedLastT = now;
-  if (!FEED || document.hidden || !dt) return;
-  const sec = S.sections[curI]; if (!sec) return;
-  productsIn(sec).forEach(p => { const v = VIEWS[p.name] || (VIEWS[p.name] = { ms:0 }); v.ms += dt; v.price = p.price || v.price; if (p.img) v.img = p.img; });
-  if ((feedTick = (feedTick + 1) % 8) === 0) lsSet(VIEWS_KEY, JSON.stringify(VIEWS)); // saved every couple of seconds
-}
-// a block of sections, tagged with the story they belong to
-function tagged(sections, story) { return sections.map((x, k) => { const c = clone(x); c.id = uid(); c.story = { title:story, k, of:sections.length }; return c; }); }
-function upNext(first, title) {
-  const m = first.media;
-  return make({ name:'Up next', beat:'hook', motion:'dissolve', hold:'pull', dwell:.7, overlay:0,
-    media:{ kind: m.kind === 'gallery' || m.kind === 'none' ? 'image' : m.kind, layout:'inset', mx:'center', inset:'s', items:[m.items.find(Boolean) || null].filter(Boolean), shots:[(m.shots || [])[0] || ''] },
-    text:{ x:'center', y:'bottom', size:'xl', width:'wide', anim:'letters', ink:'dark' }, showEyebrow:true, eyebrow:'Up next', headline:title });
-}
-function saleBlock() {
-  // most-watched first; if nothing has been watched yet, what the viewer has scrolled past
-  let picks = Object.entries(VIEWS).filter(([n, v]) => v.ms > 400).sort((a, b) => b[1].ms - a[1].ms).map(([name, v]) => ({ name, price:v.price, img:v.img }));
-  if (!picks.length) { const seen = new Map(); S.sections.slice(0, curI + 1).forEach(x => productsIn(x).forEach(p => seen.set(p.name, p))); picks = [...seen.values()]; }
-  if (!picks.length) return [];
-  const [top, ...rest] = picks, grid = rest.slice(0, 6);
-  const out = [make({ name:'Picked for you', beat:'close', motion:'iris', hold:'push', overlay:0,
-    media:{ kind:'image', layout:'inset', mx:'right', inset:'m', items:[top.img].filter(Boolean), shots:[top.name] },
-    card:{ on:true, x:'left', y:'bottom', name:top.name, price:top.price || '$XX' },
-    text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'rise' }, showEyebrow:true, eyebrow:'Picked for you',
-    headline:`Still thinking about the ${top.name}?`, body:'You spent the most time with this one.', cta:{ show:true, label:'Shop now' } })];
-  if (grid.length >= 2) out.push(make({ name:'More you lingered on', beat:'close', motion:'glide', hold:'drift', overlay:0,
-    media:{ kind:'gallery', layout:'full', count:Math.min(6, grid.length), arrange:'cdp', items:grid.map(p => p.img) },
-    shop:{ on:true, items:grid.map(p => ({ name:p.name, price:p.price || '$XX', tag:'' })) },
-    text:{ x:'center', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'More you lingered on.', cta:{ show:false } }));
-  return tagged(out, 'For you');
-}
-function nextBlock() {
-  const F = FEED;
-  if (F.since === 3) { F.since = 0; const b = saleBlock(); if (b.length) { F.lastWasSale = true; return b; } }
-  const [title, key] = F.order[F.next++ % F.order.length];
-  const story = key === '__own' ? JSON.parse(F.saved).sections : PRESETS[key]();
-  F.since++; F.lastWasSale = false;
-  const block = tagged(story, title);
-  if (S.sections.length) { const card = tagged([upNext(block[0], title)], title)[0]; card.story = { title, k:-1, of:block.length }; block[0].motion = 'glide'; block.unshift(card); }
-  return block;
-}
-function extendFeed() {
-  // stories are added well ahead; a sale page waits until two sections from the end, so it reflects nearly everything watched
-  if (!FEED || S.sections.length - curI > (FEED.since === 3 ? 2 : 4)) return;
-  if (swipeGoal != null || jumping || drag || playing) { setTimeout(extendFeed, 300); return; } // never rebuild the stage mid-move
-  S.sections.push(...nextBlock()); renderStage(); feedHud(curI);
-}
-function feedOnSection(i) { feedHud(i); setTimeout(extendFeed, 0); }
-function feedHud(i) {
-  const sec = S.sections[i]; if (!sec || !sec.story) return;
-  const st = sec.story, n = Math.max(1, st.of);
-  if ($('fsegs').dataset.story !== st.title + st.of) {
-    $('fsegs').dataset.story = st.title + st.of;
-    $('fsegs').replaceChildren(...Array.from({ length:n }, () => h('i', {}, h('b'))));
-  }
-  [...$('fsegs').children].forEach((seg, k) => seg.firstChild.style.width = k < st.k ? '100%' : k === st.k ? '50%' : '0');
-  $('fname').replaceChildren(st.title === 'For you' ? 'For you' : st.title, h('small', {}, st.k < 0 ? 'up next' : `${st.k + 1} of ${n}`));
-}
-function startFeed() {
-  if (FEED) return;
-  closeHelp(); openArc(false);
-  const own = S.sections.length ? [['Your story', '__own']] : [];
-  FEED = { saved: JSON.stringify(S), wasOpen: document.body.classList.contains('panel-open'), order:[...own, ...FEED_STORIES.map(([t, k]) => [t, k])], next:0, since:0 };
-  document.body.classList.add('feed'); document.body.classList.remove('panel-open');
-  S = normalize({ ...JSON.parse(FEED.saved), sections:[] });
-  S.sections.push(...nextBlock()); S.sections.push(...nextBlock()); // one at a time, so the second gets its Up next card
-  sel = S.sections[0].id; render(); scrollTo(0, 0); ys = 0; update(); feedHud(0);
-  feedLastT = 0; clearInterval(FEED.timer); FEED.timer = setInterval(trackViews, 250);
-}
-function exitFeed() {
-  if (!FEED) return;
-  clearInterval(FEED.timer); lsSet(VIEWS_KEY, JSON.stringify(VIEWS));
-  const saved = FEED.saved, wasOpen = FEED.wasOpen; FEED = null;
-  document.body.classList.remove('feed'); S = normalize(JSON.parse(saved)); sel = S.sections[0] && S.sections[0].id;
-  render(); scrollTo(0, 0); ys = 0; update(); togglePanel(wasOpen); renderViews();
-}
-function renderViews() {
-  const top = Object.entries(VIEWS).filter(([, v]) => v.ms > 400).sort((a, b) => b[1].ms - a[1].ms).slice(0, 5);
-  $('views').replaceChildren(top.length
-    ? h('div', {}, 'Most viewed in the feed (this browser only):', h('ol', {}, top.map(([n, v]) => h('li', {}, `${n} · ${Math.round(v.ms / 1000)}s`))),
-        h('button', { class:'linkbtn', onclick:() => { if (!confirm('Clear the viewing data?')) return; VIEWS = {}; lsSet(VIEWS_KEY, '{}'); renderViews(); } }, 'Clear viewing data'))
-    : 'Viewing time per product is recorded while the feed plays, in this browser only.');
-}
-$('feed-open').addEventListener('click', startFeed);
-$('fexit').addEventListener('click', exitFeed);
-renderViews();
-
 render();
+fitDeck();
+// a link can open on one slide: deck-builder.html#slide=3 (add &present to start presenting there)
+{ const m = /slide=(\d+)/.exec(location.hash); if (m && S.sections.length) { const k = clamp(+m[1] - 1, 0, S.sections.length - 1); sel = S.sections[k].id; setY(restOf(k)); renderList(); renderInspector(); }
+  if (/present/.test(location.hash)) present(true); }
 loadUserAssets();
 })();
 </script>

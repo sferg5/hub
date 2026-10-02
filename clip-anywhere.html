@@ -210,7 +210,7 @@
     <div class="file"><span id="fVestName">Vest: stand-in</span><label class="btn" for="fVest">Load vest</label><input type="file" id="fVest" accept=".glb,model/gltf-binary"></div>
     <div class="file"><span id="fBagName">Bag: stand-in</span><label class="btn" for="fBag">Load bag</label><input type="file" id="fBag" accept=".glb,model/gltf-binary"></div>
     <div class="ctl"><label for="d-turn">Turn vest scan <span class="val" id="v-turn"></span></label><input type="range" id="d-turn" min="-180" max="180" step="90"></div>
-    <div class="row"><label class="chk"><input type="checkbox" id="d-form" checked> Show dress form</label></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="d-form"> Show dress form</label></div>
     <div class="row"><label class="chk"><input type="checkbox" id="d-edit"> Place clip points by clicking the vest</label></div>
     <div class="row"><button class="btn" type="button" id="copyPts">Copy points</button><button class="btn" type="button" id="resetPts">Reset points</button></div>
     <p class="status" id="scanStatus" role="status"></p>
@@ -364,6 +364,7 @@ const form=new THREE.Group();
   const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.02,16),M.steel); cap.position.y=0.462; form.add(cap);
 }
 scene.add(shadowy(form));
+form.visible=false; // hidden for now: the vest floats on its own
 
 /* ------------------------------------------------------------------ stand-in vest */
 // A slab: a patch of the form's surface lifted off it and given thickness, with its edges stitched,
