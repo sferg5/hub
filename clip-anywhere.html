@@ -473,50 +473,86 @@ function frameAt(thDeg,y,off){
 function place(mesh,f){ mesh.matrixAutoUpdate=false; mesh.matrix.copy(f.m).multiply(mesh.matrix.clone().compose(mesh.position,mesh.quaternion,mesh.scale)); return mesh; }
 
 const vestProc=new THREE.Group();
+M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,sheenColor:0xffd2a8});
 {
-  // back and side shell: wraps from the front of one ribcage to the other, open across the chest
-  const shellFn=(u,v)=>{
-    const e=Math.abs(2*u-1);
-    const hw=lerp(118,44,sstep(0.45,1,v))*DEG;
-    const yb=-0.11+0.05*e*e*e, yt=0.25-0.015*e*e;
-    return surf(Math.PI+(u-0.5)*2*hw, yb+(yt-yb)*v, 0);
+  // Modelled on the lululemon run vest: a cropped body whose two front panels nearly meet, deep
+  // armholes, wide shoulder straps, stacked pockets, and three orange bungees closing the front.
+  const thIn=y=>(13+7*sstep(0.12,0.27,y)); // inner front edge, degrees from centre front; leans out into a V at the neck
+  const topAt=a=>a<36?0.27 : a<82?lerp(0.27,0.045,sstep(36,82,a)) : a<100?0.045 : a<142?lerp(0.045,0.262,sstep(100,142,a)) : lerp(0.262,0.238,sstep(142,180,a));
+  const botAt=a=>lerp(-0.075,-0.13,sstep(13,34,a));
+  const bodyFn=(u,v)=>{
+    const a0=13+u*334, a=a0<=180?a0:360-a0;
+    const y=lerp(botAt(a),topAt(a),v), ti=thIn(y);
+    return surf((ti+u*(360-2*ti))*DEG,y,0);
   };
-  const shellG=slab(shellFn,72,26,0.004,0.009,[38,13]);
-  vestProc.add(new THREE.Mesh(shellG,M.shell),pipe(shellG));
+  const bodyG=slab(bodyFn,170,46,0.004,0.008,[70,22]);
+  vestProc.add(new THREE.Mesh(bodyG,M.strap),pipe(bodyG,0.0032));
 
-  // front harness: over the shoulder, down the chest, back round to the side
-  const L=[[150,.205],[125,.262],[97,.284],[62,.268],[38,.205],[28,.11],[26,.02],[29,-.06],[45,-.095],[70,-.09]];
-  const w=u=>lerp(lerp(0.05,0.038,sstep(0.03,0.14,u)),0.068,sstep(0.32,0.46,u))*(1-0.3*sstep(0.8,1,u));
-  for(const path of [L,L.map(([t,y])=>[-t,y])]){ const g=ribbon(path,w,0.011,0.008); vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.0036)); }
-
-  // left chest: soft flask, nozzle up
-  const fl=frameAt(27,0.095,0.02);
-  const pocketL=new THREE.Mesh(new RoundedBoxGeometry(0.064,0.085,0.018,4,0.008),M.pocket); pocketL.position.set(0,-0.012,0.006); vestProc.add(place(pocketL,fl));
-  const flask=new THREE.Mesh(new THREE.CapsuleGeometry(0.023,0.07,6,20),M.flask); flask.scale.set(1,1,0.72); flask.position.set(0,0.012,0.014); vestProc.add(place(flask,fl));
-  const noz=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.01,0.03,16),M.trim); noz.position.set(0,0.075,0.014); vestProc.add(place(noz,fl));
-
-  // right chest: zipped pocket
-  const fr=frameAt(-27,0.125,0.02);
-  const pocketR=new THREE.Mesh(new RoundedBoxGeometry(0.062,0.082,0.022,4,0.009),M.pocket); pocketR.position.set(0,0,0.008); vestProc.add(place(pocketR,fr));
-  const zip=new THREE.Mesh(new THREE.BoxGeometry(0.052,0.004,0.003),M.trim); zip.position.set(0,0.03,0.02); vestProc.add(place(zip,fr));
-  const tab=new THREE.Mesh(new THREE.BoxGeometry(0.006,0.014,0.003),M.reflect); tab.position.set(0.022,0.024,0.021); vestProc.add(place(tab,fr));
-
-  // sternum straps with buckles
-  for(const y of [0.168,0.072]){
-    const a=surf(21*DEG,y,0.02).p, b=surf(-21*DEG,y,0.02).p;
-    const mid=new V3(0,y-0.006,Math.max(a.z,b.z)+0.014);
-    const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(a,mid,b),32,0.0032,8),M.trim); vestProc.add(tube);
-    const buckle=new THREE.Mesh(new RoundedBoxGeometry(0.024,0.015,0.007,2,0.003),M.trim); buckle.position.copy(mid); buckle.position.z+=0.001; vestProc.add(buckle);
+  // shoulder straps, wide, front to back over the top
+  const SH=[[22,.25],[40,.272],[66,.288],[97,.296],[125,.282],[150,.255]];
+  const shw=u=>lerp(0.064,0.056,u);
+  for(const sd of [1,-1]){
+    const g=ribbon(SH.map(([t,y])=>[t*sd,y]),shw,0.011,0.007);
+    vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.003));
+    for(const [t,y] of [[38,.27],[56,.282]]){ // webbing loops across the strap
+      const f=frameAt(t*sd,y,0.02);
+      const band=new THREE.Mesh(new RoundedBoxGeometry(0.058,0.008,0.003,1,0.001),M.trim); vestProc.add(place(band,f));
+    }
   }
 
-  // back bungee, laced corner to corner
-  const bp=[];
-  for(let k=0;k<=8;k++) bp.push(surf((180+(k%2?23:-23))*DEG,0.205-k*0.025,0.024).p);
-  vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),160,0.0023,8),M.trim));
-  const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,-0.01,0.028).p); vestProc.add(lock);
+  // pockets: pillowed patches on the front panels. Upper is gathered mesh, lower is smooth stretch.
+  const pocket=(sd,a0,a1,y0f,y1,puff,gather,mat)=>{
+    const fn=(u,v)=>{
+      const a=lerp(a0,a1,u), y=lerp(y0f(u),y1,v), sp=surf(sd*a*DEG,y,0);
+      let b=puff*Math.pow(Math.sin(Math.PI*u),0.6)*Math.pow(Math.sin(Math.PI*v),0.6);
+      b+=gather*Math.sin(u*48)*sstep(0.72,1,v)*Math.sin(Math.PI*u);
+      sp.p.addScaledVector(sp.n,b); return sp;
+    };
+    const g=slab(fn,44,26,0.012,0.0035,[10,6]);
+    vestProc.add(new THREE.Mesh(g,mat),pipe(g,0.0022));
+    return (a,y)=>{ const u=(a-a0)/(a1-a0), v=(y-y0f(u))/(y1-y0f(u)), q=fn(u,v); return q.p.addScaledVector(q.n,0.0175); };
+  };
+  const zipper=(at,a,y0,y1)=>{
+    const pts=[]; for(let k=0;k<=12;k++) pts.push(at(a,lerp(y0,y1,k/12)));
+    vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),24,0.0016,6),M.trim));
+    const pull=new THREE.Mesh(new RoundedBoxGeometry(0.005,0.016,0.003,1,0.001),M.trim); pull.position.copy(pts[12]).add(new V3(0,-0.008,0.002)); vestProc.add(pull);
+  };
+  for(const sd of [1,-1]){
+    const up=pocket(sd,15,47,()=>0.045,0.168,0.02,0.0028,M.shell);
+    const lo=pocket(sd,15,74,u=>lerp(-0.068,-0.118,sstep(0,0.35,u)),0.052,0.021,0,M.strap);
+    if(sd<0) zipper(up,33,0.075,0.145);      // wearer's right: zip on the mesh pocket
+    else zipper(lo,62,-0.085,0.028);         // wearer's left: long zip down the lower pocket
+  }
 
-  // reflective hits on the back yoke
-  const rf=frameAt(180,0.225,0.014);
+  // front closure: three orange double cords with black hooks
+  for(const y of [0.152,0.018,-0.066]){
+    const ti=thIn(y)+2.5;
+    const A=surf(ti*DEG,y,0.021).p, B=surf(-ti*DEG,y,0.021).p;
+    for(const dy of [-0.0034,0.0034]){
+      const a=A.clone().add(new V3(0,dy,0)), b=B.clone().add(new V3(0,dy,0));
+      const mid=a.clone().lerp(b,0.5).add(new V3(0,-0.002,0.007));
+      vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(a,mid,b),24,0.0021,8),M.cord));
+    }
+    for(const e of [A,B]){ const h=new THREE.Mesh(new RoundedBoxGeometry(0.011,0.017,0.007,2,0.0025),M.trim); h.position.copy(e); h.lookAt(e.clone().add(new V3(0,0,1))); vestProc.add(h); }
+    const lockP=A.clone().lerp(B,0.72); lockP.z+=0.007;
+    const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.0045,0.0045,0.012,12),M.trim); lock.position.copy(lockP); lock.rotation.z=Math.PI/2; vestProc.add(lock);
+  }
+
+  // wearer's left inner edge: the curved tube; wearer's right: a ladder of small elastic loops
+  const tp=[]; for(let k=0;k<=24;k++){ const y=lerp(0.262,-0.07,k/24); tp.push(surf((thIn(y)+1.6)*DEG,y,0.017).p); }
+  vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tp),64,0.0046,10),M.strap));
+  for(const y of [0.205,0.12,0.075,-0.005,-0.045]){
+    const f=frameAt(-(thIn(y)-0.5),y,0.016);
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.0062,0.0012,6,20),M.trim);
+    loop.rotation.y=1.0; loop.position.set(0.005,0,0); vestProc.add(place(loop,f));
+  }
+
+  // back: orange bungee laced corner to corner, and a reflective hit on the yoke
+  const bp=[];
+  for(let k=0;k<=8;k++) bp.push(surf((180+(k%2?23:-23))*DEG,0.2-k*0.025,0.022).p);
+  vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),160,0.0022,8),M.cord));
+  const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,-0.015,0.026).p); vestProc.add(lock);
+  const rf=frameAt(180,0.215,0.014);
   const refl=new THREE.Mesh(new THREE.PlaneGeometry(0.05,0.007),M.reflect); vestProc.add(place(refl,rf));
 }
 const vestRoot=new THREE.Group(); vestRoot.add(vestProc); scene.add(vestRoot);
@@ -526,10 +562,10 @@ shadowy(vestProc);
 // Copy is placeholder until the product team signs off on names and claims.
 const SHOTS=[
   {key:'packed', short:'Packed',    name:'Packed down',       line:'Collapses flat and rides along until you need it.'},
-  {key:'chest',  short:'Chest',     name:'Front chest strap', line:'Up front for anything you reach for mid-stride.', th:27,  y:0.0,   az:20,  el:12},
-  {key:'side',   short:'Side',      name:'Side panel',        line:'Low on the side, clear of your arm swing.',       th:97,  y:0.02,  az:16,  el:5},
-  {key:'back',   short:'Back',      name:'Back bungee',       line:'Between the shoulder blades for a layer on longer days.', th:180, y:0.165, az:18,  el:15},
-  {key:'low',    short:'Front low', name:'Front strap, low',  line:'Close to the body, where it doesn’t bounce.',     th:-28, y:0.03,  az:-20, el:7},
+  {key:'chest',  short:'Chest',     name:'Front chest strap', line:'Up front for anything you reach for mid-stride.', th:26,  y:0.235, off:0.04,  az:20,  el:12},
+  {key:'side',   short:'Side',      name:'Side panel',        line:'Low on the side, clear of your arm swing.',       th:97,  y:0.0,   off:0.02,  az:16,  el:5},
+  {key:'back',   short:'Back',      name:'Back bungee',       line:'Between the shoulder blades for a layer on longer days.', th:180, y:0.165, off:0.028, az:18,  el:15},
+  {key:'low',    short:'Front low', name:'Front strap, low',  line:'Close to the body, where it doesn’t bounce.',     th:-42, y:0.02,  off:0.042, az:-20, el:7},
 ];
 const NS=SHOTS.length;
 
@@ -547,7 +583,7 @@ function frameFrom(p,n){
 function buildAnchors(){
   for(let i=1;i<NS;i++){
     const e=edited[SHOTS[i].key];
-    anchors[i]= e ? frameFrom(new V3(...e.p),new V3(...e.n).normalize()) : frameAt(SHOTS[i].th,SHOTS[i].y,0.02);
+    anchors[i]= e ? frameFrom(new V3(...e.p),new V3(...e.n).normalize()) : frameAt(SHOTS[i].th,SHOTS[i].y,SHOTS[i].off||0.02);
   }
   layoutTabs();
 }

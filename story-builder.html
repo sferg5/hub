@@ -39,6 +39,7 @@ body.panel-open .stage{right:var(--panel-w)}
 
 .frames,.texts{position:absolute;inset:0}
 .texts{pointer-events:none}
+.frame.fanned{box-shadow:0 18px 40px rgba(0,0,0,.18);border-radius:4px}
 .frame{position:absolute;left:0;top:0;overflow:hidden;opacity:0;will-change:transform,width,height,opacity;contain:layout paint}
 .lay{position:absolute;inset:0;visibility:hidden}
 .lz{position:absolute;inset:0;transform-origin:50% 50%}
@@ -143,6 +144,7 @@ body.panel-open .spot i{cursor:grab;pointer-events:auto}
 .ticker{position:absolute;left:0;right:0;z-index:3;overflow:hidden;visibility:hidden;pointer-events:none;mix-blend-mode:difference;color:#fff}
 .ticker[data-y="bottom"]{bottom:calc(var(--g) * .6)}.ticker[data-y="top"]{top:calc(var(--g) * .6 + 24px)}
 .ticker .tk{white-space:nowrap;font:700 clamp(40px,7cqw,104px)/1 var(--sans);letter-spacing:-.025em;will-change:transform}
+.srule{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--red);z-index:11;opacity:0;pointer-events:none;transform-origin:0 50%}
 .toast{position:absolute;left:50%;bottom:24px;z-index:30;transform:translate(-50%,16px);opacity:0;background:var(--ink);color:#fff;padding:12px 18px;border-radius:4px;font:600 13px/1 var(--sans);pointer-events:none;transition:opacity .25s,transform .35s var(--ease-out)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -761,6 +763,7 @@ const MOTIONS = {
   rise:     ['Rise',     'Frames glide while the new imagery and copy rise into place.'],
   iris:     ['Iris',     'New imagery opens from the center of each frame as it moves.'],
   dissolve: ['Dissolve', 'The last composition fades to white, then this one fades up.'],
+  sweep:    ['Story break', 'Sideways: the last composition slides off left as this one arrives from the right, with a red line sweeping across. Used between stories.'],
 };
 const FR = 6; // frames on stage: one per gallery tile at most
 
@@ -1027,7 +1030,7 @@ function sanitize(base, val) {
 // the choices each setting allows; anything else falls back to the default
 const ENUMS = {
   'media.kind':['video','image','gallery','none'], 'media.layout':['full','left','right','inset'], 'media.inset':['s','m','l'],
-  'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic','cdp'], 'media.fit':['auto','fill','fit'],
+  'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic','cdp','fan'], 'media.fit':['auto','fill','fit'],
   'text.x':['left','center','right'], 'text.y':['top','middle','bottom'], 'text.align':['auto','left','center','right'],
   'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
   'text.blend':['auto','normal','difference','exclusion','multiply','overlay','soft-light'],
@@ -1040,15 +1043,16 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
   showName: d.showName === true,
   trans: clamp(+d.trans || 1, .5, 2),
   holdAmt: clamp(+d.holdAmt || 1, .4, 2),
-  pace: clamp(+d.pace || 1.5, .6, 2.5),
+  pacingV: 2, // defaults below were updated 2026-10-05; older saves are moved onto them once
+  pace: d.pacingV === 2 ? clamp(+d.pace || .5, .3, 2.5) : .5,
   arc: validArc(d.arc) ? d.arc : null,
   smooth: d.smooth !== false,
   swiper: d.swiper === 'off' ? 'off' : 'on',
   scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
   player: d.player !== false,
   playSpeed: [.5, 1, 1.5, 2, 3].includes(+d.playSpeed) ? +d.playSpeed : 1,
-  motionTime: clamp(+d.motionTime || 2, .8, 5), // seconds for a section to play through after a swipe, flick or dot click
-  transTime: clamp(+d.transTime || .45, .25, 2.5), // seconds for the move from one section into the next
+  motionTime: d.pacingV === 2 ? clamp(+d.motionTime || 3, .8, 5) : 3, // seconds for a section to play through after a swipe, flick or dot click
+  transTime: d.pacingV === 2 ? clamp(+d.transTime || 1.5, .25, 2.5) : 1.5, // seconds for the move from one section into the next
   sections: (Array.isArray(d.sections) ? d.sections : []).map(s => {
     const base = BASE(), x = sanitize(base, s);
     if (typeof x.id !== 'string' || !x.id) x.id = base.id;
@@ -1121,7 +1125,12 @@ function rectsFor(s) {
     I.h -= SAFE.b + H * .05;
   }
   const gap = g * .35, tiles = [];
-  if (m.arrange === 'cdp') {
+  if (m.arrange === 'fan') {
+    const ch = Math.min(I.h * .68, H * .44), cw = ch * .78, cx = I.x + I.w / 2, cy = I.y + I.h * .58; // sits below the running band
+    const spots = n === 1 ? [0] : n === 2 ? [-1, 1] : [0, -1, 1]; // tile 1 is the top card, centred
+    for (let k = 0; k < n; k++) { const o = spots[k] || 0;
+      tiles.push({ x:cx - cw / 2 + o * cw * .42, y:cy - ch / 2 + Math.abs(o) * ch * .05, w:cw, h:ch, r:o * 8, z: o === 0 ? 3 : 1 }); }
+  } else if (m.arrange === 'cdp') {
     /* Product grid, like a category page: square image tiles in tidy rows (3 across on a
        computer, 2 on a phone), the name and price strip under each, centred in the space. */
     const strip = s.shop.on ? 64 : 0, fit = c => { const rw = Math.ceil(n / c); return Math.min((I.w - gap * (c - 1)) / c, (I.h - gap * (rw - 1)) / rw - strip); };
@@ -1152,8 +1161,8 @@ function rectsFor(s) {
 }
 const shrink = r => ({ x:r.x + r.w * .04, y:r.y + r.h * .04, w:r.w * .92, h:r.h * .92, o:0 });
 // frames that are leaving fade early; frames that are splitting off appear late
-const lerpR = (a, b, t) => ({ x:lerp(a.x, b.x, t), y:lerp(a.y, b.y, t), w:lerp(a.w, b.w, t), h:lerp(a.h, b.h, t),
-  o:lerp(a.o, b.o, b.o < a.o ? Math.sqrt(t) : b.o > a.o ? t * t : t) });
+const lerpR = (a, b, t) => ({ x:lerp(a.x, b.x, t), y:lerp(a.y, b.y, t), w:lerp(a.w, b.w, t), h:lerp(a.h, b.h, t), r:lerp(a.r || 0, b.r || 0, t), z: t < .5 ? a.z : b.z,
+  o:lerp(a.o, b.o, b.o < a.o ? clamp(t / .4) : b.o > a.o ? t * t : t) }); // leaving frames are gone by 40% of the move, so nothing ghosts
 
 /* ---------- content library ----------
    Built-in files ship next to this page. Files added here are kept in this
@@ -1537,6 +1546,7 @@ function renderStage() {
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
+    h('div', { class:'srule', id:'srule', 'aria-hidden':'true' }),
     h('nav', { class:'dots', 'aria-label':'Sections', // long stories tighten the spacing so the column stays within the middle half
       style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
       S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
@@ -1740,6 +1750,18 @@ function dotScale(i, j, e) {
   if (j >= 0 && ds[j]) ds[j].style.setProperty('--a', e.toFixed(3));
   dotLit = j >= 0 ? [i, j] : [i];
 }
+/* During a story break the copy moves sideways with the frames, and a red line sweeps across. */
+let swept = [];
+function sweepCopy(i, j, t) {
+  swept.forEach(k => { const L = layers[k]; if (L && k !== i && k !== j) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } });
+  const rule = $('srule');
+  if (t < 0) { [i, j].forEach(k => { const L = layers[k]; if (L) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } }); swept = []; if (rule) rule.style.opacity = 0; return; }
+  const out = easeIn(clamp(t * 2)), inn = 1 - easeOut(clamp((t - .5) * 2));
+  if (layers[i]) { layers[i].el.style.transform = `translateX(${-out * 40}%)`; layers[i].extras.forEach(e => e.style.translate = `${-out * 40}% 0`); }
+  if (layers[j]) { layers[j].el.style.transform = `translateX(${inn * 40}%)`; layers[j].extras.forEach(e => e.style.translate = `${inn * 40}% 0`); }
+  swept = [i, j];
+  if (rule) { const q = easeIO(t); rule.style.opacity = Math.sin(Math.PI * t); rule.style.transform = `translateX(${(1 - q) * 100}%) scaleX(${.25 + .75 * Math.sin(Math.PI * t)})`; }
+}
 function drawPair(i, j, t, ui, uj) {
   const si = S.sections[i], sj = j >= 0 ? S.sections[j] : null;
   const motion = sj ? sj.motion : 'glide';
@@ -1765,12 +1787,16 @@ function drawPair(i, j, t, ui, uj) {
   else if (a || b) {
     if (!a) a = b.map(shrink); if (!b) b = a.map(shrink);
     if (motion === 'dissolve') R = t < .5 ? a.map(r => ({ ...r, o:r.o * (1 - easeIO(t * 2)) })) : b.map(r => ({ ...r, o:r.o * easeIO((t - .5) * 2) }));
+    else if (motion === 'sweep') { // a story break: off to the left, in from the right
+      R = t < .5 ? a.map(r => { const q = easeIn(t * 2); return { ...r, x:r.x - q * W * .55, r:(r.r || 0) - q * 4, o:r.o * (1 - q) }; })
+                 : b.map(r => { const q = easeOut((t - .5) * 2); return { ...r, x:r.x + (1 - q) * W * .55, r:(r.r || 0) + (1 - q) * 6, o:r.o * q }; });
+    }
     else { const e = glide(t); R = a.map((r, k) => lerpR(r, b[k], e)); }
   }
   frames.forEach((f, k) => {
     const r = R && R[k];
     if (!r || r.o < .002) { f.style.opacity = 0; return; }
-    f.style.opacity = r.o; f.style.transform = `translate3d(${r.x}px,${r.y}px,0)`;
+    f.style.opacity = r.o; f.style.transform = `translate3d(${r.x}px,${r.y}px,0)` + (r.r ? ` rotate(${r.r.toFixed(2)}deg)` : ''); f.style.zIndex = r.z || ''; // the fan's top card sits above its neighbours
     f.style.width = r.w + 'px'; f.style.height = r.h + 'px';
   });
 
@@ -1779,11 +1805,18 @@ function drawPair(i, j, t, ui, uj) {
   layers[i].media.forEach((m, k) => { if (!m) return; m.firstChild.style.transform = kbFor(si, k, kbi, 0, 0, m.firstChild); holdFX(si, m, ui); });
   if (sj) {
     const kbj = kenBurns(sj, uj);
-    const c = motion === 'dissolve' ? (t < .5 ? 0 : 1) : easeIO(clamp((t - .18) / .6));
+    const c = motion === 'dissolve' || motion === 'sweep' ? (t < .5 ? 0 : 1) : easeIO(clamp((t - .18) / .6));
     layers[i].media.forEach(m => m && (m.style.opacity = motion === 'iris' ? 1 : 1 - c));
     layers[j].media.forEach((m, mk) => {
       if (!m) return;
       const z = m.firstChild; holdFX(sj, m, uj);
+      // the same picture in the same frame on both sides (a story card growing into its opening): swap, don't crossfade
+      const mi = layers[i].media[mk];
+      if (mi && si.media.items[mk] && si.media.items[mk] === sj.media.items[mk] && motion !== 'sweep') {
+        const vi = mi.querySelector('video'), vj = m.querySelector('video');
+        if (vi && vj && Math.abs(vj.currentTime - vi.currentTime) > .25) try { vj.currentTime = vi.currentTime; } catch (e) {}
+        mi.style.opacity = 0; m.style.opacity = 1; z.style.transform = kbFor(sj, mk, kbj, 0, 0, z); return;
+      }
       if (motion === 'iris') { const q = easeIO(clamp((t - .1) / .75)); m.style.opacity = 1; m.style.clipPath = `inset(${(1 - q) * 50}% ${(1 - q) * 50}%)`; z.style.transform = kbFor(sj, mk, kbj, 0, (1 - q) * .1, z); }
       else if (motion === 'rise') { m.style.opacity = c; z.style.transform = kbFor(sj, mk, kbj, (1 - c) * 10, 0, z); }
       else { m.style.opacity = c; z.style.transform = kbFor(sj, mk, kbj, 0, 0, z); }
@@ -1792,6 +1825,7 @@ function drawPair(i, j, t, ui, uj) {
 
   holdType(layers[i], si, ui); textOut(layers[i], t); holdSpots(layers[i], ui);
   if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); holdSpots(layers[j], uj); }
+  sweepCopy(i, j, motion === 'sweep' ? t : -1);
   dotScale(i, j, j >= 0 ? easeIO(t) : 0);
   setCurrent(t > .5 && j >= 0 ? j : i);
 }
@@ -2981,7 +3015,7 @@ function renderGlobals() {
   $('trans').replaceChildren(...slider(.5, 2, .1, S.trans, v => v.toFixed(1) + ' screens', v => S.trans = v, () => { measure(); update(); }).childNodes);
   $('transtime').replaceChildren(...slider(.25, 2.5, .05, S.transTime, v => v.toFixed(2) + ' s', v => S.transTime = v, () => {}).childNodes);
   $('motiontime').replaceChildren(...slider(.8, 5, .1, S.motionTime, v => v.toFixed(1) + ' s', v => S.motionTime = v, () => {}).childNodes);
-  $('pace').replaceChildren(...slider(.6, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
+  $('pace').replaceChildren(...slider(.3, 2.5, .1, S.pace, v => v.toFixed(1) + '×', v => S.pace = v, () => { measure(); update(); }).childNodes);
   $('smooth').replaceChildren(...seg([[true,'Light'],[false,'Off']], S.smooth, act(v => S.smooth = v)).childNodes);
   $('playeron').replaceChildren(...seg([[true,'On'],[false,'Off']], S.player, act(v => { S.player = v; if (!v) stopPlay(); })).childNodes);
   $('swiperpos').replaceChildren(...seg([['on','On'],['off','Off']], S.swiper, act(v => S.swiper = v)).childNodes);
@@ -3236,11 +3270,21 @@ function trackViews() {
 }
 // a block of sections, tagged with the story they belong to
 function tagged(sections, story) { return sections.map((x, k) => { const c = clone(x); c.id = uid(); c.story = { title:story, k, of:sections.length }; return c; }); }
-function upNext(first, title) {
-  const m = first.media;
-  return make({ name:'Up next', beat:'hook', motion:'dissolve', hold:'pull', dwell:.7, overlay:0,
-    media:{ kind: m.kind === 'gallery' || m.kind === 'none' ? 'image' : m.kind, layout:'inset', mx:'center', inset:'s', items:[m.items.find(Boolean) || null].filter(Boolean), shots:[(m.shots || [])[0] || ''] },
-    text:{ x:'center', y:'bottom', size:'xl', width:'wide', anim:'letters', ink:'dark' }, showEyebrow:true, eyebrow:'Up next', headline:title });
+/* The story break card: unlike any section. It arrives sideways, shows the next
+   story's first images fanned like a hand of cards with a running "Next story" band,
+   and its top card grows into that story's opening. */
+function upNext(block, title, n) {
+  // the top card is the next story's own opening (video included), so it grows into it seamlessly
+  const hero = block[0].media.kind !== 'none' && block[0].media.items.find(Boolean);
+  const imgs = hero ? [hero] : [], shots = hero ? [(block[0].media.shots || [])[0] || block[0].name] : [];
+  for (const sec of block) { (sec.media.kind === 'none' ? [] : sec.media.items.slice(0, Math.max(1, count(sec)))).forEach((id, k) => { if (id && imgs.length < 3 && !imgs.includes(id) && (asset(id) || {}).type !== 'video') imgs.push(id); });
+    if (shots.length < 3 && sec.media.kind !== 'none') shots.push((sec.media.shots || [])[0] || sec.name); if (imgs.length >= 3) break; }
+  const first = block[0], tease = (first.headline || '').replace(/[.?!]$/, '');
+  return make({ name:'Up next', beat:'hook', motion:'sweep', hold:'drift', dwell:.9, overlay:0,
+    media:{ kind:'gallery', layout:'full', arrange:'fan', count:Math.max(1, Math.min(3, imgs.length || 3)), items:imgs, shots },
+    text:{ x:'center', y:'bottom', size:'xl', width:'wide', anim:'letters', ink:'dark', blend:'normal' },
+    showEyebrow:true, eyebrow:`Story ${String(n).padStart(2, '0')} · next`, headline:title, body: tease ? `“${tease}”` : '',
+    ticker:{ on:true, text:`Next story · ${title} · `, y:'top' } });
 }
 function saleBlock() {
   // most-watched first; if nothing has been watched yet, what the viewer has scrolled past
@@ -3266,7 +3310,8 @@ function nextBlock() {
   const story = key === '__own' ? JSON.parse(F.saved).sections : PRESETS[key]();
   F.since++; F.lastWasSale = false;
   const block = tagged(story, title);
-  if (S.sections.length) { const card = tagged([upNext(block[0], title)], title)[0]; card.story = { title, k:-1, of:block.length }; block[0].motion = 'glide'; block.unshift(card); }
+  F.count = (F.count || 1) + (S.sections.length ? 1 : 0);
+  if (S.sections.length) { const card = tagged([upNext(block, title, F.count)], title)[0]; card.story = { title, k:-1, of:block.length }; block[0].motion = 'glide'; block.unshift(card); }
   return block;
 }
 function extendFeed() {
