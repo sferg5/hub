@@ -45,6 +45,13 @@
     -webkit-backdrop-filter:blur(12px);border-radius:999px;padding:8px 16px;font-size:13px;cursor:pointer}
   .pill[aria-pressed="true"]{background:var(--ink);color:var(--wall);border-color:var(--ink)}
 
+  .topr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .modes{display:flex;border:1px solid var(--rule);background:var(--glass);backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);border-radius:999px;padding:3px}
+  .modes button{appearance:none;border:0;background:none;border-radius:999px;padding:5px 13px;font-size:13px;cursor:pointer;color:var(--dim)}
+  .modes button[aria-pressed="true"]{background:var(--ink);color:var(--wall)}
+  @media (max-width:520px){ .tag{display:none} .pill{padding:8px 12px} }
+
   /* ---- call-out on the clip point ---- */
   #callouts{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
   #callouts line{stroke:var(--ink);stroke-width:1;opacity:.7}
@@ -154,7 +161,14 @@
     <div class="mark">clip anywhere</div>
     <div class="tag mono" id="modelTag"><b>●</b> Stand-in models · scans pending</div>
   </div>
-  <button class="pill" id="dialToggle" type="button" aria-pressed="false" aria-controls="panel">Dials</button>
+  <div class="topr">
+    <div class="modes" role="group" aria-label="Camera move">
+      <button type="button" id="modeTour" aria-pressed="true">Tour</button>
+      <button type="button" id="modeOrbit" aria-pressed="false">Orbit</button>
+    </div>
+    <button class="pill" id="soundToggle" type="button" aria-pressed="false">Sound</button>
+    <button class="pill" id="dialToggle" type="button" aria-pressed="false" aria-controls="panel">Dials</button>
+  </div>
 </header>
 
 <section class="caption" id="caption" aria-live="polite">
@@ -187,6 +201,14 @@
     <div class="ctl"><label for="d-sharp">Ramp <span class="val" id="v-sharp"></span></label><input type="range" id="d-sharp" min="1.5" max="9" step="0.1"></div>
     <div class="ctl"><label for="d-pull">Pull back <span class="val" id="v-pull"></span></label><input type="range" id="d-pull" min="0" max="80" step="1"></div>
     <div class="ctl"><label for="d-kick">Lens kick <span class="val" id="v-kick"></span></label><input type="range" id="d-kick" min="0" max="30" step="1"></div>
+    <div class="ctl"><label for="d-snap">Wind-up and overshoot <span class="val" id="v-snap"></span></label><input type="range" id="d-snap" min="0" max="150" step="5"></div>
+    <div class="ctl"><label for="d-roll">Roll <span class="val" id="v-roll"></span></label><input type="range" id="d-roll" min="0" max="20" step="1"></div>
+  </details>
+  <details class="grp">
+    <summary>Orbit</summary>
+    <p class="note">Orbit mode circles each clip point: a slow arc, one fast spin, then slow again before it moves on.</p>
+    <div class="ctl"><label for="d-spin">Spin <span class="val" id="v-spin"></span></label><input type="range" id="d-spin" min="90" max="720" step="15"></div>
+    <div class="ctl"><label for="d-spinDur">Spin length <span class="val" id="v-spinDur"></span></label><input type="range" id="d-spinDur" min="0.5" max="3" step="0.05"></div>
   </details>
   <details class="grp">
     <summary>Hold</summary>
@@ -230,7 +252,6 @@
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
@@ -245,7 +266,7 @@ const wrap180 = d=>((d%360)+540)%360-180;
 
 /* ------------------------------------------------------------------ dials */
 const KEY='clipanywhere.dials.v1', PKEY='clipanywhere.points.v1';
-const DEF={whip:0.95, sharp:4.8, pull:26, kick:12, hold:3.8, drift:14, slow:25, blur:150, grain:30, bag:'#3f6fd8', turn:0};
+const DEF={whip:0.95, sharp:4.8, pull:26, kick:12, snap:60, roll:7, hold:3.8, drift:14, slow:25, spin:360, spinDur:1.3, blur:150, grain:30, bag:'#3f6fd8', turn:0, mode:'tour'};
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let D={...DEF};
 let stored=null;
@@ -255,7 +276,7 @@ else if(reduceMotion) Object.assign(D,{blur:0,sharp:2,whip:1.6,kick:0,pull:8,gra
 const saveDials=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(D)); }catch(e){} };
 
 const FMT={
-  whip:v=>v.toFixed(2)+' s', sharp:v=>v.toFixed(1)+'×', pull:v=>v+' cm', kick:v=>v+'°',
+  whip:v=>v.toFixed(2)+' s', sharp:v=>v.toFixed(1)+'×', pull:v=>v+' cm', kick:v=>v+'°', snap:v=>v+'%', roll:v=>v+'°', spin:v=>v+'°', spinDur:v=>v.toFixed(2)+' s',
   hold:v=>v.toFixed(1)+' s', drift:v=>v+'°', slow:v=>v+'%', blur:v=>v+'%', grain:v=>v, turn:v=>v+'°'
 };
 function bindDials(){
@@ -287,8 +308,20 @@ const WALL=new THREE.Color('#0e1013');
 scene.background=WALL.clone();
 scene.fog=new THREE.Fog(WALL.clone(),3.2,9);
 const pmrem=new THREE.PMREMGenerator(renderer);
-scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
-scene.environmentIntensity=0.5;
+// A softbox studio for reflections: one big key box front-right, two tall strips behind, a dim ceiling.
+function studioEnv(){
+  const s=new THREE.Scene();
+  s.add(new THREE.Mesh(new THREE.BoxGeometry(12,7,12),new THREE.MeshBasicMaterial({color:0x07080a,side:THREE.BackSide})));
+  const panel=(w,h,k,pos,tint=[1,1,1])=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(tint[0]*k,tint[1]*k,tint[2]*k),side:THREE.DoubleSide})); m.position.set(...pos); m.lookAt(0,0,0); s.add(m); };
+  panel(3.2,2.2,7,[2.4,2.8,3.4],[1,.97,.92]);
+  panel(0.45,4.2,9,[-3.6,1.0,-2.8],[.86,.92,1]);
+  panel(0.45,4.2,6,[3.6,1.0,-2.8],[1,.92,.84]);
+  panel(5,5,0.8,[0,3.4,0]);
+  panel(6,1.2,0.25,[0,-2.6,2]);
+  return pmrem.fromScene(s,0.02).texture;
+}
+scene.environment=studioEnv();
+scene.environmentIntensity=0.85;
 
 const cam=new THREE.PerspectiveCamera(30,1,0.02,40);
 
@@ -305,8 +338,23 @@ const rim=new THREE.DirectionalLight(0xcfe0ff,2.0); rim.position.set(-1.8,1.4,-2
 const rim2=new THREE.DirectionalLight(0xffe2c4,0.9); rim2.position.set(2.2,0.6,-1.6); scene.add(rim2);
 scene.add(new THREE.HemisphereLight(0x9aa6b4,0x0b0c0e,0.35));
 
-const floor=new THREE.Mesh(new THREE.CircleGeometry(12,64),new THREE.MeshStandardMaterial({color:0x14171b,roughness:.92}));
-floor.rotation.x=-Math.PI/2; floor.position.y=-1.02; floor.receiveShadow=true; scene.add(floor);
+// Seamless sweep: a lit band at the horizon fading to black above and below, so every angle of a whip
+// passes through the same studio instead of a void.
+const backdrop=new THREE.Mesh(new THREE.SphereGeometry(14,48,24),new THREE.ShaderMaterial({
+  side:THREE.BackSide,depthWrite:false,
+  vertexShader:`varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader:`varying vec3 vP; void main(){ float y=vP.y; vec3 lo=vec3(.004,.0046,.0056), hz=vec3(.024,.026,.031), tp=vec3(.006,.0068,.0082);
+    vec3 c = y<0. ? mix(hz,lo,smoothstep(0.,-.28,y)) : mix(hz,tp,smoothstep(0.,.55,y)); gl_FragColor=vec4(c,1.); }`
+}));
+backdrop.renderOrder=-1; scene.add(backdrop);
+function poolTex(){
+  const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
+  const gr=g.createRadialGradient(128,128,0,128,128,128); gr.addColorStop(0,'#fff'); gr.addColorStop(0.35,'#bbb'); gr.addColorStop(1,'#000');
+  g.fillStyle=gr; g.fillRect(0,0,256,256); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.NoColorSpace; return t;
+}
+const FLOOR_Y=-0.5;
+const floor=new THREE.Mesh(new THREE.CircleGeometry(3.2,96),new THREE.MeshStandardMaterial({color:0x1b1e23,roughness:.78,transparent:true,alphaMap:poolTex(),envMapIntensity:.18}));
+floor.rotation.x=-Math.PI/2; floor.position.y=FLOOR_Y; floor.receiveShadow=true; scene.add(floor);
 
 /* ------------------------------------------------------------------ the dress form */
 // A torso of revolution, squashed front to back. Everything on the vest is built on this surface,
@@ -345,9 +393,16 @@ function meshBump(){
   const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.NoColorSpace; t.anisotropy=8;
   return t;
 }
-M.shell=new THREE.MeshPhysicalMaterial({color:0xddd7ce,roughness:.88,sheen:.7,sheenRoughness:.6,sheenColor:0xffffff,bumpMap:meshBump(),bumpScale:2.2,side:THREE.DoubleSide});
+M.shell=new THREE.MeshPhysicalMaterial({color:0xddd7ce,roughness:.88,sheen:.7,sheenRoughness:.6,sheenColor:0xffffff,bumpMap:meshBump(),bumpScale:1.2,side:THREE.DoubleSide});
 M.pocket=M.shell.clone(); M.pocket.bumpMap=M.shell.bumpMap.clone(); M.pocket.bumpMap.repeat.set(3,3.5); M.pocket.bumpMap.needsUpdate=true;
-M.strap=new THREE.MeshPhysicalMaterial({color:0xd3ccc2,roughness:.8,sheen:.5,sheenColor:0xffffff,side:THREE.DoubleSide});
+function ripstop(){
+  const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d');
+  g.fillStyle='#bbb'; g.fillRect(0,0,64,64); g.fillStyle='#fff'; g.fillRect(0,0,64,3); g.fillRect(0,0,3,64);
+  for(let i=0;i<64;i+=4){ g.fillStyle=i%8?'#aaa':'#c4c4c4'; g.fillRect(0,i,64,1); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.NoColorSpace; t.anisotropy=8; return t;
+}
+M.strap=new THREE.MeshPhysicalMaterial({color:0xd3ccc2,roughness:.78,sheen:.5,sheenColor:0xffffff,bumpMap:ripstop(),bumpScale:.22,side:THREE.DoubleSide});
+M.pipe=new THREE.MeshPhysicalMaterial({color:0x2a2d31,roughness:.5,sheen:.4,sheenColor:0xffffff});
 
 function shadowy(o){ o.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } }); return o; }
 
@@ -391,7 +446,13 @@ function slab(fn,nu,nv,off,th,uvScale=[1,1]){
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
   g.setIndex(idx); g.computeVertexNormals();
+  g.userData.edge=ring.map(k=>new V3((pos[k*3]+pos[(k+N)*3])/2,(pos[k*3+1]+pos[(k+N)*3+1])/2,(pos[k*3+2]+pos[(k+N)*3+2])/2));
   return g;
+}
+// bound edges: a dark binding tape round every panel, the way a real vest is finished
+function pipe(g,r=0.0042){
+  const pts=g.userData.edge;
+  return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts,true,'catmullrom',0.3),pts.length*2,r,6,true),M.pipe);
 }
 function ribbon(ctrl,wFn,off,th,nu=100,nv=6){
   const curve=new THREE.CatmullRomCurve3(ctrl.map(([t,y])=>new V3(t*DEG,y,0)));
@@ -404,7 +465,7 @@ function ribbon(ctrl,wFn,off,th,nu=100,nv=6){
     const Q=P.addScaledVector(B,(v-0.5)*wFn(u));
     return surf(Math.atan2(Q.x,Q.z/ZS),Q.y,0);
   };
-  return slab(fn,nu,nv,off,th);
+  return slab(fn,nu,nv,off,th,[70,3]);
 }
 function frameAt(thDeg,y,off){
   const {p,n}=surf(thDeg*DEG,y,off);
@@ -424,13 +485,13 @@ const vestProc=new THREE.Group();
     const yb=-0.11+0.05*e*e*e, yt=0.25-0.015*e*e;
     return surf(Math.PI+(u-0.5)*2*hw, yb+(yt-yb)*v, 0);
   };
-  vestProc.add(new THREE.Mesh(slab(shellFn,72,26,0.004,0.009,[38,13]),M.shell));
+  const shellG=slab(shellFn,72,26,0.004,0.009,[38,13]);
+  vestProc.add(new THREE.Mesh(shellG,M.shell),pipe(shellG));
 
   // front harness: over the shoulder, down the chest, back round to the side
   const L=[[150,.205],[125,.262],[97,.284],[62,.268],[38,.205],[28,.11],[26,.02],[29,-.06],[45,-.095],[70,-.09]];
   const w=u=>lerp(lerp(0.05,0.038,sstep(0.03,0.14,u)),0.068,sstep(0.32,0.46,u))*(1-0.3*sstep(0.8,1,u));
-  vestProc.add(new THREE.Mesh(ribbon(L,w,0.011,0.008),M.strap));
-  vestProc.add(new THREE.Mesh(ribbon(L.map(([t,y])=>[-t,y]),w,0.011,0.008),M.strap));
+  for(const path of [L,L.map(([t,y])=>[-t,y])]){ const g=ribbon(path,w,0.011,0.008); vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.0036)); }
 
   // left chest: soft flask, nozzle up
   const fl=frameAt(27,0.095,0.02);
@@ -512,7 +573,8 @@ function layoutTabs(){
 }
 
 /* ------------------------------------------------------------------ the bag */
-const bagMat=new THREE.MeshPhysicalMaterial({color:new THREE.Color(D.bag),roughness:.62,sheen:.6,sheenRoughness:.5,sheenColor:0xffffff,clearcoat:.15});
+const bagRip=ripstop(); bagRip.repeat.set(7,9);
+const bagMat=new THREE.MeshPhysicalMaterial({color:new THREE.Color(D.bag),roughness:.58,sheen:.6,sheenRoughness:.5,sheenColor:0xffffff,clearcoat:.2,clearcoatRoughness:.5,bumpMap:bagRip,bumpScale:.25});
 const bag=new THREE.Group();          // origin = the clip, +z out of the vest, +y up
 const clip=new THREE.Group(); bag.add(clip);
 const body=new THREE.Group(); body.position.set(0,-0.016,0.027); bag.add(body);
@@ -574,11 +636,11 @@ function makeRT(w,h){
 }
 const post=new THREE.ShaderMaterial({
   uniforms:{tColor:{value:null},tDepth:{value:null},uInv:{value:new THREE.Matrix4()},uPrev:{value:new THREE.Matrix4()},
-    uScale:{value:0},uMax:{value:0.16},uGrain:{value:0.3},uTime:{value:0},uAspect:{value:1}},
+    uScale:{value:0},uMax:{value:0.16},uGrain:{value:0.3},uTime:{value:0},uAspect:{value:1},uFlash:{value:0}},
   vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
   fragmentShader:`
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform mat4 uInv; uniform mat4 uPrev;
-    uniform float uScale,uMax,uGrain,uTime,uAspect; varying vec2 vUv;
+    uniform float uScale,uMax,uGrain,uTime,uAspect,uFlash; varying vec2 vUv;
     float hash(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
     void main(){
       float d=texture2D(tDepth,vUv).x;
@@ -596,6 +658,7 @@ const post=new THREE.ShaderMaterial({
         }
         col=acc/22.;
       }
+      col*=1.+uFlash;
       vec2 q=(vUv-.5)*vec2(uAspect,1.);
       col*=mix(.62,1.,smoothstep(1.05,.25,length(q)));
       float g=hash(gl_FragCoord.xy*1.37+fract(uTime*7.3)*97.)-.5;
@@ -625,33 +688,52 @@ addEventListener('resize',resize);
 
 /* ------------------------------------------------------------------ camera choreography */
 function shotPose(i,h){
-  if(i===0) return {t:new V3(0.12,-0.02,0.05), az:-28+D.drift*(h-0.5), el:7, dist:2.05*(1-0.05*h)*distScale, fov:30};
+  if(i===0) return {t:new V3(0.12,-0.02,0.05), az:-28+D.drift*(h-0.5), el:7, dist:2.05*(1-0.05*h)*distScale, fov:30, roll:0};
   const s=SHOTS[i], a=anchors[i];
   const t=a.p.clone().addScaledVector(a.n,0.05).addScaledVector(a.up,-0.075);
   const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az;
-  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:s.el, dist:0.64*(1-0.08*h)*distScale, fov:30};
+  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:s.el, dist:0.64*(1-0.08*h)*distScale, fov:30, roll:0};
 }
 const ramp=(u,k)=>u<.5?.5*Math.pow(2*u,k):1-.5*Math.pow(2-2*u,k);
 const rampSpeed=(u,k)=>Math.pow(u<.5?2*u:2-2*u,k-1); // 0..1, peaks mid-move
+// The move itself: a small pull the wrong way first (the wind-up), the snap, then a few degrees
+// past the mark and back (the overshoot), so it lands like a hand-held camera catching focus.
+function whipS(u){
+  const a=D.snap/100; let s=ramp(u,D.sharp);
+  if(u<0.32) s-=0.05*a*Math.sin(Math.PI*u/0.32);
+  if(u>0.6) s+=0.045*a*Math.sin(Math.PI*(u-0.6)/0.4);
+  return s;
+}
 function whipPose(A,B,s){
-  const da=wrap180(B.az-A.az);
+  const da=wrap180(B.az-A.az), sc=clamp(s,0,1), bell=Math.sin(Math.PI*sc);
   return {
     t:A.t.clone().lerp(B.t,s),
     az:A.az+da*s,
-    el:lerp(A.el,B.el,s)+Math.sin(Math.PI*s)*4,
-    dist:lerp(A.dist,B.dist,s)+Math.sin(Math.PI*s)*D.pull/100,
-    fov:lerp(A.fov,B.fov,s)+Math.pow(Math.sin(Math.PI*s),2)*D.kick
+    el:lerp(A.el,B.el,sc)+bell*4,
+    dist:lerp(A.dist,B.dist,sc)+bell*D.pull/100,
+    fov:lerp(A.fov,B.fov,sc)+bell*bell*D.kick,
+    roll:lerp(A.roll||0,B.roll||0,sc)+bell*D.roll*Math.sign(da||1)
   };
 }
+// Orbit: the same speed ramp, but as one spin round the point instead of a move between points.
+function orbitTimes(){ const T1=Math.max(2.0,D.hold*0.55), W=D.spinDur, T2=Math.max(1.2,D.hold*0.45); return {T1,W,T2,L:T1+W+T2}; }
+const holdLen=()=>D.mode==='orbit'?orbitTimes().L:D.hold;
+function orbitPose(i,t){
+  const {T1,W}=orbitTimes(), u=clamp((t-T1)/W,0,1), bell=Math.sin(Math.PI*u), p=shotPose(i,0);
+  p.az+=(D.drift/D.hold)*t+D.spin*ramp(u,D.sharp)+S.orbitOff;
+  p.el+=bell*9; p.dist*=1+bell*0.18; p.fov+=bell*bell*D.kick*0.6; p.roll=bell*D.roll*0.7;
+  return p;
+}
 
-const S={phase:'hold', i:0, t:0, from:null, fromPose:null, to:0, toPose:null, c0:1};
+const S={phase:'hold', i:0, t:0, from:null, fromPose:null, to:0, toPose:null, c0:1, orbitOff:0, snapped:false, spun:false};
 let playing=true, shake=0, curPose=null;
 const drag={active:false, az:0, el:0, vAz:0, vEl:0, x:0, y:0, moved:0};
 
-function startWhip(j){
-  if(j===displayed() && S.phase==='hold') { S.t=0; return; }
+function startWhip(j,force){
+  if(!force && j===displayed() && S.phase==='hold') return;
   S.from=displayed(); S.fromPose=curPose; S.to=j; S.toPose=shotPose(j,0);
   S.c0=bagCollapse; S.phase='whip'; S.t=0;
+  sfx.whoosh(D.whip,Math.sign(wrap180(S.toPose.az-S.fromPose.az))||1);
 }
 function displayed(){
   if(S.phase==='hold') return S.i;
@@ -711,7 +793,62 @@ SW.forEach(([n,c])=>{
   b.addEventListener('click',()=>{ D.bag=c; saveDials(); bagMat.color.set(c); swWrap.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
   swWrap.appendChild(b);
 });
-$('resetDials').addEventListener('click',()=>{ D={...DEF}; saveDials(); bindDials(); bagMat.color.set(D.bag); swWrap.querySelectorAll('.sw').forEach((x,k)=>x.setAttribute('aria-pressed',String(SW[k][1]===D.bag))); applyTurn(); });
+$('resetDials').addEventListener('click',()=>{ D={...DEF}; saveDials(); bindDials(); bagMat.color.set(D.bag); swWrap.querySelectorAll('.sw').forEach((x,k)=>x.setAttribute('aria-pressed',String(SW[k][1]===D.bag))); applyTurn(); setMode(D.mode,true); });
+
+function setMode(m,animate){
+  D.mode=m; saveDials();
+  $('modeTour').setAttribute('aria-pressed',String(m==='tour')); $('modeOrbit').setAttribute('aria-pressed',String(m==='orbit'));
+  if(animate) startWhip(displayed(),true);
+}
+$('modeTour').addEventListener('click',()=>setMode('tour',true));
+$('modeOrbit').addEventListener('click',()=>setMode('orbit',true));
+
+/* ------------------------------------------------------------------ sound */
+// Synthesised, so there are no files to license: a filtered-noise whoosh that follows the same speed
+// curve as the camera and pans with it, a low thump on landing, and a click when the clip closes.
+const sfx=(()=>{
+  let ctx=null, out=null, noise=null, on=false;
+  function init(){
+    if(ctx) return true;
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
+    ctx=new AC(); out=ctx.createGain(); out.gain.value=0.8;
+    const comp=ctx.createDynamicsCompressor(); out.connect(comp); comp.connect(ctx.destination);
+    noise=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate); const d=noise.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    return true;
+  }
+  function curve(n,f){ const a=new Float32Array(n); for(let k=0;k<n;k++) a[k]=f(k/(n-1)); return a; }
+  function src(){ const s=ctx.createBufferSource(); s.buffer=noise; s.loop=true; return s; }
+  return {
+    get on(){ return on; },
+    toggle(){ if(!on){ if(!init()) return false; ctx.resume(); on=true; } else on=false; return on; },
+    whoosh(dur,dir){
+      if(!on) return; const t0=ctx.currentTime+0.01, k=D.sharp;
+      const s=src(), bp=ctx.createBiquadFilter(), g=ctx.createGain(); bp.type='bandpass'; bp.Q.value=0.8;
+      bp.frequency.setValueCurveAtTime(curve(32,u=>220+rampSpeed(u,k)*2800),t0,dur);
+      g.gain.setValueCurveAtTime(curve(32,u=>0.0001+Math.pow(rampSpeed(u,k),1.3)*0.6),t0,dur);
+      s.connect(bp); bp.connect(g);
+      if(ctx.createStereoPanner){ const p=ctx.createStereoPanner(); p.pan.setValueCurveAtTime(curve(32,u=>(u*2-1)*0.75*dir),t0,dur); g.connect(p); p.connect(out); } else g.connect(out);
+      const s2=src(), lp=ctx.createBiquadFilter(), g2=ctx.createGain(); lp.type='lowpass'; lp.frequency.value=160;
+      g2.gain.setValueCurveAtTime(curve(32,u=>0.0001+rampSpeed(u,k)*0.9),t0,dur); s2.connect(lp); lp.connect(g2); g2.connect(out);
+      s.start(t0,Math.random()); s.stop(t0+dur+0.05); s2.start(t0,Math.random()); s2.stop(t0+dur+0.05);
+    },
+    thump(level=1){
+      if(!on) return; const t0=ctx.currentTime+0.005, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.setValueAtTime(95,t0); o.frequency.exponentialRampToValueAtTime(36,t0+0.32);
+      g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.9*level,t0+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.42);
+      o.connect(g); g.connect(out); o.start(t0); o.stop(t0+0.45);
+    },
+    click(){
+      if(!on) return; const t0=ctx.currentTime+0.005;
+      const s=src(), hp=ctx.createBiquadFilter(), g=ctx.createGain(); hp.type='highpass'; hp.frequency.value=2600;
+      g.gain.setValueAtTime(0.35,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.045); s.connect(hp); hp.connect(g); g.connect(out); s.start(t0,Math.random()); s.stop(t0+0.06);
+      const o=ctx.createOscillator(), g2=ctx.createGain(); o.frequency.setValueAtTime(1900,t0); o.frequency.exponentialRampToValueAtTime(1150,t0+0.03);
+      g2.gain.setValueAtTime(0.12,t0); g2.gain.exponentialRampToValueAtTime(0.0001,t0+0.05); o.connect(g2); g2.connect(out); o.start(t0); o.stop(t0+0.06);
+    }
+  };
+})();
+$('soundToggle').addEventListener('click',()=>{ const on=sfx.toggle(); $('soundToggle').setAttribute('aria-pressed',String(on)); });
 
 /* ------------------------------------------------------------------ drag to look, click to place */
 const raycaster=new THREE.Raycaster(), ndc=new THREE.Vector2();
@@ -820,25 +957,35 @@ let first=true, last=performance.now(), realT=0, sceneT=0, holdSceneStart=0;
 
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  const dt=clamp((now-last)/1000,0,0.05); last=now;
   if(document.hidden) return;
   realT+=dt;
   const slow=D.slow/100;
   let rate=slow;
 
   // sequence
+  let flash=0;
+  const orbit=D.mode==='orbit', HL=holdLen();
   if(S.phase==='hold'){
-    if(playing && !drag.active) S.t+=dt; else S.t+=dt*(S.t<D.hold*0.999?1:0);
-    const h=clamp(S.t/D.hold,0,1);
-    curPose=shotPose(S.i,h);
-    if(S.t>=D.hold && playing && !drag.active) startWhip((S.i+1)%NS);
+    const advancing=playing && !drag.active;
+    if(advancing || orbit || S.t<HL*0.999) S.t+=dt;
+    if(orbit){
+      const {T1,W,L}=orbitTimes();
+      if(!advancing && S.t>=L){ S.orbitOff+=(D.drift/D.hold)*(L-T1)+D.spin; S.t=T1+(S.t-L); S.spun=false; } // paused: keep circling this point
+      if(!S.spun && S.t>=T1){ S.spun=true; sfx.whoosh(W,1); }
+      const u=clamp((S.t-T1)/W,0,1);
+      if(u>0 && u<1){ const sp=rampSpeed(u,D.sharp); rate=lerp(slow,4,sp); flash=Math.pow(sp,3)*0.16; }
+      curPose=orbitPose(S.i,S.t);
+    }else curPose=shotPose(S.i,clamp(S.t/D.hold,0,1));
+    if(!S.snapped && S.i>0 && S.t>=0.42){ S.snapped=true; sfx.click(); }
+    if(S.t>=HL && advancing) startWhip((S.i+1)%NS);
   }
   if(S.phase==='whip'){
     S.t+=dt;
-    const u=clamp(S.t/D.whip,0,1), s=ramp(u,D.sharp);
-    curPose=whipPose(S.fromPose,S.toPose,s);
-    rate=lerp(slow,4,rampSpeed(u,D.sharp));
-    if(u>=1){ S.phase='hold'; S.i=S.to; S.t=0; shake=1; holdSceneStart=sceneT; }
+    const u=clamp(S.t/D.whip,0,1), sp=rampSpeed(u,D.sharp);
+    curPose=whipPose(S.fromPose,S.toPose,whipS(u));
+    rate=lerp(slow,4,sp); flash=Math.pow(sp,3)*0.2;
+    if(u>=1){ S.phase='hold'; S.i=S.to; S.t=0; S.orbitOff=0; S.snapped=false; S.spun=false; shake=1; holdSceneStart=sceneT; sfx.thump(); }
   }
   sceneT+=dt*rate;
   const shown=displayed();
@@ -872,6 +1019,7 @@ function frame(now){
   }else ringMat.opacity=0;
 
   updateDust(sceneT);
+  { const ka=0.63+Math.sin(sceneT*0.22)*0.35; key.position.set(Math.sin(ka)*2.72,2.8,Math.cos(ka)*2.72); }
 
   // drag offsets spring home once let go
   if(!drag.active){ const k=1-Math.exp(-dt*2.2); drag.az-=drag.az*k; drag.el-=drag.el*k; }
@@ -881,7 +1029,7 @@ function frame(now){
   const breathe=new V3(Math.sin(realT*0.7)*0.0015,Math.sin(realT*0.93)*0.0012,0);
   const tgt=p.t.clone().add(breathe);
   cam.position.set(tgt.x+p.dist*Math.cos(el)*Math.sin(az),tgt.y+p.dist*Math.sin(el),tgt.z+p.dist*Math.cos(el)*Math.cos(az));
-  cam.lookAt(tgt); cam.fov=p.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  cam.lookAt(tgt); cam.rotateZ((p.roll||0)*DEG); cam.fov=p.fov; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
 
   curVP.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);
   if(first){ prevVP.copy(curVP); first=false; }
@@ -890,6 +1038,7 @@ function frame(now){
   post.uniforms.uScale.value=(D.blur/100)*(1/60)/Math.max(dt,1/240);
   post.uniforms.uGrain.value=D.grain/100;
   post.uniforms.uTime.value=realT;
+  post.uniforms.uFlash.value=flash;
 
   renderer.setRenderTarget(rt); renderer.render(scene,cam);
   renderer.setRenderTarget(null); renderer.render(postScene,postCam);
@@ -897,7 +1046,8 @@ function frame(now){
 
   // call-out
   const coOn = S.phase==='hold' && S.i>0;
-  const coA = coOn ? sstep(0.9,1.3,S.t) : 0;
+  let coA = coOn ? sstep(0.9,1.3,S.t) : 0;
+  if(coOn && orbit){ const {T1,W}=orbitTimes(); coA*= S.t<T1 ? 1-sstep(T1-0.3,T1,S.t) : sstep(T1+W+0.2,T1+W+0.6,S.t); }
   coWrap.setAttribute('opacity',coA.toFixed(3)); coLabel.style.opacity=coA.toFixed(3);
   if(coOn){
     const a=anchors[S.i], v=a.p.clone().addScaledVector(a.up,0.004).project(cam);
@@ -909,7 +1059,7 @@ function frame(now){
   }
 
   // rail + readouts
-  segs.forEach((b,k)=>{ b.firstChild.firstChild.style.width = (k===shown && S.phase==='hold') ? (clamp(S.t/D.hold,0,1)*100)+'%' : '0%'; });
+  segs.forEach((b,k)=>{ b.firstChild.firstChild.style.width = (k===shown && S.phase==='hold') ? (clamp(S.t/HL,0,1)*100)+'%' : '0%'; });
   $('spd').textContent=Math.round(rate*100)+'%';
   const fr=Math.floor(realT*24), tc=[Math.floor(fr/1440)%60,Math.floor(fr/24)%60,fr%24].map(n=>String(n).padStart(2,'0')).join(':');
   $('tc').textContent=tc;
@@ -924,5 +1074,6 @@ resize();
 curPose=shotPose(0,0);
 setCaption(0);
 setPlaying(true);
+setMode(D.mode,false);
 requestAnimationFrame(frame);
 </script>
