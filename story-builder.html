@@ -144,7 +144,7 @@ body.panel-open .spot i{cursor:grab;pointer-events:auto}
 .ticker{position:absolute;left:0;right:0;z-index:3;overflow:hidden;visibility:hidden;pointer-events:none;mix-blend-mode:difference;color:#fff}
 .ticker[data-y="bottom"]{bottom:calc(var(--g) * .6)}.ticker[data-y="top"]{top:calc(var(--g) * .6 + 24px)}
 .ticker .tk{white-space:nowrap;font:700 clamp(40px,7cqw,104px)/1 var(--sans);letter-spacing:-.025em;will-change:transform}
-.srule{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--red);z-index:11;opacity:0;pointer-events:none;transform-origin:0 50%}
+.srule{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--red);z-index:11;opacity:0;pointer-events:none;transform-origin:50% 50%}
 .toast{position:absolute;left:50%;bottom:24px;z-index:30;transform:translate(-50%,16px);opacity:0;background:var(--ink);color:#fff;padding:12px 18px;border-radius:4px;font:600 13px/1 var(--sans);pointer-events:none;transition:opacity .25s,transform .35s var(--ease-out)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -763,7 +763,7 @@ const MOTIONS = {
   rise:     ['Rise',     'Frames glide while the new imagery and copy rise into place.'],
   iris:     ['Iris',     'New imagery opens from the center of each frame as it moves.'],
   dissolve: ['Dissolve', 'The last composition fades to white, then this one fades up.'],
-  sweep:    ['Story break', 'Sideways: the last composition slides off left as this one arrives from the right, with a red line sweeping across. Used between stories.'],
+  sweep:    ['Story break', 'The last composition shrinks back into the dark while this one rises from below, and a red line draws out from the centre. Used between stories.'],
 };
 const FR = 6; // frames on stage: one per gallery tile at most
 
@@ -1757,10 +1757,10 @@ function sweepCopy(i, j, t) {
   const rule = $('srule');
   if (t < 0) { [i, j].forEach(k => { const L = layers[k]; if (L) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } }); swept = []; if (rule) rule.style.opacity = 0; return; }
   const out = easeIn(clamp(t * 2)), inn = 1 - easeOut(clamp((t - .5) * 2));
-  if (layers[i]) { layers[i].el.style.transform = `translateX(${-out * 40}%)`; layers[i].extras.forEach(e => e.style.translate = `${-out * 40}% 0`); }
-  if (layers[j]) { layers[j].el.style.transform = `translateX(${inn * 40}%)`; layers[j].extras.forEach(e => e.style.translate = `${inn * 40}% 0`); }
+  if (layers[i]) { layers[i].el.style.transform = `translateY(${-out * 8}%) scale(${1 - out * .08})`; layers[i].extras.forEach(e => e.style.translate = `0 ${-out * 30}px`); }
+  if (layers[j]) { layers[j].el.style.transform = `translateY(${inn * 22}%)`; layers[j].extras.forEach(e => e.style.translate = `0 ${inn * 60}px`); }
   swept = [i, j];
-  if (rule) { const q = easeIO(t); rule.style.opacity = Math.sin(Math.PI * t); rule.style.transform = `translateX(${(1 - q) * 100}%) scaleX(${.25 + .75 * Math.sin(Math.PI * t)})`; }
+  if (rule) { const v = Math.sin(Math.PI * t); rule.style.opacity = v; rule.style.transform = `scaleX(${v})`; } // draws out from the centre as the screen goes dark
 }
 let lastTone = -1;
 function stageTone(d) {
@@ -1794,9 +1794,10 @@ function drawPair(i, j, t, ui, uj) {
   else if (a || b) {
     if (!a) a = b.map(shrink); if (!b) b = a.map(shrink);
     if (motion === 'dissolve') R = t < .5 ? a.map(r => ({ ...r, o:r.o * (1 - easeIO(t * 2)) })) : b.map(r => ({ ...r, o:r.o * easeIO((t - .5) * 2) }));
-    else if (motion === 'sweep') { // a story break: off to the left, in from the right
-      R = t < .5 ? a.map(r => { const q = easeIn(t * 2); return { ...r, x:r.x - q * W * .55, r:(r.r || 0) - q * 4, o:r.o * (1 - q) }; })
-                 : b.map(r => { const q = easeOut((t - .5) * 2); return { ...r, x:r.x + (1 - q) * W * .55, r:(r.r || 0) + (1 - q) * 6, o:r.o * q }; });
+    else if (motion === 'sweep') { // a story break: the story shrinks back into the dark, the card rises from below
+      const cx = W / 2, cy = H / 2, sc = (r, k) => ({ ...r, x:cx + (r.x - cx) * k, y:cy + (r.y - cy) * k, w:r.w * k, h:r.h * k });
+      R = t < .5 ? a.map(r => { const q = easeIn(t * 2); return { ...sc(r, 1 - q * .22), y:cy + (r.y - cy) * (1 - q * .22) - q * H * .08, o:r.o * (1 - q) }; })
+                 : b.map(r => { const q = easeOut((t - .5) * 2); return { ...r, y:r.y + (1 - q) * H * .3, o:r.o * q }; });
     }
     else { const e = glide(t); R = a.map((r, k) => lerpR(r, b[k], e)); }
   }

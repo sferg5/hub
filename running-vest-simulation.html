@@ -49,7 +49,6 @@
   .modes{display:flex;background:var(--glass);border-radius:999px;padding:3px}
   .modes button{appearance:none;border:0;background:none;border-radius:999px;padding:6px 13px;font-size:13px;cursor:pointer;color:var(--dim)}
   .modes button[aria-pressed="true"]{background:var(--ink);color:var(--wall)}
-  @media (max-width:520px){ .tag{display:none} .pill{padding:8px 12px} }
 
   /* ---- call-out on the clip point ---- */
   #callouts{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
@@ -69,18 +68,17 @@
   .caption.out .swap{opacity:0;transform:translateY(10px);transition-duration:.12s}
 
   /* ---- foot: rail + transport + speed ---- */
-  .foot{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:0 var(--gutter) calc(var(--safe-b) + 20px);
-    display:grid;grid-template-columns:1fr auto;gap:14px 28px;align-items:end}
-  .rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
-  .seg{appearance:none;border:0;background:none;padding:10px 0 0;text-align:left;cursor:pointer;color:var(--dimmer);
-    display:flex;flex-direction:column;gap:9px;min-width:0}
-  .seg .bar{display:block;height:1px;background:var(--rule);overflow:hidden}
-  .seg .bar i{display:block;height:100%;width:0;background:var(--ink)}
-  .seg .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .3s}
-  .seg:hover .lbl,.seg[aria-current="step"] .lbl{color:var(--ink)}
-  .seg[aria-current="step"] .lbl::before{content:none}
+  .foot{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:0 var(--gutter) calc(var(--safe-b) + 24px);
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+  .rail{grid-column:2;display:flex;gap:8px;align-items:center;justify-content:center;padding:8px 0}
+  /* Each stop is a dot. The current one stretches into a short bar that fills over the hold. */
+  .seg{appearance:none;border:0;padding:0;width:6px;height:6px;border-radius:999px;background:#d2d2d7;cursor:pointer;
+    position:relative;overflow:hidden;transition:width .35s var(--ease-out),background .2s}
+  .seg:hover{background:#b8b8bf}
+  .seg[aria-current="step"]{width:34px}
+  .seg i{position:absolute;inset:0 auto 0 0;width:0;background:var(--ink);border-radius:999px}
 
-  .hud{display:flex;align-items:center;gap:18px}
+  .hud{grid-column:3;justify-self:end;display:flex;align-items:center;gap:18px}
   .hud .readout,#spark{display:none}
   body.showReadout .hud .readout{display:grid}
   body.showReadout #spark{display:block}
@@ -95,11 +93,10 @@
   #play{background:var(--ink);color:var(--wall)}
   #play:hover{background:#000}
   .ibtn svg{width:14px;height:14px;fill:currentColor}
-  #play{width:48px}
+  #play{width:44px;height:44px}
 
   @media (max-width:720px){
-    .foot{grid-template-columns:1fr}
-    .hud{justify-content:space-between;order:-1}
+    .foot{grid-template-columns:1fr auto 1fr}
     body.showReadout #spark{display:none}
     .caption{bottom:calc(var(--safe-b) + 176px)}
     .caption p{font-size:15px}
@@ -155,25 +152,14 @@
     <circle class="core" id="coDot" r="2.5"></circle>
   </g>
 </svg>
-<div class="colabel mono" id="coLabel" style="opacity:0"><span id="coNum">02</span><em id="coText" style="font-style:normal">clip point</em></div>
+<div class="colabel mono" id="coLabel" style="opacity:0"><em id="coText" style="font-style:normal">clip point</em></div>
 
 <header class="top">
-  <div>
-    <div class="mark">running vest simulation</div>
-    <div class="tag mono" id="modelTag">Stand-in models · scans pending</div>
-  </div>
-  <div class="topr">
-    <div class="modes" role="group" aria-label="Camera move">
-      <button type="button" id="modeTour" aria-pressed="true">Tour</button>
-      <button type="button" id="modeOrbit" aria-pressed="false">Orbit</button>
-    </div>
-    <button class="pill" id="soundToggle" type="button" aria-pressed="false">Sound</button>
-    <button class="pill" id="dialToggle" type="button" aria-pressed="false" aria-controls="panel">Dials</button>
-  </div>
+  <div class="mark">running vest simulation</div>
+  <button class="pill" id="dialToggle" type="button" aria-pressed="false" aria-controls="panel">Dials</button>
 </header>
 
 <section class="caption" id="caption" aria-live="polite">
-  <span class="swap mono" id="capIdx">01 / 05</span>
   <h1 class="swap" id="capName">Packed down</h1>
   <p class="swap" id="capLine">Collapses flat and rides along until you need it.</p>
 </section>
@@ -186,11 +172,7 @@
       <span class="k">TC</span><span class="v" id="tc">00:00:00</span>
     </div>
     <canvas id="spark" width="240" height="68" aria-hidden="true"></canvas>
-    <div class="transport">
-      <button class="ibtn" id="prev" type="button" aria-label="Previous clip point"><svg viewBox="0 0 16 16"><path d="M11 2 4.5 8 11 14z"/></svg></button>
-      <button class="ibtn" id="play" type="button" aria-label="Pause"><svg viewBox="0 0 16 16" id="playIcon"><path d="M3.5 2h3v12h-3zM9.5 2h3v12h-3z"/></svg></button>
-      <button class="ibtn" id="next" type="button" aria-label="Next clip point"><svg viewBox="0 0 16 16"><path d="M5 2l6.5 6L5 14z"/></svg></button>
-    </div>
+    <button class="ibtn" id="play" type="button" aria-label="Pause"><svg viewBox="0 0 16 16" id="playIcon"><path d="M3.5 2h3v12h-3zM9.5 2h3v12h-3z"/></svg></button>
   </div>
 </footer>
 
@@ -206,12 +188,6 @@
     <div class="ctl"><label for="d-roll">Roll <span class="val" id="v-roll"></span></label><input type="range" id="d-roll" min="0" max="20" step="1"></div>
   </details>
   <details class="grp">
-    <summary>Orbit</summary>
-    <p class="note">Orbit mode circles each clip point: a slow arc, one fast spin, then slow again before it moves on.</p>
-    <div class="ctl"><label for="d-spin">Spin <span class="val" id="v-spin"></span></label><input type="range" id="d-spin" min="90" max="720" step="15"></div>
-    <div class="ctl"><label for="d-spinDur">Spin length <span class="val" id="v-spinDur"></span></label><input type="range" id="d-spinDur" min="0.5" max="3" step="0.05"></div>
-  </details>
-  <details class="grp">
     <summary>Hold</summary>
     <p class="note">The slow-motion beat on each clip point, while the bag snaps on and opens up.</p>
     <div class="ctl"><label for="d-hold">Duration <span class="val" id="v-hold"></span></label><input type="range" id="d-hold" min="1.6" max="9" step="0.1"></div>
@@ -222,6 +198,7 @@
     <summary>Film</summary>
     <div class="ctl"><label for="d-blur">Motion blur <span class="val" id="v-blur"></span></label><input type="range" id="d-blur" min="0" max="300" step="5"></div>
     <div class="ctl"><label for="d-grain">Grain <span class="val" id="v-grain"></span></label><input type="range" id="d-grain" min="0" max="100" step="1"></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="d-sound"> Sound: whoosh, landing and clip</label></div>
     <div class="row"><label class="chk"><input type="checkbox" id="d-readout"> Show speed readout</label></div>
   </details>
   <details class="grp">
@@ -233,6 +210,7 @@
   </details>
   <details class="grp">
     <summary>Scans</summary>
+    <p class="note" id="modelTag">Stand-in models · scans pending</p>
     <p class="note">Load the real .glb scans here. They stay in this browser and are never uploaded. Draco-compressed files won't open; export uncompressed or with Meshopt.</p>
     <div class="file"><span id="fVestName">Vest: stand-in</span><label class="btn" for="fVest">Load vest</label><input type="file" id="fVest" accept=".glb,model/gltf-binary"></div>
     <div class="file"><span id="fBagName">Bag: stand-in</span><label class="btn" for="fBag">Load bag</label><input type="file" id="fBag" accept=".glb,model/gltf-binary"></div>
@@ -575,8 +553,8 @@ const SHOTS=[
   {key:'chest',  short:'Chest',      name:'Stowed on the chest strap',line:'Rolled small and clipped up front, ready to grab.',   th:26,  y:0.235, off:0.045, az:20,  el:12},
   {key:'side',   short:'Side',       name:'Stowed on the side',       line:'Low on the side, clear of your arm swing.',          th:97,  y:0.04,  off:0.02,  az:16,  el:5},
   {key:'low',    short:'Front low',  name:'Stowed low on the front',  line:'Close to the body, where it doesn’t bounce.',        th:-40, y:0.1,   off:0.045, az:-20, el:7},
-  {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:1.0},
-  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.235, off:0.03, az:-18, el:15, open:true},
+  {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:0.9},
+  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.235, off:0.03, az:-18, el:15, open:true, wideAt:0.3},
 ];
 const NS=SHOTS.length;
 
@@ -813,10 +791,14 @@ addEventListener('resize',resize);
 /* ------------------------------------------------------------------ camera choreography */
 function shotPose(i,h){
   if(i===0) return {t:new V3(0.14,-0.07,0.05), az:-28+D.drift*(h-0.5), el:7, dist:2.05*(1-0.05*h)*distScale, fov:30, roll:0};
+  // Two beats per stop: land tight on the clip point while the pack snaps on, then a slow pull-out
+  // until the whole vest is in frame, so the next whip starts from the full product.
   const s=SHOTS[i], a=anchors[i];
-  const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az, azr=(baseAz)*DEG;
-  const t=a.p.clone().addScaledVector(a.n,0.05).addScaledVector(a.up,-0.2);
-  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:s.el, dist:1.28*(s.dist||1)*(1-0.06*h)*distScale, fov:30, roll:0};
+  const w=sstep(s.wideAt??0.42,1,h);
+  const tight=a.p.clone().addScaledVector(a.n,0.03).addScaledVector(a.up,-0.07);
+  const t=tight.lerp(new V3(0,-0.09,0),w);
+  const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az;
+  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:lerp(s.el,s.el+3,w), dist:lerp(0.7*(s.dist||1),2.0,w)*distScale, fov:30, roll:0};
 }
 const ramp=(u,k)=>u<.5?.5*Math.pow(2*u,k):1-.5*Math.pow(2-2*u,k);
 const rampSpeed=(u,k)=>Math.pow(u<.5?2*u:2-2*u,k-1); // 0..1, peaks mid-move
@@ -868,7 +850,7 @@ function displayed(){
 const rail=$('rail'), segs=[];
 SHOTS.forEach((s,i)=>{
   const b=document.createElement('button'); b.type='button'; b.className='seg';
-  b.innerHTML=`<span class="bar"><i></i></span><span class="lbl mono">${s.short}</span>`;
+  b.innerHTML='<i></i>'; b.title=s.name;
   b.setAttribute('aria-label',`${i+1}. ${s.name}`);
   b.addEventListener('click',()=>startWhip(i));
   rail.appendChild(b); segs.push(b);
@@ -879,9 +861,8 @@ function setCaption(i){
   const cap=$('caption'); cap.classList.add('out');
   segs.forEach((b,k)=>b.toggleAttribute('aria-current',false)); segs[i].setAttribute('aria-current','step');
   setTimeout(()=>{
-    $('capIdx').textContent=`${String(i+1).padStart(2,'0')} / ${String(NS).padStart(2,'0')}`;
     $('capName').textContent=SHOTS[i].name; $('capLine').textContent=SHOTS[i].line;
-    $('coNum').textContent=String(i+1).padStart(2,'0'); $('coText').textContent=SHOTS[i].name;
+    $('coText').textContent=SHOTS[i].name;
     cap.classList.remove('out');
   },130);
 }
@@ -891,8 +872,6 @@ function setPlaying(p){
   $('playIcon').innerHTML=p?'<path d="M3.5 2h3v12h-3zM9.5 2h3v12h-3z"/>':'<path d="M4 2l10 6-10 6z"/>';
 }
 $('play').addEventListener('click',()=>setPlaying(!playing));
-$('next').addEventListener('click',()=>startWhip((displayed()+1)%NS));
-$('prev').addEventListener('click',()=>startWhip((displayed()+NS-1)%NS));
 const panel=$('panel');
 function togglePanel(open){
   open=open??!panel.classList.contains('open');
@@ -932,13 +911,11 @@ SW.forEach(([n,c])=>{
 });
 $('resetDials').addEventListener('click',()=>{ D={...DEF}; saveDials(); bindDials(); bagMat.color.set(D.bag); swWrap.querySelectorAll('.sw').forEach((x,k)=>x.setAttribute('aria-pressed',String(SW[k][1]===D.bag))); applyTurn(); setVest(D.vest); setMode(D.mode,true); });
 
+// Orbit is parked for now: the mode stays on the tour, and the switch is out of the top bar.
 function setMode(m,animate){
-  D.mode=m; saveDials();
-  $('modeTour').setAttribute('aria-pressed',String(m==='tour')); $('modeOrbit').setAttribute('aria-pressed',String(m==='orbit'));
+  D.mode='tour'; saveDials();
   if(animate) startWhip(displayed(),true);
 }
-$('modeTour').addEventListener('click',()=>setMode('tour',true));
-$('modeOrbit').addEventListener('click',()=>setMode('orbit',true));
 
 /* ------------------------------------------------------------------ sound */
 // Synthesised, so there are no files to license: a filtered-noise whoosh that follows the same speed
@@ -985,7 +962,7 @@ const sfx=(()=>{
     }
   };
 })();
-$('soundToggle').addEventListener('click',()=>{ const on=sfx.toggle(); $('soundToggle').setAttribute('aria-pressed',String(on)); });
+$('d-sound').addEventListener('change',e=>{ const on=sfx.toggle(); e.target.checked=on; });
 
 /* ------------------------------------------------------------------ drag to look, click to place */
 const raycaster=new THREE.Raycaster(), ndc=new THREE.Vector2();
@@ -1128,6 +1105,11 @@ function frame(now){
   sceneT+=dt*rate;
   const shown=displayed();
   setCaption(shown);
+  // The words arrive with the pull-out. The tight beat is the product on its own.
+  let capA=1;
+  if(S.phase==='hold'){ if(S.i>0){ const wa=SHOTS[S.i].wideAt??0.42; capA=sstep(wa,wa+0.22,clamp(S.t/HL,0,1)); } }
+  else { const u=clamp(S.t/D.whip,0,1); capA = S.from===0 ? 1-sstep(0,0.45,u) : 0; }
+  $('caption').style.opacity=capA.toFixed(3);
 
   // bag
   if(S.phase==='hold'){
@@ -1193,7 +1175,7 @@ function frame(now){
   }
 
   // rail + readouts
-  segs.forEach((b,k)=>{ b.firstChild.firstChild.style.width = (k===shown && S.phase==='hold') ? (clamp(S.t/HL,0,1)*100)+'%' : '0%'; });
+  segs.forEach((b,k)=>{ b.firstChild.style.width = (k===shown && S.phase==='hold') ? (clamp(S.t/HL,0,1)*100)+'%' : '0%'; });
   $('spd').textContent=Math.round(rate*100)+'%';
   const fr=Math.floor(realT*24), tc=[Math.floor(fr/1440)%60,Math.floor(fr/24)%60,fr%24].map(n=>String(n).padStart(2,'0')).join(':');
   $('tc').textContent=tc;
