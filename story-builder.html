@@ -286,7 +286,7 @@ body.panel-open .panel{transform:none}
 .views li{margin:2px 0}
 /* feed mode: a viewer, not an editor */
 body.feed .panel,body.feed .fab,body.feed .dots{display:none!important}
-body.feed .stage{right:0!important;transform:none!important}
+body.feed .stage{right:0!important;transform:none!important;transition:none}
 .fhud{position:fixed;left:0;right:0;top:0;z-index:70;padding:10px 14px 0;display:none;pointer-events:none}
 body.feed .fhud{display:block}
 .fsegs{display:flex;gap:3px}
@@ -1378,7 +1378,7 @@ const BLENDS = {
   light: [['normal','Normal','Plain white.'], ['difference','Invert','The copy flips to the image’s inverse.'], ['overlay','Overlay','The letters brighten and saturate the image beneath them, so they glow out of it.'], ['soft-light','Soft light','A quieter version of Overlay.']],
 };
 const blendOf = s => { const ink = inkOf(s), b = s.text.blend; return BLENDS[ink].some(o => o[0] === b) ? b : (ink === 'dark' ? 'difference' : 'normal'); };
-const inkOf = s => s.media.kind !== 'none' && s.text.ink === 'light' ? 'light' : 'dark';
+const inkOf = s => (s.dark || s.media.kind !== 'none') && s.text.ink === 'light' ? 'light' : 'dark';
 // the wash sits behind the text: white under dark type, soft black under white type
 function scrimFor(s) {
   const a = s.overlay / 100; if (!a) return '';
@@ -1762,6 +1762,13 @@ function sweepCopy(i, j, t) {
   swept = [i, j];
   if (rule) { const q = easeIO(t); rule.style.opacity = Math.sin(Math.PI * t); rule.style.transform = `translateX(${(1 - q) * 100}%) scaleX(${.25 + .75 * Math.sin(Math.PI * t)})`; }
 }
+let lastTone = -1;
+function stageTone(d) {
+  if (Math.abs(d - lastTone) < .002) return; lastTone = d;
+  const c = Math.round(255 - (255 - 20) * d); // white → #141414
+  $stage.style.backgroundColor = d ? `rgb(${c},${c},${c})` : '';
+  document.body.style.backgroundColor = d ? `rgb(${c},${c},${c})` : '';
+}
 function drawPair(i, j, t, ui, uj) {
   const si = S.sections[i], sj = j >= 0 ? S.sections[j] : null;
   const motion = sj ? sj.motion : 'glide';
@@ -1826,6 +1833,9 @@ function drawPair(i, j, t, ui, uj) {
   holdType(layers[i], si, ui); textOut(layers[i], t); holdSpots(layers[i], ui);
   if (sj) { holdType(layers[j], sj, uj); textIn(layers[j], t, motion); holdSpots(layers[j], uj); }
   sweepCopy(i, j, motion === 'sweep' ? t : -1);
+  // the stage darkens for a story break and comes back to white for the story
+  const dk = x => x && x.dark ? 1 : 0, dark = j >= 0 ? lerp(dk(si), dk(sj), easeIO(t)) : dk(si);
+  stageTone(dark);
   dotScale(i, j, j >= 0 ? easeIO(t) : 0);
   setCurrent(t > .5 && j >= 0 ? j : i);
 }
@@ -1960,6 +1970,7 @@ function swipeTo(dir, v0) {
   if (swipeGoal != null && Math.abs(swipeGoal + dir - settledAt(scrollY)) > 1) return; // never more than one section beyond what's on screen
   const i = swipeGoal != null ? swipeGoal : settledAt(scrollY); swiperHeld = true; swBase = i;
   if (dir > 0 && i < starts.length - 1) swipeForward(i + 1, v0);
+  else if (dir > 0 && i === starts.length - 1) continueStories(v0); // the end of a story: on into the next one
   else if (dir < 0 && i > 0) animateTo(restOf(i - 1), v0);
   else if (dir < 0) animateTo(0, v0);
 }
@@ -2002,6 +2013,7 @@ function dragEnd() {
   let dir = 0;
   if ((flick && v > 0) || (!flick && p > .33)) dir = drag.next != null ? 1 : 0;
   if ((flick && v < 0) || (!flick && p < -.33)) dir = drag.prev != null ? -1 : 0;
+  if (!dir && drag.next == null && ((flick && v > 0) || (!flick && p > .2))) { drag = null; continueStories(); return; } // swiped past the end
   const target = dir > 0 ? drag.next : dir < 0 ? drag.prev : drag.base, k = drag.i;
   drag = null;
   const v0 = Math.abs(v) * Math.abs(target - scrollY) / swipeDist();
@@ -2052,7 +2064,10 @@ function canScrollWithin(el, stop, dy) {
 addEventListener('wheel', e => {
   const ui = e.target.closest && e.target.closest('.panel, .arc, .help');
   if (ui) { if (!e.ctrlKey && !canScrollWithin(e.target, ui, e.deltaY)) e.preventDefault(); return; }
-  if (!chapterMode() || e.ctrlKey) return;               // pinch-zoom passes through
+  if (!chapterMode() || e.ctrlKey) { // free scroll: scrolling on past the very bottom carries on into the next story
+    if (!e.ctrlKey && !chapterMode() && e.deltaY > 6 && S.sections.length && scrollY >= endY() - 2) continueStories();
+    return;
+  }
   e.preventDefault();
   const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
   const a = Math.abs(dy);
@@ -3093,7 +3108,7 @@ const HELP = [
   { t:'Shape it with a narrative arc', v:'arc',
     b:`<p><b>Build a Narrative Arc</b> maps the feeling of the story over time: shopping and product at the bottom, emotive story at the top.</p><p>Each point is one section, evenly spaced. Drag a point up or down. Click empty space or <b>+</b> to add one. Select a point, then press <b>×</b> or <b>Delete</b>, or drag it off the graph, to remove it. Then build a new story or re-order the one you have.</p>` },
   { t:'Watch it like a viewer', v:'play',
-    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p>` },
+    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p><p>At the end of a story, keep going: the screen goes dark for a moment and the next story begins. <b>Exit</b> or <kbd>Esc</kbd> brings you back.</p>` },
   { t:'Handy to know', v:'keys',
     b:`<ul>
       <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo. The buttons are under Export.</span></li>
@@ -3280,9 +3295,9 @@ function upNext(block, title, n) {
   for (const sec of block) { (sec.media.kind === 'none' ? [] : sec.media.items.slice(0, Math.max(1, count(sec)))).forEach((id, k) => { if (id && imgs.length < 3 && !imgs.includes(id) && (asset(id) || {}).type !== 'video') imgs.push(id); });
     if (shots.length < 3 && sec.media.kind !== 'none') shots.push((sec.media.shots || [])[0] || sec.name); if (imgs.length >= 3) break; }
   const first = block[0], tease = (first.headline || '').replace(/[.?!]$/, '');
-  return make({ name:'Up next', beat:'hook', motion:'sweep', hold:'drift', dwell:.9, overlay:0,
+  return make({ name:'Up next', dark:true, beat:'hook', motion:'sweep', hold:'drift', dwell:.9, overlay:0,
     media:{ kind:'gallery', layout:'full', arrange:'fan', count:Math.max(1, Math.min(3, imgs.length || 3)), items:imgs, shots },
-    text:{ x:'center', y:'bottom', size:'xl', width:'wide', anim:'letters', ink:'dark', blend:'normal' },
+    text:{ x:'center', y:'bottom', size:'xl', width:'wide', anim:'letters', ink:'light', blend:'normal' },
     showEyebrow:true, eyebrow:`Story ${String(n).padStart(2, '0')} · next`, headline:title, body: tease ? `“${tease}”` : '',
     ticker:{ on:true, text:`Next story · ${title} · `, y:'top' } });
 }
@@ -3331,7 +3346,20 @@ function feedHud(i) {
   [...$('fsegs').children].forEach((seg, k) => seg.firstChild.style.width = k < st.k ? '100%' : k === st.k ? '50%' : '0');
   $('fname').replaceChildren(st.title === 'For you' ? 'For you' : st.title, h('small', {}, st.k < 0 ? 'up next' : `${st.k + 1} of ${n}`));
 }
-function startFeed() {
+/* From the end of the story on screen into the next story, without starting over:
+   the story stays where it is, the next one is added after it, and the move into
+   it is the story break. */
+function continueStories(v0 = 0) {
+  if (FEED || !S.sections.length || continuing) return;
+  continuing = true;
+  const at = settledAt(scrollY);
+  startFeed(true);
+  measure(); const y = restOf(at); scrollTo({ top:y, behavior:'instant' }); ys = scrollY; update();
+  swBase = at; swiperHeld = true; swipeForward(at + 1, v0);
+  continuing = false;
+}
+let continuing = false;
+function startFeed(fromHere) {
   if (FEED) return;
   closeHelp(); openArc(false);
   const own = S.sections.length ? [['Your story', '__own']] : [];
@@ -3339,7 +3367,9 @@ function startFeed() {
   document.body.classList.add('feed'); document.body.classList.remove('panel-open');
   S = normalize({ ...JSON.parse(FEED.saved), sections:[] });
   S.sections.push(...nextBlock()); S.sections.push(...nextBlock()); // one at a time, so the second gets its Up next card
-  sel = S.sections[0].id; render(); scrollTo(0, 0); ys = 0; update(); feedHud(0);
+  sel = S.sections[0].id; render();
+  if (!fromHere) { scrollTo(0, 0); ys = 0; update(); }
+  feedHud(fromHere ? curI : 0);
   feedLastT = 0; clearInterval(FEED.timer); FEED.timer = setInterval(trackViews, 250);
 }
 function exitFeed() {
