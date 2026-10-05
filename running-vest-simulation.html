@@ -71,7 +71,7 @@
   /* ---- foot: rail + transport + speed ---- */
   .foot{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:0 var(--gutter) calc(var(--safe-b) + 20px);
     display:grid;grid-template-columns:1fr auto;gap:14px 28px;align-items:end}
-  .rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px}
   .seg{appearance:none;border:0;background:none;padding:10px 0 0;text-align:left;cursor:pointer;color:var(--dimmer);
     display:flex;flex-direction:column;gap:9px;min-width:0}
   .seg .bar{display:block;height:1px;background:var(--rule);overflow:hidden}
@@ -337,6 +337,7 @@ scene.add(key);
 const rim=new THREE.DirectionalLight(0xf2f5ff,1.1); rim.position.set(-1.8,1.4,-2.4); scene.add(rim);
 const rim2=new THREE.DirectionalLight(0xfff4ea,0.6); rim2.position.set(2.2,0.6,-1.6); scene.add(rim2);
 scene.add(new THREE.HemisphereLight(0xffffff,0xd8d6d2,1.25));
+const fill=new THREE.DirectionalLight(0xffffff,0.75); fill.position.set(0.6,0.9,3.2); scene.add(fill);
 
 // White cyclorama, all the way round: a flat floor that coves up into a wall and closes overhead, so
 // a whip or an orbit from any angle lands on the same seamless white. Fog in the same white melts the cove line.
@@ -397,7 +398,7 @@ function ripstop(){
   for(let i=0;i<64;i+=4){ g.fillStyle=i%8?'#aaa':'#c4c4c4'; g.fillRect(0,i,64,1); }
   const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.NoColorSpace; t.anisotropy=8; return t;
 }
-M.strap=new THREE.MeshPhysicalMaterial({color:0x323336,roughness:.78,sheen:.5,sheenColor:0xffffff,bumpMap:ripstop(),bumpScale:.22,side:THREE.DoubleSide});
+M.strap=new THREE.MeshPhysicalMaterial({color:0x323336,roughness:.64,sheen:.35,sheenRoughness:.7,sheenColor:0xffffff,bumpMap:ripstop(),bumpScale:.14,side:THREE.DoubleSide});
 M.pipe=new THREE.MeshPhysicalMaterial({color:0x161718,roughness:.5,sheen:.4,sheenColor:0xffffff});
 
 function shadowy(o){ o.traverse(m=>{ if(m.isMesh){ m.castShadow=true; m.receiveShadow=true; } }); return o; }
@@ -472,6 +473,13 @@ function frameAt(thDeg,y,off){
 }
 function place(mesh,f){ mesh.matrixAutoUpdate=false; mesh.matrix.copy(f.m).multiply(mesh.matrix.clone().compose(mesh.position,mesh.quaternion,mesh.scale)); return mesh; }
 
+function wordmarkTex(color){
+  const wc=document.createElement('canvas'); wc.width=512; wc.height=96;
+  const wt=new THREE.CanvasTexture(wc); wt.colorSpace=THREE.SRGBColorSpace; wt.anisotropy=8;
+  const draw=()=>{ const g=wc.getContext('2d'); g.clearRect(0,0,512,96); g.fillStyle=color; g.font='600 64px "Lululemon Saans", Helvetica, Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('lululemon',256,50); wt.needsUpdate=true; };
+  draw(); if(document.fonts&&document.fonts.load) document.fonts.load('600 64px "Lululemon Saans"').then(draw).catch(()=>{});
+  return wt;
+}
 const vestProc=new THREE.Group();
 M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,sheenColor:0xffd2a8});
 {
@@ -492,8 +500,8 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   const SH=[[22,.25],[40,.272],[66,.288],[97,.296],[125,.282],[150,.255]];
   const shw=u=>lerp(0.064,0.056,u);
   for(const sd of [1,-1]){
-    const g=ribbon(SH.map(([t,y])=>[t*sd,y]),shw,0.011,0.007);
-    vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.003));
+    const g=ribbon(SH.map(([t,y])=>[t*sd,y]),shw,0.010,0.0045);
+    vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.0022));
     for(const [t,y] of [[38,.27],[56,.282]]){ // webbing loops across the strap
       const f=frameAt(t*sd,y,0.02);
       const band=new THREE.Mesh(new RoundedBoxGeometry(0.058,0.008,0.003,1,0.001),M.trim); vestProc.add(place(band,f));
@@ -501,10 +509,10 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   }
 
   // pockets: pillowed patches on the front panels. Upper is gathered mesh, lower is smooth stretch.
-  const pocket=(sd,a0,a1,y0f,y1,puff,gather,mat)=>{
+  const pocket=(sd,a0,a1,y0f,y1,puff,gather,mat,prof=0.6)=>{
     const fn=(u,v)=>{
       const a=lerp(a0,a1,u), y=lerp(y0f(u),y1,v), sp=surf(sd*a*DEG,y,0);
-      let b=puff*Math.pow(Math.sin(Math.PI*u),0.6)*Math.pow(Math.sin(Math.PI*v),0.6);
+      let b=puff*Math.pow(Math.sin(Math.PI*u),prof)*Math.pow(Math.sin(Math.PI*v),prof);
       b+=gather*Math.sin(u*48)*sstep(0.72,1,v)*Math.sin(Math.PI*u);
       sp.p.addScaledVector(sp.n,b); return sp;
     };
@@ -547,13 +555,18 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
     loop.rotation.y=1.0; loop.position.set(0.005,0,0); vestProc.add(place(loop,f));
   }
 
-  // back: orange bungee laced corner to corner, and a reflective hit on the yoke
+  // rear pouch: a deep stretch-mesh pocket across the lower back, where the rolled pack tucks away
+  const pouchAt=pocket(1,144,216,()=>-0.118,0.06,0.062,0.0024,M.shell,0.28);
+  for(const a of [160,200]){ const q=pouchAt(a,0.056); const lp=new THREE.Mesh(new THREE.TorusGeometry(0.005,0.0012,6,18),M.cord); lp.position.copy(q); lp.rotation.x=Math.PI/2; vestProc.add(lp); }
+  // back: orange bungee laced corner to corner above the pouch
   const bp=[];
-  for(let k=0;k<=8;k++) bp.push(surf((180+(k%2?23:-23))*DEG,0.2-k*0.025,0.022).p);
-  vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),160,0.0022,8),M.cord));
-  const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,-0.015,0.026).p); vestProc.add(lock);
-  const rf=frameAt(180,0.215,0.014);
-  const refl=new THREE.Mesh(new THREE.PlaneGeometry(0.05,0.007),M.reflect); vestProc.add(place(refl,rf));
+  for(let k=0;k<=5;k++) bp.push(surf((180+(k%2?23:-23))*DEG,0.2-k*0.025,0.022).p);
+  vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),120,0.0022,8),M.cord));
+  const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,0.068,0.026).p); vestProc.add(lock);
+  // reflective wordmark on the yoke
+  const rf=frameAt(180,0.222,0.014);
+  const mark=new THREE.Mesh(new THREE.PlaneGeometry(0.06,0.0112),new THREE.MeshStandardMaterial({map:wordmarkTex('#b9bcc0'),transparent:true,roughness:.3,metalness:.5,depthWrite:false}));
+  vestProc.add(place(mark,rf));
 }
 const vestRoot=new THREE.Group(); vestRoot.add(vestProc); scene.add(vestRoot);
 shadowy(vestProc);
@@ -561,11 +574,12 @@ shadowy(vestProc);
 /* ------------------------------------------------------------------ the shots */
 // Copy is placeholder until the product team signs off on names and claims.
 const SHOTS=[
-  {key:'packed', short:'Packed',    name:'Packed down',       line:'Collapses flat and rides along until you need it.'},
-  {key:'chest',  short:'Chest',     name:'Front chest strap', line:'Up front for anything you reach for mid-stride.', th:26,  y:0.235, off:0.045,  az:20,  el:12},
-  {key:'side',   short:'Side',      name:'Side panel',        line:'Low on the side, clear of your arm swing.',       th:97,  y:0.04,  off:0.02,  az:16,  el:5},
-  {key:'back',   short:'Back',      name:'Back bungee',       line:'Between the shoulder blades for a layer on longer days.', th:180, y:0.235, off:0.03, az:18,  el:15},
-  {key:'low',    short:'Front low', name:'Front strap, low',  line:'Close to the body, where it doesn’t bounce.',     th:-40, y:0.1,   off:0.045, az:-20, el:7},
+  {key:'packed', short:'Packed',     name:'Packed down',              line:'Rolls down small and rides along until you need it.'},
+  {key:'chest',  short:'Chest',      name:'Stowed on the chest strap',line:'Rolled small and clipped up front, ready to grab.',   th:26,  y:0.235, off:0.045, az:20,  el:12},
+  {key:'side',   short:'Side',       name:'Stowed on the side',       line:'Low on the side, clear of your arm swing.',          th:97,  y:0.04,  off:0.02,  az:16,  el:5},
+  {key:'low',    short:'Front low',  name:'Stowed low on the front',  line:'Close to the body, where it doesn’t bounce.',        th:-40, y:0.1,   off:0.045, az:-20, el:7},
+  {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:1.15},
+  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.235, off:0.03, az:-18, el:15, open:true},
 ];
 const NS=SHOTS.length;
 
@@ -605,8 +619,22 @@ function layoutTabs(){
 }
 
 /* ------------------------------------------------------------------ the bag */
-const bagRip=ripstop(); bagRip.repeat.set(9,14);
-const bagMat=new THREE.MeshPhysicalMaterial({color:new THREE.Color(D.bag),roughness:.5,sheen:.5,sheenRoughness:.45,sheenColor:0xffffff,clearcoat:.25,clearcoatRoughness:.45,bumpMap:bagRip,bumpScale:.25,side:THREE.DoubleSide});
+// Crumpled nylon: soft random dents over a faint ripstop grid, used as the bag's bump.
+function crinkleTex(){
+  const c=document.createElement('canvas'); c.width=c.height=512; const g=c.getContext('2d');
+  g.fillStyle='#808080'; g.fillRect(0,0,512,512);
+  let seed=7; const rnd=()=>{ seed=(seed*16807)%2147483647; return seed/2147483647; };
+  for(let k=0;k<170;k++){
+    const x=rnd()*512,y=rnd()*512,rr=14+rnd()*70, light=rnd()>0.5;
+    const gr=g.createRadialGradient(x,y,0,x,y,rr); gr.addColorStop(0,light?'rgba(255,255,255,.22)':'rgba(0,0,0,.22)'); gr.addColorStop(1,'rgba(128,128,128,0)');
+    g.fillStyle=gr; g.beginPath(); g.ellipse(x,y,rr*(0.5+rnd()),rr,rnd()*3.14,0,6.3); g.fill();
+  }
+  g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=1;
+  for(let i=0;i<512;i+=10){ g.beginPath(); g.moveTo(i+.5,0); g.lineTo(i+.5,512); g.stroke(); g.beginPath(); g.moveTo(0,i+.5); g.lineTo(512,i+.5); g.stroke(); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.NoColorSpace; t.anisotropy=8; return t;
+}
+const bagRip=crinkleTex(); bagRip.repeat.set(2.2,3.4);
+const bagMat=new THREE.MeshPhysicalMaterial({color:new THREE.Color(D.bag),roughness:.5,sheen:.5,sheenRoughness:.45,sheenColor:0xffffff,clearcoat:.15,clearcoatRoughness:.5,bumpMap:bagRip,bumpScale:.85,side:THREE.DoubleSide});
 // The roll-top pack: tall and soft, flat where it lies on the vest, crinkled ripstop on the face,
 // a rolled top with a buckle each side, and the orange handle, pull tab and side bungees.
 const BAG_H=0.27;
@@ -644,10 +672,7 @@ function bagBodyGeo(){
 {
   bagProc.add(new THREE.Mesh(bagBodyGeo(),bagMat));
   // printed wordmark, reflective grey, drawn once the Saans face is ready
-  const wc=document.createElement('canvas'); wc.width=512; wc.height=96;
-  const wt=new THREE.CanvasTexture(wc); wt.colorSpace=THREE.SRGBColorSpace; wt.anisotropy=8;
-  const drawMark=()=>{ const g=wc.getContext('2d'); g.clearRect(0,0,512,96); g.fillStyle='#8f9297'; g.font='600 64px "Lululemon Saans", Helvetica, Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('lululemon',256,50); wt.needsUpdate=true; };
-  drawMark(); if(document.fonts&&document.fonts.load) document.fonts.load('600 64px "Lululemon Saans"').then(drawMark).catch(()=>{});
+  const wt=wordmarkTex('#8f9297');
   const mark=new THREE.Mesh(new THREE.PlaneGeometry(0.07,0.013),new THREE.MeshStandardMaterial({map:wt,transparent:true,roughness:.35,metalness:.4,depthWrite:false}));
   const tM=0.2; mark.position.set(0,-tM*BAG_H,bagHD(tM)*1.3+0.0012); bagProc.add(mark);
   // orange pull tab at the bottom seam
@@ -688,6 +713,25 @@ function bagAtAnchor(a,arrive,swayT,since){
   bag.rotateZ(Math.sin(swayT*3.7+1)*0.03*damp);
   clip.rotation.x=(1-e)*0.5;
 }
+// Into the pouch: hangs over the opening, then slides down inside until only the roll shows.
+function bagIntoPouch(a,k){
+  const e=sstep(0,1,k);
+  bag.position.copy(a.p).addScaledVector(a.n,0.003+(1-e)*0.04).addScaledVector(a.up,(1-e)*0.17);
+  bag.quaternion.copy(a.q); bag.rotateX(-(1-e)*0.25);
+  clip.rotation.x=0;
+}
+function bagHold(i,t,swayT,since){
+  const sh=SHOTS[i], a=anchors[i];
+  if(sh.open){ setCollapse(1-easeOutElastic((t-0.55)/1.2)); bagAtAnchor(a,clamp(t/0.8,0,1),swayT,since); }
+  else if(sh.pouch){ setCollapse(1); bagIntoPouch(a,clamp((t-0.15)/1.2,0,1)); }
+  else { setCollapse(1); bagAtAnchor(a,clamp(t/0.8,0,1),swayT,since); }
+}
+function bagLeave(i,k){ // k 0→1 as the camera pulls away
+  const sh=SHOTS[i], a=anchors[i];
+  setCollapse(lerp(S.c0,1,k));
+  if(sh.pouch) bagIntoPouch(a,1-k); else bagAtAnchor(a,1,sceneT,10);
+}
+function bagApproach(i){ const sh=SHOTS[i], a=anchors[i]; setCollapse(1); if(sh.pouch) bagIntoPouch(a,0); else bagAtAnchor(a,0,sceneT,0); }
 const FLOAT=new V3(0.42,0.12,0.2);
 function bagFloat(t){
   bag.position.copy(FLOAT); bag.position.y+=Math.sin(t*1.3)*0.012;
@@ -774,9 +818,10 @@ addEventListener('resize',resize);
 function shotPose(i,h){
   if(i===0) return {t:new V3(0.12,-0.02,0.05), az:-28+D.drift*(h-0.5), el:7, dist:2.05*(1-0.05*h)*distScale, fov:30, roll:0};
   const s=SHOTS[i], a=anchors[i];
+  const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az, azr=(baseAz)*DEG;
   const t=a.p.clone().addScaledVector(a.n,0.05).addScaledVector(a.up,-0.14);
-  const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az;
-  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:s.el, dist:0.95*(1-0.08*h)*distScale, fov:30, roll:0};
+  if(innerWidth>innerHeight) t.add(new V3(Math.cos(azr),0,-Math.sin(azr)).multiplyScalar(-0.11*(s.dist||1)));
+  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:s.el, dist:0.95*(s.dist||1)*(1-0.08*h)*distScale, fov:30, roll:0};
 }
 const ramp=(u,k)=>u<.5?.5*Math.pow(2*u,k):1-.5*Math.pow(2-2*u,k);
 const rampSpeed=(u,k)=>Math.pow(u<.5?2*u:2-2*u,k-1); // 0..1, peaks mid-move
@@ -1091,19 +1136,15 @@ function frame(now){
   // bag
   if(S.phase==='hold'){
     if(S.i===0){ setCollapse(1); bagFloat(sceneT); }
-    else{
-      const arrive=clamp(S.t/0.8,0,1);
-      setCollapse(1-easeOutElastic((S.t-0.55)/1.2));
-      bagAtAnchor(anchors[S.i],arrive,sceneT,sceneT-holdSceneStart);
-    }
+    else bagHold(S.i,S.t,sceneT,sceneT-holdSceneStart);
   }else{
     const s=ramp(clamp(S.t/D.whip,0,1),D.sharp);
     if(s<0.5){
       if(S.from===0){ setCollapse(1); bagFloat(sceneT); }
-      else{ setCollapse(lerp(S.c0,1,s/0.5)); bagAtAnchor(anchors[S.from],1,sceneT,10); }
+      else bagLeave(S.from,s/0.5);
     }else{
       if(S.to===0){ setCollapse(1); bagFloat(sceneT); }
-      else{ setCollapse(1); bagAtAnchor(anchors[S.to],0,sceneT,0); }
+      else bagApproach(S.to);
     }
   }
 
