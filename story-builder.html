@@ -144,7 +144,6 @@ body.panel-open .spot i{cursor:grab;pointer-events:auto}
 .ticker{position:absolute;left:0;right:0;z-index:3;overflow:hidden;visibility:hidden;pointer-events:none;mix-blend-mode:difference;color:#fff}
 .ticker[data-y="bottom"]{bottom:calc(var(--g) * .6)}.ticker[data-y="top"]{top:calc(var(--g) * .6 + 24px)}
 .ticker .tk{white-space:nowrap;font:700 clamp(40px,7cqw,104px)/1 var(--sans);letter-spacing:-.025em;will-change:transform}
-.srule{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--red);z-index:11;opacity:0;pointer-events:none;transform-origin:50% 50%}
 .toast{position:absolute;left:50%;bottom:24px;z-index:30;transform:translate(-50%,16px);opacity:0;background:var(--ink);color:#fff;padding:12px 18px;border-radius:4px;font:600 13px/1 var(--sans);pointer-events:none;transition:opacity .25s,transform .35s var(--ease-out)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -763,7 +762,7 @@ const MOTIONS = {
   rise:     ['Rise',     'Frames glide while the new imagery and copy rise into place.'],
   iris:     ['Iris',     'New imagery opens from the center of each frame as it moves.'],
   dissolve: ['Dissolve', 'The last composition fades to white, then this one fades up.'],
-  sweep:    ['Story break', 'The last composition shrinks back into the dark while this one rises from below, and a red line draws out from the centre. Used between stories.'],
+  sweep:    ['Story break', 'The last composition shrinks back into the dark while this one rises from below. Used between stories.'],
 };
 const FR = 6; // frames on stage: one per gallery tile at most
 
@@ -1546,7 +1545,6 @@ function renderStage() {
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
-    h('div', { class:'srule', id:'srule', 'aria-hidden':'true' }),
     h('nav', { class:'dots', 'aria-label':'Sections', // long stories tighten the spacing so the column stays within the middle half
       style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
       S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
@@ -1754,13 +1752,11 @@ function dotScale(i, j, e) {
 let swept = [];
 function sweepCopy(i, j, t) {
   swept.forEach(k => { const L = layers[k]; if (L && k !== i && k !== j) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } });
-  const rule = $('srule');
-  if (t < 0) { [i, j].forEach(k => { const L = layers[k]; if (L) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } }); swept = []; if (rule) rule.style.opacity = 0; return; }
+  if (t < 0) { [i, j].forEach(k => { const L = layers[k]; if (L) { L.el.style.transform = ''; L.extras.forEach(e => e.style.translate = ''); } }); swept = []; return; }
   const out = easeIn(clamp(t * 2)), inn = 1 - easeOut(clamp((t - .5) * 2));
   if (layers[i]) { layers[i].el.style.transform = `translateY(${-out * 8}%) scale(${1 - out * .08})`; layers[i].extras.forEach(e => e.style.translate = `0 ${-out * 30}px`); }
   if (layers[j]) { layers[j].el.style.transform = `translateY(${inn * 22}%)`; layers[j].extras.forEach(e => e.style.translate = `0 ${inn * 60}px`); }
   swept = [i, j];
-  if (rule) { const v = Math.sin(Math.PI * t); rule.style.opacity = v; rule.style.transform = `scaleX(${v})`; } // draws out from the centre as the screen goes dark
 }
 let lastTone = -1;
 function stageTone(d) {
