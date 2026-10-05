@@ -605,6 +605,22 @@ body.sheet-resizing .stage{transition:none!important}
 /* wide copy: four or more points sit in two columns, and tables use the width */
 .copy.w-wide .feats.many{width:100%;grid-template-columns:1fr 1fr;column-gap:72px}
 .copy.w-wide .specs{width:min(100%,1320px)}
+/* body copy: paragraphs split on a blank line; Lead sets it large, to be read from the back of the room */
+.bdw{display:grid;gap:22px}
+.copy.b-l .bd{font-size:44px;line-height:1.32;max-width:32ch;letter-spacing:-.005em}
+.copy.b-l.w-wide .bd{max-width:44ch}
+/* text columns: a heading and a paragraph each, side by side; four sit two by two */
+.cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:40px 64px;text-align:left;
+  width:min(var(--cw), calc(100cqw - 2 * var(--g)))}
+.tr[data-layout="left"] .cols,.tr[data-layout="right"] .cols{width:min(var(--cw), calc(50cqw - 2 * var(--g)))}
+.cols.n4{grid-auto-flow:row;grid-template-columns:1fr 1fr}
+.cols div{display:grid;gap:12px;align-content:start;padding-top:22px;border-top:1px solid color-mix(in srgb,currentColor 22%,transparent)}
+.cols b{font:600 34px/1.2 var(--sans);letter-spacing:-.01em}
+.cols p{font:400 28px/1.45 var(--sans);color:color-mix(in srgb,currentColor 74%,transparent)}
+/* a list keeps its reading width even under a short headline like Agenda */
+.copy .feats{width:min(var(--cw),1000px)}
+.cols b + p{margin-top:2px}
+.cols.plain p{color:inherit;font-size:30px}
 /* accent: eyebrows and the slide number pick it up when one is set */
 .stage[style*="--accent"] .eb{color:var(--accent)}
 /* dark theme: a black studio instead of the white one */
@@ -668,6 +684,7 @@ body.presenting.idle{cursor:none}
       <option value="">Start from a deck</option>
       <option value="wip">Work in Progress · office installation (11 slides)</option>
       <option value="pitch">Pitch · idea to ask (8 slides)</option>
+      <option value="text">Text slides · every text-first template (11)</option>
       <option value="product">Product story · Align (8 slides)</option>
       <option value="blank">Blank · one title slide</option>
     </select>
@@ -836,7 +853,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
 const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
   media: { kind: 'video', layout: 'full', items: [], shots: [], focus: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
-  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto' },
+  text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto', bsize: 'm' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '', notes: '',
   cta: { show: false, label: 'Shop now' },
   quote: { on: false, attr: '' },
@@ -853,6 +870,8 @@ const BASE = () => ({
   launch: { on: false, label: 'Drops', date: 'Oct 15' },                              // launches: a dated badge
   card: { on: false, x: 'right', y: 'bottom', name: 'Product name', price: '$XX' },
   // decks: a label (and a + or = sign) over each gallery tile and a line under it, for A + B = C slides
+  // decks: columns of text, a heading and a paragraph each
+  cols: { on: false, items: [{ t: 'Heading', d: 'A short paragraph.' }, { t: 'Heading', d: 'A short paragraph.' }, { t: '', d: '' }, { t: '', d: '' }] },
   tiles: { on: false, items: [0, 1, 2, 3, 4, 5].map(k => ({ t: 'Tile ' + (k + 1), op: '', d: 'One line about this tile.' })) },
 });
 const make = o => merge(BASE(), clone(o));
@@ -1145,10 +1164,11 @@ const PRESETS = {
       text:{ x:'center', y:'middle', size:'l', width:'medium', ink:'light', anim:'scale' }, headline:'[What you need from this room today.]' }),
   ],
   product: () => PRESETS.alignStory(),
+  text: () => Object.values(TEXT_STARTERS).map(o => make(o)),
   blank: () => [make(STARTERS.title.o)],
 };
 /* the deck-level look a preset asks for */
-const PRESET_LOOK = { wip:{ theme:'dark', accent:'#B8B46A', title:'Work in Progress' }, pitch:{ theme:'light', accent:'', title:'[Deck title]' }, product:{ theme:'light', accent:'', title:'Align' }, blank:{} };
+const PRESET_LOOK = { wip:{ theme:'dark', accent:'#B8B46A', title:'Work in Progress' }, pitch:{ theme:'light', accent:'', title:'[Deck title]' }, text:{ theme:'light', accent:'', title:'[Deck title]' }, product:{ theme:'light', accent:'', title:'Align' }, blank:{} };
 
 /* ---------- state ---------- */
 const KEY = 'deckBuilder.v1';
@@ -1176,11 +1196,12 @@ const ENUMS = {
   'media.kind':['video','image','gallery','none'], 'media.layout':['full','left','right','inset'], 'media.inset':['s','m','l'],
   'media.mx':['left','center','right'], 'media.arrange':['row','grid','stagger','mosaic','cdp'], 'media.fit':['auto','fill','fit'],
   'text.x':['left','center','right'], 'text.y':['top','middle','bottom'], 'text.align':['auto','left','center','right'],
-  'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'],
+  'text.width':['narrow','medium','wide'], 'text.size':['s','m','l','xl'], 'text.ink':['dark','light'], 'text.bsize':['m','l'],
   'text.blend':['auto','normal','difference','exclusion','multiply','overlay','soft-light'],
   'card.x':['left','center','right'], 'card.y':['top','middle','bottom'],
   'caption.pos':['bl','br','tl','tr'], 'ticker.y':['top','bottom'],
 };
+const HOLD_KEYS = ['push','pan','drift','parallax','pull','tilt','unveil','focus']; // the keys of HOLDS below
 const validArc = a => isObj(a) && Array.isArray(a.points) && a.points.length > 1 && a.points.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite));
 const normalize = d => { d = isObj(d) ? d : {}; return {
   magnet: d.magnet !== false,
@@ -1208,7 +1229,7 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
     if (!MOTIONS[x.motion]) x.motion = 'glide';
     if (!Array.isArray(x.media.items)) x.media.items = [];
     if (x.media.url) { x.media.items[0] = 'l:' + x.media.url; delete x.media.url; }
-    if (!HOLDS[x.hold]) x.hold = 'push';
+    if (!HOLD_KEYS.includes(x.hold)) x.hold = 'push'; // (HOLDS itself is defined further down, after saved decks load)
     if (!BEATS[x.beat]) x.beat = 'build';
     if (!TYPE_ANIMS[x.text.anim]) x.text.anim = 'rise';
     return x;
@@ -1585,10 +1606,13 @@ function textLayer(s, i) {
     });
   }
   const eb = s.showEyebrow && s.eyebrow ? h('p', { class:'eb', style: S.accent ? { color: inkSafe(s, S.accent) } : null }, s.eyebrow) : null;
-  const copy = h('div', { class:`copy s-${t.size} w-${t.width}`, 'data-align':align },
+  const paras = (s.body || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+  const cols = s.cols.on ? s.cols.items.filter(x => x.t || x.d) : [];
+  const copy = h('div', { class:`copy s-${t.size} w-${t.width} b-${t.bsize}`, 'data-align':align },
     eb, hl,
     P(s.quote.on && s.quote.attr ? h('p', { class:'attr' }, '— ' + s.quote.attr) : null),
-    P(s.body ? h('p', { class:'bd' }, s.body) : null),
+    P(paras.length > 1 ? h('div', { class:'bdw' }, paras.map(x => h('p', { class:'bd' }, x))) : paras.length ? h('p', { class:'bd' }, paras[0]) : null),
+    P(cols.length ? h('div', { class:'cols n' + cols.length + (cols.some(x => x.t) ? '' : ' plain') }, cols.map(x => h('div', {}, x.t && h('b', {}, x.t), x.d && h('p', {}, x.d)))) : null),
     P(s.launch.on ? h('p', { class:'launch' }, h('i'), h('b', {}, s.launch.label), ' ', s.launch.date) : null),
     P(s.byline.on ? h('div', { class:'byline' }, h('span', { class:'av', style: bylineAvatar(s) }), h('div', {}, h('b', {}, s.byline.name), h('small', {}, s.byline.role))) : null),
     P(s.specs.on ? h('dl', { class:'specs' }, s.specs.items.filter(x => x.k).flatMap(x => [h('dt', {}, x.k), h('dd', {}, x.v)])) : null),
@@ -2472,11 +2496,39 @@ const SHOP_POOL = () => {
       text:{ x:'left', y:'top', size:'s', width:'narrow', anim:'letters' }, headline:'Every detail, on purpose.' }),
   ];
 };
+
+/* Text-first slides: the words carry the slide, imagery is optional or small. */
+const C = (t, d) => ({ t, d });
+const TEXT_STARTERS = {
+  lead:      { name:'Lead paragraph', beat:'build', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'s', width:'wide', bsize:'l', anim:'cascade' }, showEyebrow:true, eyebrow:'[Context]',
+    headline:'[A short headline]', body:'[Two or three sentences that carry the main point. Written to be read, at a size the back of the room can see.]' },
+  twocol:    { name:'Two columns', beat:'build', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'s', width:'wide', anim:'fade' },
+    headline:'[Headline that frames both sides]', cols:{ on:true, items:[C('[First idea]', '[A short paragraph on the first idea. Two or three sentences.]'), C('[Second idea]', '[A short paragraph on the second idea. Two or three sentences.]')] } },
+  threecol:  { name:'Three points', beat:'proof', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'fade' },
+    headline:'[Three things to know]', cols:{ on:true, items:[C('[Point one]', '[One or two sentences.]'), C('[Point two]', '[One or two sentences.]'), C('[Point three]', '[One or two sentences.]')] } },
+  fromto:    { name:'From → To', beat:'build', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'What changes',
+    headline:'[From how it is, to how it could be]', cols:{ on:true, items:[C('Today', '[How it works now, and what that costs us.]'), C('Tomorrow', '[How it works after this, and what that gives us.]')] } },
+  longread:  { name:'Long read', beat:'build', media:{ kind:'none' }, text:{ x:'left', y:'top', size:'s', width:'wide', anim:'fade' }, showEyebrow:true, eyebrow:'[Background]',
+    headline:'[The story so far]', cols:{ on:true, items:[C('', '[A full paragraph of background. Set in two columns so a longer passage stays easy to read on a wide screen.]'), C('', '[The second paragraph continues the thought, and ends on why it matters now.]')] } },
+  definition:{ name:'Definition', beat:'build', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'xl', width:'wide', bsize:'l', anim:'letters' }, showEyebrow:true, eyebrow:'[noun]',
+    headline:'[Word]', body:'[What it means here, in one or two plain sentences.]' },
+  quotectx:  { name:'Quote with context', beat:'proof', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'type' }, quote:{ on:true, attr:'[Name, role]' },
+    headline:'[A line someone actually said.]', body:'[Where it came from and why it matters: one or two sentences.]' },
+  agenda:    { name:'Agenda', beat:'hook', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'cascade' }, showEyebrow:true, eyebrow:'[Date · Room]',
+    headline:'Agenda', feats:{ on:true, items:[C('[First topic]', '[Who · 10 min]'), C('[Second topic]', '[Who · 15 min]'), C('[Third topic]', '[Who · 10 min]'), C('[Questions]', '[Everyone · 10 min]')] } },
+  takeaways: { name:'Key takeaways', beat:'close', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'cascade' }, showEyebrow:true, eyebrow:'If you remember three things',
+    headline:'Takeaways', feats:{ on:true, items:[C('[The first thing to remember.]', ''), C('[The second thing to remember.]', ''), C('[The third thing to remember.]', '')] } },
+  faq:       { name:'Questions and answers', beat:'proof', media:{ kind:'none' }, text:{ x:'left', y:'top', size:'s', width:'wide', anim:'fade' }, showEyebrow:true, eyebrow:'What people ask',
+    headline:'[Questions we expect]', cols:{ on:true, items:[C('[A question people will ask?]', '[A straight answer.]'), C('[Another question?]', '[A straight answer.]'), C('[A harder question?]', '[A straight answer.]'), C('[The one nobody wants to ask?]', '[A straight answer.]')] } },
+  textimage: { name:'Text with a small image', beat:'build', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'s', shots:['A supporting picture'] },
+    text:{ x:'left', y:'middle', size:'s', width:'medium', bsize:'l', anim:'cascade' }, headline:'[Headline]', body:'[The words lead. A short paragraph at reading size, with a small picture beside it for colour.]' },
+};
 const POOL = [
   ...SHOP_POOL().map((s, k) => ({ key:'sh' + k, src:'Product', s })),
   ...PRESETS.wip().map((s, k) => ({ key:'wp' + k, src:'Work in Progress', s })),
   ...PRESETS.pitch().map((s, k) => ({ key:'pi' + k, src:'Pitch', s })),
   ...Object.entries(STARTERS).map(([k, v]) => ({ key:'st-' + k, src:'Blank layouts', s:make(v.o) })),
+  ...Object.entries(TEXT_STARTERS).map(([k, o]) => ({ key:'tx-' + k, src:'Text-first', s:make(o) })),
 ];
 const poolItem = key => POOL.find(p => p.key === key);
 function fromPool(key) { const c = clone(poolItem(key).s); c.id = uid(); return c; }
@@ -2557,6 +2609,8 @@ function poolThumb(s) {
     h('i', { class:'h', style:{ width:hl[0] + '%' } }), h('i', { class:'h', style:{ width:hl[1] + '%' } }),
     s.body && h('i', { class:'b', style:{ width:'62%' } }),
     s.stats.on && h('i', { class:'b', style:{ width:'48%', height:'4px' } }),
+    s.cols.on && h('i', { class:'b', style:{ width:'92%', height:'5px' } }),
+    s.feats.on && h('i', { class:'b', style:{ width:'56%', height:'5px' } }),
     s.cta.show && h('i', { class:'c' }));
   region.append(block); box.append(region);
   if (s.card.on) box.append(h('i', { class:'pcd', style:{
@@ -2574,7 +2628,7 @@ function renderPool() {
   const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a slide'),
       h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the slide order above.` : 'Click to add, or drag a card into the slide order above.')),
     filter];
-  ['Blank layouts', 'Pitch', 'Work in Progress', 'Product'].forEach(src => {
+  ['Text-first', 'Blank layouts', 'Pitch', 'Work in Progress', 'Product'].forEach(src => {
     const items = POOL.filter(p => p.src === src && (poolBeat === 'all' || p.s.beat === poolBeat));
     if (!items.length) return;
     kids.push(h('h4', {}, src, h('small', {}, items.length)));
@@ -2631,6 +2685,7 @@ function autoFeel(s) {
   if (s.byline.on) f += .06; if (s.caption.on) f += .03; if (s.ticker.on) f += .04;
   if (s.cta.show) f -= .06;
   if (s.tiles.on) f -= .1;
+  if (s.cols.on) f -= .1;
   f += { s:-.04, m:0, l:.04, xl:.08 }[s.text.size] || 0;
   f += { hook:.04, build:.06, proof:-.08, close:-.04 }[s.beat] || 0;
   return clamp(f, .02, .98);
@@ -2704,7 +2759,7 @@ const storyPoints = () => { const n = S.sections.length; return S.sections.map((
 /* Pick sections for each moment of the arc: closest feeling, the right beat
    at the start and end, no repeats, and a change of composition each time. */
 function planFromArc(A) {
-  const src = POOL.filter(p => A.src === 'blank' ? p.src === 'Blank layouts' : A.src === 'photo' ? p.src !== 'Blank layouts' : true);
+  const src = POOL.filter(p => { const blank = p.src === 'Blank layouts' || p.src === 'Text-first'; return A.src === 'blank' ? blank : A.src === 'photo' ? !blank : true; });
   const used = new Set(), plan = []; let prev = null;
   const n = A.points.length;
   for (let i = 0; i < n; i++) {
@@ -3053,6 +3108,8 @@ function renderInspector() {
       s.showEyebrow ? field('Eyebrow text', text(s.eyebrow, v => s.eyebrow = v)) : h('span')),
     field('Headline', text(s.headline, v => s.headline = v, true)),
     field('Body', text(s.body, v => s.body = v, true)),
+    h('p', { class:'hint' }, 'Leave a blank line between paragraphs.'),
+    field('Body size', seg([['m','Regular'],['l','Lead']], t.bsize, up(v => t.bsize = v))),
     field('Speaker notes', text(s.notes, v => { s.notes = v; updatePresenter(); }, true)),
     h('p', { class:'hint' }, 'Only you see these, in the presenter view.'),
     h('div', { class:'f2' },
@@ -3109,6 +3166,15 @@ function renderInspector() {
     if (s.tiles.on) for (let k = 0; k < count(s); k++) { const it = s.tiles.items[k] || (s.tiles.items[k] = { t:'Tile ' + (k + 1), op:'', d:'' });
       md.append(h('div', { class:'f2', style:{ gridTemplateColumns:'1.4fr .6fr' } }, field(`Tile ${k + 1} label`, text(it.t, v => it.t = v)), field('Sign', seg([['',  '–'],['+','+'],['=','=']], it.op, up(v => it.op = v)))),
         field('Line under it', text(it.d, v => it.d = v))); }
+  }
+  onoff('Text columns', s.cols);
+  if (s.cols.on) {
+    md.append(h('p', { class:'hint' }, 'Two to four columns side by side. Leave a heading empty for plain paragraphs; four columns sit two by two.'));
+    s.cols.items.forEach((it, k) => md.append(h('div', { class:'spotrow', style:{ gridTemplateColumns:'auto 1fr auto' } },
+      h('b', { class:'snum' }, k + 1),
+      h('div', {}, field('Heading', text(it.t, v => it.t = v)), field('Paragraph', text(it.d, v => it.d = v, true))),
+      s.cols.items.length > 2 ? h('button', { class:'ib', title:'Remove this column', 'aria-label':`Remove column ${k + 1}`, onclick:act(() => s.cols.items.splice(k, 1)) }, '×') : h('span'))));
+    if (s.cols.items.length < 4) md.append(h('button', { class:'btn', style:{ marginBottom:'16px' }, onclick:act(() => s.cols.items.push({ t:'Heading', d:'A short paragraph.' })) }, '+ Add column'));
   }
   md.append(field('Numbered points', seg([[false,'Off'],[true,'On']], s.feats.on, up(v => s.feats.on = v))));
   if (s.feats.on) s.feats.items.forEach((it, k) => md.append(h('div', { class:'f2' },
@@ -3368,7 +3434,7 @@ const HELP = [
   { t:'Any slide can become any layout', v:'edit',
     b:`<p>Every slide has the same parts, so you are never stuck in a template. Pick a <b>Layout</b>, place the words on a 3×3 grid, and choose how the slide moves in.</p><p>Turn on modules for the job: a big number, numbered points, a table, a quote, <b>tile captions</b> for A + B = C slides, hotspots, a product card. Add <b>speaker notes</b> under Copy.</p>` },
   { t:'Add slides from the pool', v:'pool',
-    b:`<p>Press <b>+ Add slide</b> for ready-made slides: blank layouts (title, divider, big number, three-up, steps, plan), a full pitch, the Work in Progress deck and product slides.</p><p>Click a card to add it after the slide you're on, or drag it into the exact spot in Slide order.</p>` },
+    b:`<p>Press <b>+ Add slide</b> for ready-made slides: text-first slides (lead paragraph, columns, agenda, takeaways, Q&amp;A, definition), blank layouts (title, divider, big number, three-up, steps, plan), a full pitch, the Work in Progress deck and product slides.</p><p>Click a card to add it after the slide you're on, or drag it into the exact spot in Slide order.</p>` },
   { t:'Drop in images and video', v:'drop',
     b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the slide. <b>Add files</b> brings in your own; they stay in this browser, and Story Builder sees them too.</p><p>An empty frame names the shot it's waiting for, so a draft deck doubles as a shot list.</p>` },
   { t:'Shape it with a narrative arc', v:'arc',
