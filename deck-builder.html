@@ -629,11 +629,11 @@ body.theme-dark .lay.shop,body.theme-dark .sl{background:var(--white)}
 body.theme-dark .card{border-color:#3A3935}
 /* tile captions: a label (and a + or = sign) over each tile, one line under it */
 .lay.tiles{background:var(--white)}
-.lay.tiles .lz{top:64px;bottom:150px;overflow:hidden}
+.lay.tiles .lz{top:64px;bottom:118px;overflow:hidden}
 .tcap{position:absolute;left:0;right:0;color:var(--ink);pointer-events:none}
 .tcap.top{top:0;height:64px;display:flex;justify-content:space-between;align-items:flex-start;padding-top:4px;font:400 22px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase}
 .tcap.top .op{color:var(--accent,var(--ink));font-size:30px;line-height:1}
-.tcap.bot{bottom:0;height:150px;padding-top:22px;font:400 28px/1.4 var(--sans);color:var(--mute)}
+.tcap.bot{bottom:0;height:118px;padding-top:18px;font:400 28px/1.4 var(--sans);color:var(--mute)}
 /* slide number and deck title along the foot of the slide */
 .slideno{position:absolute;left:var(--g);right:var(--g);bottom:36px;z-index:9;display:flex;justify-content:space-between;pointer-events:none;
   font:400 20px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#fff;mix-blend-mode:difference;opacity:.62}
@@ -1107,7 +1107,7 @@ const PRESETS = {
         feats:{ on:true, items:[{ t:'Make the work visible before it ships.', d:'' }, { t:'Get real reactions while they can still change it.', d:'' }, { t:'Show the office what the team is making.', d:'' }] },
         notes:'Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.' }),
       make({ beat:'proof', name:'Three stations', hold:'drift', motion:'rise', overlay:0,
-        media:{ kind:'gallery', layout:'full', count:3, arrange:'row', items:[im('tryon'), im('browse'), im('pdp')], focus:[{ x:50, y:40 }, { x:50, y:8 }, { x:50, y:50 }], shots:['Try-on screen', 'Collection browser screen', 'Product page screen'] },
+        media:{ kind:'gallery', layout:'full', count:3, arrange:'row', items:[im('tryon'), im('browse'), im('pdp')], focus:[{ x:50, y:50 }, { x:50, y:50 }, { x:50, y:50 }], shots:['Try-on screen', 'Collection browser screen', 'Product page screen'] },
         text:{ x:'left', y:'top', size:'s', width:'wide', anim:'wipe' }, headline:'Three stations',
         tiles:{ on:true, items:[{ t:'01 · Try-on', op:'', d:'Swap colours on a live model and compare them side by side.' }, { t:'02 · Browse', op:'+', d:'Explore the collection by category, then tap in for detail.' }, { t:'03 · Product page', op:'+', d:'Tap a swatch, add to bag, feel the flow.' }] },
         notes:'Each screen shows one piece of in-progress work. These three are examples; the real line-up would be [the current projects].' }),
@@ -1384,7 +1384,7 @@ const BUILTIN = [
   ['Work in Progress', [
     ['room', 'Installation · the room', 1280, 960, 50], ['room-empty', 'Installation · the room, empty', 1280, 960, 50],
     ['walkup', 'Installation · walk up', 806, 1022, 50], ['touch', 'Installation · touch', 704, 1024, 50],
-    ['tryon', 'Station · try-on', 208, 160, 45], ['browse', 'Station · collection browser', 176, 385, 34], ['pdp', 'Station · product page', 362, 295, 50],
+    ['tryon', 'Station · try-on', 390, 312, 50], ['browse', 'Station · collection browser', 412, 360, 50], ['pdp', 'Station · product page', 412, 330, 50],
   ].map(([f, name, w, h, fy]) => ({ path:'story-library/wip/' + f + '.jpg', name, w, h, type:'image', look:'edit', fy }))],
   ['Video', [
     { path:'20260325_LULU_LILAC_16x9_15s_ProRes_Clean.mp4', name:'Lilac · 15s', type:'video' },
