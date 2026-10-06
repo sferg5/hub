@@ -643,6 +643,14 @@ body.presenting.idle{cursor:none}
 .pres-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;margin-top:12px}
 .btn.present{background:var(--p-accent);color:var(--p-accent-fg);border-color:var(--p-accent)}
 .print-pages{display:none}
+/* view-only links */
+body.viewing .panel,body.viewing .help{display:none!important}
+body.viewing .stage{transition:none!important}
+.vctl{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;gap:6px;transition:opacity .4s}
+.vctl button{width:44px;height:44px;border-radius:50%;background:rgba(20,20,20,.62);color:#fff;font:600 18px/1 var(--sans);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.vctl button:hover{background:rgba(20,20,20,.85)}
+body.idle .vctl{opacity:0;pointer-events:none}
+@media (pointer:coarse){body.idle .vctl{opacity:.55;pointer-events:auto}}
 @media print{
   @page{size:1920px 1080px;margin:0}
   html,body{background:none!important;width:1920px}
@@ -1235,12 +1243,21 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
     return x;
   }),
 }; };
-try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
+/* View-only links: deck-builder.html?view=decks/name.deck.json (a deck exported from here) or
+   ?view=wip (a built-in deck) opens it as a presentation with no editor, and never reads or
+   writes the decks saved in this browser. */
+const VIEW = (() => { const v = new URLSearchParams(location.search).get('view'); return v && (/^[\w\-\/]+\.json$/.test(v) || /^\w+$/.test(v)) ? v : null; })();
+if (VIEW) {
+  try {
+    if (VIEW.endsWith('.json')) { const x = new XMLHttpRequest(); x.open('GET', VIEW, false); x.send(); if (x.status !== 200) throw 0; S = normalize(JSON.parse(x.responseText)); }
+    else if (PRESETS[VIEW]) { S = normalize({}); S.sections = PRESETS[VIEW](); Object.assign(S, PRESET_LOOK[VIEW] || {}); }
+  } catch (e) {}
+} else try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
 if (!S) S = normalize({});
 if (!S.sections.length) { S.sections = PRESETS.wip(); Object.assign(S, PRESET_LOOK.wip); } // a first-time deck opens on Work in Progress
 sel = S.sections[0] && S.sections[0].id;
 
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const save = () => { if (VIEW) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }; // a view link never overwrites saved decks
 let future = []; // redo stack: cleared by any new change
 const histButtons = () => { $undo.disabled = $('m-undo').disabled = !history.length; $('redo').disabled = $('m-redo').disabled = !future.length; };
 const snapshot = () => { history.push(JSON.stringify(S)); if (history.length > 80) history.shift(); future = []; histButtons(); };
@@ -3278,7 +3295,7 @@ addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
-  else if (e.key === 'Escape' && presenting()) { e.preventDefault(); present(false); }
+  else if (e.key === 'Escape' && presenting() && !VIEW) { e.preventDefault(); present(false); }
   else if (!typing && $('arc').hidden && stepKey(e) && !(e.key === ' ' && e.target.closest && e.target.closest('button,[role=button],.panel'))) { e.preventDefault(); stopPlay(); swipeTo(stepKey(e)); }
   else if (!typing && $('arc').hidden && (e.key === 'Home' || e.key === 'End')) { e.preventDefault(); stopPlay(); goTo(e.key === 'Home' ? 0 : S.sections.length - 1); }
   else if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); present(); }
@@ -3310,6 +3327,10 @@ function stepKey(e) {
 }
 let panelWasOpen = true, idleT = 0;
 function present(on = !presenting(), fromStart = false) {
+  if (VIEW) { // a view link is always presenting; P and the button only switch full screen
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    return;
+  }
   if (on === presenting()) return;
   if (on) {
     panelWasOpen = document.body.classList.contains('panel-open');
@@ -3324,7 +3345,7 @@ function present(on = !presenting(), fromStart = false) {
   }
   fitDeck(); setTimeout(fitDeck, 120); setTimeout(fitDeck, 450);
 }
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presenting()) present(false); fitDeck(); });
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presenting() && !VIEW) present(false); fitDeck(); });
 // while presenting, a click anywhere moves on; the pointer hides when it rests
 $stage.addEventListener('click', e => { if (presenting() && !e.target.closest('button,a,.player')) swipeTo(1); });
 addEventListener('pointermove', () => { if (!presenting()) return; document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => presenting() && document.body.classList.add('idle'), 1800); });
@@ -3508,7 +3529,7 @@ addEventListener('keydown', e => {
 { // first visit, or a refresh
   const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
   const reloaded = nav.type === 'reload' || (performance.navigation && performance.navigation.type === 1);
-  if (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0')) setTimeout(() => openHelp(0), 250);
+  if (!VIEW && (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0'))) setTimeout(() => openHelp(0), 250);
 }
 
 /* ---------- editing on a phone ----------
@@ -3596,6 +3617,15 @@ fitDeck();
 // a link can open on one slide: deck-builder.html#slide=3 (add &present to start presenting there)
 { const m = /slide=(\d+)/.exec(location.hash); if (m && S.sections.length) { const k = clamp(+m[1] - 1, 0, S.sections.length - 1); sel = S.sections[k].id; setY(restOf(k)); renderList(); renderInspector(); }
   if (/present/.test(location.hash)) present(true); }
+if (VIEW) { // the viewer: the slide fills the window, with back, next and full-screen controls that fade when the pointer rests
+  document.body.classList.remove('panel-open'); document.body.classList.add('presenting', 'viewing');
+  document.title = S.title || 'Presentation';
+  const b = (label, title, fn) => h('button', { 'aria-label':title, title, onclick:e => { e.stopPropagation(); fn(); } }, label);
+  document.body.append(h('div', { class:'vctl', role:'group', 'aria-label':'Slides' },
+    b('←', 'Previous slide', () => swipeTo(-1)), b('→', 'Next slide', () => swipeTo(1)), b('⤢', 'Full screen (P)', () => present())));
+  idleT = setTimeout(() => document.body.classList.add('idle'), 2500);
+  fitDeck(); setTimeout(fitDeck, 120);
+}
 loadUserAssets();
 })();
 </script>

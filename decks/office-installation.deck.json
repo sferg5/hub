@@ -1,0 +1,2937 @@
+{
+ "magnet": true,
+ "showName": false,
+ "trans": 1,
+ "holdAmt": 1,
+ "pace": 1.5,
+ "arc": null,
+ "smooth": true,
+ "swiper": "on",
+ "scrollMode": "chapter",
+ "player": false,
+ "theme": "dark",
+ "accent": "#B8B46A",
+ "numbers": true,
+ "title": "Work in Progress",
+ "playSpeed": 1,
+ "motionTime": 1.4,
+ "transTime": 0.8,
+ "sections": [
+  {
+   "id": "uqo7k4u",
+   "name": "Work in Progress",
+   "feel": null,
+   "beat": "hook",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "image",
+    "layout": "full",
+    "items": [
+     "b:story-library/wip/room.jpg"
+    ],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "bottom",
+    "align": "auto",
+    "width": "wide",
+    "size": "xl",
+    "ink": "light",
+    "anim": "rise",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 46,
+   "eyebrow": "Concept · Office installation",
+   "showEyebrow": true,
+   "headline": "Work in Progress",
+   "body": "A walk-up gallery for the UX we’re still building.",
+   "notes": "The ask in one line: give our in-development UX a permanent spot in the office where anyone can walk up and try it.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "0i8lqev",
+   "name": "The idea",
+   "feel": null,
+   "beat": "build",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "none",
+    "layout": "full",
+    "items": [],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "wide",
+    "size": "m",
+    "ink": "dark",
+    "anim": "cascade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "The idea",
+   "showEyebrow": true,
+   "headline": "Put the UX we’re building on the floor, where anyone walking by can try it.",
+   "body": "",
+   "notes": "Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": true,
+    "items": [
+     {
+      "t": "Make the work visible before it ships.",
+      "d": ""
+     },
+     {
+      "t": "Get real reactions while they can still change it.",
+      "d": ""
+     },
+     {
+      "t": "Show the office what the team is making.",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "mxfvjnz",
+   "name": "Three stations",
+   "feel": null,
+   "beat": "proof",
+   "motion": "rise",
+   "hold": "drift",
+   "dwell": 1,
+   "media": {
+    "kind": "gallery",
+    "layout": "full",
+    "items": [
+     "b:story-library/wip/tryon.jpg",
+     "b:story-library/wip/browse.jpg",
+     "b:story-library/wip/pdp.jpg"
+    ],
+    "shots": [
+     "Try-on screen",
+     "Collection browser screen",
+     "Product page screen"
+    ],
+    "focus": [
+     {
+      "x": 50,
+      "y": 40
+     },
+     {
+      "x": 50,
+      "y": 8
+     },
+     {
+      "x": 50,
+      "y": 50
+     }
+    ],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "top",
+    "align": "auto",
+    "width": "wide",
+    "size": "s",
+    "ink": "dark",
+    "anim": "wipe",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 0,
+   "eyebrow": "",
+   "showEyebrow": false,
+   "headline": "Three stations",
+   "body": "",
+   "notes": "Each screen shows one piece of in-progress work. These three are examples; the real line-up would be [the current projects].",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": true,
+    "items": [
+     {
+      "t": "01 · Try-on",
+      "op": "",
+      "d": "Swap colours on a live model and compare them side by side."
+     },
+     {
+      "t": "02 · Browse",
+      "op": "+",
+      "d": "Explore the collection by category, then tap in for detail."
+     },
+     {
+      "t": "03 · Product page",
+      "op": "+",
+      "d": "Tap a swatch, add to bag, feel the flow."
+     }
+    ]
+   }
+  },
+  {
+   "id": "060y42z",
+   "name": "Walk up",
+   "feel": null,
+   "beat": "build",
+   "motion": "glide",
+   "hold": "pan",
+   "dwell": 1,
+   "media": {
+    "kind": "image",
+    "layout": "right",
+    "items": [
+     "b:story-library/wip/walkup.jpg"
+    ],
+    "shots": [],
+    "focus": [
+     {
+      "x": 46,
+      "y": 50
+     }
+    ],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "narrow",
+    "size": "l",
+    "ink": "dark",
+    "anim": "rise",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "Moment 1",
+   "showEyebrow": true,
+   "headline": "Walk up.",
+   "body": "No login, no link. Stop in front of a screen and the work is already playing.",
+   "notes": "The screens have cameras on top in the renders. What they do is still open: [presence only, to wake the screen? gesture? nothing?].",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "gqrpbcx",
+   "name": "Try it",
+   "feel": null,
+   "beat": "build",
+   "motion": "glide",
+   "hold": "pan",
+   "dwell": 1,
+   "media": {
+    "kind": "image",
+    "layout": "left",
+    "items": [
+     "b:story-library/wip/touch.jpg"
+    ],
+    "shots": [],
+    "focus": [
+     {
+      "x": 52,
+      "y": 50
+     }
+    ],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "narrow",
+    "size": "l",
+    "ink": "dark",
+    "anim": "cascade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "Moment 2",
+   "showEyebrow": true,
+   "headline": "Try it.",
+   "body": "Touch it the way a customer would. Every tap shows the team what works and what doesn’t.",
+   "notes": "This is the payoff: the people who build it see real hands on it, weeks before launch.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "zyy40to",
+   "name": "How it runs",
+   "feel": null,
+   "beat": "proof",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "none",
+    "layout": "full",
+    "items": [],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "wide",
+    "size": "m",
+    "ink": "dark",
+    "anim": "cascade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "Ship → Try → Learn",
+   "showEyebrow": true,
+   "headline": "How it runs",
+   "body": "",
+   "notes": "Keep it light: one owner refreshes the screens, and feedback lands somewhere the team already looks.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": true,
+    "items": [
+     {
+      "t": "Ship to the wall",
+      "d": "New work goes up [every sprint], labelled with what it is and who is building it."
+     },
+     {
+      "t": "People try it",
+      "d": "Anyone in the office can walk up. No meeting, no deck, no context needed."
+     },
+     {
+      "t": "Feedback goes back",
+      "d": "Reactions reach the team through [a QR survey / a one-tap rating / a Teams channel]."
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "dplnvqc",
+   "name": "Behind the screens",
+   "feel": null,
+   "beat": "build",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "none",
+    "layout": "full",
+    "items": [],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "wide",
+    "size": "l",
+    "ink": "dark",
+    "anim": "cascade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "The kiosk manager",
+   "showEyebrow": true,
+   "headline": "One control room for all three screens.",
+   "body": "A small site that holds the work, sets the running order and timing for each screen, and sends changes to them live.",
+   "notes": "Built with Claude. Three player pages, one per TV, and one manager page for whoever runs the installation.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "jzz9jbb",
+   "name": "Any format in",
+   "feel": null,
+   "beat": "proof",
+   "motion": "rise",
+   "hold": "drift",
+   "dwell": 1,
+   "media": {
+    "kind": "gallery",
+    "layout": "full",
+    "items": [],
+    "shots": [
+     "Figma prototype",
+     "Built HTML page",
+     "ProtoPie prototype",
+     "Video loop"
+    ],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 4,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "top",
+    "align": "auto",
+    "width": "wide",
+    "size": "s",
+    "ink": "dark",
+    "anim": "wipe",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 0,
+   "eyebrow": "",
+   "showEyebrow": false,
+   "headline": "Any format in",
+   "body": "",
+   "notes": "Designers bring the work in whatever it was made in. Nobody exports a special version for the wall.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": true,
+    "items": [
+     {
+      "t": "Figma",
+      "op": "",
+      "d": "Paste a prototype link."
+     },
+     {
+      "t": "HTML",
+      "op": "",
+      "d": "Upload a built page or a link to one."
+     },
+     {
+      "t": "ProtoPie",
+      "op": "",
+      "d": "Paste a share link."
+     },
+     {
+      "t": "Video",
+      "op": "",
+      "d": "Upload an mp4 that loops."
+     }
+    ]
+   }
+  },
+  {
+   "id": "yl7zpu0",
+   "name": "A playlist per screen",
+   "feel": null,
+   "beat": "proof",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "none",
+    "layout": "full",
+    "items": [],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "wide",
+    "size": "m",
+    "ink": "dark",
+    "anim": "fade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "Order · Duration · Live",
+   "showEyebrow": true,
+   "headline": "A playlist per screen",
+   "body": "",
+   "notes": "Interactive pieces hold while someone is using them, then pick the playlist back up after [30 s] with no touches.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": true,
+    "items": [
+     {
+      "k": "Screen 1",
+      "v": "[Try-on prototype · 2 min] → [Video · 30 s] → repeat"
+     },
+     {
+      "k": "Screen 2",
+      "v": "[Collection browser · 2 min] → [ProtoPie · 2 min] → repeat"
+     },
+     {
+      "k": "Screen 3",
+      "v": "[Product page · until someone walks away] → repeat"
+     },
+     {
+      "k": "Controls",
+      "v": "Drag to reorder, set each duration, pause, skip, push now"
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "sn7h21a",
+   "name": "No seams showing",
+   "feel": null,
+   "beat": "proof",
+   "motion": "glide",
+   "hold": "push",
+   "dwell": 1,
+   "media": {
+    "kind": "none",
+    "layout": "full",
+    "items": [],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "center",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "wide",
+    "size": "m",
+    "ink": "dark",
+    "anim": "cascade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 30,
+   "eyebrow": "Clean stage",
+   "showEyebrow": true,
+   "headline": "Nothing gives away where it came from",
+   "body": "",
+   "notes": "The first three keep things interactive. The fourth is the safety net for pieces that only need to be watched.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": true,
+    "items": [
+     {
+      "t": "The tool’s own controls, switched off",
+      "d": "Figma’s embed settings can hide its toolbar, footer and click hints."
+     },
+     {
+      "t": "Cropped past the edges",
+      "d": "Each piece is drawn a little larger than the screen, so any leftover bar falls outside it."
+     },
+     {
+      "t": "Revealed when ready",
+      "d": "The next piece loads out of sight and fades in once it has drawn. No spinners, no logos."
+     },
+     {
+      "t": "Video as the fallback",
+      "d": "Anything that still shows a seam gets recorded and plays as a clean loop."
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": false,
+    "items": [
+     {
+      "k": "Fabric",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Fit",
+      "v": "Placeholder"
+     },
+     {
+      "k": "Length",
+      "v": "Placeholder"
+     },
+     {
+      "k": "",
+      "v": ""
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  },
+  {
+   "id": "jhegkhd",
+   "name": "What we need",
+   "feel": null,
+   "beat": "close",
+   "motion": "glide",
+   "hold": "drift",
+   "dwell": 1,
+   "media": {
+    "kind": "image",
+    "layout": "inset",
+    "items": [
+     "b:story-library/wip/room-empty.jpg"
+    ],
+    "shots": [],
+    "focus": [],
+    "inset": "m",
+    "mx": "right",
+    "count": 3,
+    "arrange": "row",
+    "fit": "auto"
+   },
+   "text": {
+    "x": "left",
+    "y": "middle",
+    "align": "auto",
+    "width": "medium",
+    "size": "m",
+    "ink": "dark",
+    "anim": "fade",
+    "blend": "auto",
+    "bsize": "m"
+   },
+   "overlay": 0,
+   "eyebrow": "The ask",
+   "showEyebrow": true,
+   "headline": "What we need",
+   "body": "",
+   "notes": "Open questions to settle before ordering hardware: where the kiosk manager is hosted (it holds unreleased work, so it should sit behind company sign-in); what the cameras do and how we tell people; which work is OK to show everyone who passes; which feedback channel the team will actually read.",
+   "cta": {
+    "show": false,
+    "label": "Shop now"
+   },
+   "quote": {
+    "on": false,
+    "attr": ""
+   },
+   "stats": {
+    "on": false,
+    "items": [
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     },
+     {
+      "v": "",
+      "l": ""
+     }
+    ]
+   },
+   "shop": {
+    "on": false,
+    "items": [
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     },
+     {
+      "name": "Product name",
+      "price": "$XX",
+      "tag": ""
+     }
+    ]
+   },
+   "spots": {
+    "on": false,
+    "items": [
+     {
+      "x": 30,
+      "y": 35,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 62,
+      "y": 55,
+      "label": "Feature",
+      "sub": ""
+     },
+     {
+      "x": 40,
+      "y": 72,
+      "label": "",
+      "sub": ""
+     }
+    ]
+   },
+   "feats": {
+    "on": false,
+    "items": [
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "Feature",
+      "d": "One line on why it matters."
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "byline": {
+    "on": false,
+    "name": "Athlete name",
+    "role": "Ambassador · City"
+   },
+   "caption": {
+    "on": false,
+    "text": "Location · Season",
+    "pos": "bl"
+   },
+   "ticker": {
+    "on": false,
+    "text": "Run the city · Run the city · ",
+    "y": "bottom"
+   },
+   "specs": {
+    "on": true,
+    "items": [
+     {
+      "k": "Space",
+      "v": "[Floor / area] with foot traffic"
+     },
+     {
+      "k": "Hardware",
+      "v": "3 touch screens on stands, each with a small PC"
+     },
+     {
+      "k": "Owner",
+      "v": "[Name] keeps them fresh"
+     },
+     {
+      "k": "Launch",
+      "v": "[Target date]"
+     }
+    ]
+   },
+   "swatches": {
+    "on": false,
+    "items": [
+     {
+      "n": "Black",
+      "c": "#141414"
+     },
+     {
+      "n": "Bone",
+      "c": "#E6DFD3"
+     },
+     {
+      "n": "Sage",
+      "c": "#9AAE97"
+     },
+     {
+      "n": "",
+      "c": "#cccccc"
+     }
+    ]
+   },
+   "launch": {
+    "on": false,
+    "label": "Drops",
+    "date": "Oct 15"
+   },
+   "card": {
+    "on": false,
+    "x": "right",
+    "y": "bottom",
+    "name": "Product name",
+    "price": "$XX"
+   },
+   "cols": {
+    "on": false,
+    "items": [
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "Heading",
+      "d": "A short paragraph."
+     },
+     {
+      "t": "",
+      "d": ""
+     },
+     {
+      "t": "",
+      "d": ""
+     }
+    ]
+   },
+   "tiles": {
+    "on": false,
+    "items": [
+     {
+      "t": "Tile 1",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 2",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 3",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 4",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 5",
+      "op": "",
+      "d": "One line about this tile."
+     },
+     {
+      "t": "Tile 6",
+      "op": "",
+      "d": "One line about this tile."
+     }
+    ]
+   }
+  }
+ ]
+}
