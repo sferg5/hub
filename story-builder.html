@@ -280,7 +280,8 @@ body.panel-open .panel{transform:none}
 .feed-cta{background:#fff;color:var(--p-fg);border:1px solid var(--p-fg)}
 .feed-cta:hover{background:var(--p-soft)}
 .feed-cta svg{color:var(--p-fg)}
-.views{font-size:12.5px;color:var(--p-mute)}
+.views{font-size:12.5px;color:var(--p-mute);display:grid;gap:4px}
+.views-h{font:600 14px/1.2 var(--sans);color:var(--p-fg)}
 .views ol{margin:6px 0 4px 18px;padding:0;color:var(--p-fg)}
 .views li{margin:2px 0}
 /* feed mode: a viewer, not an editor */
@@ -3116,7 +3117,7 @@ const HELP = [
   { t:'Shape it with a narrative arc', v:'arc',
     b:`<p><b>Build a Narrative Arc</b> maps the feeling of the story over time: shopping and product at the bottom, emotive story at the top.</p><p>Each point is one section, evenly spaced. Drag a point up or down. Click empty space or <b>+</b> to add one. Select a point, then press <b>×</b> or <b>Delete</b>, or drag it off the graph, to remove it. Then build a new story or re-order the one you have.</p>` },
   { t:'Watch it like a viewer', v:'play',
-    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p><p>At the end of a story, keep going: the screen goes dark for a moment and the next story begins. Open the editor any time to get back to your own story.</p>` },
+    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p><p><b>Stories For You:</b> at the end of a story, keep going: the screen goes dark for a moment and the next story begins. Open the editor any time to get back to your own story.</p>` },
   { t:'Handy to know', v:'keys',
     b:`<ul>
       <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo. The buttons are under Export.</span></li>
@@ -3399,10 +3400,10 @@ function exitFeed(landAt) {
 }
 function renderViews() {
   const top = Object.entries(VIEWS).filter(([, v]) => v.ms > 400).sort((a, b) => b[1].ms - a[1].ms).slice(0, 5);
-  $('views').replaceChildren(top.length
+  $('views').replaceChildren(h('b', { class:'views-h' }, 'Stories For You'), top.length
     ? h('div', {}, 'Most viewed while scrolling on (this browser only):', h('ol', {}, top.map(([n, v]) => h('li', {}, `${n} · ${Math.round(v.ms / 1000)}s`))),
         h('button', { class:'linkbtn', onclick:() => { if (!confirm('Clear the viewing data?')) return; VIEWS = {}; lsSet(VIEWS_KEY, '{}'); renderViews(); } }, 'Clear viewing data'))
-    : 'When a viewer scrolls past the end of a story, it carries on into others, with a sale page after every three built from what they lingered on. Viewing time per product is kept in this browser only.');
+    : h('div', {}, 'When a viewer scrolls past the end of a story, it carries on into more stories, with a page of picks after every three built from what they lingered on. Viewing time per product is kept in this browser only.'));
 }
 $('fexit').addEventListener('click', exitFeed);
 renderViews();

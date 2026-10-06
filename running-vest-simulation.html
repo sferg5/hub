@@ -257,8 +257,8 @@ const easeOutElastic = t=>{ t=clamp(t,0,1); if(t===0||t===1) return t; return Ma
 const wrap180 = d=>((d%360)+540)%360-180;
 
 /* ------------------------------------------------------------------ dials */
-const KEY='clipanywhere.dials.v4', PKEY='clipanywhere.points.v1';
-const DEF={whip:1.05, sharp:4.4, pull:22, kick:8, snap:40, roll:3, hold:4.2, drift:12, slow:25, spin:360, spinDur:1.4, blur:150, grain:0, envs:true, bgblur:40, bag:'#1a1b1d', vest:'black', turn:0, mode:'tour'};
+const KEY='clipanywhere.dials.v5', PKEY='clipanywhere.points.v1';
+const DEF={whip:1.05, sharp:4.4, pull:22, kick:8, snap:40, roll:3, hold:4.2, drift:12, slow:25, spin:360, spinDur:1.4, blur:240, grain:0, envs:true, bgblur:40, bag:'#1a1b1d', vest:'black', turn:0, mode:'tour'};
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let D={...DEF};
 let stored=null;
@@ -861,27 +861,27 @@ function makeRT(w,h){
 }
 const post=new THREE.ShaderMaterial({
   uniforms:{tColor:{value:null},tDepth:{value:null},uInv:{value:new THREE.Matrix4()},uPrev:{value:new THREE.Matrix4()},
-    uScale:{value:0},uMax:{value:0.16},uGrain:{value:0.3},uTime:{value:0},uAspect:{value:1},uFlash:{value:0}},
+    uScale:{value:0},uMax:{value:0.45},uGrain:{value:0.3},uTime:{value:0},uAspect:{value:1},uFlash:{value:0},uWhip:{value:new THREE.Vector2()}},
   vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.,1.); }`,
   fragmentShader:`
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform mat4 uInv; uniform mat4 uPrev;
-    uniform float uScale,uMax,uGrain,uTime,uAspect,uFlash; varying vec2 vUv;
+    uniform float uScale,uMax,uGrain,uTime,uAspect,uFlash; uniform vec2 uWhip; varying vec2 vUv;
     float hash(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
     void main(){
       float d=texture2D(tDepth,vUv).x;
       vec4 w=uInv*vec4(vUv*2.-1.,d*2.-1.,1.); w/=w.w;
       vec4 pc=uPrev*w; vec2 puv=pc.xy/pc.w*.5+.5;
-      vec2 vel=(vUv-puv)*uScale; float L=length(vel); if(L>uMax) vel*=uMax/L;
+      vec2 vel=(vUv-puv)*uScale+uWhip; float L=length(vel); if(L>uMax) vel*=uMax/L;
       vec3 col;
       if(length(vel)<.0006){ col=texture2D(tColor,vUv).rgb; }
       else{
         float j=hash(gl_FragCoord.xy+fract(uTime)*61.);
         vec3 acc=vec3(0.);
-        for(int i=0;i<22;i++){
-          float t=(float(i)+j)/22.-.5; vec2 o=vUv-vel*t;
+        for(int i=0;i<40;i++){
+          float t=(float(i)+j)/40.-.5; vec2 o=vUv-vel*t;
           acc.r+=texture2D(tColor,o-vel*.04).r; acc.g+=texture2D(tColor,o).g; acc.b+=texture2D(tColor,o+vel*.04).b;
         }
-        col=acc/22.;
+        col=acc/40.;
       }
       col*=1.+uFlash;
       vec2 q=(vUv-.5)*vec2(uAspect,1.);
@@ -1192,7 +1192,7 @@ function drawSpark(){
   sctx.strokeStyle='#1d1d1f'; sctx.lineWidth=1.5; sctx.stroke();
 }
 const coWrap=$('coWrap'), coLabel=$('coLabel');
-const prevVP=new THREE.Matrix4(), curVP=new THREE.Matrix4();
+const prevVP=new THREE.Matrix4(), curVP=new THREE.Matrix4(), farA=new V3(), farB=new V3();
 let first=true, last=performance.now(), realT=0, sceneT=0, holdSceneStart=0;
 
 function frame(now){
@@ -1277,7 +1277,12 @@ function frame(now){
   if(first){ prevVP.copy(curVP); first=false; }
   post.uniforms.uInv.value.copy(curVP).invert();
   post.uniforms.uPrev.value.copy(prevVP);
-  post.uniforms.uScale.value=(D.blur/100)*(1/60)/Math.max(dt,1/240);
+  const shutter=(D.blur/100)*(1/60)/Math.max(dt,1/240);
+  post.uniforms.uScale.value=shutter;
+  // whip pan: how far a point behind the product swept across the screen since last frame
+  { const far=tgt.clone().sub(cam.position).normalize().multiplyScalar(60).add(tgt);
+    farA.copy(far).applyMatrix4(prevVP); farB.copy(far).applyMatrix4(curVP);
+    post.uniforms.uWhip.value.set((farB.x-farA.x)*0.5,(farB.y-farA.y)*0.5).multiplyScalar(shutter*0.8); }
   post.uniforms.uGrain.value=D.grain/100;
   post.uniforms.uTime.value=realT;
   post.uniforms.uFlash.value=flash;
