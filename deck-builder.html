@@ -1246,7 +1246,7 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
 /* View-only links: deck-builder.html?view=decks/name.deck.json (a deck exported from here) or
    ?view=wip (a built-in deck) opens it as a presentation with no editor, and never reads or
    writes the decks saved in this browser. */
-const VIEW = (() => { const v = new URLSearchParams(location.search).get('view'); return v && (/^[\w\-\/]+\.json$/.test(v) || /^\w+$/.test(v)) ? v : null; })();
+const VIEW = (() => { const v = new URLSearchParams(location.search).get('view'); return v && !v.includes('..') && (/^[\w\-\/.]+\.json$/.test(v) || /^\w+$/.test(v)) ? v : null; })();
 if (VIEW) {
   try {
     if (VIEW.endsWith('.json')) { const x = new XMLHttpRequest(); x.open('GET', VIEW, false); x.send(); if (x.status !== 200) throw 0; S = normalize(JSON.parse(x.responseText)); }
