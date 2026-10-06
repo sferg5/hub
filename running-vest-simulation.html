@@ -314,7 +314,7 @@ floor.rotation.x=-Math.PI/2; floor.position.y=FLOOR_Y; floor.receiveShadow=true;
 // A torso of revolution, squashed front to back. Everything on the vest is built on this surface,
 // so the stand-in straps and pockets sit on the form instead of floating near it.
 const ZS=0.66;
-const PROF=[[-0.36,.139],[-0.26,.137],[-0.15,.141],[-0.04,.151],[0.06,.164],[0.14,.175],[0.20,.181],[0.245,.174],[0.275,.155],[0.30,.116],[0.315,.078],[0.327,.057],[0.40,.052],[0.46,.052]];
+const PROF=[[-0.36,.139],[-0.26,.137],[-0.15,.141],[-0.04,.151],[0.06,.164],[0.14,.175],[0.20,.181],[0.245,.178],[0.275,.170],[0.30,.152],[0.32,.122],[0.335,.088],[0.348,.06],[0.40,.052],[0.46,.052]];
 function rAt(y){
   const n=PROF.length;
   if(y<=PROF[0][0]) return PROF[0][1];
@@ -446,12 +446,12 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   const thIn=y=>(13+7*sstep(0.12,0.27,y)); // inner front edge, degrees from centre front; leans out into a V at the neck
   const botAt=a=>lerp(-0.075,-0.13,sstep(13,34,a));
   // the outer edge: neckline, up over the shoulder, down to the back neckline
-  const T=a=>a<=97 ? 0.27+0.04*sstep(28,97,a) : 0.31-0.058*sstep(97,145,a)-0.008*sstep(145,180,a);
+  const T=a=>a<=97 ? 0.27+0.03*sstep(28,97,a) : 0.30-0.048*sstep(97,145,a)-0.008*sstep(145,180,a);
   // the armhole: from a front tip at 40° to a back tip at 138°, the strap above it, the body below
   const AF=40, AB=138, bell=a=>Math.pow(Math.sin(Math.PI*(a-AF)/(AB-AF)),0.8);
   const tip=a=>T(a)-0.03;
   const armBot=a=>lerp(lerp(tip(AF),tip(AB),(a-AF)/(AB-AF)),0.045,bell(a));
-  const armTop=a=>T(a)-0.03-0.032*bell(a);
+  const armTop=a=>T(a)-0.03-0.022*bell(a);
   // Pieces that share their edges exactly, so they read as one garment with seams: front panel,
   // under-arm, back and the strap over the shoulder.
   const piece=(a0,a1,y0,y1,sd,nu,nv)=>{
@@ -521,9 +521,8 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   const tp=[]; for(let k=0;k<=24;k++){ const y=lerp(0.262,-0.07,k/24); tp.push(surf((thIn(y)+1.6)*DEG,y,0.017).p); }
   vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tp),64,0.0046,10),M.strap));
   for(const y of [0.205,0.12,0.075,-0.005,-0.045]){
-    const f=frameAt(-(thIn(y)-0.5),y,0.016);
-    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.0062,0.0012,6,20),M.trim);
-    loop.rotation.y=1.0; loop.position.set(0.005,0,0); vestProc.add(place(loop,f));
+    const f=frameAt(-(thIn(y)+2.6),y,0.0135);
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.0045,0.0011,6,20),M.trim); vestProc.add(place(loop,f));
   }
 
   // rear pouch: a deep stretch-mesh pocket across the lower back, where the rolled pack tucks away
@@ -535,7 +534,7 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),120,0.0022,8),M.cord));
   const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,0.068,0.026).p); vestProc.add(lock);
   // reflective wordmark on the yoke
-  const rf=frameAt(180,0.218,0.0125);
+  const rf=frameAt(180,0.236,0.0125);
   const mark=new THREE.Mesh(new THREE.PlaneGeometry(0.06,0.0112),new THREE.MeshStandardMaterial({map:wordmarkTex('#b9bcc0'),transparent:true,roughness:.3,metalness:.5,depthWrite:false}));
   vestProc.add(place(mark,rf));
 }
@@ -550,7 +549,7 @@ const SHOTS=[
   {key:'side',   short:'Side',       name:'Stowed on the side',       line:'Low on the side, clear of your arm swing.',          env:'pilates', th:97,  y:0.04,  off:0.02,  az:16,  el:5},
   {key:'low',    short:'Front low',  name:'Stowed low on the front',  line:'Close to the body, where it doesn’t bounce.',        env:'market',  th:-40, y:0.1,   off:0.045, az:-20, el:7},
   {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    env:'home',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:0.9},
-  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.235, off:0.03, az:-18, el:15, open:true, wideAt:0.3},
+  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.205, off:0.03, az:-18, el:15, open:true, wideAt:0.3},
 ];
 const NS=SHOTS.length;
 
@@ -569,6 +568,7 @@ function buildAnchors(){
   for(let i=1;i<NS;i++){
     const e=edited[SHOTS[i].key];
     anchors[i]= e ? frameFrom(new V3(...e.p),new V3(...e.n).normalize()) : frameAt(SHOTS[i].th,SHOTS[i].y,SHOTS[i].off||0.02);
+    anchors[i].base= e ? anchors[i].p.clone() : surf(SHOTS[i].th*DEG,SHOTS[i].y,0.0125).p;
   }
   layoutTabs();
 }
@@ -582,8 +582,8 @@ function layoutTabs(){
   for(let i=1;i<NS;i++){
     const f=anchors[i], g=new THREE.Group();
     const t=new THREE.Mesh(new RoundedBoxGeometry(0.016,0.022,0.004,2,0.0015),M.trim); t.position.set(0,0.004,0.001);
-    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.0062,0.0017,8,24),M.trim); loop.rotation.y=Math.PI/2; loop.position.set(0,0.012,0.005);
-    g.add(t,loop); g.position.copy(f.p); g.quaternion.copy(f.q);
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(0.0055,0.0014,8,24),M.trim); loop.position.set(0,0.0125,0.003);
+    g.add(t,loop); g.position.copy(f.base||f.p); g.quaternion.copy(f.q);
     g.visible=!vestScan; // a scan carries its own loops
     tabs.add(shadowy(g));
   }
@@ -1128,7 +1128,7 @@ function frame(now){
   // marker ring on the point we're landing on, before the bag covers it
   const target = S.phase==='whip' ? S.to : S.i;
   if(target>0){
-    const a=anchors[target]; ring.position.copy(a.p).addScaledVector(a.n,0.004).addScaledVector(a.up,0.006); ring.quaternion.copy(a.q);
+    const a=anchors[target]; ring.position.copy(a.base||a.p).addScaledVector(a.n,0.004).addScaledVector(a.up,0.006); ring.quaternion.copy(a.q);
     const vis = S.phase==='whip' ? sstep(0.5,1,ramp(clamp(S.t/D.whip,0,1),D.sharp)) : 1-sstep(0.3,0.75,S.t);
     const pulse=(realT*1.6)%1; ring.scale.setScalar(1+pulse*0.9); ringMat.opacity=vis*(1-pulse)*0.9;
   }else ringMat.opacity=0;
