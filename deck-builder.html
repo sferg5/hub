@@ -643,6 +643,11 @@ body.presenting.idle{cursor:none}
 .pres-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;margin-top:12px}
 .btn.present{background:var(--p-accent);color:var(--p-accent-fg);border-color:var(--p-accent)}
 .print-pages{display:none}
+/* live pages in a frame */
+.emb{position:absolute;inset:0;overflow:hidden;background:#F5F5F5}
+.emb iframe{position:absolute;left:0;top:0;width:250%;height:250%;border:0;transform:scale(.4);transform-origin:0 0;background:#F5F5F5}
+.emb-th{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;gap:4px;background:#F1EFEC;color:#141414;padding:8px;text-align:center}
+.emb-th b{font:600 12px/1.2 var(--sans)}.emb-th small{font:400 10px/1.2 var(--mono);color:#6B6B6B;word-break:break-all}
 /* view-only links */
 body.viewing .panel,body.viewing .help{display:none!important}
 body.viewing .stage{transition:none!important}
@@ -1398,7 +1403,25 @@ BUILTIN.forEach(([group, items]) => items.forEach(it => {
   const id = 'b:' + path;
   ASSETS[id] = { id, name: name || path.split('/').pop(), type: type || 'image', src:path, group, w, h, look: look || 'edit', fy: fy ?? 50, bg: look === 'flat' ? FLAT_BG : null };
 }));
-const typeOf = (mime, name) => /^video\//.test(mime) || /\.(mp4|webm|mov|m4v)$/i.test(name) ? 'video' : 'image';
+/* A pasted link that is not an image or a video is a live page (Figma, ProtoPie, any HTML), shown in an embedded frame. */
+const typeOf = (mime, name) => /^video\//.test(mime) || /\.(mp4|webm|mov|m4v)(\?|$)/i.test(name) ? 'video'
+  : /^image\//.test(mime) || /\.(jpe?g|png|gif|webp|avif|svg)(\?|$)/i.test(name) ? 'image' : mime ? 'image' : 'embed';
+/* Live pages arrive without their tool's own chrome: ProtoPie loses its toolbar, phone mockup and
+   hotspot hints; a Figma prototype moves to Figma's embed address with its sidebar, footer, controls
+   and click hints switched off, scaled to fit the frame. */
+function cleanEmbed(src) {
+  let u; try { u = new URL(src, location.href); } catch (e) { return src; }
+  const q = u.searchParams;
+  if (/(^|\.)protopie\.cloud$/.test(u.hostname)) {
+    q.set('ui', 'false'); q.set('mockup', 'false'); q.set('enableHotspotHints', 'false'); q.set('scaleToFit', 'true'); q.delete('bgImage');
+  } else if (/(^|\.)figma\.com$/.test(u.hostname) && /^\/(proto|design|file|board|deck)\//.test(u.pathname)) {
+    u.hostname = 'embed.figma.com';
+    q.set('embed-host', 'deck-builder'); q.set('hide-ui', '1'); q.set('hotspot-hints', '0'); q.set('show-proto-sidebar', '0');
+    q.set('footer', 'false'); q.set('viewport-controls', 'false'); q.set('page-selector', 'false'); q.set('scaling', 'contain'); q.delete('t');
+  }
+  return u.href;
+}
+const hasEmbed = s => s.media.kind !== 'none' && s.media.items.slice(0, count(s)).some(id => (asset(id) || {}).type === 'embed');
 function asset(id) {
   if (!id || missing.has(id)) return null;
   if (ASSETS[id]) return ASSETS[id];
@@ -1406,6 +1429,11 @@ function asset(id) {
   return null;
 }
 function assetEl(a, play) {
+  if (a.type === 'embed') { // a live page: drawn at a larger virtual size and scaled into the frame, so it lays out like a screen, not a thumbnail
+    let host = a.src; try { host = new URL(a.src, location.href).hostname || a.src; } catch (e) {}
+    if (!play) return h('div', { class:'emb-th' }, h('b', {}, 'Live page'), h('small', {}, host));
+    return h('div', { class:'emb' }, h('iframe', { src:cleanEmbed(a.src), title:a.name || host, allow:'autoplay; fullscreen; clipboard-write', referrerpolicy:'strict-origin-when-cross-origin' }));
+  }
   if (a.type === 'video') {
     const v = h('video', { src: play ? a.src : a.src + '#t=0.5', loop:true, playsinline:true, preload: play ? 'auto' : 'metadata' });
     v.muted = true; if (play) v.dataset.stage = '1'; // played/paused by update() as its section comes and goes
@@ -1487,8 +1515,9 @@ function assign(s, k, id) {
   const a = asset(id); if (!a || !s) return;
   snapshot();
   const m = s.media;
-  if (m.kind === 'none') { m.kind = a.type; m.layout = 'inset'; k = 0; }
-  else if (m.kind !== 'gallery') { m.kind = a.type; k = 0; }
+  const kind = a.type === 'video' ? 'video' : 'image'; // a live page sits in an image frame
+  if (m.kind === 'none') { m.kind = kind; m.layout = 'inset'; k = 0; }
+  else if (m.kind !== 'gallery') { m.kind = kind; k = 0; }
   m.items[k] = id;
   render();
 }
@@ -1513,7 +1542,7 @@ function renderLibrary() {
     h('div', { class:'p-row' },
       h('button', { class:'btn pri', onclick:() => $('lib-file').click() }, 'Add files'),
       h('button', { class:'btn', onclick:() => {
-        const url = prompt('Paste a link to an image or video (.jpg, .png, .mp4…)'); if (!url || !/^https?:\/\//i.test(url.trim())) return;
+        const url = prompt('Paste a link to an image, a video (.jpg, .png, .mp4…) or a live page (Figma, ProtoPie, any web page)'); if (!url || !/^https?:\/\//i.test(url.trim())) return;
         const rec = { id:'u:' + uid() + uid(), name:url.trim().split('/').pop() || url.trim(), type:typeOf('', url.trim()), url:url.trim(), added:Date.now() };
         DB.put(rec).catch(() => {}); addUserAsset(rec); renderLibrary();
       } }, 'Paste a link')),
@@ -1536,6 +1565,7 @@ function renderLibrary() {
         onclick:() => { if (picking) { const s = S.sections.find(x => x.id === picking.id), k = picking.k; picking = null; showTab('sections'); assign(s, k, a.id); } } },
         assetEl(a, false),
         a.type === 'video' && h('span', { class:'badge' }, '▶ ' + (a.group === 'Your uploads' ? 'Video' : a.name)),
+        a.type === 'embed' && h('span', { class:'badge' }, '◉ Live page'),
         used.has(a.id) && h('span', { class:'used', title:'In use' }),
         a.user && h('button', { class:'del', 'aria-label':'Remove from library', title:'Remove', onclick:e => {
           e.stopPropagation(); if (!confirm(`Remove ${a.name} from the library?`)) return;
@@ -1778,6 +1808,7 @@ const amt = () => S.holdAmt;
 const glide = t => .82 * easeIO(t) + .18 * t;
 
 function kenBurns(s, u) {
+  if (hasEmbed(s)) return { sc:1, x:0, y:0 }; // live pages hold still, so they stay usable
   const r = kenBurnsRaw(s, u);
   // hotspots and product cards sit on the image, so keep its move gentle
   if (s.spots.on || s.shop.on || s.tiles.on) { r.sc = 1 + (r.sc - 1) * .35; r.x *= .35; r.y *= .35; }

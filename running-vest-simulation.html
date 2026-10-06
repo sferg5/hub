@@ -42,6 +42,7 @@
     padding:calc(var(--safe-t) + 18px) var(--gutter) 0;pointer-events:none;z-index:3}
   .top > *{pointer-events:auto}
   .mark{font-weight:600;font-size:18px;letter-spacing:-.02em;text-transform:lowercase}
+  .mark .wip{font-weight:400;color:var(--dim);margin-left:4px;transition:color .5s}
   .tag{margin-top:6px;color:var(--dimmer)}
   .tag b{font-weight:400;color:var(--tally)}
   .pill{appearance:none;border:0;background:var(--glass);border-radius:999px;padding:9px 16px;font-size:13px;cursor:pointer;transition:background .2s}
@@ -157,7 +158,7 @@
 <div class="colabel mono" id="coLabel" style="opacity:0"><em id="coText" style="font-style:normal">clip point</em></div>
 
 <header class="top">
-  <div class="mark">running vest simulation</div>
+  <div class="mark">running vest simulation <span class="wip">(work in progress)</span></div>
   <button class="pill" id="dialToggle" type="button" aria-pressed="false" aria-controls="panel">Dials</button>
 </header>
 
