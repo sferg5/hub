@@ -547,39 +547,20 @@
   },
   {
    "id": "mxfvjnz",
-   "name": "Three stations",
+   "name": "The room",
    "feel": null,
    "beat": "proof",
-   "motion": "rise",
-   "hold": "drift",
+   "motion": "glide",
+   "hold": "push",
    "dwell": 1,
    "media": {
-    "kind": "gallery",
+    "kind": "image",
     "layout": "full",
     "items": [
-     "b:story-library/wip/tryon.jpg",
-     "b:story-library/wip/browse.jpg",
-     "b:story-library/wip/pdp.jpg"
+     "b:story-library/wip/room-empty.jpg"
     ],
-    "shots": [
-     "Try-on screen",
-     "Collection browser screen",
-     "Product page screen"
-    ],
-    "focus": [
-     {
-      "x": 50,
-      "y": 50
-     },
-     {
-      "x": 50,
-      "y": 50
-     },
-     {
-      "x": 50,
-      "y": 50
-     }
-    ],
+    "shots": [],
+    "focus": [],
     "inset": "m",
     "mx": "center",
     "count": 3,
@@ -588,21 +569,21 @@
    },
    "text": {
     "x": "left",
-    "y": "top",
+    "y": "bottom",
     "align": "auto",
     "width": "wide",
-    "size": "s",
-    "ink": "dark",
-    "anim": "wipe",
+    "size": "m",
+    "ink": "light",
+    "anim": "rise",
     "blend": "auto",
     "bsize": "m"
    },
-   "overlay": 0,
-   "eyebrow": "",
-   "showEyebrow": false,
-   "headline": "Three stations",
-   "body": "",
-   "notes": "Each screen shows one piece of in-progress work. These three are examples; the real line-up would be [the current projects].",
+   "overlay": 44,
+   "eyebrow": "The space",
+   "showEyebrow": true,
+   "headline": "Three screens fill the room.",
+   "body": "Two landscape, one portrait, set around the corner so something is playing wherever you stand. Each one rotates work in and out, so the room changes every time you walk past.",
+   "notes": "No fixed line-up: the screens take turns showing whatever is in progress. They sit on rolling stands, so the layout can change with the work.",
    "cta": {
     "show": false,
     "label": "Shop now"
@@ -664,25 +645,25 @@
     ]
    },
    "spots": {
-    "on": false,
+    "on": true,
     "items": [
      {
-      "x": 30,
-      "y": 35,
-      "label": "Feature",
-      "sub": ""
+      "x": 24,
+      "y": 18,
+      "label": "Screen 1 · landscape",
+      "sub": "Rotating work"
      },
      {
-      "x": 62,
-      "y": 55,
-      "label": "Feature",
-      "sub": ""
+      "x": 44,
+      "y": 10,
+      "label": "Screen 2 · portrait",
+      "sub": "Rotating work"
      },
      {
-      "x": 40,
-      "y": 72,
-      "label": "",
-      "sub": ""
+      "x": 66,
+      "y": 18,
+      "label": "Screen 3 · landscape",
+      "sub": "Rotating work"
      }
     ]
    },
@@ -794,7 +775,7 @@
     ]
    },
    "tiles": {
-    "on": true,
+    "on": false,
     "items": [
      {
       "t": "01 · Try-on",
@@ -2680,7 +2661,7 @@
     "kind": "image",
     "layout": "inset",
     "items": [
-     "b:story-library/wip/room-empty.jpg"
+     "b:story-library/wip/room.jpg"
     ],
     "shots": [],
     "focus": [],

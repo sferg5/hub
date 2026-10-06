@@ -598,7 +598,7 @@ body.sheet-resizing .stage{transition:none!important}
 .cta{height:72px;padding:0 36px;font-size:24px}
 .ticker .tk{font-size:150px}
 .sl b{font-size:22px}.sl small{font-size:20px}
-.spot span{font-size:20px;padding:10px 14px}.spot span small{font-size:18px}
+.spot span{font-size:20px;padding:10px 14px;color:#141414}.spot span small{font-size:18px;color:rgba(20,20,20,.6)}
 .card{width:440px;grid-template-columns:88px 1fr 48px;padding:14px}
 .card .th{width:88px;height:104px}.card p{font-size:22px}.card small{font-size:19px}
 .card .add{width:48px;height:48px}
@@ -1106,11 +1106,11 @@ const PRESETS = {
         headline:'Put the UX we’re building on the floor, where anyone walking by can try it.',
         feats:{ on:true, items:[{ t:'Make the work visible before it ships.', d:'' }, { t:'Get real reactions while they can still change it.', d:'' }, { t:'Show the office what the team is making.', d:'' }] },
         notes:'Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.' }),
-      make({ beat:'proof', name:'Three stations', hold:'drift', motion:'rise', overlay:0,
-        media:{ kind:'gallery', layout:'full', count:3, arrange:'row', items:[im('tryon'), im('browse'), im('pdp')], focus:[{ x:50, y:50 }, { x:50, y:50 }, { x:50, y:50 }], shots:['Try-on screen', 'Collection browser screen', 'Product page screen'] },
-        text:{ x:'left', y:'top', size:'s', width:'wide', anim:'wipe' }, headline:'Three stations',
-        tiles:{ on:true, items:[{ t:'01 · Try-on', op:'', d:'Swap colours on a live model and compare them side by side.' }, { t:'02 · Browse', op:'+', d:'Explore the collection by category, then tap in for detail.' }, { t:'03 · Product page', op:'+', d:'Tap a swatch, add to bag, feel the flow.' }] },
-        notes:'Each screen shows one piece of in-progress work. These three are examples; the real line-up would be [the current projects].' }),
+      make({ beat:'proof', name:'The room', hold:'push', overlay:44, media:{ kind:'image', layout:'full', items:[im('room-empty')] },
+        spots:{ on:true, items:[{ x:24, y:18, label:'Screen 1 · landscape', sub:'Rotating work' }, { x:44, y:10, label:'Screen 2 · portrait', sub:'Rotating work' }, { x:66, y:18, label:'Screen 3 · landscape', sub:'Rotating work' }] },
+        text:{ x:'left', y:'bottom', size:'m', width:'wide', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'The space',
+        headline:'Three screens fill the room.', body:'Two landscape, one portrait, set around the corner so something is playing wherever you stand. Each one rotates work in and out, so the room changes every time you walk past.',
+        notes:'No fixed line-up: the screens take turns showing whatever is in progress. They sit on rolling stands, so the layout can change with the work.' }),
       make({ beat:'build', name:'Walk up', hold:'pan', media:{ kind:'image', layout:'right', items:[im('walkup')], focus:[{ x:46, y:50 }] },
         text:{ x:'left', y:'middle', size:'l', width:'narrow', anim:'rise' }, showEyebrow:true, eyebrow:'Moment 1',
         headline:'Walk up.', body:'No login, no link. Stop in front of a screen and the work is already playing.',
@@ -1143,7 +1143,7 @@ const PRESETS = {
           { t:'Revealed when ready', d:'The next piece loads out of sight and fades in once it has drawn. No spinners, no logos.' },
           { t:'Video as the fallback', d:'Anything that still shows a seam gets recorded and plays as a clean loop.' }] },
         notes:'The first three keep things interactive. The fourth is the safety net for pieces that only need to be watched.' }),
-      make({ beat:'close', name:'What we need', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'m', items:[im('room-empty')] },
+      make({ beat:'close', name:'What we need', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'right', inset:'m', items:[im('room')] },
         text:{ x:'left', y:'middle', size:'m', width:'medium', anim:'fade' }, showEyebrow:true, eyebrow:'The ask', headline:'What we need',
         specs:{ on:true, items:[{ k:'Space', v:'[Floor / area] with foot traffic' }, { k:'Hardware', v:'3 touch screens on stands, each with a small PC' }, { k:'Owner', v:'[Name] keeps them fresh' }, { k:'Launch', v:'[Target date]' }] },
         notes:'Open questions to settle before ordering hardware: where the kiosk manager is hosted (it holds unreleased work, so it should sit behind company sign-in); what the cameras do and how we tell people; which work is OK to show everyone who passes; which feedback channel the team will actually read.' }),
