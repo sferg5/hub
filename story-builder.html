@@ -288,10 +288,10 @@ body.feed .panel,body.feed .fab,body.feed .dots{display:none!important}
 body.feed .stage{right:0!important;transform:none!important;transition:none}
 .fhud{position:fixed;left:0;right:0;top:0;z-index:70;padding:10px 14px 0;display:none;pointer-events:none}
 body.feed .fhud{display:block}
-.fsegs{display:flex;gap:3px}
+.fsegs{display:none} /* the progress line across the top read as a stray stroke; the story name stays */
 .fsegs i{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.4);overflow:hidden;mix-blend-mode:difference}
 .fsegs i b{display:block;height:100%;width:0;background:#fff}
-.frow{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.frow{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
 .fname{font:600 12px/1 var(--sans);letter-spacing:.02em;color:#fff;mix-blend-mode:difference}
 .fname small{font-weight:400;opacity:.7;margin-left:6px}
 .fexit{pointer-events:auto;height:30px;padding:0 12px;border-radius:15px;background:rgba(20,20,20,.55);color:#fff;font:600 12px/1 var(--sans);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
