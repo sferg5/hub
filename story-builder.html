@@ -284,10 +284,10 @@ body.panel-open .panel{transform:none}
 .views ol{margin:6px 0 4px 18px;padding:0;color:var(--p-fg)}
 .views li{margin:2px 0}
 /* feed mode: a viewer, not an editor */
-body.feed .panel,body.feed .fab,body.feed .dots{display:none!important}
+body.feed .panel{display:none!important}
 body.feed .stage{right:0!important;transform:none!important;transition:none}
 .fhud{position:fixed;left:0;right:0;top:0;z-index:70;padding:10px 14px 0;display:none;pointer-events:none}
-body.feed .fhud{display:block}
+body.feed .fhud{display:none}
 .fsegs{display:none} /* the progress line across the top read as a stray stroke; the story name stays */
 .fsegs i{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.4);overflow:hidden;mix-blend-mode:difference}
 .fsegs i b{display:block;height:100%;width:0;background:#fff}
@@ -606,11 +606,6 @@ body:not(.panel-open) .arc{right:0}
   </div>
   <div class="p-head">
     <div class="p-title"><div class="p-title-row"><b>Story Builder</b><button class="help-btn" id="help-open" aria-label="How Story Builder works" title="How it works (?)">?</button></div><small>Scroll moves one composition into the next.</small></div>
-    <button class="arc-cta feed-cta" id="feed-open" title="Play stories back to back, endlessly">
-      <svg viewBox="0 0 40 20" aria-hidden="true"><rect x="2" y="3" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="15" y="3" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="28" y="3" width="10" height="14" rx="2" fill="currentColor"/></svg>
-      <span><b>Play the feed</b><small>Stories back to back, with a sale page every 4th</small></span>
-      <i aria-hidden="true">→</i>
-    </button>
     <div class="views" id="views"></div>
     <select id="preset" aria-label="Load a preset">
       <option value="">Start from a preset</option>
@@ -1545,9 +1540,8 @@ function renderStage() {
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
-    h('nav', { class:'dots', 'aria-label':'Sections', // long stories tighten the spacing so the column stays within the middle half
-      style:{ gap: Math.max(3, Math.min(10, H * .5 / Math.max(1, S.sections.length) - 7)) + 'px' } },
-      S.sections.map((s, i) => h('button', { 'aria-label':`Go to ${s.name}`, onclick:() => goTo(i) }))));
+    h('nav', { class:'dots', id:'dots', 'aria-label':'Sections' }));
+  dotsBid = null; buildDots(curI);
   $stage.classList.toggle('has-swiper', touchSwipe());
   if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
   if (!layers.length) $stage.append(h('div', { class:'empty' }, 'No sections yet.', h('br'), 'Add one from the panel.'));
@@ -1741,11 +1735,27 @@ function update() {
    list or the dots pairs any two sections, in either direction. */
 // the dot of the leaving section shrinks as the arriving one grows, in step with the move
 let dotLit = [];
+/* The side dots. On your own story: one per section. Once the story carries on into
+   others: one per section of the story on screen (the Up next card shows the coming
+   story's dots, none lit yet). */
+let dotsBid = null;
+const bidOf = k => { const x = S.sections[k]; return x && x.story ? x.story.bid : null; };
+function buildDots(i) {
+  const nav = $('dots'); if (!nav) return;
+  const bid = FEED ? bidOf(i) : 'own';
+  if (bid === dotsBid && nav.childElementCount) return; dotsBid = bid;
+  const idxs = FEED ? S.sections.map((x, k) => x.story && x.story.bid === bid && x.story.k >= 0 ? k : -1).filter(k => k >= 0) : S.sections.map((x, k) => k);
+  nav.style.gap = Math.max(3, Math.min(10, H * .5 / Math.max(1, idxs.length) - 7)) + 'px'; // long stories tighten the spacing
+  nav.replaceChildren(...idxs.map(k => { const b = h('button', { 'aria-label':`Go to ${S.sections[k].name}`, onclick:() => goTo(k) }); b.dataset.sec = k; return b; }));
+  dotLit = [];
+}
+const dotEl = k => k >= 0 ? $stage.querySelector(`.dots button[data-sec="${k}"]`) : null;
 function dotScale(i, j, e) {
-  const ds = $stage.querySelectorAll('.dots button'); if (!ds.length) return;
-  dotLit.forEach(k => { if (k !== i && k !== j && ds[k]) ds[k].style.setProperty('--a', 0); });
-  if (ds[i]) ds[i].style.setProperty('--a', (1 - e).toFixed(3));
-  if (j >= 0 && ds[j]) ds[j].style.setProperty('--a', e.toFixed(3));
+  if (!$stage.querySelector('.dots button')) return;
+  dotLit.forEach(k => { if (k !== i && k !== j) { const d = dotEl(k); if (d) d.style.setProperty('--a', 0); } });
+  const di = dotEl(i), dj = j >= 0 ? dotEl(j) : null;
+  if (di) di.style.setProperty('--a', (1 - e).toFixed(3));
+  if (dj) dj.style.setProperty('--a', e.toFixed(3));
   dotLit = j >= 0 ? [i, j] : [i];
 }
 /* During a story break the copy moves sideways with the frames, and a red line sweeps across. */
@@ -1839,7 +1849,8 @@ function drawPair(i, j, t, ui, uj) {
 function setCurrent(i) {
   curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
   if (FEED) feedOnSection(i);
-  $stage.querySelectorAll('.dots button').forEach((b, k) => b.classList.toggle('on', k === i));
+  if (FEED) buildDots(i);
+  $stage.querySelectorAll('.dots button').forEach(b => b.classList.toggle('on', +b.dataset.sec === i));
   $list.querySelectorAll('.row').forEach(r => r.classList.toggle('is-cur', +r.dataset.i === i));
 }
 /* Going to a section. A neighbour is reached by scrolling to it, so its own
@@ -3066,6 +3077,7 @@ $('file').addEventListener('change', async e => {
 
 const $fab = $('fab');
 function togglePanel(force) {
+  if (FEED && force !== false && !document.body.classList.contains('panel-open')) { backToOwnStory(); force = true; } // the editor edits your story, not the path beyond it
   const open = document.body.classList.toggle('panel-open', force);
   if (open && isPhone()) setSheet(sheet === 'full' ? 'half' : sheet); else fitStage();
   $fab.querySelector('.fa').textContent = open ? '›' : '‹'; $fab.querySelector('.ft').textContent = open ? 'Close' : 'Edit story';
@@ -3080,7 +3092,6 @@ addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); redo(); }
   else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && !$('arc').hidden && arcSel != null) { e.preventDefault(); removeArcPoint(arcSel); }
   else if (e.key === 'Escape' && !$('arc').hidden) openArc(false);
-  else if (e.key === 'Escape' && FEED) exitFeed();
   else if (e.key === ' ' && !typing && !e.defaultPrevented && $('arc').hidden && !(e.target.closest && e.target.closest('button,[role=button],.panel')) && S.player) { e.preventDefault(); togglePlay(); }
   else if (['ArrowUp','ArrowDown','PageUp','PageDown'].includes(e.key) && !typing && chapterMode() && $('arc').hidden) { e.preventDefault(); stopPlay(); swipeTo(e.key === 'ArrowDown' || e.key === 'PageDown' ? 1 : -1); }
   else if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key) && !typing) stopPlay();
@@ -3105,7 +3116,7 @@ const HELP = [
   { t:'Shape it with a narrative arc', v:'arc',
     b:`<p><b>Build a Narrative Arc</b> maps the feeling of the story over time: shopping and product at the bottom, emotive story at the top.</p><p>Each point is one section, evenly spaced. Drag a point up or down. Click empty space or <b>+</b> to add one. Select a point, then press <b>×</b> or <b>Delete</b>, or drag it off the graph, to remove it. Then build a new story or re-order the one you have.</p>` },
   { t:'Watch it like a viewer', v:'play',
-    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p><p>At the end of a story, keep going: the screen goes dark for a moment and the next story begins. <b>Exit</b> or <kbd>Esc</kbd> brings you back.</p>` },
+    b:`<p>On a computer, scroll to play it, or press <b>Play</b> and pick a speed from ½× to 3×. Click a dot or a section to jump straight there.</p><p>On a phone or tablet, just swipe up anywhere: each swipe plays the next section through and rests at its end. Swipe down to go back.</p><p>At the end of a story, keep going: the screen goes dark for a moment and the next story begins. Open the editor any time to get back to your own story.</p>` },
   { t:'Handy to know', v:'keys',
     b:`<ul>
       <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo. The buttons are under Export.</span></li>
@@ -3227,7 +3238,7 @@ $('tab-story').addEventListener('click', () => { picking = null; showTab('story'
 function placeControls() {
   const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
   const inHead = [$('arc-open'), document.querySelector('.hist')];
-  const inStory = [$('feed-open'), $('views'), $('preset'), $('remix').parentElement, $('pageset')];
+  const inStory = [$('views'), $('preset'), $('remix').parentElement, $('pageset')];
   (phone ? [...inStory.slice(0, 1), inHead[0], ...inStory.slice(1), inHead[1]] : inStory).forEach(n => pane.appendChild(n));
   if (!phone) inHead.forEach(n => head.appendChild(n));
   $('pageset').open = !phone; // on a computer the Story tab shows the page settings straight away
@@ -3281,7 +3292,7 @@ function trackViews() {
   if ((feedTick = (feedTick + 1) % 8) === 0) lsSet(VIEWS_KEY, JSON.stringify(VIEWS)); // saved every couple of seconds
 }
 // a block of sections, tagged with the story they belong to
-function tagged(sections, story) { return sections.map((x, k) => { const c = clone(x); c.id = uid(); c.story = { title:story, k, of:sections.length }; return c; }); }
+function tagged(sections, story, bid = uid()) { return sections.map((x, k) => { const c = clone(x); c.id = uid(); c.story = { title:story, k, of:sections.length, bid }; return c; }); }
 /* The story break card: unlike any section. It arrives sideways, shows the next
    story's first images fanned like a hand of cards with a running "Next story" band,
    and its top card grows into that story's opening. */
@@ -3323,7 +3334,7 @@ function nextBlock() {
   F.since++; F.lastWasSale = false;
   const block = tagged(story, title);
   F.count = (F.count || 1) + (S.sections.length ? 1 : 0);
-  if (S.sections.length) { const card = tagged([upNext(block, title, F.count)], title)[0]; card.story = { title, k:-1, of:block.length }; block[0].motion = 'glide'; block.unshift(card); }
+  if (S.sections.length) { const card = tagged([upNext(block, title, F.count)], title)[0]; card.story = { title, k:-1, of:block.length, bid:block[0].story.bid }; block[0].motion = 'glide'; block.unshift(card); }
   return block;
 }
 function extendFeed() {
@@ -3369,21 +3380,30 @@ function startFeed(fromHere) {
   feedHud(fromHere ? curI : 0);
   feedLastT = 0; clearInterval(FEED.timer); FEED.timer = setInterval(trackViews, 250);
 }
-function exitFeed() {
+// back to your own story: at the section you were on if you were still in it, otherwise its last section
+function backToOwnStory() {
+  if (!FEED) return;
+  const ownBid = bidOf(0), cur = S.sections[curI];
+  const k = cur && cur.story && cur.story.bid === ownBid ? cur.story.k : JSON.parse(FEED.saved).sections.length - 1;
+  exitFeed(Math.max(0, k));
+}
+function exitFeed(landAt) {
   if (!FEED) return;
   clearInterval(FEED.timer); lsSet(VIEWS_KEY, JSON.stringify(VIEWS));
   const saved = FEED.saved, wasOpen = FEED.wasOpen; FEED = null;
   document.body.classList.remove('feed'); S = normalize(JSON.parse(saved)); sel = S.sections[0] && S.sections[0].id;
-  render(); scrollTo(0, 0); ys = 0; update(); togglePanel(wasOpen); renderViews();
+  render();
+  if (landAt != null) { measure(); scrollTo({ top:restOf(landAt), behavior:'instant' }); ys = scrollY; update(); sel = (S.sections[landAt] || {}).id || sel; renderList(); }
+  else { scrollTo(0, 0); ys = 0; update(); togglePanel(wasOpen); }
+  renderViews();
 }
 function renderViews() {
   const top = Object.entries(VIEWS).filter(([, v]) => v.ms > 400).sort((a, b) => b[1].ms - a[1].ms).slice(0, 5);
   $('views').replaceChildren(top.length
-    ? h('div', {}, 'Most viewed in the feed (this browser only):', h('ol', {}, top.map(([n, v]) => h('li', {}, `${n} · ${Math.round(v.ms / 1000)}s`))),
+    ? h('div', {}, 'Most viewed while scrolling on (this browser only):', h('ol', {}, top.map(([n, v]) => h('li', {}, `${n} · ${Math.round(v.ms / 1000)}s`))),
         h('button', { class:'linkbtn', onclick:() => { if (!confirm('Clear the viewing data?')) return; VIEWS = {}; lsSet(VIEWS_KEY, '{}'); renderViews(); } }, 'Clear viewing data'))
-    : 'Viewing time per product is recorded while the feed plays, in this browser only.');
+    : 'When a viewer scrolls past the end of a story, it carries on into others, with a sale page after every three built from what they lingered on. Viewing time per product is kept in this browser only.');
 }
-$('feed-open').addEventListener('click', startFeed);
 $('fexit').addEventListener('click', exitFeed);
 renderViews();
 
