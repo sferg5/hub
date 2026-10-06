@@ -195,6 +195,12 @@
     <div class="ctl"><label for="d-slow">Slow-mo speed <span class="val" id="v-slow"></span></label><input type="range" id="d-slow" min="10" max="100" step="5"></div>
   </details>
   <details class="grp">
+    <summary>Scenes</summary>
+    <p class="note">Each whip lands in a new place: forest, pilates studio, farmers market, home. The scenes are painted, not photos, and they light the product too.</p>
+    <div class="row"><label class="chk"><input type="checkbox" id="d-envs"> Change scene after each whip</label></div>
+    <div class="ctl"><label for="d-bgblur">Scene blur <span class="val" id="v-bgblur"></span></label><input type="range" id="d-bgblur" min="0" max="100" step="1"></div>
+  </details>
+  <details class="grp">
     <summary>Film</summary>
     <div class="ctl"><label for="d-blur">Motion blur <span class="val" id="v-blur"></span></label><input type="range" id="d-blur" min="0" max="300" step="5"></div>
     <div class="ctl"><label for="d-grain">Grain <span class="val" id="v-grain"></span></label><input type="range" id="d-grain" min="0" max="100" step="1"></div>
@@ -250,7 +256,7 @@ const wrap180 = d=>((d%360)+540)%360-180;
 
 /* ------------------------------------------------------------------ dials */
 const KEY='clipanywhere.dials.v4', PKEY='clipanywhere.points.v1';
-const DEF={whip:1.05, sharp:4.4, pull:22, kick:8, snap:40, roll:3, hold:4.2, drift:12, slow:25, spin:360, spinDur:1.4, blur:150, grain:0, bag:'#1a1b1d', vest:'black', turn:0, mode:'tour'};
+const DEF={whip:1.05, sharp:4.4, pull:22, kick:8, snap:40, roll:3, hold:4.2, drift:12, slow:25, spin:360, spinDur:1.4, blur:150, grain:0, envs:true, bgblur:10, bag:'#1a1b1d', vest:'black', turn:0, mode:'tour'};
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let D={...DEF};
 let stored=null;
@@ -261,13 +267,13 @@ const saveDials=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(D)); }catch(e
 
 const FMT={
   whip:v=>v.toFixed(2)+' s', sharp:v=>v.toFixed(1)+'×', pull:v=>v+' cm', kick:v=>v+'°', snap:v=>v+'%', roll:v=>v+'°', spin:v=>v+'°', spinDur:v=>v.toFixed(2)+' s',
-  hold:v=>v.toFixed(1)+' s', drift:v=>v+'°', slow:v=>v+'%', blur:v=>v+'%', grain:v=>v, turn:v=>v+'°'
+  hold:v=>v.toFixed(1)+' s', drift:v=>v+'°', slow:v=>v+'%', blur:v=>v+'%', grain:v=>v, turn:v=>v+'°', bgblur:v=>v+'%'
 };
 function bindDials(){
   for(const k of Object.keys(FMT)){
     const el=$('d-'+k), out=$('v-'+k); if(!el) continue;
     el.value=D[k]; out.textContent=FMT[k](+D[k]);
-    el.addEventListener('input',()=>{ D[k]=+el.value; out.textContent=FMT[k](D[k]); saveDials(); if(k==='turn') applyTurn(); });
+    el.addEventListener('input',()=>{ D[k]=+el.value; out.textContent=FMT[k](D[k]); saveDials(); if(k==='turn') applyTurn(); if(k==='bgblur') applyEnv(curEnv); });
   }
 }
 
@@ -303,8 +309,78 @@ function studioEnv(){
   panel(6,2,0.9,[0,-2.6,2]);
   return pmrem.fromScene(s,0.02).texture;
 }
-scene.environment=studioEnv();
+const STUDIO=studioEnv();
+scene.environment=STUDIO;
 scene.environmentIntensity=0.55;
+
+// ---- painted places ----
+// Equirectangular panoramas drawn on a canvas, then softened, so they read like a shallow-focus
+// backdrop behind a sharp product. Eye level is the middle row; the camera looks slightly down, so
+// most of what shows is the band just below it.
+const ENV_CACHE={};
+function envTexture(draw){
+  const W=1024,H=512, c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g0=c.getContext('2d'); g0.save(); g0.translate(0,70); draw(g0,W,H); g0.restore();
+  const c2=document.createElement('canvas'); c2.width=W; c2.height=H; const g=c2.getContext('2d');
+  g.filter='blur(2px)'; for(const dx of [-W,0,W]) g.drawImage(c,dx,0); // the seam wraps
+  const t=new THREE.CanvasTexture(c2); t.mapping=THREE.EquirectangularReflectionMapping; t.colorSpace=THREE.SRGBColorSpace; return t;
+}
+let envSeed=1; const rnd=()=>{ envSeed=(envSeed*48271)%2147483647; return envSeed/2147483647; };
+const vgrad=(g,W,y0,y1,c0,c1)=>{ const gr=g.createLinearGradient(0,y0,0,y1); gr.addColorStop(0,c0); gr.addColorStop(1,c1); g.fillStyle=gr; g.fillRect(0,y0,W,y1-y0); };
+const blob=(g,x,y,rx,ry,col)=>{ g.fillStyle=col; g.beginPath(); g.ellipse(x,y,rx,ry,0,0,6.3); g.fill(); };
+const glow=(g,x,y,r,col,a)=>{ const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,col.replace(')',`,${a})`).replace('rgb(','rgba(')); gr.addColorStop(1,col.replace(')',',0)').replace('rgb(','rgba(')); g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r); };
+const PLACES={
+  forest(g,W,H){ envSeed=11;
+    g.fillStyle='#d7e7cc'; g.fillRect(0,-80,W,80); vgrad(g,W,0,250,'#d7e7cc','#eef3e0'); vgrad(g,W,250,H,'#a9b98a','#4e5a3c');
+    for(let k=0;k<26;k++) blob(g,rnd()*W,130+rnd()*120,70+rnd()*90,40+rnd()*50,'#bcd1a6');
+    for(let k=0;k<30;k++) blob(g,rnd()*W,60+rnd()*170,50+rnd()*90,35+rnd()*55,rnd()>.5?'#7fa36a':'#5f8a4d');
+    for(let k=0;k<16;k++){ const x=rnd()*W,w=10+rnd()*18; g.fillStyle=rnd()>.5?'#5a4a3a':'#7a6652'; g.fillRect(x,110+rnd()*40,w,230); }
+    for(let k=0;k<12;k++) blob(g,rnd()*W,300+rnd()*60,60+rnd()*80,14+rnd()*12,'#8fa56b');
+    glow(g,300,110,260,'rgb(255,250,225)',.9);
+    g.fillStyle='rgba(255,255,255,.12)'; for(let k=0;k<5;k++){ const x=150+k*180; g.beginPath(); g.moveTo(x,0); g.lineTo(x+60,0); g.lineTo(x+170,330); g.lineTo(x+90,330); g.fill(); }
+  },
+  pilates(g,W,H){ envSeed=23;
+    g.fillStyle='#f3f1ec'; g.fillRect(0,-80,W,80); vgrad(g,W,0,270,'#f3f1ec','#ebe8e1'); vgrad(g,W,270,H,'#dccbae','#b3966e');
+    g.strokeStyle='rgba(60,40,20,.14)'; g.lineWidth=2; for(let x=0;x<W;x+=38){ g.beginPath(); g.moveTo(x,270); g.lineTo(x,H); g.stroke(); }
+    g.fillStyle='#e3e7ea'; g.fillRect(850,70,260,210); g.fillStyle='#d9dde0'; g.fillRect(-60,70,150,210); // mirror wall, wrapping
+    for(const x of [130,370,610]){ const gr=g.createLinearGradient(0,80,0,280); gr.addColorStop(0,'#e4f0fb'); gr.addColorStop(1,'#f7fbff'); g.fillStyle=gr; g.fillRect(x,80,180,200);
+      g.strokeStyle='#cfcfcb'; g.lineWidth=5; g.strokeRect(x,80,180,200); g.beginPath(); g.moveTo(x+90,80); g.lineTo(x+90,280); g.moveTo(x,180); g.lineTo(x+180,180); g.stroke(); }
+    g.fillStyle='#6b6e73'; g.fillRect(420,272,300,26); g.fillStyle='#c7ccd0'; g.fillRect(440,266,250,10); g.fillStyle='#4a4c50'; g.fillRect(430,298,14,30); g.fillRect(700,298,14,30);
+    blob(g,70,230,40,55,'#6f9a62'); blob(g,95,205,28,34,'#88b07a'); g.fillStyle='#b9b2a4'; g.fillRect(55,280,32,40);
+    for(const x of [250,480,720]) blob(g,x,340,110,10,'rgba(0,0,0,.08)');
+  },
+  market(g,W,H){ envSeed=37;
+    g.fillStyle='#dfe9f2'; g.fillRect(0,-80,W,80); vgrad(g,W,0,250,'#dfe9f2','#f2f3f1'); vgrad(g,W,250,H,'#d3cec6','#a09a91');
+    const stripes=[['#ffffff','#d9534f'],['#ffffff','#5b8c5a'],['#ffffff','#e0a84a'],['#ffffff','#4f7fb3']];
+    for(let k=0;k<4;k++){ const x0=k*256+20, st=stripes[k]; for(let i=0;i<11;i++){ g.fillStyle=st[i%2]; g.beginPath(); g.moveTo(x0+i*20,150); g.lineTo(x0+i*20+20,150); g.lineTo(x0+i*20+26,205); g.lineTo(x0+i*20+6,205); g.fill(); } g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x0,205,230,6); }
+    g.fillStyle='#a98c6a'; for(let k=0;k<4;k++) g.fillRect(k*256+30,250,210,46);
+    const produce=['#e5533a','#e9a63a','#7fb069','#f2d16b','#8e4585','#c23b22','#f0b35b'];
+    for(let k=0;k<4;k++) for(let i=0;i<4;i++){ const x=k*256+40+i*50; g.fillStyle='#8c6b4b'; g.fillRect(x,224,44,28); for(let q=0;q<7;q++) blob(g,x+6+rnd()*32,230+rnd()*14,6,5,produce[(k*4+i+q)%produce.length]); }
+    for(let k=0;k<9;k++) blob(g,rnd()*W,275,16+rnd()*8,46,'rgba(50,50,58,.28)');
+    for(let k=0;k<4;k++) blob(g,k*256+135,340,120,12,'rgba(0,0,0,.08)');
+  },
+  home(g,W,H){ envSeed=53;
+    g.fillStyle='#f0e8dc'; g.fillRect(0,-80,W,80); vgrad(g,W,0,280,'#f0e8dc','#e6dccd'); vgrad(g,W,280,H,'#cfab80','#9b7752');
+    g.strokeStyle='rgba(60,35,10,.12)'; g.lineWidth=2; for(let x=0;x<W;x+=54){ g.beginPath(); g.moveTo(x,280); g.lineTo(x,H); g.stroke(); }
+    const gr=g.createLinearGradient(0,70,0,275); gr.addColorStop(0,'#f8fbff'); gr.addColorStop(1,'#e2eefb'); g.fillStyle=gr; g.fillRect(580,70,250,205);
+    g.strokeStyle='#ddd6cc'; g.lineWidth=6; g.strokeRect(580,70,250,205); g.beginPath(); g.moveTo(705,70); g.lineTo(705,275); g.stroke();
+    glow(g,705,200,260,'rgb(255,248,235)',.5);
+    g.fillStyle='#b5705a'; g.fillRect(150,232,330,78); g.fillStyle='#c98b73'; g.fillRect(165,205,300,34); g.fillRect(160,238,150,40); g.fillRect(320,238,150,40);
+    blob(g,315,345,220,22,'rgba(216,198,176,.7)');
+    blob(g,520,250,30,42,'#6d9960'); blob(g,540,222,22,28,'#86b077'); g.fillStyle='#c9bfb0'; g.fillRect(505,290,30,34);
+    glow(g,930,175,130,'rgb(255,217,160)',.75); g.fillStyle='#3a3530'; g.fillRect(926,195,6,110); blob(g,929,180,36,22,'#f4e6cd');
+    g.fillStyle='#4a4038'; g.fillRect(860,150,150,6); for(const [x,c] of [[875,'#9ab0a0'],[905,'#d9a066'],[935,'#f1ece2'],[975,'#5b6f8f']]){ g.fillStyle=c; g.fillRect(x,122,16,28); }
+  }
+};
+let curEnv='white';
+function applyEnv(name){
+  curEnv=name;
+  const on=D.envs!==false && name && name!=='white' && PLACES[name];
+  if(!on){ scene.background=WALL; scene.environment=STUDIO; scene.environmentIntensity=0.55; scene.backgroundBlurriness=0; floor.material.opacity=.13; return; }
+  const t=ENV_CACHE[name]||(ENV_CACHE[name]=envTexture(PLACES[name]));
+  scene.background=t; scene.environment=t; scene.environmentIntensity=0.75;
+  scene.backgroundBlurriness=(D.bgblur??10)/100*0.5; floor.material.opacity=.1;
+}
 
 const cam=new THREE.PerspectiveCamera(30,1,0.02,40);
 
@@ -458,30 +534,44 @@ function wordmarkTex(color){
 const vestProc=new THREE.Group();
 M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,sheenColor:0xffd2a8});
 {
-  // Modelled on the lululemon run vest: a cropped body whose two front panels nearly meet, deep
-  // armholes, wide shoulder straps, stacked pockets, and three orange bungees closing the front.
+  // Modelled on the lululemon run vest. One continuous pattern: each front panel rises into its
+  // shoulder strap, goes over the shoulder and comes down into the back. The armholes are cut out of
+  // that pattern and bound, so nothing lies on top of anything else.
   const thIn=y=>(13+7*sstep(0.12,0.27,y)); // inner front edge, degrees from centre front; leans out into a V at the neck
-  const topAt=a=>a<36?0.27 : a<82?lerp(0.27,0.045,sstep(36,82,a)) : a<100?0.045 : a<142?lerp(0.045,0.262,sstep(100,142,a)) : lerp(0.262,0.238,sstep(142,180,a));
   const botAt=a=>lerp(-0.075,-0.13,sstep(13,34,a));
-  const bodyFn=(u,v)=>{
-    const a0=13+u*334, a=a0<=180?a0:360-a0;
-    const y=lerp(botAt(a),topAt(a),v), ti=thIn(y);
-    return surf((ti+u*(360-2*ti))*DEG,y,0);
+  // the outer edge: neckline, up over the shoulder, down to the back neckline
+  const T=a=>a<=97 ? 0.27+0.04*sstep(28,97,a) : 0.31-0.058*sstep(97,145,a)-0.008*sstep(145,180,a);
+  // the armhole: from a front tip at 40° to a back tip at 138°, the strap above it, the body below
+  const AF=40, AB=138, bell=a=>Math.pow(Math.sin(Math.PI*(a-AF)/(AB-AF)),0.8);
+  const tip=a=>T(a)-0.03;
+  const armBot=a=>lerp(lerp(tip(AF),tip(AB),(a-AF)/(AB-AF)),0.045,bell(a));
+  const armTop=a=>T(a)-0.03-0.032*bell(a);
+  // Pieces that share their edges exactly, so they read as one garment with seams: front panel,
+  // under-arm, back and the strap over the shoulder.
+  const piece=(a0,a1,y0,y1,sd,nu,nv)=>{
+    const fn=(u,v)=>{
+      let a=lerp(a0,a1,u);
+      const y=lerp(y0(a),y1(a),v);
+      if(a0<=13) a=lerp(thIn(y),a1,u); // front panel's inner edge is the V
+      return surf(sd*a*DEG,y,0);
+    };
+    const g=slab(fn,nu,nv,0.004,0.008,[(a1-a0)/5,22]);
+    vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.0032));
+    return g;
   };
-  const bodyG=slab(bodyFn,170,46,0.004,0.008,[70,22]);
-  vestProc.add(new THREE.Mesh(bodyG,M.strap),pipe(bodyG,0.0032));
-
-  // shoulder straps, wide, front to back over the top
-  const SH=[[22,.25],[40,.272],[66,.288],[97,.296],[125,.282],[150,.255]];
-  const shw=u=>lerp(0.064,0.056,u);
   for(const sd of [1,-1]){
-    const g=ribbon(SH.map(([t,y])=>[t*sd,y]),shw,0.010,0.0045);
-    vestProc.add(new THREE.Mesh(g,M.strap),pipe(g,0.0022));
-    for(const [t,y] of [[38,.27],[56,.282]]){ // webbing loops across the strap
-      const f=frameAt(t*sd,y,0.02);
-      const band=new THREE.Mesh(new RoundedBoxGeometry(0.058,0.008,0.003,1,0.001),M.trim); vestProc.add(place(band,f));
+    piece(13,AF,botAt,T,sd,30,40);          // front panel, up into the strap
+    piece(AF,AB,botAt,armBot,sd,70,24);     // under the arm
+    piece(AF,AB,armTop,T,sd,70,8);          // the strap over the shoulder
+    for(const a of [50,66]){ // webbing loops across the strap
+      const f=frameAt(a*sd,(armTop(a)+T(a))/2,0.0135);
+      const band=new THREE.Mesh(new RoundedBoxGeometry(0.052,0.008,0.003,1,0.001),M.trim); vestProc.add(place(band,f));
     }
   }
+  piece(AB,360-AB,botAt,T,1,90,40);         // the back
+  // inside the back neck: the label you see through the front opening
+  { const f=frameAt(180,0.2,-0.001); const lab=new THREE.Mesh(new RoundedBoxGeometry(0.03,0.012,0.0012,1,0.0015),M.trim); lab.rotation.y=Math.PI; vestProc.add(place(lab,f));
+    const w=new THREE.Mesh(new THREE.PlaneGeometry(0.024,0.0045),new THREE.MeshStandardMaterial({map:wordmarkTex('#f2f2f2'),transparent:true,roughness:.8,depthWrite:false})); w.rotation.y=Math.PI; w.position.z=-0.0009; vestProc.add(place(w,f)); }
 
   // pockets: pillowed patches on the front panels. Upper is gathered mesh, lower is smooth stretch.
   const pocket=(sd,a0,a1,y0f,y1,puff,gather,mat,prof=0.6)=>{
@@ -510,7 +600,7 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   // front closure: three orange double cords with black hooks
   for(const y of [0.152,0.018,-0.066]){
     const ti=thIn(y)+2.5;
-    const A=surf(ti*DEG,y,0.021).p, B=surf(-ti*DEG,y,0.021).p;
+    const A=surf(ti*DEG,y,0.0155).p, B=surf(-ti*DEG,y,0.0155).p;
     for(const dy of [-0.0034,0.0034]){
       const a=A.clone().add(new V3(0,dy,0)), b=B.clone().add(new V3(0,dy,0));
       const mid=a.clone().lerp(b,0.5).add(new V3(0,-0.002,0.007));
@@ -539,7 +629,7 @@ M.cord=new THREE.MeshPhysicalMaterial({color:0xe8772a,roughness:.42,sheen:.6,she
   vestProc.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bp,false,'catmullrom',0.08),120,0.0022,8),M.cord));
   const lock=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.016,12),M.trim); lock.position.copy(surf(203*DEG,0.068,0.026).p); vestProc.add(lock);
   // reflective wordmark on the yoke
-  const rf=frameAt(180,0.222,0.014);
+  const rf=frameAt(180,0.218,0.0125);
   const mark=new THREE.Mesh(new THREE.PlaneGeometry(0.06,0.0112),new THREE.MeshStandardMaterial({map:wordmarkTex('#b9bcc0'),transparent:true,roughness:.3,metalness:.5,depthWrite:false}));
   vestProc.add(place(mark,rf));
 }
@@ -550,11 +640,11 @@ shadowy(vestProc);
 // Copy is placeholder until the product team signs off on names and claims.
 const SHOTS=[
   {key:'packed', short:'Packed',     name:'Packed down',              line:'Rolls down small and rides along until you need it.'},
-  {key:'chest',  short:'Chest',      name:'Stowed on the chest strap',line:'Rolled small and clipped up front, ready to grab.',   th:26,  y:0.235, off:0.045, az:20,  el:12},
-  {key:'side',   short:'Side',       name:'Stowed on the side',       line:'Low on the side, clear of your arm swing.',          th:97,  y:0.04,  off:0.02,  az:16,  el:5},
-  {key:'low',    short:'Front low',  name:'Stowed low on the front',  line:'Close to the body, where it doesn’t bounce.',        th:-40, y:0.1,   off:0.045, az:-20, el:7},
-  {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:0.9},
-  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', th:180, y:0.235, off:0.03, az:-18, el:15, open:true, wideAt:0.3},
+  {key:'chest',  short:'Chest',      name:'Stowed on the chest strap',line:'Rolled small and clipped up front, ready to grab.',   env:'forest',  th:26,  y:0.235, off:0.045, az:20,  el:12},
+  {key:'side',   short:'Side',       name:'Stowed on the side',       line:'Low on the side, clear of your arm swing.',          env:'pilates', th:97,  y:0.04,  off:0.02,  az:16,  el:5},
+  {key:'low',    short:'Front low',  name:'Stowed low on the front',  line:'Close to the body, where it doesn’t bounce.',        env:'market',  th:-40, y:0.1,   off:0.045, az:-20, el:7},
+  {key:'pouch',  short:'Rear pouch', name:'Tucked in the rear pouch', line:'Slides into the back pocket and out of the way.',    env:'home',    th:180, y:0.062, off:0.004, az:16,  el:10, pouch:true, dist:0.9},
+  {key:'back',   short:'Back',       name:'Opened on the back',       line:'Clips on between the shoulders and unrolls to full size.', env:'home', th:180, y:0.235, off:0.03, az:-18, el:15, open:true, wideAt:0.3},
 ];
 const NS=SHOTS.length;
 
@@ -837,6 +927,7 @@ const drag={active:false, az:0, el:0, vAz:0, vEl:0, x:0, y:0, moved:0};
 
 function startWhip(j,force){
   if(!force && j===displayed() && S.phase==='hold') return;
+  S.envSwapped=false;
   S.from=displayed(); S.fromPose=curPose; S.to=j; S.toPose=shotPose(j,0);
   S.c0=bagCollapse; S.phase='whip'; S.t=0;
   sfx.whoosh(D.whip,Math.sign(wrap180(S.toPose.az-S.fromPose.az))||1);
@@ -1005,6 +1096,8 @@ $('copyPts').addEventListener('click',async()=>{
 });
 $('resetPts').addEventListener('click',()=>{ edited={}; try{ localStorage.removeItem(PKEY); }catch(e){} buildAnchors(); status('Clip points are back to the stand-in positions.'); });
 $('d-form').addEventListener('change',e=>{ form.visible=e.target.checked; });
+$('d-envs').checked=D.envs!==false;
+$('d-envs').addEventListener('change',e=>{ D.envs=e.target.checked; saveDials(); applyEnv(curEnv); });
 $('d-readout').addEventListener('change',e=>{ document.body.classList.toggle('showReadout',e.target.checked); });
 
 /* ------------------------------------------------------------------ scans */
@@ -1100,6 +1193,7 @@ function frame(now){
     const u=clamp(S.t/D.whip,0,1), sp=rampSpeed(u,D.sharp);
     curPose=whipPose(S.fromPose,S.toPose,whipS(u));
     rate=lerp(slow,4,sp); flash=Math.pow(sp,3)*0.2;
+    if(!S.envSwapped && u>=0.5){ S.envSwapped=true; applyEnv(SHOTS[S.to].env||'white'); }
     if(u>=1){ S.phase='hold'; S.i=S.to; S.t=0; S.orbitOff=0; S.snapped=false; S.spun=false; shake=1; holdSceneStart=sceneT; sfx.thump(); }
   }
   sceneT+=dt*rate;
@@ -1191,5 +1285,6 @@ curPose=shotPose(0,0);
 setCaption(0);
 setPlaying(true);
 setMode(D.mode,false);
+applyEnv(SHOTS[S.i].env||'white');
 requestAnimationFrame(frame);
 </script>
