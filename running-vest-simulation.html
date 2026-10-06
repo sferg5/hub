@@ -911,16 +911,29 @@ let distScale=1;
 addEventListener('resize',resize);
 
 /* ------------------------------------------------------------------ camera choreography */
+// The wide framing is measured, not guessed: the bounds of the vest plus wherever the pack is right
+// now, smoothed so sway doesn't jitter the camera. The product is centred in the clear band above
+// the caption, whatever its height, and the distance fits it with air around it.
+const fitBox=new THREE.Box3(), fitC=new V3(), fitS=new V3(); let fitInit=false;
+function frameFit(){
+  fitBox.setFromObject(vestRoot); if(bag.visible) fitBox.expandByObject(bag);
+  const c=fitBox.getCenter(new V3()), sz=fitBox.getSize(new V3());
+  if(!fitInit){ fitC.copy(c); fitS.copy(sz); fitInit=true; } else { fitC.lerp(c,0.06); fitS.lerp(sz,0.06); }
+  const Hf=Math.max(fitS.y/1.15, Math.hypot(fitS.x,fitS.z)/(cam.aspect*1.7)); // fits height, or width on a narrow screen
+  const dist=Hf/Math.tan(15*DEG)*1.3, H=dist*Math.tan(15*DEG);
+  return {t:fitC.clone().add(new V3(0,-0.225*H,0)), dist};
+}
 function shotPose(i,h){
-  if(i===0) return {t:new V3(0.14,-0.07,0.05), az:-28+D.drift*(h-0.5), el:7, dist:2.05*(1-0.05*h)*distScale, fov:30, roll:0};
+  const wide=frameFit();
+  if(i===0) return {t:wide.t, az:-28+D.drift*(h-0.5), el:7, dist:wide.dist*(1-0.05*h), fov:30, roll:0};
   // Two beats per stop: land tight on the clip point while the pack snaps on, then a slow pull-out
   // until the whole vest is in frame, so the next whip starts from the full product.
   const s=SHOTS[i], a=anchors[i];
   const w=sstep(s.wideAt??0.42,1,h);
-  const tight=a.p.clone().addScaledVector(a.n,0.03).addScaledVector(a.up,-0.07);
-  const t=tight.lerp(new V3(0,-0.09,0),w);
+  const tight=a.p.clone().addScaledVector(a.n,0.03).addScaledVector(a.up,-0.08);
+  const t=tight.lerp(wide.t,w);
   const baseAz=Math.atan2(a.n.x,a.n.z)/DEG+s.az;
-  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:lerp(s.el,s.el+3,w), dist:lerp(0.7*(s.dist||1),2.0,w)*distScale, fov:30, roll:0};
+  return {t, az:baseAz+Math.sign(s.az)*D.drift*0.7*(h-0.5), el:lerp(s.el,s.el+3,w), dist:lerp(0.7*(s.dist||1)*distScale,wide.dist,w), fov:30, roll:0};
 }
 const ramp=(u,k)=>u<.5?.5*Math.pow(2*u,k):1-.5*Math.pow(2-2*u,k);
 const rampSpeed=(u,k)=>Math.pow(u<.5?2*u:2-2*u,k-1); // 0..1, peaks mid-move
@@ -1318,6 +1331,7 @@ function frame(now){
 bindDials();
 buildAnchors();
 resize();
+setCollapse(1); bagFloat(0); vestRoot.updateMatrixWorld(true); bag.updateMatrixWorld(true);
 curPose=shotPose(0,0);
 setCaption(0);
 setPlaying(true);

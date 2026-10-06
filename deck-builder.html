@@ -690,7 +690,7 @@ body.idle .vctl{opacity:0;pointer-events:none}
     </div>
     <select id="preset" aria-label="Load a deck">
       <option value="">Start from a deck</option>
-      <option value="wip">Work in Progress · office installation (11 slides)</option>
+      <option value="wip">UX Showcase · office installation (11 slides)</option>
       <option value="pitch">Pitch · idea to ask (8 slides)</option>
       <option value="text">Text slides · every text-first template (11)</option>
       <option value="product">Product story · Align (8 slides)</option>
@@ -1098,12 +1098,12 @@ const PRESETS = {
   wip: () => {
     const im = n => 'b:story-library/wip/' + n + '.jpg';
     return [
-      make({ beat:'hook', name:'Work in Progress', hold:'push', media:{ kind:'image', layout:'full', items:[im('room')] }, overlay:46,
+      make({ beat:'hook', name:'UX Showcase', hold:'push', media:{ kind:'image', layout:'full', items:[im('room')] }, overlay:46,
         text:{ x:'left', y:'bottom', size:'xl', width:'wide', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'Concept · Office installation',
-        headline:'Work in Progress', body:'A walk-up gallery for the UX we’re still building.',
+        headline:'UX Showcase', body:'A walk-up gallery for the UX we’re still building.',
         notes:'The ask in one line: give our in-development UX a permanent spot in the office where anyone can walk up and try it.' }),
       make({ beat:'build', name:'The idea', media:{ kind:'none' }, text:{ x:'left', y:'middle', size:'m', width:'wide', anim:'cascade' }, showEyebrow:true, eyebrow:'The idea',
-        headline:'Put the UX we’re building on the floor, where anyone walking by can try it.',
+        headline:'Put the UX where anyone walking by can try it.',
         feats:{ on:true, items:[{ t:'Make the work visible before it ships.', d:'' }, { t:'Get real reactions while they can still change it.', d:'' }, { t:'Show the office what the team is making.', d:'' }] },
         notes:'Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.' }),
       make({ beat:'proof', name:'The room', hold:'push', overlay:44, media:{ kind:'image', layout:'full', items:[im('room-empty')] },
@@ -1176,7 +1176,7 @@ const PRESETS = {
   blank: () => [make(STARTERS.title.o)],
 };
 /* the deck-level look a preset asks for */
-const PRESET_LOOK = { wip:{ theme:'dark', accent:'#B8B46A', title:'Work in Progress' }, pitch:{ theme:'light', accent:'', title:'[Deck title]' }, text:{ theme:'light', accent:'', title:'[Deck title]' }, product:{ theme:'light', accent:'', title:'Align' }, blank:{} };
+const PRESET_LOOK = { wip:{ theme:'dark', accent:'#B8B46A', title:'UX Showcase' }, pitch:{ theme:'light', accent:'', title:'[Deck title]' }, text:{ theme:'light', accent:'', title:'[Deck title]' }, product:{ theme:'light', accent:'', title:'Align' }, blank:{} };
 
 /* ---------- state ---------- */
 const KEY = 'deckBuilder.v1';
@@ -1254,7 +1254,7 @@ if (VIEW) {
   } catch (e) {}
 } else try { const raw = localStorage.getItem(KEY); if (raw) S = normalize(JSON.parse(raw)); } catch (e) {}
 if (!S) S = normalize({});
-if (!S.sections.length) { S.sections = PRESETS.wip(); Object.assign(S, PRESET_LOOK.wip); } // a first-time deck opens on Work in Progress
+if (!S.sections.length) { S.sections = PRESETS.wip(); Object.assign(S, PRESET_LOOK.wip); } // a first-time deck opens on UX Showcase
 sel = S.sections[0] && S.sections[0].id;
 
 const save = () => { if (VIEW) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }; // a view link never overwrites saved decks
@@ -1381,7 +1381,7 @@ const BUILTIN = [
     ['NA_SU26_SeasonalQ2_Paid_Affiliates_250x250_Golf.jpg', 'Vest portrait (thumbnail)', 250, 250, 'edit', 40],
     ['NA_SU26_SeasonalQ2_Paid_Affiliates_300x250_Golf.jpg', 'Chip shot (thumbnail)', 300, 250, 'edit', 45],
   ].map(([f, name, w, h, look, fy]) => ({ path:'story-library/golf/' + f, name, w, h, type: look === 'video' ? 'video' : 'image', look: look === 'video' ? 'edit' : look, fy }))],
-  ['Work in Progress', [
+  ['UX Showcase', [
     ['room', 'Installation · the room', 1280, 960, 50], ['room-empty', 'Installation · the room, empty', 1280, 960, 50],
     ['walkup', 'Installation · walk up', 806, 1022, 50], ['touch', 'Installation · touch', 704, 1024, 50],
     ['tryon', 'Station · try-on', 390, 312, 50], ['browse', 'Station · collection browser', 412, 360, 50], ['pdp', 'Station · product page', 412, 330, 50],
@@ -1522,7 +1522,7 @@ function renderLibrary() {
   drop.addEventListener('dragleave', () => drop.classList.remove('over'));
   drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); importFiles([...e.dataTransfer.files]); });
   kids.push(drop);
-  const order = ['Your uploads', 'Work in Progress', 'Golf', 'Video'];
+  const order = ['Your uploads', 'UX Showcase', 'Golf', 'Video'];
   const rank = g => order.includes(g) ? order.indexOf(g) : order.length;
   const groups = [...new Set(all.map(a => a.group))].sort((a, b) => rank(a) - rank(b));
   kids.push(seg([['all','All'],['image','Images'],['video','Video']], libFilter, v => { libFilter = v; renderLibrary(); }, 'Filter'));
@@ -2543,7 +2543,7 @@ const TEXT_STARTERS = {
 };
 const POOL = [
   ...SHOP_POOL().map((s, k) => ({ key:'sh' + k, src:'Product', s })),
-  ...PRESETS.wip().map((s, k) => ({ key:'wp' + k, src:'Work in Progress', s })),
+  ...PRESETS.wip().map((s, k) => ({ key:'wp' + k, src:'UX Showcase', s })),
   ...PRESETS.pitch().map((s, k) => ({ key:'pi' + k, src:'Pitch', s })),
   ...Object.entries(STARTERS).map(([k, v]) => ({ key:'st-' + k, src:'Blank layouts', s:make(v.o) })),
   ...Object.entries(TEXT_STARTERS).map(([k, o]) => ({ key:'tx-' + k, src:'Text-first', s:make(o) })),
@@ -2646,7 +2646,7 @@ function renderPool() {
   const kids = [h('div', { class:'pool-h' }, h('b', {}, 'Add a slide'),
       h('small', {}, after ? `Click to add after “${after.name}”, or drag a card into the slide order above.` : 'Click to add, or drag a card into the slide order above.')),
     filter];
-  ['Text-first', 'Blank layouts', 'Pitch', 'Work in Progress', 'Product'].forEach(src => {
+  ['Text-first', 'Blank layouts', 'Pitch', 'UX Showcase', 'Product'].forEach(src => {
     const items = POOL.filter(p => p.src === src && (poolBeat === 'all' || p.s.beat === poolBeat));
     if (!items.length) return;
     kids.push(h('h4', {}, src, h('small', {}, items.length)));
@@ -3456,7 +3456,7 @@ const HELP = [
   { t:'Any slide can become any layout', v:'edit',
     b:`<p>Every slide has the same parts, so you are never stuck in a template. Pick a <b>Layout</b>, place the words on a 3×3 grid, and choose how the slide moves in.</p><p>Turn on modules for the job: a big number, numbered points, a table, a quote, <b>tile captions</b> for A + B = C slides, hotspots, a product card. Add <b>speaker notes</b> under Copy.</p>` },
   { t:'Add slides from the pool', v:'pool',
-    b:`<p>Press <b>+ Add slide</b> for ready-made slides: text-first slides (lead paragraph, columns, agenda, takeaways, Q&amp;A, definition), blank layouts (title, divider, big number, three-up, steps, plan), a full pitch, the Work in Progress deck and product slides.</p><p>Click a card to add it after the slide you're on, or drag it into the exact spot in Slide order.</p>` },
+    b:`<p>Press <b>+ Add slide</b> for ready-made slides: text-first slides (lead paragraph, columns, agenda, takeaways, Q&amp;A, definition), blank layouts (title, divider, big number, three-up, steps, plan), a full pitch, the UX Showcase deck and product slides.</p><p>Click a card to add it after the slide you're on, or drag it into the exact spot in Slide order.</p>` },
   { t:'Drop in images and video', v:'drop',
     b:`<p>Open the <b>Library</b> tab and drag a photo or clip onto any frame on the slide. <b>Add files</b> brings in your own; they stay in this browser, and Story Builder sees them too.</p><p>An empty frame names the shot it's waiting for, so a draft deck doubles as a shot list.</p>` },
   { t:'Shape it with a narrative arc', v:'arc',

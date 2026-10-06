@@ -12,14 +12,14 @@
  "theme": "dark",
  "accent": "#B8B46A",
  "numbers": true,
- "title": "Work in Progress",
+ "title": "UX Showcase",
  "playSpeed": 1,
  "motionTime": 1.4,
  "transTime": 0.8,
  "sections": [
   {
    "id": "uqo7k4u",
-   "name": "Work in Progress",
+   "name": "UX Showcase",
    "feel": null,
    "beat": "hook",
    "motion": "glide",
@@ -53,7 +53,7 @@
    "overlay": 46,
    "eyebrow": "Concept · Office installation",
    "showEyebrow": true,
-   "headline": "Work in Progress",
+   "headline": "UX Showcase",
    "body": "A walk-up gallery for the UX we’re still building.",
    "notes": "The ask in one line: give our in-development UX a permanent spot in the office where anyone can walk up and try it.",
    "cta": {
@@ -316,7 +316,7 @@
    "overlay": 30,
    "eyebrow": "The idea",
    "showEyebrow": true,
-   "headline": "Put the UX we’re building on the floor, where anyone walking by can try it.",
+   "headline": "Put the UX where anyone walking by can try it.",
    "body": "",
    "notes": "Most in-development work only lives in Figma and review meetings. This puts it where people already walk past.",
    "cta": {
