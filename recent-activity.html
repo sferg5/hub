@@ -10,75 +10,33 @@
 @font-face{font-family:"Saans Bold";src:url(lululemon-saans-bold.woff2) format("woff2")}
 @font-face{font-family:"Saans Mono";src:url(saans-mono-regular.woff2) format("woff2")}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:#0E0E0D;overflow:hidden}
-#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center}
+html,body{height:100%;background:#0E0E0D;overflow:hidden;color:#F4F2EE;font-family:"Saans",Arial,sans-serif}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center;display:none}
 #stage section{width:1920px;height:1080px}
-a{text-underline-offset:4px}
-a:hover{opacity:.7}
-@media (max-aspect-ratio:1/1){html,body{overflow:auto}}
+a{text-underline-offset:4px} a:hover{opacity:.7}
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+#gate form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}
+#gate h1{font-family:"Saans Bold",Arial,sans-serif;font-weight:400;font-size:32px;letter-spacing:-.5px}
+#gate input{background:#0E0E0D;border:1px solid #3A3936;border-radius:10px;padding:12px 14px;color:#F4F2EE;font:16px "Saans",Arial,sans-serif;outline:none}
+#gate input:focus{border-color:#A9A59D}
+#gate button{background:#F4F2EE;color:#0E0E0D;border:0;border-radius:10px;padding:12px;font:16px "Saans Bold",Arial,sans-serif;cursor:pointer}
+#err{min-height:20px;font:14px "Saans Mono",monospace;color:#E8959B}
 </style>
 </head>
 <body>
-<div id="stage">
-<section id="update" style="box-sizing:border-box;background:#0E0E0D;color:#F4F2EE;font-family:'Saans', Arial, sans-serif;padding:80px 128px;display:flex;flex-direction:column;gap:64px">
-<div style="display:flex;justify-content:space-between;align-items:end">
-<h1 style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:88px;line-height:1.0;letter-spacing:-2px;color:#F4F2EE">Recent activity</h1>
-</div>
-<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:64px">
-<div style="display:flex;flex-direction:column;gap:24px">
-<p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#A9A59D;padding:0 0 20px;border-bottom:1px solid #3A3936">Projects</p>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Story Builder</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://hub-mospec.vercel.app/story-builder.html" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">New story page prototype and my main focus. Positive early feedback from the brand creative director.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Running Vest Visualizer</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://hub-mospec.vercel.app/running-vest-simulation.html" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">3D run vest showcase for Cal Chan.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">In-Office UX Showcase</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://claude.ai/artifact/RTkaSWRxTUjp47WNiXMnDK" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Office screens showing UX in development.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Membership</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://lululemon.protopie.cloud/p/c1286e51e52dc969a8dff972?ui=true&amp;scaleToFit=true&amp;enableHotspotHints=true&amp;cursorType=touch&amp;mockup=true" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Work-in-progress ProtoPie prototype update.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Deck Builder</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://hub-mospec.vercel.app/deck-builder.html" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Presentation tool built on Story Builder, for decks that tell a story.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px"><p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Pitch Builder</p><p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;color:#F4F2EE"><a target="_blank" rel="noopener" href="https://claude.ai/artifact/5aNjHTXcRDYKajnFjxg2yD" style="color:#F4F2EE">Open →</a></p></div>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Visual directions pitch for the running vest.</p>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:24px">
-<p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#A9A59D;padding:0 0 20px;border-bottom:1px solid #3A3936">AI tools</p>
-<div style="display:flex;flex-direction:column;gap:6px">
-<p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Claude Code</p>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Building prototypes in VS Code.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Obsidian</p>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Work log with automated daily briefings.</p>
-</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<p style="font-family:'Saans Bold', Arial, sans-serif;font-weight:400;font-size:32px;line-height:1.2;color:#F4F2EE">Copilot</p>
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Custom agent for Outlook and Teams.</p>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:24px">
-<p style="font-family:'Saans Mono', 'Courier New', monospace;font-size:24px;letter-spacing:3px;text-transform:uppercase;color:#A9A59D;padding:0 0 20px;border-bottom:1px solid #3A3936">To discuss</p>
-<div style="display:flex;flex-direction:column;gap:6px">
-<p style="font-size:26px;line-height:1.35;color:#C9C5BD">Next steps for the In-Office UX Showcase.</p>
-</div>
-</div>
-</div>
-</section>
-</div>
+<div id="gate"><form id="f"><h1>Recent activity</h1><input id="pw" type="password" placeholder="Password" autocomplete="current-password" autofocus><button>Open</button><div id="err" aria-live="polite"></div></form></div>
+<div id="stage"></div>
 <script>
-function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+s+')';}
-addEventListener('resize',fit);fit();
+var D={"s": "no0Z7AKLfnLURKBgKH45TQ==", "i": "W4zzTgaVbIR84QsbVlASeA==", "n": 250000, "c": "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"};
+function b64(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})}
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.transform='translate(-50%,-50%) scale('+s+')'}
+async function unlock(pw){var e=new TextEncoder(),k=await crypto.subtle.importKey('raw',e.encode(pw.trim().toLowerCase()),'PBKDF2',false,['deriveKey']);
+var key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(D.s),iterations:D.n,hash:'SHA-256'},k,{name:'AES-CBC',length:256},false,['decrypt']);
+var t=new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-CBC',iv:b64(D.i)},key,b64(D.c)));
+if(t.slice(0,3)!=='OK:')throw 0;
+var st=document.getElementById('stage');st.innerHTML=t.slice(3);st.style.display='block';document.getElementById('gate').remove();addEventListener('resize',fit);fit()}
+document.getElementById('f').onsubmit=function(ev){ev.preventDefault();var err=document.getElementById('err');err.textContent='';
+unlock(document.getElementById('pw').value).catch(function(){err.textContent='Incorrect password.'})};
 </script>
 </body>
 </html>
