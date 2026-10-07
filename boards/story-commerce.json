@@ -1,0 +1,543 @@
+{
+ "name": "Story Commerce",
+ "map": {
+  "v": 1,
+  "seed": 2,
+  "labels": [
+   {
+    "id": "thesis",
+    "name": "Thesis",
+    "color": "#a1a1aa"
+   },
+   {
+    "id": "era",
+    "name": "Era",
+    "color": "#60a5fa"
+   },
+   {
+    "id": "insight",
+    "name": "Insight",
+    "color": "#2dd4bf"
+   },
+   {
+    "id": "shopper",
+    "name": "Shopper",
+    "color": "#f472b6"
+   },
+   {
+    "id": "audience",
+    "name": "Audience",
+    "color": "#a78bfa"
+   },
+   {
+    "id": "format",
+    "name": "Format",
+    "color": "#22c55e"
+   },
+   {
+    "id": "tension",
+    "name": "Tension",
+    "color": "#f87171"
+   },
+   {
+    "id": "question",
+    "name": "Question",
+    "color": "#fb923c"
+   }
+  ],
+  "cards": [
+   {
+    "id": "sc001",
+    "x": -336,
+    "y": 0,
+    "title": "Shopping is becoming a show",
+    "notes": "The next shopping surface won't be a store, a search box or a chatbot. It'll be entertainment, and the story is what moves someone from feeling to buying.",
+    "label": "thesis",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc002",
+    "x": 0,
+    "y": -864,
+    "title": "How shopping moved",
+    "notes": "Three eras. Each one moved where persuasion happens.",
+    "label": "era",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc003",
+    "x": 336,
+    "y": -864,
+    "title": "Place · ~2006",
+    "notes": "You went to the store, physical or a website. You arrived with intent, and the brand controlled the room.",
+    "label": "era",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc004",
+    "x": 648,
+    "y": -864,
+    "title": "Feed · ~2014–2024",
+    "notes": "The store came to you. Instagram, TikTok and creators turned shopping into something that happens while you're doing something else. Brands lost the room.",
+    "label": "era",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc005",
+    "x": 960,
+    "y": -864,
+    "title": "Ambient · next",
+    "notes": "Shopping dissolves into entertainment. You're watching, not searching, and the purchase is a moment inside the experience.",
+    "label": "era",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc006",
+    "x": 0,
+    "y": -576,
+    "title": "Entertainment is the interface",
+    "notes": "Our position: AI changes shopping, but the long-term surface isn't someone typing to a chatbot.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc007",
+    "x": 336,
+    "y": -576,
+    "title": "Typing is friction",
+    "notes": "A chat box asks people to know what they want and put it into words. That's work, and work isn't fun. Instagram won because it asks nothing of you.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc008",
+    "x": 648,
+    "y": -576,
+    "title": "Desire is discovered, not described",
+    "notes": "Most wanting starts when you see something, not when you can articulate it. Stories create the want; a prompt can only answer it.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc009",
+    "x": 960,
+    "y": -576,
+    "title": "AI works backstage",
+    "notes": "Agents are the stagehands, not the host: sizing, personalisation, stock, checkout, sequencing the show. The audience never sees the rigging.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc010",
+    "x": 0,
+    "y": -288,
+    "title": "Some love shopping. Some hate it.",
+    "notes": "Shopping has always been two different activities sharing one word.",
+    "label": "shopper",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc011",
+    "x": 336,
+    "y": -288,
+    "title": "Ritual shoppers",
+    "notes": "Browsing is the point. Imagining a version of yourself, discovery, pleasure. Story deepens what they already enjoy.",
+    "label": "shopper",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc012",
+    "x": 648,
+    "y": -288,
+    "title": "Errand shoppers",
+    "notes": "Find it, buy it, leave. They skip browsing, but they'll still watch something good.",
+    "label": "shopper",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc013",
+    "x": 960,
+    "y": -288,
+    "title": "Story reaches both",
+    "notes": "A show doesn't feel like shopping. That makes it the rare format that serves people who love shopping and people who avoid it.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc014",
+    "x": 0,
+    "y": 0,
+    "title": "Every group owns a medium",
+    "notes": "Groups took over different media and made them their own.",
+    "label": "audience",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc015",
+    "x": 336,
+    "y": 0,
+    "title": "Gen Z",
+    "notes": "Creator-native. TikTok as search engine. Trusts lo-fi and peer voices over polish.",
+    "label": "audience",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc016",
+    "x": 648,
+    "y": 0,
+    "title": "Millennials",
+    "notes": "Built the aspirational Instagram look and the DTC brand. Responds to identity and aesthetic.",
+    "label": "audience",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc017",
+    "x": 960,
+    "y": 0,
+    "title": "Gen X & Boomers",
+    "notes": "Email, YouTube long-form, search. Lower tolerance for novelty, high tolerance for depth.",
+    "label": "audience",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc018",
+    "x": 1272,
+    "y": 0,
+    "title": "Geography rewrites the timeline",
+    "notes": "China's livestream commerce and super-apps (Douyin, Xiaohongshu) merged entertainment and checkout years ago. The West is catching up.",
+    "label": "audience",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc019",
+    "x": 1584,
+    "y": 0,
+    "title": "Vertical is the shared grammar",
+    "notes": "Across every age and region, the phone held upright is the common frame. It's the one format everyone already speaks.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc020",
+    "x": 0,
+    "y": 288,
+    "title": "The stage, not the feed",
+    "notes": "Our concept: a vertical story where the viewer's seat stays fixed and scenes are brought on and taken off.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc021",
+    "x": 336,
+    "y": 288,
+    "title": "Feed: camera over a bulletin board",
+    "notes": "The user roams a static page. Infinite, algorithmic, variable reward. It works like a slot machine.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc022",
+    "x": 648,
+    "y": 288,
+    "title": "Stage: the seat stays fixed",
+    "notes": "Content performs for the viewer. Authored, choreographed, composed at every scroll position.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc023",
+    "x": 960,
+    "y": 288,
+    "title": "Scroll is the projector crank",
+    "notes": "The viewer controls time, not space. Their input drives the show, so scrolling always does something.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc024",
+    "x": 1272,
+    "y": 288,
+    "title": "A show that ends",
+    "notes": "Finite on purpose. An ending gives the story weight and gives the purchase a natural place to land.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc025",
+    "x": 0,
+    "y": 576,
+    "title": "From feeling to buying",
+    "notes": "Emotion is the engine; a physical product is the outcome.",
+    "label": "thesis",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc026",
+    "x": 336,
+    "y": 576,
+    "title": "Hook · Build · Proof · Close",
+    "notes": "Act structure doing the job a sales funnel used to do. The Story Builder's four beats.",
+    "label": "format",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc027",
+    "x": 648,
+    "y": 576,
+    "title": "Story makes the brand the search",
+    "notes": "\"Find me running tights\" is a spec fight. \"Find me the tights from that run story\" is already won.",
+    "label": "insight",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc028",
+    "x": 960,
+    "y": 576,
+    "title": "Value without purchase",
+    "notes": "Best-in-class brand stories are worth watching even if you never buy. If ours only works as a sales device, people will feel it.",
+    "label": "tension",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc029",
+    "x": 1272,
+    "y": 576,
+    "title": "Where does the buy live?",
+    "notes": "Inside every scene, at an intermission, or at the curtain call? How do we sell without breaking the spell?",
+    "label": "question",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc030",
+    "x": 0,
+    "y": 864,
+    "title": "Questions for the room",
+    "notes": "What we want to pressure-test with creative leadership.",
+    "label": "question",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc031",
+    "x": 336,
+    "y": 864,
+    "title": "Luxury or friction?",
+    "notes": "In a world of infinite personalised feeds, is a finite, authored show a premium experience or an ask too far?",
+    "label": "question",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc032",
+    "x": 648,
+    "y": 864,
+    "title": "Episodes and seasons",
+    "notes": "Do stories become a series people return for, like a show, rather than one-off campaign pages?",
+    "label": "question",
+    "createdAt": 1791414173593
+   },
+   {
+    "id": "sc033",
+    "x": 960,
+    "y": 864,
+    "title": "Measuring emotion",
+    "notes": "Conversion is easy to count. How do we know a story landed: completion, replays, shares, return visits?",
+    "label": "question",
+    "createdAt": 1791414173593
+   }
+  ],
+  "links": [
+   {
+    "id": "lsc001sc002",
+    "from": "sc001",
+    "to": "sc002",
+    "label": ""
+   },
+   {
+    "id": "lsc002sc003",
+    "from": "sc002",
+    "to": "sc003",
+    "label": ""
+   },
+   {
+    "id": "lsc003sc004",
+    "from": "sc003",
+    "to": "sc004",
+    "label": ""
+   },
+   {
+    "id": "lsc004sc005",
+    "from": "sc004",
+    "to": "sc005",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc006",
+    "from": "sc001",
+    "to": "sc006",
+    "label": ""
+   },
+   {
+    "id": "lsc006sc007",
+    "from": "sc006",
+    "to": "sc007",
+    "label": ""
+   },
+   {
+    "id": "lsc007sc008",
+    "from": "sc007",
+    "to": "sc008",
+    "label": ""
+   },
+   {
+    "id": "lsc008sc009",
+    "from": "sc008",
+    "to": "sc009",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc010",
+    "from": "sc001",
+    "to": "sc010",
+    "label": ""
+   },
+   {
+    "id": "lsc010sc011",
+    "from": "sc010",
+    "to": "sc011",
+    "label": ""
+   },
+   {
+    "id": "lsc011sc012",
+    "from": "sc011",
+    "to": "sc012",
+    "label": ""
+   },
+   {
+    "id": "lsc012sc013",
+    "from": "sc012",
+    "to": "sc013",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc014",
+    "from": "sc001",
+    "to": "sc014",
+    "label": ""
+   },
+   {
+    "id": "lsc014sc015",
+    "from": "sc014",
+    "to": "sc015",
+    "label": ""
+   },
+   {
+    "id": "lsc015sc016",
+    "from": "sc015",
+    "to": "sc016",
+    "label": ""
+   },
+   {
+    "id": "lsc016sc017",
+    "from": "sc016",
+    "to": "sc017",
+    "label": ""
+   },
+   {
+    "id": "lsc017sc018",
+    "from": "sc017",
+    "to": "sc018",
+    "label": ""
+   },
+   {
+    "id": "lsc018sc019",
+    "from": "sc018",
+    "to": "sc019",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc020",
+    "from": "sc001",
+    "to": "sc020",
+    "label": ""
+   },
+   {
+    "id": "lsc020sc021",
+    "from": "sc020",
+    "to": "sc021",
+    "label": ""
+   },
+   {
+    "id": "lsc021sc022",
+    "from": "sc021",
+    "to": "sc022",
+    "label": ""
+   },
+   {
+    "id": "lsc022sc023",
+    "from": "sc022",
+    "to": "sc023",
+    "label": ""
+   },
+   {
+    "id": "lsc023sc024",
+    "from": "sc023",
+    "to": "sc024",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc025",
+    "from": "sc001",
+    "to": "sc025",
+    "label": ""
+   },
+   {
+    "id": "lsc025sc026",
+    "from": "sc025",
+    "to": "sc026",
+    "label": ""
+   },
+   {
+    "id": "lsc026sc027",
+    "from": "sc026",
+    "to": "sc027",
+    "label": ""
+   },
+   {
+    "id": "lsc027sc028",
+    "from": "sc027",
+    "to": "sc028",
+    "label": ""
+   },
+   {
+    "id": "lsc028sc029",
+    "from": "sc028",
+    "to": "sc029",
+    "label": ""
+   },
+   {
+    "id": "lsc001sc030",
+    "from": "sc001",
+    "to": "sc030",
+    "label": ""
+   },
+   {
+    "id": "lsc030sc031",
+    "from": "sc030",
+    "to": "sc031",
+    "label": ""
+   },
+   {
+    "id": "lsc031sc032",
+    "from": "sc031",
+    "to": "sc032",
+    "label": ""
+   },
+   {
+    "id": "lsc032sc033",
+    "from": "sc032",
+    "to": "sc033",
+    "label": ""
+   }
+  ],
+  "start": "sc001"
+ }
+}

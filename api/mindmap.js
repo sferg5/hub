@@ -18,16 +18,44 @@
  *   PUT    /api/mindmap?img=<id>  { dataUrl }       -> { ok, id, bytes }
  *   DELETE /api/mindmap?img=<id>    -> { ok }
  *
+ * Boards: add ?board=<slug> to any map or version call to work on a separate
+ * board. No board (or board=installation) is the original Office Installation
+ * map, stored under the original keys, so nothing about it moves.
+ *   GET    /api/mindmap?boards=1                  -> { boards: [ {id, name, updatedAt, cards} ] }
+ *   POST   /api/mindmap?boards=1  { id, name }    -> { ok, boards }   (create / rename)
+ * Images are shared across boards (ids are unique per upload).
+ *
  * Each image is its own Redis key (motion-hub:mindmap:img:<id>) holding a
  * data: URL. The browser downscales before upload, so a card image is
  * typically 100-400 KB. Image ids are unique per upload, so GET responses
  * are served with a long immutable cache header.
  */
 
-var MAP_KEY   = process.env.MOTION_HUB_MINDMAP_KEY || "motion-hub:mindmap";
-var IMG_PRE   = MAP_KEY + ":img:";
-var VER_PRE   = MAP_KEY + ":ver:";
-var VER_IDX   = MAP_KEY + ":versions";   // newest first, metadata only
+var BASE_KEY  = process.env.MOTION_HUB_MINDMAP_KEY || "motion-hub:mindmap";
+var IMG_PRE   = BASE_KEY + ":img:";
+var BOARDS_KEY = BASE_KEY + ":boards";   // [{id, name, updatedAt, cards}]
+var DEFAULT_BOARD = { id: "installation", name: "Office Installation" };
+var BOARD_RE  = /^[a-z0-9-]{2,40}$/;
+// per-request keys from ?board= (kept local to each request: invocations can overlap)
+function keysFor(board){
+  var m = (!board || board === DEFAULT_BOARD.id) ? BASE_KEY : BASE_KEY + ":b:" + board;
+  return { map: m, verPre: m + ":ver:", verIdx: m + ":versions" };   // versions: newest first, metadata only
+}
+async function readBoards(){
+  var raw = await kv(["GET", BOARDS_KEY]); var list = [];
+  if(raw){ try{ list = JSON.parse(raw) || []; }catch(e){ list = []; } }
+  if(!Array.isArray(list)) list = [];
+  if(!list.some(function(b){ return b.id === DEFAULT_BOARD.id; })) list.unshift({ id: DEFAULT_BOARD.id, name: DEFAULT_BOARD.name });
+  return list;
+}
+async function touchBoard(id, patch){
+  var list = await readBoards();
+  var b = list.filter(function(x){ return x.id === id; })[0];
+  if(!b){ b = { id: id, name: id }; list.push(b); }
+  Object.keys(patch).forEach(function(k){ if(patch[k] !== undefined) b[k] = patch[k]; });
+  await kv(["SET", BOARDS_KEY, JSON.stringify(list)]);
+  return list;
+}
 var MAX_VERS  = 30;                      // auto checkpoints are pruned before named ones
 var MAX_MAP   = 1500000;   // 1.5 MB for the map JSON (cards, labels, links)
 var MAX_IMG   = 950000;    // ~0.95 MB per image (free Upstash REST caps a request at 1 MB)
@@ -95,6 +123,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  var board = (req.query && req.query.board) || "";
+  if (Array.isArray(board)) board = board[0];
+  board = String(board || "").toLowerCase();
+  if (board && !BOARD_RE.test(board)) { res.status(400).json({ error: "Bad board id." }); return; }
+  var K = keysFor(board), MAP_KEY = K.map, VER_PRE = K.verPre, VER_IDX = K.verIdx;
+
   var img = (req.query && req.query.img) || "";
   if (Array.isArray(img)) img = img[0];
 
@@ -137,6 +171,22 @@ module.exports = async function handler(req, res) {
         return;
       }
 
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    /* ---------------- boards ---------------- */
+    if (req.query && req.query.boards) {
+      res.setHeader("Cache-Control", "no-store");
+      if (req.method === "GET") { res.status(200).json({ boards: await readBoards() }); return; }
+      if (req.method === "POST" || req.method === "PUT") {
+        var bb = await parseJson(req, 4000, res); if (!bb) return;
+        var bid = String(bb.id || "").toLowerCase();
+        if (!BOARD_RE.test(bid)) { res.status(400).json({ error: "Board id must be 2-40 lowercase letters, digits or dashes." }); return; }
+        var bname = String(bb.name || bid).slice(0, 60);
+        res.status(200).json({ ok: true, boards: await touchBoard(bid, { name: bname }) });
+        return;
+      }
       res.status(405).json({ error: "Method not allowed" });
       return;
     }
@@ -240,6 +290,10 @@ module.exports = async function handler(req, res) {
         res.status(413).json({ error: "Map too large (>1.5 MB). Images should be uploaded via ?img=, not embedded." }); return;
       }
       await kv(["SET", MAP_KEY, payload]);
+      try {
+        var bname2 = (typeof body.boardName === "string" && body.boardName) ? body.boardName.slice(0, 60) : undefined;
+        await touchBoard(board || DEFAULT_BOARD.id, { updatedAt: snapshot.updatedAt, cards: map.cards.length, name: bname2 });
+      } catch (e) { /* the board list is a convenience; never fail a save over it */ }
       res.status(200).json({ ok: true, updatedAt: snapshot.updatedAt });
       return;
     }

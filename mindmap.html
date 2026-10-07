@@ -46,6 +46,13 @@
   h1{font-size:19px;font-weight:600;letter-spacing:-.015em;margin:0;white-space:nowrap}
   .sub{font-size:12px;color:var(--faint);font-family:var(--mono);letter-spacing:.02em;white-space:nowrap}
   .sub b{color:var(--muted);font-weight:400}
+  .bwrap{position:relative;display:inline-block}
+  .bbtn{font:inherit;color:var(--muted);background:none;border:none;padding:2px 4px;margin:-2px -4px;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+  .bbtn:hover,.bbtn[aria-expanded="true"]{color:var(--text);background:var(--line)}
+  .bbtn svg{opacity:.7}
+  .bwrap .menu{left:-4px;right:auto;min-width:240px}
+  .mi.here{color:var(--text);font-weight:600}
+  .mi .bmeta{font-family:var(--mono);font-size:10.5px;color:var(--faint);font-weight:400}
   .btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:8px;text-decoration:none;font-size:13.5px;line-height:1.4;font-weight:500;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--muted);transition:border-color .14s ease,color .14s ease,background-color .14s}
   .btn:hover{border-color:var(--line2);color:var(--text)}
@@ -340,7 +347,7 @@
         </div>
       </div>
       <h1>Mind Map</h1>
-      <span class="sub"><b>Office Installation</b> · <span id="counts">0 cards</span></span>
+      <span class="sub"><span class="bwrap"><button class="bbtn" id="boardBtn" aria-haspopup="menu" aria-expanded="false" title="Switch board"><b id="boardName">Office Installation</b><svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><div class="menu" id="boardMenu" hidden role="menu"></div></span> · <span id="counts">0 cards</span></span>
     </div>
     <div class="btnrow">
       <span class="status" id="status">Loading…</span>
@@ -497,7 +504,13 @@
 (function(){
 "use strict";
 var API = "/api/mindmap";
-var LS_KEY = "mh-mindmap:map", LS_VIEW = "mh-mindmap:view";
+/* ---- boards: ?board=<slug>; no board = the original Office Installation map ---- */
+var DEFAULT_BOARD = "installation";
+var BOARD = (function(){ try{ var b=(new URLSearchParams(location.search).get("board")||"").toLowerCase(); return /^[a-z0-9-]{2,40}$/.test(b)?b:DEFAULT_BOARD; }catch(e){ return DEFAULT_BOARD; } })();
+var boardName = BOARD===DEFAULT_BOARD ? "Office Installation" : BOARD.replace(/-/g," ").replace(/\b\w/g,function(c){return c.toUpperCase();});
+function api(q){ var parts=[]; if(BOARD!==DEFAULT_BOARD) parts.push("board="+encodeURIComponent(BOARD)); if(q) parts.push(q); return API+(parts.length?"?"+parts.join("&"):""); }
+var LS_SUFFIX = BOARD===DEFAULT_BOARD ? "" : ":"+BOARD;
+var LS_KEY = "mh-mindmap:map"+LS_SUFFIX, LS_VIEW = "mh-mindmap:view"+LS_SUFFIX;
 var CARD_W = 232, IMG_MAX_H = 200, IMG_MAX_PX = 1400;
 var GRID = 24;            // matches the dot grid drawn on the stage
 var SNAP_PX = 7;          // screen-pixel pull toward an alignment with another card
@@ -513,6 +526,14 @@ var DEFAULT_LABELS = [
   {id:"space",       name:"Space",       color:"#a78bfa"},
   {id:"question",    name:"Question",    color:"#fb923c"},
   {id:"decision",    name:"Decision",    color:"#e4e4e7"}
+];
+var BOARD_LABELS = [   // starting labels for a new, blank board
+  {id:"idea",     name:"Idea",     color:"#22c55e"},
+  {id:"insight",  name:"Insight",  color:"#2dd4bf"},
+  {id:"example",  name:"Example",  color:"#60a5fa"},
+  {id:"tension",  name:"Tension",  color:"#f87171"},
+  {id:"question", name:"Question", color:"#fb923c"},
+  {id:"decision", name:"Decision", color:"#e4e4e7"}
 ];
 var SEED = 2; // bump when DEFAULT_LABELS gains entries; load() adds the new ones once to an existing map
 
@@ -562,10 +583,14 @@ async function load(){
   var local=null; try{ local=JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch(e){}
   var server=null;
   try{
-    var r=await fetch(API,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status);
+    var r=await fetch(api(""),{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status);
     server=await r.json(); if(server.error) throw new Error(server.error);
     apiOk=true;
   }catch(e){ apiOk=false; }
+  // a board that has never been saved can start from a seed file in /boards/<id>.json
+  if(BOARD!==DEFAULT_BOARD && !(server&&server.updatedAt) && !(local&&local.map)){
+    try{ var sr=await fetch("boards/"+BOARD+".json",{cache:"no-store"}); if(sr.ok){ var sj=await sr.json(); if(sj&&sj.map){ local={map:sj.map, updatedAt:0, dirty:true}; if(sj.name){ boardName=sj.name; paintBoardName(); } } } }catch(e){}
+  }
 
   if(server && server.updatedAt && !(local && local.dirty && local.updatedAt>server.updatedAt)){
     map=normalise(server.map); lastSavedAt=server.updatedAt; dirty=false;
@@ -574,9 +599,10 @@ async function load(){
   } else {
     map=normalise({labels:DEFAULT_LABELS.slice()}); dirty=apiOk;
   }
-  if(!map.labels.length && !map.cards.length) map.labels=DEFAULT_LABELS.map(function(l){return Object.assign({},l);});
+  var startLabels = BOARD===DEFAULT_BOARD ? DEFAULT_LABELS : BOARD_LABELS;
+  if(!map.labels.length && !map.cards.length){ map.labels=startLabels.map(function(l){return Object.assign({},l);}); if(BOARD!==DEFAULT_BOARD) map.seed=SEED; }
   // seed migration: a map saved before new defaults existed gets them once (deleting them afterwards sticks)
-  if((map.seed||1)<SEED){
+  if(BOARD===DEFAULT_BOARD && (map.seed||1)<SEED){
     var had={}; map.labels.forEach(function(l){ had[l.id]=1; });
     var out=[]; DEFAULT_LABELS.forEach(function(d){ if(had[d.id]){ out.push(byId(map.labels,d.id)); } else { out.push(Object.assign({},d)); } });
     map.labels.forEach(function(l){ if(out.indexOf(l)<0) out.push(l); });
@@ -601,7 +627,7 @@ async function save(){
   setStatus("Saving…","busy");
   var at=Date.now();
   try{
-    var r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({map:map, updatedAt:at}, strip)});
+    var r=await fetch(api(""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({map:map, updatedAt:at, boardName:boardName}, strip)});
     var j=await r.json();
     if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
     apiOk=true; dirty=false; lastSavedAt=j.updatedAt||at; mirrorLocal();
@@ -616,7 +642,7 @@ async function save(){
 window.addEventListener("beforeunload",function(e){ if(dirty){ mirrorLocal(); } });
 setInterval(async function(){
   if(dirty||document.hidden) return;
-  try{ var r=await fetch(API,{cache:"no-store"}); var s=await r.json(); if(s&&s.updatedAt>lastSavedAt){ map=normalise(s.map); lastSavedAt=s.updatedAt; sel.clear(); selLink=null; renderAll(); setStatus("Synced · "+timeStr(lastSavedAt)); } }catch(e){}
+  try{ var r=await fetch(api(""),{cache:"no-store"}); var s=await r.json(); if(s&&s.updatedAt>lastSavedAt){ map=normalise(s.map); lastSavedAt=s.updatedAt; sel.clear(); selLink=null; renderAll(); setStatus("Synced · "+timeStr(lastSavedAt)); } }catch(e){}
 }, 45000);
 
 /* ---------------- undo / redo ---------------- */
@@ -1323,6 +1349,37 @@ $("zoomPct").addEventListener("click",function(){ var r=stage.getBoundingClientR
 $("zoomFit").addEventListener("click",fitView);
 $("addBtn").addEventListener("click",function(){ newCardAtCenter(); });
 
+/* ---------------- boards ---------------- */
+function paintBoardName(){ $("boardName").textContent=boardName; document.title="Mind Map · "+boardName; }
+function boardHref(id){ return "mindmap.html"+(id===DEFAULT_BOARD?"":"?board="+encodeURIComponent(id)); }
+function slugify(t){ return String(t||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40); }
+async function openBoardMenu(){
+  var m=$("boardMenu"); m.hidden=false; $("boardBtn").setAttribute("aria-expanded","true");
+  m.innerHTML='<div class="mi" style="cursor:default;color:var(--faint)">Loading boards…</div>';
+  var list=[{id:DEFAULT_BOARD, name:"Office Installation"}];
+  try{ var r=await fetch(API+"?boards=1",{cache:"no-store"}); var j=await r.json(); if(j&&Array.isArray(j.boards)&&j.boards.length) list=j.boards; }catch(e){}
+  if(!list.some(function(b){return b.id===BOARD;})) list.push({id:BOARD, name:boardName});
+  m.innerHTML=list.map(function(b){
+    var meta=(b.cards!=null?b.cards+" cards":"");
+    return '<a class="mi'+(b.id===BOARD?' here':'')+'" role="menuitem" href="'+boardHref(b.id)+'" style="text-decoration:none">'+esc(b.name||b.id)+'<span class="bmeta">'+esc(meta)+'</span></a>';
+  }).join("")+'<div class="msep"></div><button class="mi" id="boardNew" role="menuitem">New board…</button>'+(BOARD!==DEFAULT_BOARD?'<button class="mi" id="boardRename" role="menuitem">Rename this board…</button>':'');
+  $("boardNew").onclick=async function(){
+    var name=(window.prompt("Name the new board")||"").trim(); if(!name) return;
+    var id=slugify(name); if(id.length<2){ setStatus("Pick a longer name","err"); return; }
+    try{ await fetch(API+"?boards=1",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:id, name:name})}); }catch(e){}
+    location.href=boardHref(id);
+  };
+  if($("boardRename")) $("boardRename").onclick=async function(){
+    var name=(window.prompt("Rename this board", boardName)||"").trim(); if(!name||name===boardName) return;
+    boardName=name; paintBoardName(); m.hidden=true; $("boardBtn").setAttribute("aria-expanded","false");
+    try{ await fetch(API+"?boards=1",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:BOARD, name:name})}); setStatus("Renamed"); }catch(e){ setStatus("Couldn't rename","err"); }
+  };
+}
+$("boardBtn").addEventListener("click",function(e){ e.stopPropagation(); if($("boardMenu").hidden) openBoardMenu(); else { $("boardMenu").hidden=true; this.setAttribute("aria-expanded","false"); } });
+document.addEventListener("click",function(e){ if(!e.target.closest(".bwrap")){ $("boardMenu").hidden=true; $("boardBtn").setAttribute("aria-expanded","false"); } });
+paintBoardName();
+if(BOARD!==DEFAULT_BOARD){ fetch(API+"?boards=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ var b=(j&&j.boards||[]).filter(function(x){return x.id===BOARD;})[0]; if(b&&b.name&&b.name!==b.id){ boardName=b.name; paintBoardName(); } }).catch(function(){}); }
+
 var moreBtn=$("moreBtn"), moreMenu=$("moreMenu");
 moreBtn.addEventListener("click",function(e){ e.stopPropagation(); moreMenu.hidden=!moreMenu.hidden; });
 document.addEventListener("click",function(e){ if(!e.target.closest("#tidyMenu,#tidyBtn")) $("tidyMenu").hidden=true; if(!e.target.closest("#moreMenu,#moreBtn")) moreMenu.hidden=true; if(!e.target.closest("#navwrap")){ $("navMenu").hidden=true; $("navBtn").setAttribute("aria-expanded","false"); } });
@@ -1399,7 +1456,7 @@ function timeLabel(ms){
 }
 async function loadVersions(){
   try{
-    var r=await fetch(API+"?versions=1",{cache:"no-store"}); var j=await r.json();
+    var r=await fetch(api("versions=1"),{cache:"no-store"}); var j=await r.json();
     if(j && Array.isArray(j.versions)){
       versions=j.versions;
       if(versions.length) lastCheckpoint=Math.max(lastCheckpoint, versions[0].at||0);
@@ -1409,7 +1466,7 @@ async function loadVersions(){
 }
 async function saveVersion(label, auto, mapObj){
   try{
-    var r=await fetch(API+"?ver=new",{method:"POST",headers:{"Content-Type":"application/json"},
+    var r=await fetch(api("ver=new"),{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({map:mapObj||map, label:label||"", auto:!!auto, at:Date.now()}, strip)});
     var j=await r.json();
     if(!r.ok||j.error) throw new Error(j.error||("HTTP "+r.status));
@@ -1423,7 +1480,7 @@ async function saveVersion(label, auto, mapObj){
 }
 async function restoreVersion(id){
   try{
-    var r=await fetch(API+"?ver="+encodeURIComponent(id),{cache:"no-store"}); var j=await r.json();
+    var r=await fetch(api("ver="+encodeURIComponent(id)),{cache:"no-store"}); var j=await r.json();
     if(!r.ok||j.error||!j.map) throw new Error(j.error||"missing");
     snapshot("restore");                       // restoring is itself undoable
     map=normalise(j.map); sel.clear(); selLink=null; focus.clear();
@@ -1434,7 +1491,7 @@ async function restoreVersion(id){
 async function deleteVersion(id){
   versions=versions.filter(function(v){ return v.id!==id; });
   renderVersions();
-  try{ await fetch(API+"?ver="+encodeURIComponent(id),{method:"DELETE"}); }catch(e){}
+  try{ await fetch(api("ver="+encodeURIComponent(id)),{method:"DELETE"}); }catch(e){}
 }
 function openHistory(){ $("histDrawer").hidden=false; closeRoute(); renderVersions(); loadVersions(); }
 function closeHistory(){ $("histDrawer").hidden=true; }
