@@ -78,6 +78,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tpl span{font:400 10px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--p-mute);padding:0 2px 1px}
 .tpl[aria-pressed="true"] span{color:var(--p-fg)}
 .cardfields{display:grid;gap:12px;margin-top:12px}
+.shots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.shotc{border:1px solid var(--p-line);border-radius:6px;padding:6px;display:grid;gap:5px;background:var(--p-card)}
+.shotc.is-cur{border-color:var(--heat);box-shadow:inset 0 0 0 1px var(--heat)}
+.shotc.has{border-color:var(--p-fg)}
+.shotc .st{aspect-ratio:16/9;border-radius:3px;overflow:hidden;background:var(--n7);cursor:pointer;position:relative;display:grid;place-items:center}
+.shotc .st img{width:100%;height:100%;object-fit:cover;display:block}
+.shotc .st i{position:absolute;inset:0}
+.shotc .st b{position:relative;font:400 9px/1 var(--mono);letter-spacing:.1em;color:var(--n0);text-transform:uppercase;background:rgba(28,18,16,.6);padding:3px 5px;border-radius:3px}
+.shotc .sn{font:400 10px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--p-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shotc select,.shotc input{height:28px;font-size:12px;padding:0 24px 0 7px}
+.shotc input{padding-right:7px}
+.seg.chips button[data-n]::before{content:attr(data-n) " ";color:var(--heat);font-family:var(--mono);font-size:10px}
 .ovl-ed{display:grid;gap:14px;margin-top:4px}
 .ovl-ed .f{margin-bottom:0}
 .ovl-ed .seg button{height:36px;font-size:12.5px}
@@ -639,7 +651,7 @@ const OVL = {
   none:     { name: "Nothing" },
 };
 // text over footage: the reel default (C.ovl) and per-project overrides (proj.ovl) share this shape
-const OVL_DEFAULT = { style: "tag", show: "all", anim: "once", in: "rise", out: "fade", pos: "bl", size: "m", bodyMode: "same", bg: "slowburn", title: "" };
+const OVL_DEFAULT = { style: "tag", show: "all", anim: "once", in: "rise", out: "fade", pos: "bl", size: "m", bodyMode: "same", bg: "slowburn", title: "", vary: "same", varyStyles: ["tag", "lower", "headline"] };
 const OVL_IN = { rise: "Rise", fade: "Fade", slide: "Slide in", wipe: "Wipe", none: "Just appear" };
 const OVL_OUT = { fade: "Fade out", slide: "Slide away", none: "Stay to the cut" };
 const SERIF = '"Marist", Georgia, "Times New Roman", serif';
@@ -930,7 +942,7 @@ async function detectSceneCuts(file, clip){
 // ---------- projects & clips ------------------------------------------------
 function addProject(name){
   const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [],
-                 ovl: Object.assign({}, OVL_DEFAULT, C.ovl || {}), card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
+                 ovl: Object.assign({}, OVL_DEFAULT, C.ovl || {}), shots: {}, card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
   P.projects.push(proj);
   return proj;
 }
@@ -1254,6 +1266,7 @@ function buildTimeline(structural){
   renderFrame(S.t);
   updateTimecode();
   $("autoCutsBtn").hidden = !manualStarts;
+  try { const sp = projById(UI.sel); if (sp && $("inspShots") && typeof renderShotStrip === "function") renderShotStrip(sp); } catch (e) {}
   renderExportMeta();
   scheduleSave();
 }
@@ -1575,8 +1588,28 @@ function resolveOvl(shot){
   const proj = projById(shot.projId);
   const o = Object.assign({}, OVL_DEFAULT, C.ovl || {});
   if (proj && proj.ovl) Object.assign(o, proj.ovl);
+  const n = shot.shotInProj || 0;
+  // alternate compositions shot by shot
+  if (proj && o.vary === "cycle" && Array.isArray(o.varyStyles) && o.varyStyles.length && n)
+    o.style = o.varyStyles[(n - 1) % o.varyStyles.length];
+  // and any shot can be set by hand
+  const so = proj && proj.shots && n ? proj.shots[n] : null;
+  if (so){
+    ["style", "pos", "size"].forEach(k => { if (so[k] && so[k] !== "inherit") o[k] = so[k]; });
+    if (typeof so.text === "string" && so.text.trim()) o.shotText = so.text.trim();
+  }
   if (!OVL[o.style]) o.style = "tag";
   return o;
+}
+// the run of consecutive shots in this project that share a composition: titles hold across a run
+function styleRun(shot, style){
+  const shots = S.timeline ? S.timeline.shots : null;
+  if (!shots || shot.idx == null || !shots[shot.idx]) return { start: shot.pStart ?? shot.start, end: shot.pEnd ?? shot.end };
+  const same = s => s && s.projId === shot.projId && (s.kind === "video" || s.kind === "placeholder") && resolveOvl(s).style === style;
+  let a = shot.idx, b = shot.idx;
+  while (a > 0 && same(shots[a - 1])) a--;
+  while (b + 1 < shots.length && same(shots[b + 1])) b++;
+  return { start: shots[a].start, end: shots[b].end };
 }
 function scrim(ctx, W, H, from, strength, fromTop){
   const g = fromTop ? ctx.createLinearGradient(0, H*(1 - from), 0, 0) : ctx.createLinearGradient(0, H*from, 0, H);
@@ -1618,11 +1651,12 @@ function drawFootage(ctx, shot, x, y, w, h, local, pulse, radius){
 // what the overlay says and when it is on screen
 function ovlState(shot, reelT, local, ov){
   const once = ov.anim !== "each";
-  const tIn = once ? reelT - (shot.pStart ?? shot.start) : local;
-  const tOut = once ? (shot.pEnd ?? shot.end) - reelT : shot.end - reelT;
+  const run = once ? styleRun(shot, ov.style) : null;
+  const tIn = once ? reelT - run.start : local;
+  const tOut = once ? run.end - reelT : shot.end - reelT;
   const visible = ov.show === "first" ? shot.shotInProj === 1 : ov.show === "last" ? shot.shotInProj === (shot.pCount || 1) : true;
   const lines = (shot.caption || "").split(/\n/).map(s => s.trim()).filter(Boolean);
-  const body = ov.bodyMode === "per-shot" ? (lines[(shot.shotInProj || 1) - 1] || "") : lines.join("  ");
+  const body = ov.shotText != null ? ov.shotText : ov.bodyMode === "per-shot" ? (lines[(shot.shotInProj || 1) - 1] || "") : lines.join("  ");
   const title = (ov.title || "").trim() || shot.projName;
   const e = ov.in === "none" ? 1 : smoothstep(tIn / 0.5);
   const x = ov.out === "none" ? 1 : smoothstep(tOut / 0.4);
@@ -3241,6 +3275,47 @@ function ovlEditor(el, get, set, opts){
   });
   sync();
 }
+// the project's shots as they are right now, each with its own overrides
+function renderShotStrip(proj){
+  const box = $("inspShots");
+  if (!box || !proj) return;
+  if (!proj.shots) proj.shots = {};
+  const shots = S.timeline ? S.timeline.shots.filter(s => s.projId === proj.id && (s.kind === "video" || s.kind === "placeholder")) : [];
+  if (!shots.length){ box.innerHTML = `<div class="none" style="grid-column:1/-1;padding:8px 0">${S.timeline ? "This project has no shots yet." : "Add music first, then this project's shots appear here."}</div>`; return; }
+  const cur = S.timeline ? findShot(S.t) : -1;
+  const posNames = { tl: "Top left", tr: "Top right", c: "Centre", bl: "Bottom left", br: "Bottom right" };
+  box.innerHTML = shots.map(s => {
+    const n = s.shotInProj, so = proj.shots[n] || {}, ov = resolveOvl(s);
+    const has = !!(so.style && so.style !== "inherit" || so.pos && so.pos !== "inherit" || so.size && so.size !== "inherit" || (so.text || "").trim());
+    const thumb = s.clip && s.clip.thumb ? `<img src="${s.clip.thumb}" alt="">` : `<i style="background:${s.bg || "#3B3428"}"></i>`;
+    const what = s.clip ? (s.clip.isImage ? "image" : `${s.srcOffset.toFixed(1)}s in`) : "shape";
+    return `<div class="shotc${s.idx === cur ? " is-cur" : ""}${has ? " has" : ""}" data-n="${n}">
+      <div class="st" title="Show this shot">${thumb}<b>${escH(OVL[ov.style].name)}</b></div>
+      <div class="sn">shot ${n} · ${escH(s.clip ? s.clip.name : "")} ${what} · ${(s.end - s.start).toFixed(1)}s</div>
+      <select data-k="style"><option value="inherit">Style: as above</option>${Object.keys(OVL).map(k => `<option value="${k}" ${so.style === k ? "selected" : ""}>${OVL[k].name}</option>`).join("")}</select>
+      <select data-k="pos"><option value="inherit">Position: as above</option>${Object.keys(posNames).map(k => `<option value="${k}" ${so.pos === k ? "selected" : ""}>${posNames[k]}</option>`).join("")}</select>
+      <input type="text" data-k="text" value="${escH(so.text || "")}" placeholder="Body copy for this shot" spellcheck="false">
+    </div>`;
+  }).join("");
+  box.querySelectorAll(".shotc").forEach(card => {
+    const n = +card.dataset.n, s = shots.find(x => x.shotInProj === n);
+    card.querySelector(".st").addEventListener("click", () => { if (S.timeline && !S.playing) seekTo(s.start + Math.min(0.8, (s.end - s.start) / 2)); box.querySelectorAll(".shotc").forEach(c => c.classList.toggle("is-cur", c === card)); });
+    card.querySelectorAll("[data-k]").forEach(ctrl => {
+      ctrl.addEventListener("change", () => {
+        commit("shot" + n);
+        const so = Object.assign({}, proj.shots[n] || {});
+        so[ctrl.dataset.k] = ctrl.value;
+        Object.keys(so).forEach(k => { if (so[k] === "inherit" || so[k] === "") delete so[k]; });
+        if (Object.keys(so).length) proj.shots[n] = so; else delete proj.shots[n];
+        onConfig("ovl");
+        if (S.timeline && !S.playing) seekTo(s.start + Math.min(0.8, (s.end - s.start) / 2));
+        card.classList.toggle("has", !!Object.keys(so).length);
+        card.querySelector(".st b").textContent = OVL[resolveOvl(s).style].name;
+      });
+      if (ctrl.tagName === "INPUT") ctrl.addEventListener("keydown", ev => { if (ev.key === "Enter") ctrl.blur(); });
+    });
+  });
+}
 function previewOverlayShot(projId){
   if (!S.timeline || S.playing) return;
   const s = S.timeline.shots.find(x => (x.kind === "video" || x.kind === "placeholder") && (projId == null || x.projId === projId));
@@ -3413,6 +3488,11 @@ function renderInspector(){
     <p class="hint">Clips that already have edits in them are detected (the ✂ badge) and each scene becomes a shot point, so the reel never cuts in the middle of your cut.</p>
     <div class="f" style="margin-top:6px"><span class="lbl">Text over this project's footage</span></div>
     <div class="ovl-ed" id="inspOvl"></div>
+    <div class="f" style="margin-top:16px"><span class="lbl">Mix it up <small>a different composition on each shot</small></span>
+      <div class="seg" id="inspVary"><button data-v="same">Same on every shot</button><button data-v="cycle">Alternate</button></div></div>
+    <div class="f" id="inspVaryBox"><span class="lbl">Alternate between <small>click in the order you want</small></span><div class="seg chips" id="inspVaryChips"></div></div>
+    <div class="f"><span class="lbl">Shot by shot <small>set any shot by hand</small></span><div class="shots" id="inspShots"></div></div>
+    <p class="hint">Click a picture to see that shot. What you set here wins for that shot, and the words animate in whenever the composition changes.</p>
     <div class="f"><label class="check"><input type="checkbox" id="inspCardOn"> Open this project with a text card</label></div>
     <div id="inspCard" hidden>
       <div class="f"><span class="lbl">Template</span><div class="tpls" id="inspTpls"></div></div>
@@ -3471,6 +3551,22 @@ function renderInspector(){
   const ovlGet = () => proj.ovl;
   const ovlSet = patch => { commit("ovl"); Object.assign(proj.ovl, patch); onConfig("ovl"); previewOverlayShot(proj.id); };
   ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true });
+  // alternate compositions
+  const syncVary = () => {
+    $("inspVary").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String((proj.ovl.vary || "same") === b.dataset.v)));
+    $("inspVaryBox").hidden = (proj.ovl.vary || "same") !== "cycle";
+    const order = proj.ovl.varyStyles || [];
+    $("inspVaryChips").querySelectorAll("button").forEach(b => { const i = order.indexOf(b.dataset.v); b.setAttribute("aria-pressed", String(i >= 0)); if (i >= 0) b.dataset.n = i + 1; else delete b.dataset.n; });
+  };
+  $("inspVary").querySelectorAll("button").forEach(b => b.addEventListener("click", () => { ovlSet({ vary: b.dataset.v }); syncVary(); renderShotStrip(proj); }));
+  $("inspVaryChips").innerHTML = Object.keys(OVL).filter(k => k !== "none").map(k => `<button data-v="${k}">${OVL[k].name}</button>`).join("") + `<button data-v="none">Nothing</button>`;
+  $("inspVaryChips").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const order = (proj.ovl.varyStyles || []).slice(), i = order.indexOf(b.dataset.v);
+    if (i >= 0) order.splice(i, 1); else order.push(b.dataset.v);
+    ovlSet({ varyStyles: order.length ? order : ["tag"] }); syncVary(); renderShotStrip(proj);
+  }));
+  syncVary();
+  renderShotStrip(proj);
   $("inspCardOn").checked = !!proj.card.on;
   $("inspCard").hidden = !proj.card.on;
   const cardGet = () => proj.card;
@@ -3696,6 +3792,7 @@ async function restoreState(st){
     }
     P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)),
       ovl: p.ovl || Object.assign({}, OVL_DEFAULT, C.ovl || {}, p.overlay && p.overlay !== "default" ? { style: p.overlay } : {}),
+      shots: p.shots && typeof p.shots === "object" ? p.shots : {},
       card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
     P.nextId = st.nextId || 1;
     clipIdSeq = Math.max(clipIdSeq, st.clipIdSeq || 1);
@@ -3766,7 +3863,7 @@ const HELP = [
   { t: "Each project is a chapter", v: "rows",
     b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings or images onto a project, or anywhere on the page. They play in the order you add them: a clip keeps rolling until it runs out, an image holds for a shot, and the reel changes to the next one on the beat. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Every project has its own text style, and any project can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Every project has its own text style, can alternate compositions shot by shot, and can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
   { t: "Sound: music, volume, voice", v: "beat",
     b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",
