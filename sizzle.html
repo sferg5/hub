@@ -13,21 +13,25 @@
 @font-face{font-family:"Saans Mono";src:url("saans-mono-regular.woff2") format("woff2");font-weight:400;font-display:swap}
 
 :root{
-  --ink:#141414; --red:#D22030; --brand:#C5093B;
+  /* lululemon brand creative direction, June 2026: Hot Heat is the beacon, Slow Burn its field,
+     warm neutrals carry everything else. Saans Bold lowercase for statements, Saans Mono for labels. */
+  --heat:#FF444C; --burn:#9C413C; --peach:#FEB899; --coral:#FF5F57;
+  --n0:#FDFDF9; --n1:#F2F1F0; --n2:#E9E7E1; --n3:#D2CDC4; --n4:#94877E; --n5:#5E504B; --n6:#3B3428; --n7:#1C1210;
+  --ink:var(--n7); --red:var(--heat); --brand:var(--heat);
   --sans:"Saans",-apple-system,"Helvetica Neue",Arial,sans-serif;
   --mono:"Saans Mono",ui-monospace,"SF Mono",Menlo,monospace;
   --ease-out:cubic-bezier(.16,1,.3,1);
   --panel-w:400px;
-  /* control panel: always light, lululemon.com-style */
-  --p-bg:#FFFFFF; --p-fg:#141414; --p-mute:#6B6B6B; --p-line:#D5D5D5; --p-line-2:#EDEDED;
-  --p-soft:#F6F6F6; --p-accent:#141414; --p-accent-fg:#FFFFFF;
-  /* stage: dark, because the reel is a video */
-  --s-bg:#0B0B0B; --s-panel:#161616; --s-line:#2A2A2A; --s-mute:#9A9A9A;
+  /* control panel: warm off-white, like the playbook pages */
+  --p-bg:var(--n0); --p-card:#FFFFFF; --p-fg:var(--n7); --p-mute:var(--n5); --p-faint:var(--n4);
+  --p-line:var(--n3); --p-line-2:var(--n2); --p-soft:var(--n1); --p-accent:var(--n7); --p-accent-fg:var(--n0);
+  /* stage: deep warm black, because the reel is a video */
+  --s-bg:var(--n7); --s-panel:#2A201D; --s-line:var(--n6); --s-mute:var(--n4);
   color-scheme:light;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);height:100vh;height:100dvh;overflow:hidden;background:var(--s-bg);color:#fff;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{display:grid;grid-template-columns:minmax(0,1fr) var(--panel-w);height:100vh;height:100dvh;overflow:hidden;background:var(--s-bg);color:var(--n0);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--red);outline-offset:2px}
 [hidden]{display:none!important}
@@ -35,73 +39,91 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ================= stage ================= */
 .stage{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;padding:16px 22px 14px;background:var(--s-bg)}
 .s-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;min-height:30px}
-.wordmark{display:flex;align-items:center;gap:9px;font:700 15px/1 var(--sans);letter-spacing:-.01em}
+.wordmark{display:flex;align-items:center;gap:9px;font:700 15px/1 var(--sans);letter-spacing:-.02em;color:var(--n0)}
 .wordmark .logo{width:24px;height:24px;color:var(--brand);flex:none}
-.wordmark em{font-style:normal;color:var(--brand)}
-.beta{font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--brand);border:1px solid var(--brand);border-radius:20px;padding:4px 8px;white-space:nowrap}
+.wordmark em{font-style:normal;color:var(--heat)}
+.beta{font:400 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--heat);border:1px solid var(--heat);border-radius:20px;padding:4px 8px;white-space:nowrap}
 #status{margin-left:auto;font-size:13px;color:var(--s-mute);min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#status b{color:#fff;font-weight:600}
-#status .err{color:#FF5C7A}
+#status b{color:var(--n0);font-weight:600}
+#status .err{color:var(--heat)}
 #status progress{width:160px;height:6px;accent-color:var(--brand);vertical-align:middle;margin:0 6px}
-.canvaswrap{flex:1 1 auto;min-height:0;position:relative;display:grid;place-items:center;background:#000;border-radius:10px;border:1px solid var(--s-line);overflow:hidden}
+.canvaswrap{flex:1 1 auto;min-height:0;position:relative;display:grid;place-items:center;background:#000;border-radius:12px;border:1px solid var(--s-line);overflow:hidden}
 #preview{max-width:100%;max-height:100%;display:block;touch-action:none}
-.empty-stage{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 40%,#2A0510 0%,#000 70%)}
+.empty-stage{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 35%,#4A1F1C 0%,var(--n7) 70%)}
 .empty-stage .es{display:grid;gap:14px;justify-items:center;max-width:460px}
-.empty-stage .es-mark{width:64px;height:64px;border-radius:50%;border:5px solid var(--brand);animation:esPulse 2.6s ease-in-out infinite}
+.empty-stage .es-mark{width:60px;height:60px;color:var(--heat);animation:esPulse 2.6s ease-in-out infinite}
+.empty-stage .es-mark svg{width:100%;height:100%;display:block}
 @keyframes esPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.08);opacity:1}}
-.empty-stage h2{font:700 24px/1.15 var(--sans);letter-spacing:-.015em}
+.empty-stage h2{font:700 30px/1.02 var(--sans);letter-spacing:-.03em;text-transform:lowercase}
 .empty-stage p{color:var(--s-mute);font-size:14.5px;line-height:1.5}
 .empty-stage .es-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
-.empty-stage.over{outline:2px dashed var(--brand);outline-offset:-8px}
+.empty-stage.over{outline:2px dashed var(--heat);outline-offset:-8px}
 .transport{display:flex;align-items:center;gap:8px;padding:12px 0 8px;flex-wrap:wrap}
-.tbtn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:20px;border:1px solid var(--s-line);background:var(--s-panel);color:#fff;font:600 13px/1 var(--sans);white-space:nowrap}
-.tbtn:hover:not([disabled]){border-color:#555}
+.tbtn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--s-line);background:var(--s-panel);color:var(--n0);font:600 13px/1 var(--sans);white-space:nowrap}
+.tbtn:hover:not([disabled]){border-color:var(--n4)}
 .tbtn[disabled]{opacity:.35;cursor:default}
-.tbtn.pri{background:#fff;color:var(--ink);border-color:#fff;min-width:96px;justify-content:center}
-.tbtn.pri:hover:not([disabled]){background:#E9E9E9}
+.tbtn.pri{background:var(--heat);color:var(--n0);border-color:var(--heat);min-width:96px;justify-content:center}
+.tbtn.pri:hover:not([disabled]){background:#FF5C63;border-color:#FF5C63}
 .tbtn.icon{width:36px;padding:0;justify-content:center}
 #timecode{font:400 13px/1 var(--mono);color:var(--s-mute);letter-spacing:.02em;margin-left:4px;min-width:118px}
 #trackStats{margin-left:auto;font:400 12px/1 var(--mono);color:var(--s-mute);letter-spacing:.04em}
-#timeline{flex:0 0 auto;height:64px;width:100%;border-radius:8px;cursor:pointer;display:block;background:var(--s-panel)}
+.tlwrap{position:relative;flex:0 0 auto}
+#timeline{height:150px;width:100%;border-radius:8px;cursor:pointer;display:block;background:#241B18}
+#trackScrub{width:100%;height:56px;border-radius:8px;display:block;background:#241B18;cursor:grab;touch-action:none}
+.check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--p-mute);cursor:pointer}
+.check input{accent-color:var(--heat);width:16px;height:16px;margin:0}
+.rec{background:var(--heat)!important;border-color:var(--heat)!important;color:var(--n0)!important}
+.rec.on{animation:recPulse 1.2s ease-in-out infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,68,76,.5)}50%{box-shadow:0 0 0 7px rgba(255,68,76,0)}}
+.vo-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--p-line-2);cursor:pointer}
+.vo-row:last-child{border-bottom:1px solid var(--p-line-2)}
+.vo-row b{font-weight:600;font-size:13.5px}
+.vo-row small{display:block;color:var(--p-mute);font-size:12px}
+#status button{height:28px;padding:0 12px;border-radius:4px;background:var(--heat);color:var(--n0);font:600 12px/1 var(--sans);margin-left:8px;vertical-align:middle}
+#status button.ghost{background:transparent;border:1px solid var(--n5);color:var(--n0)}
+#tlTip{position:absolute;bottom:calc(100% + 8px);background:var(--n0);color:var(--n7);border-radius:6px;padding:6px 10px;font:400 12px/1.4 var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;white-space:nowrap;z-index:5}
+#tlTip b{font-weight:600}
+#tlTip span{color:var(--n5);font-size:11.5px}
+#tlTip::after{content:"";position:absolute;left:var(--ax,50%);bottom:-5px;width:10px;height:10px;background:var(--n0);transform:translateX(-50%) rotate(45deg)}
 .tl-hint{font-size:12px;color:var(--s-mute);padding:8px 2px 0;line-height:1.5}
-.tl-hint b{color:#ddd;font-weight:600}
-.tl-hint kbd{font:500 11px/1 var(--mono);border:1px solid #444;border-bottom-width:2px;border-radius:4px;padding:2px 5px;color:#ddd;background:#1b1b1b}
+.tl-hint b{color:var(--n2);font-weight:600}
+.tl-hint kbd{font:400 11px/1 var(--mono);border:1px solid var(--n6);border-bottom-width:2px;border-radius:4px;padding:2px 5px;color:var(--n2);background:var(--s-panel)}
 
 /* slip editing hud (over the preview) */
 #slipHint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);border:1px solid var(--s-line);color:#ddd;font-size:11.5px;padding:4px 12px;border-radius:20px;display:none;pointer-events:none;white-space:nowrap}
 #slipHud{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:min(70%,560px);background:rgba(0,0,0,.72);border:1px solid var(--s-line);border-radius:10px;padding:8px 10px;display:none;pointer-events:none}
 #slipTrack{position:relative;height:10px;background:#1d1d1d;border-radius:5px;overflow:hidden}
 #slipTrack .vr{position:absolute;top:0;bottom:0;background:#3c3c3c;z-index:1}
-#slipWindow{position:absolute;top:0;bottom:0;background:var(--brand);border-radius:5px;z-index:2}
+#slipWindow{position:absolute;top:0;bottom:0;background:var(--heat);border-radius:5px;z-index:2}
 #slipLabel{font-size:11px;color:#bbb;margin-top:5px;text-align:center}
 
 /* cut popup (over the timeline) */
-#cutpop{position:fixed;z-index:50;display:none;flex-direction:column;gap:2px;background:#1b1b1b;border:1px solid var(--s-line);border-radius:10px;padding:8px;box-shadow:0 8px 30px rgba(0,0,0,.6);min-width:170px;color:#fff}
+#cutpop{position:fixed;z-index:50;display:none;flex-direction:column;gap:2px;background:var(--s-panel);border:1px solid var(--s-line);border-radius:10px;padding:8px;box-shadow:0 8px 30px rgba(0,0,0,.6);min-width:170px;color:var(--n0)}
 #cutpop .cph{font:400 10.5px/1.3 var(--mono);color:var(--s-mute);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px}
-#cutpop button{text-align:left;padding:6px 8px;border-radius:6px;font:400 13px/1 var(--sans);color:#fff}
-#cutpop button:hover{background:var(--brand)}
-#cutpop button.active{background:var(--brand);font-weight:600}
-#cutpop button.sep{border-top:1px solid var(--s-line);margin-top:4px;padding-top:8px;border-radius:0 0 6px 6px;color:#ddd}
+#cutpop button{text-align:left;padding:6px 8px;border-radius:6px;font:400 13px/1 var(--sans);color:var(--n0)}
+#cutpop button:hover{background:var(--burn)}
+#cutpop button.active{background:var(--heat);font-weight:600}
+#cutpop button.sep{border-top:1px solid var(--s-line);margin-top:4px;padding-top:8px;border-radius:0 0 6px 6px;color:var(--n2)}
 
 /* ================= panel ================= */
 .panel{position:relative;display:flex;flex-direction:column;min-height:0;background:var(--p-bg);color:var(--p-fg);border-left:1px solid var(--p-line);font:400 14px/1.45 var(--sans)}
 .p-head{padding:14px 20px 12px;border-bottom:1px solid var(--p-line-2);display:grid;gap:12px;flex:none}
 .p-title-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.p-title b{font:700 19px/1.1 var(--sans);letter-spacing:-.01em}
+.p-title b{font:700 20px/1.05 var(--sans);letter-spacing:-.03em;text-transform:lowercase}
 .p-title small{display:block;color:var(--p-mute);font-size:12.5px;margin-top:3px}
-.help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--p-fg);background:#fff;font:700 15px/1 var(--sans);flex:none}
+.help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--p-fg);background:var(--p-card);font:700 15px/1 var(--sans);flex:none}
 .help-btn:hover{background:var(--p-fg);color:#fff}
 .p-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.btn{height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--p-fg);background:#fff;font:600 13px/1 var(--sans);white-space:nowrap;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn{height:36px;padding:0 14px;border-radius:4px;border:1px solid var(--p-fg);background:var(--p-card);font:600 13px/1 var(--sans);white-space:nowrap;display:inline-flex;align-items:center;gap:8px;justify-content:center}
 .btn:hover:not([disabled]){background:var(--p-soft)}
 .btn.pri{background:var(--p-accent);color:var(--p-accent-fg)}
-.btn.pri:hover:not([disabled]){background:#333}
+.btn.pri:hover:not([disabled]){background:var(--n6)}
 .btn.big{height:46px;font-size:14px;width:100%}
-.btn.danger{color:var(--red);border-color:var(--p-line)}
-.btn.danger:hover{border-color:var(--red)}
+.btn.danger{color:var(--burn);border-color:var(--p-line)}
+.btn.danger:hover{border-color:var(--burn)}
 .btn[disabled]{opacity:.35;cursor:default}
 .hist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:34px;border:1px solid var(--p-fg);border-radius:4px;background:#fff;font:600 13px/1 var(--sans)}
+.hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:34px;border:1px solid var(--p-line);border-radius:4px;background:var(--p-card);font:600 13px/1 var(--sans)}
 .hbtn span{font-size:17px;line-height:1}
 .hbtn kbd{font:400 11px/1 var(--mono);color:var(--p-mute);letter-spacing:.04em}
 .hbtn:hover:not([disabled]){background:var(--p-soft)}
@@ -109,49 +131,50 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* the four steps double as tabs */
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--p-line);flex:none;background:#fff}
-.steps button{position:relative;display:grid;justify-items:center;gap:6px;padding:12px 4px 10px;font:600 12.5px/1 var(--sans);color:var(--p-mute)}
+.steps button{position:relative;display:grid;justify-items:center;gap:7px;padding:12px 4px 10px;font:400 10.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--p-faint)}
 .steps button i{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--p-line);display:grid;place-items:center;font:600 11px/1 var(--mono);font-style:normal;color:var(--p-mute);transition:all .18s}
 .steps button:hover{color:var(--p-fg)}
 .steps button[aria-selected="true"]{color:var(--p-fg)}
-.steps button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--p-fg)}
+.steps button[aria-selected="true"]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--heat)}
 .steps button[aria-selected="true"] i{border-color:var(--p-fg);color:var(--p-fg)}
-.steps button.done i{background:var(--p-fg);border-color:var(--p-fg);color:#fff}
+.steps button.done i{background:var(--p-fg);border-color:var(--p-fg);color:var(--n0)}
 .steps button.done i::before{content:"✓"}
 .steps button.done i span{display:none}
 
 .view{flex:1 1 auto;min-height:0;overflow:auto;padding:18px 20px 60px;overscroll-behavior:contain}
-.view h3{font:700 18px/1.2 var(--sans);letter-spacing:-.01em;margin-bottom:4px}
+.view h3{font:700 26px/1.0 var(--sans);letter-spacing:-.035em;text-transform:lowercase;margin-bottom:8px}
 .lede{color:var(--p-mute);font-size:13.5px;line-height:1.5;margin-bottom:18px}
 .f{display:grid;gap:8px;margin-bottom:16px}
 .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.lbl{font:600 13px/1.2 var(--sans);color:var(--p-fg);display:flex;justify-content:space-between;align-items:baseline}
-.lbl small{font-weight:400;color:var(--p-mute);font-size:12px}
-input[type=text],textarea,select{width:100%;background:#fff;border:1px solid var(--p-line);border-radius:4px;padding:10px 12px;color:inherit;font:400 14px/1.3 var(--sans)}
-input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg)}
-select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#141414 50%),linear-gradient(135deg,#141414 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px;cursor:pointer}
+.lbl{font:400 10.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--p-mute);display:flex;justify-content:space-between;align-items:baseline}
+.lbl small{font:400 12px/1.2 var(--sans);letter-spacing:0;text-transform:none;color:var(--p-faint)}
+input[type=text],input[type=number],textarea,select{width:100%;background:var(--p-card);border:1px solid var(--p-line);border-radius:4px;padding:10px 12px;color:inherit;font:400 14px/1.3 var(--sans)}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{outline:none;border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#1C1210 50%),linear-gradient(135deg,#1C1210 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px;cursor:pointer}
 textarea{resize:vertical;min-height:60px}
 input[type=range]{width:100%;accent-color:var(--p-fg)}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg button{flex:1 0 auto;min-width:44px;height:40px;padding:0 10px;border:1px solid var(--p-line);border-radius:4px;background:#fff;font:400 13px/1 var(--sans);color:var(--p-fg);white-space:nowrap}
+.seg button{flex:1 0 auto;min-width:44px;height:40px;padding:0 10px;border:1px solid var(--p-line);border-radius:4px;background:var(--p-card);font:400 13px/1 var(--sans);color:var(--p-fg);white-space:nowrap}
 .seg button:hover{border-color:var(--p-fg)}
 .seg button[aria-pressed="true"]{border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg);font-weight:600}
 .seg.chips button{flex:0 0 auto;height:32px;font-size:12.5px;border-radius:20px}
 .hint{font-size:13px;color:var(--p-mute);margin:-6px 0 16px;line-height:1.45}
 details.grp{border-bottom:1px solid var(--p-line)}
-details.grp summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 0;cursor:pointer;font:600 15px/1.2 var(--sans)}
+details.grp summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 0;cursor:pointer;font:600 15px/1.2 var(--sans);letter-spacing:-.01em}
 details.grp summary::-webkit-details-marker{display:none}
 details.grp summary::after{content:"+";font:400 22px/1 var(--sans)}
 details.grp[open] summary::after{content:"−"}
 details.grp .gb{padding:0 0 8px}
-.card{border:1px solid var(--p-line);border-radius:6px;padding:14px 16px;margin-bottom:16px;background:#fff}
-.card.ok{border-color:#B8E2C4;background:#F2FBF4}
+.card{border:1px solid var(--p-line-2);border-radius:12px;padding:16px 18px;margin-bottom:16px;background:var(--p-soft)}
+.card.ok{border-color:var(--p-line-2);background:var(--p-soft)}
+.card.ok b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--heat);margin-right:8px;vertical-align:1px}
 .card b{font-weight:600}
 .card .cmeta{color:var(--p-mute);font-size:13px;margin-top:4px;line-height:1.5}
 .card .crow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.resume{border:1px solid var(--p-fg);background:var(--p-soft)}
-.drop{border:1.5px dashed var(--p-line);border-radius:8px;padding:30px 18px;text-align:center;cursor:pointer;color:var(--p-mute);transition:border-color .15s,background .15s;font-size:14px;line-height:1.5}
+.resume{border:1px solid var(--p-fg);background:var(--p-card)}
+.drop{border:1.5px dashed var(--p-line);border-radius:12px;padding:30px 18px;text-align:center;cursor:pointer;color:var(--p-mute);transition:border-color .15s,background .15s;font-size:14px;line-height:1.5;background:var(--p-card)}
 .drop b{color:var(--p-fg);display:block;font-size:15px;margin-bottom:2px}
-.drop:hover,.drop.over{border-color:var(--red);background:#FFF7F7;color:var(--p-fg)}
+.drop:hover,.drop.over{border-color:var(--heat);background:#FFF4F2;color:var(--p-fg)}
 .drop.small{padding:16px 14px;font-size:13px}
 .or{display:flex;align-items:center;gap:12px;color:var(--p-mute);font-size:12px;margin:14px 0;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono)}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--p-line-2)}
@@ -159,91 +182,91 @@ details.grp .gb{padding:0 0 8px}
 
 /* project list */
 .p-list-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
-.p-list-h b{font:600 15px/1 var(--sans)}
+.p-list-h b{font:400 10.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--p-mute)}
 .rows{margin:0 -20px}
 .row{display:grid;grid-template-columns:10px 46px 1fr auto;align-items:center;gap:10px;padding:10px 20px 10px 17px;cursor:pointer;border-left:3px solid transparent;border-top:1px solid var(--p-line-2)}
 .row:last-child{border-bottom:1px solid var(--p-line-2)}
 .row:hover{background:var(--p-soft)}
 .row.is-sel{border-left-color:var(--bc,var(--p-fg));background:var(--p-soft)}
-.row.drop-above{box-shadow:inset 0 2px 0 var(--red)}
-.row.drop-below{box-shadow:inset 0 -2px 0 var(--red)}
-.row.fileover{background:#FFF7F7;box-shadow:inset 0 0 0 2px var(--red)}
-.row .grip{color:#C4C4C4;font-size:14px;cursor:grab;line-height:1}
+.row.drop-above{box-shadow:inset 0 2px 0 var(--heat)}
+.row.drop-below{box-shadow:inset 0 -2px 0 var(--heat)}
+.row.fileover{background:#FFF4F2;box-shadow:inset 0 0 0 2px var(--heat)}
+.row .grip{color:var(--p-line);font-size:14px;cursor:grab;line-height:1}
 .row .thumb{width:46px;height:28px;border-radius:3px;background:var(--bc);overflow:hidden;position:relative;display:grid;place-items:center}
 .row .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.row .thumb i{width:12px;height:12px;border-radius:50%;background:#fff;opacity:.9}
+.row .thumb i{width:12px;height:12px;border-radius:50%;background:var(--n0);opacity:.9}
 .row .nm{min-width:0;display:grid;gap:3px}
 .row .nm b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .nm small{font-size:12px;color:var(--p-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .nm small.warn{color:#9A7B00}
+.row .nm small.warn{color:var(--burn)}
 .ib{width:28px;height:28px;border-radius:4px;color:var(--p-mute);font-size:15px;line-height:1;display:grid;place-items:center}
-.ib:hover{background:#fff;color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-line)}
+.ib:hover{background:var(--p-card);color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-line)}
 .none{padding:24px 0;color:var(--p-mute);text-align:center;font-size:13.5px;line-height:1.5}
 .insp{margin-top:22px;padding-top:18px;border-top:1px solid var(--p-line)}
 .insp-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
-.insp-h b{font:700 16px/1.2 var(--sans)}
+.insp-h b{font:700 20px/1.05 var(--sans);letter-spacing:-.03em;text-transform:lowercase}
 .insp-h small{color:var(--p-mute);font-size:12px;display:block;margin-top:2px}
 .clips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.clip{position:relative;border:1px solid var(--p-line);border-radius:4px;overflow:hidden;background:#111;aspect-ratio:16/10;cursor:grab}
+.clip{position:relative;border:1px solid var(--p-line);border-radius:6px;overflow:hidden;background:var(--n7);aspect-ratio:16/10;cursor:grab}
 .clip img{width:100%;height:100%;object-fit:cover;display:block;opacity:.95}
 .clip .cn{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font:500 10.5px/1.2 var(--sans);color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.8));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clip .cx{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px;display:grid;place-items:center;opacity:0;transition:opacity .15s}
 .clip:hover .cx{opacity:1}
-.clip .cb{position:absolute;top:4px;left:4px;font:600 10px/1 var(--mono);background:var(--brand);color:#fff;border-radius:3px;padding:3px 5px}
+.clip .cb{position:absolute;top:4px;left:4px;font:400 10px/1 var(--mono);background:var(--heat);color:var(--n0);border-radius:3px;padding:3px 5px}
 .clip.dragging{opacity:.4}
-.clip.drop-l{box-shadow:-3px 0 0 var(--red)}
-.clip.drop-r{box-shadow:3px 0 0 var(--red)}
-.clip.add{border:1.5px dashed var(--p-line);background:#fff;color:var(--p-mute);display:grid;place-items:center;font-size:12.5px;cursor:pointer;text-align:center;padding:6px}
-.clip.add:hover{border-color:var(--red);color:var(--p-fg)}
+.clip.drop-l{box-shadow:-3px 0 0 var(--heat)}
+.clip.drop-r{box-shadow:3px 0 0 var(--heat)}
+.clip.add{border:1.5px dashed var(--p-line);background:var(--p-card);color:var(--p-mute);display:grid;place-items:center;font-size:12.5px;cursor:pointer;text-align:center;padding:6px}
+.clip.add:hover{border-color:var(--heat);color:var(--p-fg)}
 
 /* help tour */
-.help{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:rgba(20,20,20,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:400 15px/1.5 var(--sans);color:var(--p-fg)}
-.help-card{position:relative;width:min(860px,100%);height:min(520px,calc(100vh - 48px));overflow:hidden;background:#fff;border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.3);display:grid;grid-template-columns:1fr 1fr}
-.help-vis{position:relative;background:#F4F3F1;min-height:380px;display:grid;place-items:center;overflow:hidden;border-radius:6px 0 0 6px}
+.help{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:rgba(28,18,16,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:400 15px/1.5 var(--sans);color:var(--p-fg)}
+.help-card{position:relative;width:min(860px,100%);height:min(520px,calc(100vh - 48px));overflow:hidden;background:var(--p-bg);border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.3);display:grid;grid-template-columns:1fr 1fr}
+.help-vis{position:relative;background:var(--n1);min-height:380px;display:grid;place-items:center;overflow:hidden;border-radius:12px 0 0 12px}
 .help-body{padding:34px 34px 24px;display:grid;grid-template-rows:auto 1fr auto;gap:18px;min-height:0}
 #help-text{min-height:0;overflow:auto}
 .help-step{font:400 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--p-mute)}
-.help-body h2{font:700 27px/1.1 var(--sans);letter-spacing:-.015em;margin:8px 0 12px}
-.help-body p{color:#333;margin:0 0 10px}
+.help-body h2{font:700 30px/1.0 var(--sans);letter-spacing:-.035em;text-transform:lowercase;margin:8px 0 12px}
+.help-body p{color:var(--n6);margin:0 0 10px}
 .help-body ul{margin:4px 0 0;padding:0;list-style:none;display:grid;gap:8px}
 .help-body li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;font-size:14px}
-.help-body kbd{font:600 12px/1 var(--mono);border:1px solid var(--p-line);border-bottom-width:2px;border-radius:4px;padding:4px 6px;background:#fff;white-space:nowrap}
-.help-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--p-line);background:#fff;font-size:17px;z-index:2}
+.help-body kbd{font:400 12px/1 var(--mono);border:1px solid var(--p-line);border-bottom-width:2px;border-radius:4px;padding:4px 6px;background:var(--p-card);white-space:nowrap}
+.help-x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--p-line);background:var(--p-card);font-size:17px;z-index:2}
 .help-x:hover{border-color:var(--p-fg)}
 .help-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .help-dots{display:flex;gap:6px}
-.help-dots button{width:8px;height:8px;border-radius:50%;background:#D5D5D5;padding:0}
-.help-dots button[aria-current="true"]{background:var(--p-fg);width:22px;border-radius:4px}
+.help-dots button{width:8px;height:8px;border-radius:50%;background:var(--p-line);padding:0}
+.help-dots button[aria-current="true"]{background:var(--heat);width:22px;border-radius:4px}
 .help-nav{display:flex;gap:8px}
 .hv{position:relative;width:78%;aspect-ratio:4/3}
-.hv-stage{position:absolute;inset:0;background:#0B0B0B;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;display:grid;place-items:center}
-.hv-stage.light{background:#fff}
+.hv-stage{position:absolute;inset:0;background:var(--n7);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden;display:grid;place-items:center}
+.hv-stage.light{background:var(--p-card)}
 .hv-beat{display:flex;gap:6px;align-items:flex-end;height:46%}
-.hv-beat i{width:9px;border-radius:3px;background:var(--brand);animation:hvBeat 1s ease-in-out infinite}
+.hv-beat i{width:9px;border-radius:3px;background:var(--heat);animation:hvBeat 1s ease-in-out infinite}
 .hv-beat i:nth-child(2n){animation-delay:.25s;opacity:.7}.hv-beat i:nth-child(3n){animation-delay:.5s}
 @keyframes hvBeat{0%,100%{height:30%}50%{height:100%}}
 .hv-rows{position:absolute;inset:10%;display:grid;gap:8px;align-content:start}
-.hv-row{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;background:#fff;border-radius:4px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.hv-row{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;background:var(--p-card);border-radius:4px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .hv-row i{height:22px;border-radius:2px}
 .hv-row b{height:7px;border-radius:2px;background:var(--ink);width:60%}
-.hv-row.drag{transform:translate(18px,-4px) rotate(-1.5deg);box-shadow:0 12px 24px rgba(0,0,0,.16);outline:2px solid var(--red);animation:hvLift 3s ease-in-out infinite}
+.hv-row.drag{transform:translate(18px,-4px) rotate(-1.5deg);box-shadow:0 12px 24px rgba(0,0,0,.16);outline:2px solid var(--heat);animation:hvLift 3s ease-in-out infinite}
 @keyframes hvLift{0%,100%{transform:translate(18px,-4px) rotate(-1.5deg)}50%{transform:translate(18px,-14px) rotate(-1.5deg)}}
 .hv-shots{position:absolute;left:8%;right:8%;bottom:14%;height:18%;display:flex;gap:3px}
 .hv-shots i{flex:1;border-radius:3px}
 .hv-shots i:nth-child(3){flex:1.6}
-.hv-play{position:absolute;left:8%;top:14%;width:84%;height:52%;border-radius:4px;background:linear-gradient(135deg,#C5093B,#4A0114)}
-.hv-play::after{content:"";position:absolute;left:50%;top:50%;width:0;height:0;border-left:26px solid #fff;border-top:16px solid transparent;border-bottom:16px solid transparent;transform:translate(-40%,-50%)}
-.hv-head{position:absolute;left:0;top:0;bottom:0;width:2px;background:#fff;animation:hvHead 4s linear infinite}
+.hv-play{position:absolute;left:8%;top:14%;width:84%;height:52%;border-radius:4px;background:var(--burn)}
+.hv-play::after{content:"";position:absolute;left:50%;top:50%;width:0;height:0;border-left:26px solid var(--heat);border-top:16px solid transparent;border-bottom:16px solid transparent;transform:translate(-40%,-50%)}
+.hv-head{position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--heat);animation:hvHead 4s linear infinite}
 @keyframes hvHead{from{left:0}to{left:100%}}
-.hv-title{color:#fff;font:700 30px/1 var(--sans);letter-spacing:-.02em;animation:hvRise 3s var(--ease-out) infinite}
+.hv-title{color:var(--heat);font:700 34px/.95 var(--sans);letter-spacing:-.03em;text-align:left;position:absolute;left:9%;bottom:10%;animation:hvRise 3s var(--ease-out) infinite}
 @keyframes hvRise{0%{opacity:0;transform:translateY(14px)}30%,80%{opacity:1;transform:none}100%{opacity:0}}
 .hv-keys{display:grid;grid-template-columns:repeat(3,auto);gap:10px;justify-content:center;align-content:center;height:100%}
-.hv-keys kbd{font:600 18px/1 var(--mono);border:1px solid #CFCFCF;border-bottom-width:4px;border-radius:8px;padding:14px 16px;background:#fff;text-align:center;min-width:64px}
+.hv-keys kbd{font:400 18px/1 var(--mono);border:1px solid var(--p-line);border-bottom-width:4px;border-radius:8px;padding:14px 16px;background:var(--p-card);text-align:center;min-width:64px}
 
 /* feedback modal */
-.modal{position:fixed;inset:0;z-index:150;background:rgba(20,20,20,.45);display:grid;place-items:center;padding:20px;color:var(--p-fg);font:400 14px/1.45 var(--sans)}
-.mbox{width:min(560px,100%);background:#fff;border-radius:6px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.mbox h3{font:700 18px/1.2 var(--sans);margin-bottom:6px}
+.modal{position:fixed;inset:0;z-index:150;background:rgba(28,18,16,.5);display:grid;place-items:center;padding:20px;color:var(--p-fg);font:400 14px/1.45 var(--sans)}
+.mbox{width:min(560px,100%);background:var(--p-bg);border-radius:12px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mbox h3{font:700 22px/1.05 var(--sans);letter-spacing:-.03em;text-transform:lowercase;margin-bottom:6px}
 .mbox p{color:var(--p-mute);font-size:13.5px;margin-bottom:12px}
 .mrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .menv{font:400 11px/1.5 var(--mono);color:var(--p-mute);margin-top:12px;word-break:break-word}
@@ -264,7 +287,7 @@ details.grp .gb{padding:0 0 8px}
 <main class="stage" aria-label="Reel preview">
   <div class="s-top">
     <div class="wordmark">
-      <svg class="logo" viewBox="0 0 216 216" aria-hidden="true"><path fill="currentColor" d="M 148.41 174.61 C 129.64 174.61 114.41 159.34 114.41 140.51 C 114.41 133.80 116.84 127.86 119.14 121.69 C 120.77 117.32 122.40 112.95 124.02 108.57 C 127.82 98.24 131.48 87.66 133.16 76.74 C 134.50 68.08 134.35 57.54 127.78 50.90 C 122.75 45.83 114.96 44.70 108 44.66 C 101.03 44.70 93.25 45.83 88.22 50.90 C 81.65 57.54 81.49 68.08 82.83 76.74 C 84.52 87.66 88.17 98.24 91.98 108.57 C 93.59 112.95 95.22 117.32 96.85 121.69 C 99.15 127.86 101.59 133.80 101.59 140.51 C 101.59 159.34 86.36 174.61 67.58 174.61 C 53.28 174.61 41.06 165.74 36.04 153.19 C 40.00 156.82 45.25 159.04 51.03 159.04 C 57.80 159.04 64.31 155.87 68.51 150.54 C 73.27 144.5 74.29 136.26 72.26 128.94 C 70.03 120.93 65.20 114.43 61.32 107.00 C 48.71 85.46 49.22 69.36 49.22 69.36 C 49.22 68.35 49.25 67.35 49.31 66.36 C 49.39 65.03 49.54 63.70 49.75 62.39 C 49.94 61.15 50.20 59.93 50.52 58.71 C 50.83 57.57 51.20 56.43 51.63 55.32 C 52.05 54.26 52.52 53.22 53.06 52.21 C 53.58 51.22 54.16 50.27 54.79 49.36 C 55.42 48.45 56.10 47.58 56.83 46.75 C 57.55 45.93 58.33 45.14 59.14 44.40 C 59.96 43.65 60.83 42.95 61.73 42.28 C 62.64 41.61 63.60 40.97 64.57 40.39 C 65.58 39.78 66.61 39.22 67.66 38.71 C 68.75 38.18 69.86 37.69 70.99 37.24 C 72.16 36.77 73.34 36.35 74.54 35.96 C 75.78 35.57 77.03 35.20 78.29 34.88 C 79.61 34.54 80.92 34.24 82.25 33.97 C 83.62 33.70 85.00 33.45 86.39 33.23 C 87.82 33.01 89.26 32.82 90.70 32.66 C 92.19 32.49 93.68 32.34 95.18 32.23 C 96.71 32.11 98.26 32.01 99.80 31.94 C 101.39 31.87 102.97 31.82 104.56 31.79 C 106.45 31.75 108.34 31.74 110.24 31.77 C 111.83 31.79 113.43 31.83 115.02 31.89 C 116.57 31.95 118.12 32.04 119.67 32.14 C 121.18 32.25 122.68 32.38 124.18 32.54 C 125.63 32.69 127.08 32.86 128.52 33.07 C 129.92 33.27 131.31 33.50 132.70 33.77 C 134.04 34.02 135.37 34.30 136.70 34.62 C 137.97 34.94 139.24 35.28 140.5 35.66 C 141.71 36.03 142.91 36.44 144.10 36.88 C 145.24 37.32 146.37 37.79 147.48 38.30 C 148.55 38.80 149.60 39.33 150.62 39.92 C 151.62 40.48 152.59 41.09 153.53 41.75 C 154.45 42.39 155.34 43.07 156.18 43.80 C 157.02 44.52 157.82 45.29 158.57 46.09 C 159.32 46.89 160.02 47.73 160.68 48.62 C 161.33 49.51 161.94 50.43 162.49 51.39 C 163.05 52.38 163.56 53.39 164.00 54.43 C 164.46 55.51 164.86 56.62 165.20 57.74 C 165.55 58.92 165.84 60.12 166.07 61.32 C 166.31 62.61 166.48 63.90 166.60 65.20 C 166.72 66.59 166.73 67.96 166.78 69.36 C 166.78 69.36 167.29 85.46 154.68 107.00 C 150.80 114.43 145.96 120.93 143.74 128.94 C 141.71 136.26 142.73 144.5 147.49 150.54 C 151.68 155.87 158.20 159.04 164.97 159.04 C 170.75 159.04 176.00 156.82 179.96 153.19 C 174.94 165.74 162.72 174.61 148.41 174.61 M 108 4.64 C 50.91 4.64 4.64 50.91 4.64 108 C 4.64 165.09 50.91 211.36 108 211.36 C 165.09 211.36 211.36 165.09 211.36 108 C 211.36 50.91 165.09 4.64 108 4.64"/></svg>
+      <svg class="logo" viewBox="0 0 216 216" aria-hidden="true"><path id="yogo" fill="currentColor" d="M 148.41 174.61 C 129.64 174.61 114.41 159.34 114.41 140.51 C 114.41 133.80 116.84 127.86 119.14 121.69 C 120.77 117.32 122.40 112.95 124.02 108.57 C 127.82 98.24 131.48 87.66 133.16 76.74 C 134.50 68.08 134.35 57.54 127.78 50.90 C 122.75 45.83 114.96 44.70 108 44.66 C 101.03 44.70 93.25 45.83 88.22 50.90 C 81.65 57.54 81.49 68.08 82.83 76.74 C 84.52 87.66 88.17 98.24 91.98 108.57 C 93.59 112.95 95.22 117.32 96.85 121.69 C 99.15 127.86 101.59 133.80 101.59 140.51 C 101.59 159.34 86.36 174.61 67.58 174.61 C 53.28 174.61 41.06 165.74 36.04 153.19 C 40.00 156.82 45.25 159.04 51.03 159.04 C 57.80 159.04 64.31 155.87 68.51 150.54 C 73.27 144.5 74.29 136.26 72.26 128.94 C 70.03 120.93 65.20 114.43 61.32 107.00 C 48.71 85.46 49.22 69.36 49.22 69.36 C 49.22 68.35 49.25 67.35 49.31 66.36 C 49.39 65.03 49.54 63.70 49.75 62.39 C 49.94 61.15 50.20 59.93 50.52 58.71 C 50.83 57.57 51.20 56.43 51.63 55.32 C 52.05 54.26 52.52 53.22 53.06 52.21 C 53.58 51.22 54.16 50.27 54.79 49.36 C 55.42 48.45 56.10 47.58 56.83 46.75 C 57.55 45.93 58.33 45.14 59.14 44.40 C 59.96 43.65 60.83 42.95 61.73 42.28 C 62.64 41.61 63.60 40.97 64.57 40.39 C 65.58 39.78 66.61 39.22 67.66 38.71 C 68.75 38.18 69.86 37.69 70.99 37.24 C 72.16 36.77 73.34 36.35 74.54 35.96 C 75.78 35.57 77.03 35.20 78.29 34.88 C 79.61 34.54 80.92 34.24 82.25 33.97 C 83.62 33.70 85.00 33.45 86.39 33.23 C 87.82 33.01 89.26 32.82 90.70 32.66 C 92.19 32.49 93.68 32.34 95.18 32.23 C 96.71 32.11 98.26 32.01 99.80 31.94 C 101.39 31.87 102.97 31.82 104.56 31.79 C 106.45 31.75 108.34 31.74 110.24 31.77 C 111.83 31.79 113.43 31.83 115.02 31.89 C 116.57 31.95 118.12 32.04 119.67 32.14 C 121.18 32.25 122.68 32.38 124.18 32.54 C 125.63 32.69 127.08 32.86 128.52 33.07 C 129.92 33.27 131.31 33.50 132.70 33.77 C 134.04 34.02 135.37 34.30 136.70 34.62 C 137.97 34.94 139.24 35.28 140.5 35.66 C 141.71 36.03 142.91 36.44 144.10 36.88 C 145.24 37.32 146.37 37.79 147.48 38.30 C 148.55 38.80 149.60 39.33 150.62 39.92 C 151.62 40.48 152.59 41.09 153.53 41.75 C 154.45 42.39 155.34 43.07 156.18 43.80 C 157.02 44.52 157.82 45.29 158.57 46.09 C 159.32 46.89 160.02 47.73 160.68 48.62 C 161.33 49.51 161.94 50.43 162.49 51.39 C 163.05 52.38 163.56 53.39 164.00 54.43 C 164.46 55.51 164.86 56.62 165.20 57.74 C 165.55 58.92 165.84 60.12 166.07 61.32 C 166.31 62.61 166.48 63.90 166.60 65.20 C 166.72 66.59 166.73 67.96 166.78 69.36 C 166.78 69.36 167.29 85.46 154.68 107.00 C 150.80 114.43 145.96 120.93 143.74 128.94 C 141.71 136.26 142.73 144.5 147.49 150.54 C 151.68 155.87 158.20 159.04 164.97 159.04 C 170.75 159.04 176.00 156.82 179.96 153.19 C 174.94 165.74 162.72 174.61 148.41 174.61 M 108 4.64 C 50.91 4.64 4.64 50.91 4.64 108 C 4.64 165.09 50.91 211.36 108 211.36 C 165.09 211.36 211.36 165.09 211.36 108 C 211.36 50.91 165.09 4.64 108 4.64"/></svg>
       <span>lululemon <em>sizzler</em></span>
     </div>
     <span class="beta" id="verPill">beta</span>
@@ -275,8 +298,8 @@ details.grp .gb{padding:0 0 8px}
     <canvas id="preview" width="1280" height="720"></canvas>
     <div class="empty-stage" id="emptyStage">
       <div class="es">
-        <div class="es-mark"></div>
-        <h2>Your reel plays here.</h2>
+        <div class="es-mark"><svg viewBox="0 0 216 216" aria-hidden="true"><use href="#yogo"/></svg></div>
+        <h2>your reel plays here.</h2>
         <p>Drop a music track anywhere on this page to set the beat. Add your team's projects on the right, and every cut will land on the music.</p>
         <div class="es-row">
           <button class="tbtn pri" id="esMusic">Choose a track</button>
@@ -296,8 +319,8 @@ details.grp .gb{padding:0 0 8px}
     <div id="timecode">00:00.0 / 00:00.0</div>
     <div id="trackStats"></div>
   </div>
-  <canvas id="timeline" height="64"></canvas>
-  <div class="tl-hint"><b>Fine-tune the cut:</b> drag a cut to move it (it snaps to the beat, hold <kbd>Alt</kbd> to move freely) · click a ◆ to change its transition · <kbd>S</kbd> splits the shot under the playhead · <kbd>Space</kbd> plays</div>
+  <div class="tlwrap"><canvas id="timeline" height="96"></canvas><div id="tlTip" hidden></div></div>
+  <div class="tl-hint"><b>Your reel, shot by shot.</b> Hover anything for what it is · click a shot to open its project · drag a cut to move it (snaps to the beat, hold <kbd>Alt</kbd> to go free) · click a ◆ to change the transition · <kbd>S</kbd> splits · drag the <b>music lane</b> to slide the song, double-click it for a volume point · drag a <b>voice-over</b> take to move it</div>
 </main>
 
 <!-- ================= panel ================= -->
@@ -319,7 +342,7 @@ details.grp .gb{padding:0 0 8px}
   </div>
 
   <nav class="steps" role="tablist" aria-label="Steps">
-    <button role="tab" data-tab="music" aria-selected="true"><i><span>1</span></i>Music</button>
+    <button role="tab" data-tab="music" aria-selected="true"><i><span>1</span></i>Sound</button>
     <button role="tab" data-tab="projects" aria-selected="false"><i><span>2</span></i>Projects</button>
     <button role="tab" data-tab="look" aria-selected="false"><i><span>3</span></i>Look</button>
     <button role="tab" data-tab="export" aria-selected="false"><i><span>4</span></i>Export</button>
@@ -332,7 +355,7 @@ details.grp .gb{padding:0 0 8px}
       <div class="cmeta" id="resumeMeta">There's a saved reel on this device.</div>
       <div class="crow"><button class="btn pri" id="resumeBtn">Resume where I left off</button><button class="btn" id="freshBtn">Start fresh</button></div>
     </div>
-    <h3>Start with the music.</h3>
+    <h3>start with the music.</h3>
     <p class="lede">The sizzler finds the tempo, maps every beat, and spots the moment the song kicks in. Your reel starts right at the drop.</p>
     <div id="musicEmpty">
       <div class="drop" id="musicDrop"><b>Drop your track here</b>or click to browse · mp3, wav or m4a</div>
@@ -346,22 +369,57 @@ details.grp .gb{padding:0 0 8px}
         <div class="cmeta" id="trackMeta"></div>
         <div class="crow"><button class="btn" id="replaceTrack">Replace track</button></div>
       </div>
-      <div class="f"><span class="lbl">Start the music</span>
-        <div class="seg" data-seg="musicStart"><button data-v="auto">At the drop</button><button data-v="0">From the beginning</button></div>
-      </div>
-      <p class="hint">"At the drop" skips any quiet intro so the reel opens with energy.</p>
-      <div class="f"><span class="lbl">Reel length <small class="range-val" id="durationVal">40 seconds</small></span>
-        <input type="range" data-c="duration" data-structural="1" min="10" max="90" step="5" value="40" aria-label="Reel length in seconds">
-      </div>
-      <p class="hint">Shorter plays better in a meeting. 30–45 seconds is the sweet spot.</p>
-      <div class="p-row"><button class="btn pri" data-go="projects">Next · add your projects →</button></div>
+      <details class="grp" open>
+        <summary>Where the music starts and ends</summary>
+        <div class="gb">
+          <canvas id="trackScrub" height="56" aria-label="The whole song, with the part your reel uses highlighted"></canvas>
+          <p class="hint" style="margin-top:8px">The bright window is the part of the song your reel uses. Drag it to move it, or drag its right edge to make the reel longer or shorter. The music lane under the timeline slides the same way.</p>
+          <div class="seg" data-seg="musicStart" style="margin-bottom:14px"><button data-v="auto">At the drop</button><button data-v="0">From the beginning</button><button data-v="custom">Custom</button></div>
+          <div class="f2">
+            <div class="f"><span class="lbl">Starts at <small>seconds in</small></span><input type="number" id="musicStartIn" min="0" step="0.1" inputmode="decimal"></div>
+            <div class="f"><span class="lbl">Ends at <small id="musicEndHint">seconds in</small></span><input type="number" id="musicEndIn" min="5" step="0.1" inputmode="decimal"></div>
+          </div>
+          <div class="f"><span class="lbl">Reel length <small class="range-val" id="durationVal">40 seconds</small></span>
+            <input type="range" data-c="duration" data-structural="1" min="5" max="120" step="1" value="40" aria-label="Reel length in seconds">
+          </div>
+          <p class="hint">Shorter plays better in a meeting. 30–45 seconds is the sweet spot.</p>
+        </div>
+      </details>
+
+      <details class="grp">
+        <summary>Volume &amp; fades</summary>
+        <div class="gb">
+          <div class="f"><span class="lbl">Music volume <small class="range-val" id="musicVolVal">100%</small></span>
+            <input type="range" data-c="musicVol" min="0" max="150" step="5" aria-label="Music volume"></div>
+          <div class="f2">
+            <div class="f"><span class="lbl">Fade in <small class="range-val" id="fadeInVal">0s</small></span><input type="range" data-c="fadeIn" min="0" max="6" step="0.5" aria-label="Fade in seconds"></div>
+            <div class="f"><span class="lbl">Fade out <small class="range-val" id="fadeOutVal">1.5s</small></span><input type="range" data-c="fadeOut" min="0" max="8" step="0.5" aria-label="Fade out seconds"></div>
+          </div>
+          <div class="f"><span class="lbl">Under the voice-over</span>
+            <div class="seg" data-seg="duck" data-bool="1"><button data-v="true">Lower the music</button><button data-v="false">Leave it</button></div></div>
+          <p class="hint">For finer control, double-click the music lane under the timeline to add a volume point, drag points up or down, and double-click a point to remove it. <button class="btn" id="envClear" style="height:26px;font-size:12px;margin-left:4px">Clear points</button></p>
+        </div>
+      </details>
+
+      <details class="grp">
+        <summary>Voice-over</summary>
+        <div class="gb">
+          <p class="hint" style="margin-top:0">Press record: the reel plays from the playhead while you talk. Press stop when you're done, and the take lands exactly where you started. Headphones help, so the mic doesn't pick up the music.</p>
+          <div class="p-row" style="margin-bottom:12px"><button class="btn pri rec" id="voBtn">● Record voice-over</button>
+            <label class="check"><input type="checkbox" data-c="voMonitor"> Play music while I record</label></div>
+          <div id="voList"></div>
+          <div class="f" style="margin-top:14px"><span class="lbl">Voice volume <small class="range-val" id="voVolVal">100%</small></span>
+            <input type="range" data-c="voVol" min="0" max="150" step="5" aria-label="Voice-over volume"></div>
+        </div>
+      </details>
+      <div class="p-row" style="margin-top:18px"><button class="btn pri" data-go="projects">Next · add your projects →</button></div>
     </div>
     <input type="file" id="musicFile" accept="audio/*" hidden>
   </section>
 
   <!-- ---- 2 · projects ---- -->
   <section class="view" id="view-projects" hidden>
-    <h3>What did your team ship?</h3>
+    <h3>what did your team ship?</h3>
     <p class="lede">Each project is a chapter of the reel, told in this order. Drop screen recordings onto a project. No footage yet? It plays as bold shapes so the reel still flows.</p>
     <div class="p-list-h"><b>Reel order</b><button class="btn" id="addProj">+ Add project</button></div>
     <div class="rows" id="rows"></div>
@@ -373,7 +431,7 @@ details.grp .gb{padding:0 0 8px}
 
   <!-- ---- 3 · look ---- -->
   <section class="view" id="view-look" hidden>
-    <h3>Make it feel like us.</h3>
+    <h3>make it feel like us.</h3>
     <p class="lede">The preview on the left updates as you go. Press play any time.</p>
     <div class="p-row" style="margin-bottom:6px"><button class="btn" id="shuffleBtn">🎲 Shuffle the look</button><span class="hint" style="margin:0">Another take on the same reel.</span></div>
 
@@ -381,11 +439,14 @@ details.grp .gb{padding:0 0 8px}
       <summary>Opening title</summary>
       <div class="gb">
         <div class="f2">
-          <div class="f"><span class="lbl">Title</span><input type="text" data-c="introTitle" placeholder="lululemon UX"></div>
-          <div class="f"><span class="lbl">Subtitle</span><input type="text" data-c="introSub" placeholder="SIZZLE REEL"></div>
+          <div class="f"><span class="lbl">Title</span><input type="text" data-c="introTitle" placeholder="what we shipped."></div>
+          <div class="f"><span class="lbl">Eyebrow</span><input type="text" data-c="introSub" placeholder="ux · sizzle reel"></div>
         </div>
         <div class="f"><span class="lbl">Backdrop</span>
-          <select data-c="introBg"><option value="ember">Ember · dark mesh</option><option value="crimson">Crimson flow</option><option value="blush">Blush pulse</option><option value="noir">Noir minimal</option></select></div>
+          <select data-c="introBg"><option value="slowburn">Slow Burn field · Hot Heat type</option><option value="hotheat">Hot Heat field</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath · warm glow</option><option value="bone">Bone · light</option><option value="noir">Noir</option></select></div>
+        <div class="f"><span class="lbl">Layout</span>
+          <div class="seg" data-seg="titleLayout"><button data-v="low">Statement · set low</button><button data-v="center">Centered</button></div></div>
+        <p class="hint">Statement style follows the brand book: Saans Bold, lowercase, set large and low.</p>
         <div class="f"><span class="lbl">How the words move</span>
           <select data-c="introFx"><option value="rise">Rise &amp; fade</option><option value="cascade">Letter cascade</option><option value="tracking">Track in</option><option value="punch">Beat punch</option><option value="blur">Blur reveal</option><option value="words">Word slide</option></select></div>
         <div class="f"><span class="lbl">Holds for</span>
@@ -420,12 +481,12 @@ details.grp .gb{padding:0 0 8px}
       <div class="gb">
         <div class="f2">
           <div class="f"><span class="lbl">Title</span><input type="text" data-c="title" placeholder="Leave empty to skip"></div>
-          <div class="f"><span class="lbl">Subtitle</span><input type="text" data-c="subtitle"></div>
+          <div class="f"><span class="lbl">Eyebrow</span><input type="text" data-c="subtitle"></div>
         </div>
         <div class="f"><span class="lbl">Background</span>
-          <select data-c="endBg"><option value="black">Black</option><option value="ember">Ember · dark mesh</option><option value="crimson">Crimson flow</option><option value="blush">Blush pulse</option><option value="noir">Noir minimal</option></select></div>
-        <div class="f"><span class="lbl">Mark</span>
-          <div class="seg" data-seg="endMark"><button data-v="logo">lululemon logo</button><button data-v="ring">Red ring</button><button data-v="none">None</button></div></div>
+          <select data-c="endBg"><option value="noir">Noir</option><option value="slowburn">Slow Burn field · Hot Heat type</option><option value="hotheat">Hot Heat field</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath · warm glow</option><option value="bone">Bone · light</option></select></div>
+        <div class="f"><span class="lbl">Yogo</span>
+          <div class="seg" data-seg="endMark"><button data-v="logo">Show the Yogo</button><button data-v="none">No mark</button></div></div>
         <p class="hint">Clear the title to skip the sign-off card.</p>
       </div>
     </details>
@@ -434,13 +495,13 @@ details.grp .gb{padding:0 0 8px}
 
   <!-- ---- 4 · export ---- -->
   <section class="view" id="view-export" hidden>
-    <h3>Ship it.</h3>
+    <h3>ship it.</h3>
     <p class="lede">Watch it through once on the left, then export. Recording happens in real time, so a 40-second reel takes 40 seconds.</p>
     <div class="f"><span class="lbl">Format</span>
       <div class="seg" data-seg="format"><button data-v="1280x720">Landscape 720p</button><button data-v="1920x1080">Landscape 1080p</button><button data-v="1080x1920">Vertical 9:16</button><button data-v="1080x1080">Square</button></div></div>
     <div class="card" id="exportSummary"><b>Reel summary</b><div class="cmeta" id="exportMeta">Add a track to export.</div></div>
     <button class="btn pri big" id="exportBtn" disabled>⬇ Export video</button>
-    <p class="hint" style="margin-top:10px">Keep this tab visible while it records. Downloads as .mp4 in Chrome and Edge, otherwise .webm. Safari can preview but can't record.</p>
+    <p class="hint" style="margin-top:10px">Keep this tab visible while it records. Music, fades and your voice-over are all mixed in. When it finishes you choose where to save it; Chrome and Edge make an .mp4, other browsers a .webm. Safari can preview but can't record.</p>
   </section>
 </aside>
 
@@ -488,11 +549,14 @@ details.grp .gb{padding:0 0 8px}
 const VERSION = "beta 1.0 · 2026-10-08";
 const FEEDBACK_TO = "sferguson5@lululemon.com";
 const FONT = '"Saans", system-ui, -apple-system, "Segoe UI", sans-serif';
+const MONO = '"Saans Mono", ui-monospace, Menlo, monospace';
+// brand palette (Brand Creative Direction, June 2026)
+const HEAT = "#FF444C", BURN = "#9C413C", PEACH = "#FEB899", CORAL = "#FF5F57";
+const N = ["#FDFDF9", "#F2F1F0", "#E9E7E1", "#D2CDC4", "#94877E", "#5E504B", "#3B3428", "#1C1210"];
+// placeholder shots: [field, shape] pairs drawn only from the brand palette
 const PAIRS = [
-  ["#C5093B", "#FFFFFF"], ["#4D96FF", "#FFD93D"], ["#FFD93D", "#C5093B"],
-  ["#2EC4B6", "#101010"], ["#F72585", "#FFFFFF"], ["#9D4EDD", "#F1F1F1"],
-  ["#FF9F1C", "#101010"], ["#6BCB77", "#101010"], ["#FFFFFF", "#C5093B"],
-  ["#616191", "#FFD93D"],
+  [BURN, HEAT], [N[7], HEAT], [HEAT, N[0]], [N[2], N[7]], [N[6], PEACH],
+  [N[0], HEAT], [CORAL, N[0]], [N[3], BURN], [PEACH, BURN], [N[5], N[2]],
 ];
 const SHAPES = ["circle","ring","square","diamond","triangle","plus","hexagon","star","bars","dots"];
 const TRANSITIONS = {
@@ -509,11 +573,13 @@ const ENDCARD_BEATS = 6;
 
 // every setting the panel edits lives here, so undo, presets and autosave are one JSON blob
 const DEFAULTS = {
-  introTitle: "lululemon UX", introSub: "SIZZLE REEL", introBg: "ember", introFx: "rise", introBeats: 8,
+  introTitle: "what we shipped.", introSub: "ux · sizzle reel", introBg: "slowburn", introFx: "rise", introBeats: 8, titleLayout: "low",
   shotMin: 2, shotMax: 4, pace: "punchy", trans: DEFAULT_ON.slice(), transMode: "cycle", beatPulse: false,
-  title: "lululemon UX", subtitle: "SIZZLE REEL", endBg: "black", endMark: "logo",
+  title: "lululemon ux", subtitle: "made to feel", endBg: "noir", endMark: "logo",
   musicStart: "auto", seed: 7, duration: 40, format: "1280x720",
+  musicVol: 100, fadeIn: 0, fadeOut: 1.5, duck: true, musicEnv: [], voVol: 100, voMonitor: true,
 };
+const AUDIO_KEYS = new Set(["musicVol","fadeIn","fadeOut","duck","musicEnv","voVol","voMonitor"]);
 // which settings change the shot structure (and therefore discard hand-edited cuts)
 const STRUCTURAL = new Set(["introBeats","shotMin","shotMax","pace","musicStart","seed","duration"]);
 
@@ -526,14 +592,16 @@ const S = {
   audioBuf: null, beats: [], tempo: 0, autoStart: 0,
   timeline: null, playing: false, t: 0, exporting: false,
   musicFile: null, musicName: "", musicDemo: false,
+  vo: [], musicMuted: false,
 };
+let voIdSeq = 1;
 const UI = { tab: "music", sel: null };
 let boundaryOverrides = {};   // gap key ("0","1",..., "intro", "end") -> transition kind
 let cutOverrides = {};        // cut index -> transition kind (cleared on structural rebuild)
 let slipOverrides = {};       // "projId:shotInProj" -> { clipId, offset }
 let manualStarts = null;      // absolute track-time starts of content shots, when hand-edited
 let manualEnd = null;         // absolute track-time start of the end card, when hand-edited
-let actx = null, srcNode = null, gainNode = null, msDest = null;
+let actx = null, srcNode = null, gainNode = null, voGain = null, msDest = null, voNodes = [];
 let playStartCtxT = 0, playStartReelT = 0, rafId = 0;
 let restoring = false;        // true while a saved reel is being rebuilt (suppresses autosave + history)
 let lastError = "";
@@ -545,7 +613,7 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.im
 const fmtT = s => { const m = Math.floor(s/60), r = s - m*60; return String(m).padStart(2,"0")+":"+r.toFixed(1).padStart(4,"0"); };
 const escH = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function setStatus(msg, err){ $("status").innerHTML = err ? `<span class="err">${msg}</span>` : msg; }
-const LOGO_PATH = new Path2D(document.querySelector(".wordmark .logo path").getAttribute("d"));
+const LOGO_PATH = new Path2D(document.querySelector("#yogo").getAttribute("d"));
 const PACE = {
   calm:   [8,8,8,8],
   steady: [4,4,4,4],
@@ -1051,6 +1119,7 @@ function buildTimeline(structural){
 
   S.timeline = { shots, cuts, duration: realDur, musicStart };
   setupShotVideos();
+  requestThumbs();
   drawTimeline();
   S.t = Math.min(S.t, realDur - 0.01);
   renderFrame(S.t);
@@ -1102,39 +1171,37 @@ function hexMix(a, b, f){
 
 // ---------- lululemon red mesh gradients -------------------------------------
 // each style: dark base + drifting radial blobs, composited with "screen"
-const MESH_STYLES = {
-  ember: { base: "#120204", blobs: [
-    { c: "#C5093B", a: .55, cx: .25, cy: .30, ax: .16, ay: .12, r: .75, sp: .21, ph: 0.0 },
-    { c: "#7A0623", a: .65, cx: .78, cy: .70, ax: .14, ay: .18, r: .85, sp: .15, ph: 2.1 },
-    { c: "#FF3B63", a: .28, cx: .60, cy: .25, ax: .20, ay: .10, r: .55, sp: .27, ph: 4.0 },
-    { c: "#4A0114", a: .70, cx: .40, cy: .85, ax: .12, ay: .14, r: .80, sp: .12, ph: 1.2 },
-  ]},
-  crimson: { base: "#1A0308", blobs: [
-    { c: "#E01345", a: .60, cx: .30, cy: .40, ax: .22, ay: .16, r: .80, sp: .25, ph: 0.7 },
-    { c: "#C5093B", a: .55, cx: .75, cy: .30, ax: .16, ay: .20, r: .70, sp: .19, ph: 2.9 },
-    { c: "#FF5C7A", a: .30, cx: .55, cy: .75, ax: .20, ay: .14, r: .60, sp: .31, ph: 5.1 },
-    { c: "#8E0A2E", a: .60, cx: .15, cy: .80, ax: .12, ay: .12, r: .75, sp: .14, ph: 3.6 },
-  ]},
-  blush: { base: "#16060A", blobs: [
-    { c: "#F72585", a: .38, cx: .70, cy: .35, ax: .18, ay: .16, r: .70, sp: .23, ph: 1.5 },
-    { c: "#C5093B", a: .50, cx: .28, cy: .60, ax: .16, ay: .18, r: .78, sp: .17, ph: 0.2 },
-    { c: "#FF8FA3", a: .22, cx: .50, cy: .20, ax: .22, ay: .10, r: .50, sp: .29, ph: 3.3 },
-    { c: "#5C0B22", a: .65, cx: .80, cy: .85, ax: .12, ay: .14, r: .80, sp: .13, ph: 4.7 },
-  ]},
-  noir: { base: "#050505", blobs: [
-    { c: "#C5093B", a: .45, cx: .70, cy: .60, ax: .18, ay: .16, r: .70, sp: .17, ph: 0.9 },
-    { c: "#3D0313", a: .75, cx: .25, cy: .35, ax: .14, ay: .16, r: .85, sp: .12, ph: 2.5 },
-    { c: "#FF3B63", a: .12, cx: .45, cy: .80, ax: .20, ay: .12, r: .50, sp: .24, ph: 4.4 },
-  ]},
+// ---------- backdrops ------------------------------------------------------
+// Solid brand fields plus a few soft glows, each with the type colour the book pairs it with.
+const BACKDROPS = {
+  slowburn:  { base: BURN,  ink: HEAT,  sub: N[0], blobs: [
+    { c: "#7C2521", a: .55, cx: .80, cy: .85, ax: .10, ay: .10, r: .80, sp: .10, ph: 1.0 } ], mode: "multiply" },
+  hotheat:   { base: HEAT,  ink: N[0],  sub: N[0], blobs: [
+    { c: "#FF6A5E", a: .45, cx: .25, cy: .25, ax: .10, ay: .10, r: .70, sp: .12, ph: 0.3 } ], mode: "screen" },
+  ember:     { base: "#1C0A09", ink: N[0], sub: HEAT, blobs: [
+    { c: HEAT,      a: .50, cx: .25, cy: .30, ax: .16, ay: .12, r: .75, sp: .21, ph: 0.0 },
+    { c: BURN,      a: .65, cx: .78, cy: .70, ax: .14, ay: .18, r: .85, sp: .15, ph: 2.1 },
+    { c: "#FF6A5E", a: .22, cx: .60, cy: .25, ax: .20, ay: .10, r: .55, sp: .27, ph: 4.0 } ], mode: "screen" },
+  soundbath: { base: N[7],  ink: N[0],  sub: PEACH, blobs: [
+    { c: "#7A4A2E", a: .70, cx: .55, cy: .45, ax: .14, ay: .14, r: .70, sp: .13, ph: 0.9 },
+    { c: PEACH,     a: .28, cx: .40, cy: .35, ax: .18, ay: .12, r: .45, sp: .19, ph: 2.6 },
+    { c: BURN,      a: .35, cx: .70, cy: .75, ax: .12, ay: .16, r: .60, sp: .16, ph: 4.2 } ], mode: "screen" },
+  bone:      { base: N[1],  ink: N[7],  sub: HEAT, blobs: [
+    { c: N[3],      a: .60, cx: .75, cy: .80, ax: .10, ay: .10, r: .80, sp: .10, ph: 0.4 } ], mode: "multiply" },
+  noir:      { base: N[7],  ink: HEAT,  sub: N[0], blobs: [
+    { c: "#3B1E1C", a: .80, cx: .70, cy: .60, ax: .16, ay: .16, r: .80, sp: .12, ph: 0.9 } ], mode: "screen" },
+  // older saves
+  crimson: null, blush: null, black: null,
 };
+const backdrop = key => BACKDROPS[key] || (key === "black" ? BACKDROPS.noir : key === "crimson" ? BACKDROPS.ember : key === "blush" ? BACKDROPS.soundbath : BACKDROPS.slowburn);
 function hexA(hex, a){
   const p = parseInt(hex.slice(1), 16);
   return `rgba(${p>>16&255},${p>>8&255},${p&255},${a})`;
 }
 function drawMesh(ctx, styleKey, t, W, H, pulse){
-  const st = MESH_STYLES[styleKey] || MESH_STYLES.ember;
+  const st = backdrop(styleKey);
   ctx.fillStyle = st.base; ctx.fillRect(0, 0, W, H);
-  ctx.globalCompositeOperation = "screen";
+  ctx.globalCompositeOperation = st.mode;
   for (const b of st.blobs){
     const ang = t * b.sp * 2 * Math.PI * 0.15 + b.ph;
     const x = W * (b.cx + b.ax * Math.sin(ang));
@@ -1142,110 +1209,141 @@ function drawMesh(ctx, styleKey, t, W, H, pulse){
     const r = Math.max(W, H) * b.r * (1 + 0.06 * pulse);
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, hexA(b.c, b.a * (1 + 0.10 * pulse)));
-    g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(1, st.mode === "multiply" ? "rgba(255,255,255,0)" : "rgba(0,0,0,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   }
   ctx.globalCompositeOperation = "source-over";
 }
+function drawYogo(ctx, x, y, size, color, alpha){
+  ctx.save();
+  ctx.globalAlpha = alpha == null ? 1 : alpha;
+  ctx.translate(x, y); ctx.scale(size/216, size/216);
+  ctx.fillStyle = color; ctx.fill(LOGO_PATH);
+  ctx.restore();
+}
 
 // ---------- animated titles ---------------------------------------------------
-function drawAnimatedTitle(ctx, title, sub, fx, local, pulse, W, H){
+// Statement type: Saans Bold, lowercase, set large, set low. Wraps to at most three lines.
+function wrapLines(ctx, text, maxW, maxLines){
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = []; let cur = "";
+  for (const w of words){
+    const test = cur ? cur + " " + w : w;
+    if (ctx.measureText(test).width <= maxW || !cur) cur = test;
+    else { lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  while (lines.length > maxLines){ const last = lines.pop(); lines[lines.length-1] += " " + last; }
+  return lines;
+}
+function statementSize(ctx, text, W, H, maxLines){
+  // biggest size whose wrapped lines fit the width and the band height
+  let fs = Math.round(H / 5);
+  for (; fs > H / 14; fs -= Math.max(2, Math.round(H/200))){
+    ctx.font = `700 ${fs}px ${FONT}`;
+    const lines = wrapLines(ctx, text, W * 0.88, maxLines);
+    const fits = lines.every(l => ctx.measureText(l).width <= W * 0.88) && lines.length * fs * 0.92 <= H * 0.62;
+    if (fits) return { fs, lines };
+  }
+  ctx.font = `700 ${fs}px ${FONT}`;
+  return { fs, lines: wrapLines(ctx, text, W * 0.88, maxLines) };
+}
+function drawAnimatedTitle(ctx, title, sub, fx, local, pulse, W, H, opts){
   if (!title) return;
-  const fsize = Math.round(H / 7);
-  const font = `800 ${fsize}px ${FONT}`;
-  const cx = W / 2, cy = H / 2 - (sub ? H * 0.02 : 0);
+  opts = opts || {};
+  const ink = opts.ink || N[0], subInk = opts.sub || HEAT, layout = opts.layout || "low";
   const T = 1.0;
   const e = smoothstep(Math.min(1, local / T));
-  const breathe = 1 + 0.03 * pulse * e;      // gentle beat breathing once landed
+  const breathe = 1 + 0.025 * pulse * e;
   ctx.save();
-  ctx.font = font;
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillStyle = "#fff";
-  ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = fsize * 0.12;
-
-  const letters = [...title];
-  const widths = letters.map(l => ctx.measureText(l).width);
-  const totW = widths.reduce((a, b) => a + b, 0);
-
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.03em";
+  ctx.textBaseline = "alphabetic";
+  const { fs, lines } = statementSize(ctx, title, W, H, 3);
+  const lh = fs * 0.92;
+  const margin = W * 0.06;
+  const left = layout === "low";
+  const x0 = left ? margin : W / 2;
+  ctx.textAlign = left ? "left" : "center";
+  // the block sits low (bottom margin) or centred
+  const blockH = lines.length * lh;
+  const yBottom = left ? H - H * 0.10 : H / 2 + blockH / 2 - fs * 0.25;
+  const baseY = i => yBottom - (lines.length - 1 - i) * lh;
+  ctx.fillStyle = ink;
+  const drawLine = (txt, i, dx, dy, alpha, scale) => {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x0 + dx, baseY(i) + dy);
+    ctx.scale(scale, scale);
+    ctx.fillText(txt, 0, 0);
+    ctx.restore();
+  };
   switch (fx){
-    case "rise": {
-      ctx.globalAlpha = e;
-      ctx.translate(cx, cy + (1 - e) * H * 0.10);
-      ctx.scale(breathe, breathe);
-      ctx.fillText(title, 0, 0);
-      break;
-    }
-    case "cascade": {
-      let x = cx - totW / 2;
-      letters.forEach((l, i) => {
-        const le = smoothstep(Math.min(1, Math.max(0, (local - i * 0.055) / 0.5)));
-        ctx.globalAlpha = le;
-        ctx.fillText(l, x + widths[i] / 2, cy + (1 - le) * fsize * 0.55);
-        x += widths[i];
+    case "cascade": {              // letters settle in, line by line
+      lines.forEach((l, i) => {
+        let x = left ? 0 : -ctx.measureText(l).width / 2;
+        ctx.save(); ctx.textAlign = "left";
+        for (const ch of [...l]){
+          const k = i * 0.22 + x / W * 0.5;
+          const le = smoothstep(Math.min(1, Math.max(0, (local - k) / 0.45)));
+          ctx.globalAlpha = le;
+          ctx.fillText(ch, x0 + x, baseY(i) + (1 - le) * fs * 0.4);
+          x += ctx.measureText(ch).width;
+        }
+        ctx.restore();
       });
       break;
     }
-    case "tracking": {
-      const sp = (1 - e) * fsize * 0.85;
-      const tot = totW + sp * (letters.length - 1);
-      let x = cx - tot / 2;
-      ctx.globalAlpha = e;
-      letters.forEach((l, i) => {
-        ctx.fillText(l, x + widths[i] / 2, cy);
-        x += widths[i] + sp;
+    case "tracking": {             // tracks in from loose to tight
+      lines.forEach((l, i) => {
+        const sp = (1 - e) * fs * 0.5;
+        const prev = ctx.letterSpacing;
+        if ("letterSpacing" in ctx) ctx.letterSpacing = `${(sp - fs*0.03).toFixed(1)}px`;
+        drawLine(l, i, 0, 0, e, 1);
+        if ("letterSpacing" in ctx) ctx.letterSpacing = prev;
       });
       break;
     }
-    case "punch": {
-      const s = (1 + (1 - e) * 0.9) * (1 + 0.10 * pulse);
-      ctx.globalAlpha = Math.min(1, local / 0.15);
-      ctx.translate(cx, cy);
-      ctx.scale(s, s);
-      ctx.fillText(title, 0, 0);
+    case "punch": {                // lands on the beat
+      const s = (1 + (1 - e) * 0.6) * (1 + 0.06 * pulse);
+      lines.forEach((l, i) => drawLine(l, i, 0, 0, Math.min(1, local / 0.15), s));
       break;
     }
     case "blur": {
-      ctx.filter = `blur(${((1 - e) * 0.022 * H).toFixed(1)}px)`;
-      ctx.globalAlpha = Math.min(1, local / 0.4);
-      ctx.translate(cx, cy);
-      ctx.scale(breathe, breathe);
-      ctx.fillText(title, 0, 0);
+      ctx.filter = `blur(${((1 - e) * 0.02 * H).toFixed(1)}px)`;
+      lines.forEach((l, i) => drawLine(l, i, 0, 0, Math.min(1, local / 0.4), breathe));
       ctx.filter = "none";
       break;
     }
-    case "words": {
-      const words = title.split(" ");
-      const spaceW = ctx.measureText(" ").width;
-      const wWidths = words.map(w => ctx.measureText(w).width);
-      const tot = wWidths.reduce((a, b) => a + b, 0) + spaceW * (words.length - 1);
-      let x = cx - tot / 2;
-      words.forEach((w, i) => {
+    case "words": {                // lines slide in alternating from the sides
+      lines.forEach((l, i) => {
         const we = smoothstep(Math.min(1, Math.max(0, (local - i * 0.14) / 0.6)));
-        ctx.globalAlpha = we;
         const dir = i % 2 === 0 ? -1 : 1;
-        ctx.fillText(w, x + wWidths[i] / 2 + dir * (1 - we) * W * 0.18, cy);
-        x += wWidths[i] + spaceW;
+        drawLine(l, i, dir * (1 - we) * W * 0.12, 0, we, 1);
       });
       break;
     }
-    default: {
-      ctx.globalAlpha = e;
-      ctx.fillText(title, cx, cy);
+    default: {                     // rise & fade
+      lines.forEach((l, i) => {
+        const le = smoothstep(Math.min(1, Math.max(0, (local - i * 0.08) / T)));
+        drawLine(l, i, 0, (1 - le) * H * 0.06, le, breathe);
+      });
     }
   }
   ctx.restore();
 
-  if (sub){
-    const se = smoothstep(Math.min(1, Math.max(0, (local - 0.55) / 0.6)));
+  if (sub){                          // mono eyebrow above the statement
+    const se = smoothstep(Math.min(1, Math.max(0, (local - 0.35) / 0.6)));
     if (se > 0){
       ctx.save();
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.globalAlpha = se * 0.9;
-      ctx.fillStyle = "#fff";
-      ctx.font = `700 ${Math.round(H / 28)}px ${FONT}`;
-      const spaced = sub.toUpperCase().split("").join("  ");
-      ctx.fillText(spaced, W / 2, cy + fsize * 0.85 + (1 - se) * H * 0.03);
+      ctx.globalAlpha = se;
+      ctx.fillStyle = subInk;
+      ctx.font = `400 ${Math.round(H / 34)}px ${MONO}`;
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+      ctx.textAlign = left ? "left" : "center";
+      ctx.textBaseline = "alphabetic";
+      const y = (left ? H - H*0.10 - lines.length * fs * 0.92 : H/2 - blockH/2 - fs*0.25) - fs * 0.12 + (1 - se) * H * 0.02;
+      ctx.fillText(sub.toUpperCase(), left ? margin : W/2, y);
       ctx.restore();
     }
   }
@@ -1310,42 +1408,29 @@ function drawShot(ctx, shot, reelT){
 
   if (shot.kind === "intro"){
     drawMesh(ctx, C.introBg, trackT, W, H, pulse);
-    drawAnimatedTitle(ctx, (C.introTitle || "").trim(), (C.introSub || "").trim(), C.introFx, local, pulse, W, H);
+    const bd = backdrop(C.introBg);
+    const ye = smoothstep(local / 0.5);
+    drawYogo(ctx, W*0.06, H*0.08, H*0.075, bd.ink, ye);          // small Yogo, top left, like the posters
+    drawAnimatedTitle(ctx, (C.introTitle || "").trim(), (C.introSub || "").trim(), C.introFx, local, pulse, W, H,
+                      { ink: bd.ink, sub: bd.sub, layout: C.titleLayout });
     return;
   }
 
   if (shot.kind === "title"){
-    if (C.endBg === "black"){ ctx.fillStyle = "#000"; ctx.fillRect(0,0,W,H); }
-    else drawMesh(ctx, C.endBg, trackT, W, H, pulse);
+    drawMesh(ctx, C.endBg, trackT, W, H, pulse);
+    const bd = backdrop(C.endBg);
     const e = smoothstep(local / 0.6);
-    ctx.save();
-    ctx.globalAlpha = e;
-    let titleY = H/2, subY = H/2 + H*0.09;
+    const low = C.titleLayout !== "center";
     if (C.endMark === "logo"){
-      const sz = H * 0.26 * (1 + 0.03*pulse);
-      ctx.save();
-      ctx.translate(W/2 - sz/2, H*0.33 - sz/2 - (1 - e) * H*0.03);
-      ctx.scale(sz/216, sz/216);
-      ctx.fillStyle = "#C5093B"; ctx.fill(LOGO_PATH);
-      ctx.restore();
-      titleY = H*0.62; subY = H*0.70;
-    } else if (C.endMark === "ring"){
-      const rr = Math.min(W,H)*0.36*(1+0.05*pulse);
-      ctx.strokeStyle = "#C5093B"; ctx.lineWidth = Math.max(3, H*0.012);
-      ctx.beginPath(); ctx.arc(W/2, H/2, rr, 0, 7); ctx.stroke();
-      titleY = H/2 + H*0.02; subY = H/2 + H*0.10;
+      if (low) drawYogo(ctx, W*0.06, H*0.08, H*0.10 * (1 + 0.03*pulse), bd.ink, e);
+      else {
+        const sz = H * 0.20 * (1 + 0.03*pulse);
+        drawYogo(ctx, W/2 - sz/2, H*0.16 - (1 - e) * H*0.02, sz, bd.ink, e);
+      }
     }
-    ctx.fillStyle = "#fff"; ctx.textAlign = "center";
-    ctx.font = `700 ${Math.round(H/8)}px ${FONT}`;
-    ctx.fillText((C.title || "").trim(), W/2, titleY + (1 - e) * H*0.02);
-    const sub = (C.subtitle || "").trim();
-    if (sub){
-      ctx.fillStyle = "#C5093B";
-      ctx.font = `700 ${Math.round(H/26)}px ${FONT}`;
-      ctx.fillText(sub, W/2, subY + (1 - e) * H*0.02);
-    }
-    ctx.restore();
-    ctx.textAlign = "start";
+    // the sign-off settles in once and then holds (local is large, so fx are already landed)
+    drawAnimatedTitle(ctx, (C.title || "").trim(), (C.subtitle || "").trim(), "rise", Math.max(local, 0), pulse, W, H,
+                      { ink: bd.ink, sub: bd.sub, layout: low ? "low" : "center" });
     return;
   }
 
@@ -1358,23 +1443,32 @@ function drawShot(ctx, shot, reelT){
       const dw = vw*sc, dh = vh*sc;
       ctx.drawImage(v, (W-dw)/2, (H-dh)/2, dw, dh);
     }
+    // project tag: a Hot Heat beacon in mono caps; caption beneath it in Saans
     const tag = shot.projName.toUpperCase();
     const cap = (shot.caption || "").trim();
-    const tagY = cap ? H*0.845 : H*0.90;
-    ctx.font = `700 ${Math.max(12, Math.round(H/40))}px ${FONT}`;
+    const m = W * 0.04, pad = H * 0.012;
+    const tagH = H * 0.048, capH = H * 0.056;
+    const baseY = H - H * 0.07;
+    const tagY = cap ? baseY - capH - H*0.012 - tagH : baseY - tagH;
+    ctx.save();
+    ctx.font = `400 ${Math.max(11, Math.round(H/48))}px ${MONO}`;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+    ctx.textBaseline = "middle";
     const tw = ctx.measureText(tag).width;
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(W*0.03, tagY, tw + 16, H*0.05);
-    ctx.fillStyle = "#fff";
-    ctx.fillText(tag, W*0.03 + 8, tagY + H*0.035);
+    ctx.fillStyle = HEAT;
+    ctx.fillRect(m, tagY, tw + pad*2 + 2, tagH);
+    ctx.fillStyle = N[0];
+    ctx.fillText(tag, m + pad, tagY + tagH/2 + 1);
     if (cap){
-      ctx.font = `500 ${Math.max(12, Math.round(H/42))}px ${FONT}`;
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+      ctx.font = `600 ${Math.max(13, Math.round(H/34))}px ${FONT}`;
       const cw = ctx.measureText(cap).width;
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
-      ctx.fillRect(W*0.03, H*0.90, cw + 16, H*0.05);
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.fillText(cap, W*0.03 + 8, H*0.935);
+      ctx.fillStyle = "rgba(28,18,16,0.72)";
+      ctx.fillRect(m, baseY - capH, cw + pad*2 + 4, capH);
+      ctx.fillStyle = N[0];
+      ctx.fillText(cap, m + pad + 2, baseY - capH/2 + 1);
     }
+    ctx.restore();
     return;
   }
 
@@ -1385,15 +1479,20 @@ function drawShot(ctx, shot, reelT){
   const scale = 1 + 0.05*shot.zoomDir*local;
   const r = base*scale*(1 + 0.12*pulse);
   drawShape(ctx, shot.shape, W/2, H/2, r, shot.rot*local*3 + shot.rot, shot.fg);
-  ctx.fillStyle = hexMix(shot.bg, shot.fg, 0.55);
-  ctx.font = `700 ${Math.max(14, Math.round(H/32))}px ${FONT}`;
-  ctx.fillText(`${shot.projName.toUpperCase()} · SHOT ${String(shot.shotInProj).padStart(2,"0")}`, W*0.04, H*0.93);
+  ctx.save();
+  ctx.textBaseline = "alphabetic";
   const pcap = (shot.caption || "").trim();
+  ctx.fillStyle = shot.fg;
+  ctx.font = `400 ${Math.max(11, Math.round(H/46))}px ${MONO}`;
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+  ctx.fillText(`${shot.projName.toUpperCase()} · ${String(shot.shotInProj).padStart(2,"0")}`, W*0.06, pcap ? H*0.84 : H*0.90);
   if (pcap){
-    ctx.fillStyle = hexMix(shot.bg, shot.fg, 0.85);
-    ctx.font = `500 ${Math.max(13, Math.round(H/36))}px ${FONT}`;
-    ctx.fillText(pcap, W*0.04, H*0.88);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.02em";
+    ctx.font = `700 ${Math.max(16, Math.round(H/22))}px ${FONT}`;
+    ctx.fillText(pcap.toLowerCase(), W*0.06, H*0.90);
   }
+  drawYogo(ctx, W - W*0.06 - H*0.06, H*0.08, H*0.06, shot.fg, 0.9);
+  ctx.restore();
 }
 
 function findShot(t){
@@ -1475,57 +1574,238 @@ function renderFrame(t){
 }
 
 // ---------- timeline strip ---------------------------------------------------
+// Three rows: chapters (one band per project), shots (what's actually in each one),
+// and a ruler with the music's waveform, beat ticks and seconds.
 const tl = $("timeline"), tctx = tl.getContext("2d");
+const TLG = { H: 150, c0: 0, c1: 16, s0: 20, s1: 72, m0: 76, m1: 110, v0: 114, v1: 134, r0: 136, r1: 150 };
+let tlHover = null;   // { type: "shot", i } | { type: "cut", c } | { type: "ruler" }
+
+// frame grabs for the shots row, one hidden video per clip, fetched one at a time
+const THUMBS = new Map(); const thumbVideos = new Map(); let thumbQueue = [], thumbBusy = false;
+const thumbKey = s => s.clip.id + "@" + (Math.round(s.srcOffset * 4) / 4).toFixed(2);
+function thumbFor(s){ const v = THUMBS.get(thumbKey(s)); return v && v.width ? v : null; }
+function requestThumbs(){
+  if (!S.timeline) return;
+  for (const s of S.timeline.shots){
+    if (s.kind !== "video") continue;
+    const k = thumbKey(s);
+    if (THUMBS.has(k)) continue;
+    THUMBS.set(k, "pending");
+    thumbQueue.push({ clip: s.clip, t: s.srcOffset, key: k });
+  }
+  runThumbs();
+}
+function runThumbs(){
+  if (thumbBusy || !thumbQueue.length) return;
+  thumbBusy = true;
+  const job = thumbQueue.shift();
+  let v = thumbVideos.get(job.clip.id);
+  if (!v){
+    v = document.createElement("video");
+    v.muted = true; v.preload = "auto"; v.playsInline = true; v.src = job.clip.url;
+    thumbVideos.set(job.clip.id, v);
+  }
+  let timer = 0;
+  const finish = ok => {
+    clearTimeout(timer); v.onseeked = null; v.onerror = null; v.onloadedmetadata = null;
+    if (!ok) THUMBS.delete(job.key);
+    thumbBusy = false; drawTimeline(); runThumbs();
+  };
+  timer = setTimeout(() => finish(false), 6000);
+  const grab = () => {
+    try {
+      const c = document.createElement("canvas"); c.width = 192; c.height = 108;
+      const x = c.getContext("2d");
+      const sc = Math.max(192 / v.videoWidth, 108 / v.videoHeight);
+      x.drawImage(v, (192 - v.videoWidth*sc)/2, (108 - v.videoHeight*sc)/2, v.videoWidth*sc, v.videoHeight*sc);
+      THUMBS.set(job.key, c); finish(true);
+    } catch (e){ finish(false); }
+  };
+  v.onerror = () => finish(false);
+  const seek = () => {
+    v.onseeked = grab;
+    const t = Math.max(0.05, job.t + 0.05);
+    if (Math.abs(v.currentTime - t) < 0.02 && v.readyState >= 2) grab(); else v.currentTime = t;
+  };
+  if (v.readyState >= 1) seek(); else v.onloadedmetadata = seek;
+}
+
+function fitText(ctx, txt, maxW){
+  if (ctx.measureText(txt).width <= maxW) return txt;
+  while (txt.length > 1 && ctx.measureText(txt + "…").width > maxW) txt = txt.slice(0, -1);
+  return txt.length > 1 ? txt + "…" : "";
+}
 function drawTimeline(){
   const dpr = devicePixelRatio || 1;
   const W = tl.width = Math.max(1, tl.clientWidth * dpr);
-  const H = tl.height = 64 * dpr;
-  tctx.clearRect(0,0,W,H);
-  if (!S.timeline) return;
-  const { shots, cuts, duration } = S.timeline;
-  const top = H*0.30, bh = H*0.46;
-  for (const s of shots){
-    const x = s.start/duration*W, w = (s.end-s.start)/duration*W;
-    tctx.fillStyle = s.kind === "title" ? "#1a1a1a" : (s.kind === "intro" ? "#3a0512" : s.bg);
-    tctx.fillRect(x+1, top, Math.max(1,w-2), bh);
-    tctx.strokeStyle = s.projId === UI.sel && s.projId != null ? "#fff" : "rgba(255,255,255,0.22)";
-    tctx.lineWidth = s.projId === UI.sel && s.projId != null ? 2*dpr : dpr;
-    tctx.strokeRect(x+1, top, Math.max(1,w-2), bh);
-    // label when there's room
-    let label = s.kind === "intro" ? "INTRO" : s.kind === "title" ? "END" : (s.shotInProj === 1 ? s.projName.toUpperCase() : "");
-    if (label && w > 30*dpr){
-      tctx.save();
-      tctx.beginPath(); tctx.rect(x+1, top, Math.max(1,w-2), bh); tctx.clip();
-      tctx.fillStyle = (s.kind === "intro" || s.kind === "title") ? "#C5093B"
-          : (s.fg && s.fg !== "#FFFFFF" && s.fg !== "#F1F1F1" ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.9)");
-      tctx.font = `600 ${9*dpr}px ${FONT}`;
-      tctx.fillText(label, x+5*dpr, top + bh*0.62);
-      tctx.restore();
-    }
+  const H = tl.height = TLG.H * dpr;
+  tctx.clearRect(0, 0, W, H);
+  if (!S.timeline){
+    tctx.fillStyle = "rgba(253,253,249,0.3)"; tctx.font = `400 ${9*dpr}px ${MONO}`;
+    tctx.textAlign = "center"; tctx.textBaseline = "middle";
+    tctx.fillText("YOUR REEL, SHOT BY SHOT, APPEARS HERE ONCE THERE'S MUSIC", W/2, H/2);
+    return;
   }
-  cuts.forEach((cut, c) => {
-    const x = shots[c+1].start/duration*W;
-    if (cut.kind !== "cut"){
-      tctx.fillStyle = "#fff";
+  const { shots, cuts, duration, musicStart } = S.timeline;
+  const X = t => t / duration * W;
+  const c0 = TLG.c0*dpr, c1 = TLG.c1*dpr, s0 = TLG.s0*dpr, s1 = TLG.s1*dpr, r0 = TLG.r0*dpr, r1 = TLG.r1*dpr;
+  const m0 = TLG.m0*dpr, m1 = TLG.m1*dpr, v0 = TLG.v0*dpr, v1 = TLG.v1*dpr;
+  const cur = findShot(S.t);
+  const laneLabel = (txt, y0, y1) => { tctx.fillStyle = "rgba(253,253,249,0.38)"; tctx.font = `400 ${7.5*dpr}px ${MONO}`; tctx.textAlign = "left"; tctx.textBaseline = "top"; tctx.fillText(txt, 4*dpr, y0 + 3*dpr); };
+
+  // ---- music lane: the song under the reel, scaled by the volume curve ----
+  tctx.fillStyle = "#1E1614"; tctx.fillRect(0, m0, W, m1 - m0);
+  const msPrev = tlDrag && tlDrag.type === "music" && tlDrag.pStart != null ? tlDrag.pStart : musicStart;
+  if (S.wave && S.audioBuf){
+    const mid = (m0 + m1) / 2, amp = (m1 - m0) / 2 - 3*dpr, n = S.wave.length, full = S.audioBuf.duration;
+    tctx.fillStyle = "rgba(255,68,76,0.45)";
+    tctx.beginPath();
+    for (let px = 0; px < W; px += dpr){
+      const rt = px / W * duration, t = msPrev + rt;
+      if (t < 0 || t > full) continue;
+      const k = Math.min(n - 1, Math.floor(t / full * n));
+      const a = Math.max(0.5*dpr, S.wave[k] * amp * gainAt(rt));
+      tctx.rect(px, mid - a, dpr, a * 2);
+    }
+    tctx.fill();
+    // volume curve
+    tctx.strokeStyle = "rgba(253,253,249,0.85)"; tctx.lineWidth = 1.2*dpr; tctx.beginPath();
+    for (let px = 0; px <= W; px += 2*dpr){
+      const y = m1 - 2*dpr - Math.min(1.5, gainAt(px / W * duration)) / 1.5 * (m1 - m0 - 4*dpr);
+      px === 0 ? tctx.moveTo(px, y) : tctx.lineTo(px, y);
+    }
+    tctx.stroke();
+    (C.musicEnv || []).forEach((pt, i) => {
+      const x = X(pt.t), y = m1 - 2*dpr - Math.min(1.5, pt.v * C.musicVol / 100) / 1.5 * (m1 - m0 - 4*dpr);
+      const hov = tlHover && tlHover.type === "envpt" && tlHover.i === i;
+      tctx.beginPath(); tctx.arc(x, y, (hov ? 5.5 : 4) * dpr, 0, 7); tctx.fillStyle = N[0]; tctx.fill();
+      tctx.strokeStyle = HEAT; tctx.lineWidth = 1.5*dpr; tctx.stroke();
+    });
+    // edge grips: where the music starts and ends
+    const gripHov = tlHover && tlHover.type === "mhandle";
+    tctx.fillStyle = gripHov ? HEAT : "rgba(253,253,249,0.45)";
+    tctx.fillRect(0, m0, 3*dpr, m1 - m0); tctx.fillRect(W - 3*dpr, m0, 3*dpr, m1 - m0);
+  }
+  laneLabel("MUSIC", m0, m1);
+
+  // ---- voice-over lane ----
+  tctx.fillStyle = "#1A1311"; tctx.fillRect(0, v0, W, v1 - v0);
+  for (const vo of S.vo){
+    const x = X(vo.start), w = Math.max(2*dpr, X(vo.duration));
+    const hov = tlHover && tlHover.type === "vo" && tlHover.id === vo.id;
+    tctx.fillStyle = hov ? "rgba(254,184,153,0.38)" : "rgba(254,184,153,0.24)"; tctx.fillRect(x, v0 + 2*dpr, w, v1 - v0 - 4*dpr);
+    tctx.strokeStyle = PEACH; tctx.lineWidth = dpr; tctx.strokeRect(x + 0.5*dpr, v0 + 2.5*dpr, w - dpr, v1 - v0 - 5*dpr);
+    if (vo.peaks){
+      tctx.fillStyle = PEACH; const mid = (v0 + v1) / 2, amp = (v1 - v0) / 2 - 4*dpr, n = vo.peaks.length;
       tctx.beginPath();
-      tctx.moveTo(x, H*0.05); tctx.lineTo(x+5*dpr, H*0.17);
-      tctx.lineTo(x, H*0.27); tctx.lineTo(x-5*dpr, H*0.17);
-      tctx.closePath(); tctx.fill();
-      if (cut.isBoundary){ tctx.strokeStyle = "#C5093B"; tctx.lineWidth = 1.5*dpr; tctx.stroke(); }
+      for (let px = 0; px < w; px += dpr){ const a = Math.max(0.5*dpr, vo.peaks[Math.min(n - 1, Math.floor(px / w * n))] * amp); tctx.rect(x + px, mid - a, dpr, a * 2); }
+      tctx.fill();
+    }
+    if (w > 46*dpr){ tctx.fillStyle = N[7]; tctx.font = `400 ${7.5*dpr}px ${MONO}`; tctx.textAlign = "left"; tctx.textBaseline = "top"; tctx.fillText(vo.name.toUpperCase(), x + 4*dpr, v0 + 4*dpr); }
+  }
+  if (voRec){
+    const x = X(voRec.startT), w = Math.max(2*dpr, X(S.t) - x);
+    tctx.fillStyle = "rgba(255,68,76,0.45)"; tctx.fillRect(x, v0 + 2*dpr, w, v1 - v0 - 4*dpr);
+    tctx.fillStyle = N[0]; tctx.font = `400 ${7.5*dpr}px ${MONO}`; tctx.textAlign = "left"; tctx.textBaseline = "top"; tctx.fillText("● REC", x + 4*dpr, v0 + 4*dpr);
+  }
+  laneLabel(S.vo.length || voRec ? "VOICE-OVER" : "VOICE-OVER · record a take under Sound", v0, v1);
+
+  // ---- ruler: beats, seconds ----
+  tctx.fillStyle = "#1E1614"; tctx.fillRect(0, r0, W, r1 - r0);
+  tctx.fillStyle = "rgba(253,253,249,0.4)";
+  for (const b of S.beats){
+    const t = b - musicStart; if (t < 0 || t > duration) continue;
+    tctx.fillRect(X(t), r1 - 4*dpr, 1.2*dpr, 4*dpr);
+  }
+  const step = duration > 60 ? 10 : 5;
+  tctx.fillStyle = N[4]; tctx.font = `400 ${8*dpr}px ${MONO}`; tctx.textBaseline = "top"; tctx.textAlign = "left";
+  for (let s = 0; s < duration - 1; s += step){
+    const x = X(s);
+    tctx.fillRect(x, r0, dpr, 4*dpr);
+    tctx.fillText(`${s}s`, x + 3*dpr, r0 + 2*dpr);
+  }
+
+  // ---- chapter band ----
+  let i = 0;
+  while (i < shots.length){
+    const s = shots[i]; let j = i;
+    while (j + 1 < shots.length && shots[j+1].projIdx === s.projIdx) j++;
+    const x = X(s.start), w = X(shots[j].end) - x;
+    const bd = s.kind === "intro" ? backdrop(C.introBg) : s.kind === "title" ? backdrop(C.endBg) : null;
+    const base = bd ? bd.base : s.bg, ink = bd ? bd.ink : s.fg;
+    tctx.fillStyle = base; tctx.fillRect(x + dpr, c0, Math.max(1, w - 2*dpr), c1 - c0);
+    if (s.projId != null && s.projId === UI.sel){ tctx.fillStyle = "rgba(253,253,249,0.22)"; tctx.fillRect(x + dpr, c0, Math.max(1, w - 2*dpr), c1 - c0); }
+    const label = s.kind === "intro" ? "INTRO" : s.kind === "title" ? "SIGN-OFF" : s.projName.toUpperCase();
+    tctx.save();
+    tctx.beginPath(); tctx.rect(x + dpr, c0, Math.max(1, w - 2*dpr), c1 - c0); tctx.clip();
+    tctx.fillStyle = ink; tctx.font = `400 ${8.5*dpr}px ${MONO}`; tctx.textBaseline = "middle"; tctx.textAlign = "left";
+    tctx.fillText(fitText(tctx, label, w - 10*dpr), x + 5*dpr, (c0 + c1) / 2 + 0.5*dpr);
+    tctx.restore();
+    i = j + 1;
+  }
+
+  // ---- shots: the actual content ----
+  shots.forEach((s, k) => {
+    const x = X(s.start), w = X(s.end) - x;
+    const bx = x + dpr, bw = Math.max(1, w - 2*dpr), bh = s1 - s0;
+    tctx.save();
+    tctx.beginPath(); tctx.rect(bx, s0, bw, bh); tctx.clip();
+    if (s.kind === "video"){
+      tctx.fillStyle = "#2A201D"; tctx.fillRect(bx, s0, bw, bh);
+      const th = thumbFor(s);
+      if (th){
+        const sc = Math.max(bw / th.width, bh / th.height), dw = th.width * sc, dh = th.height * sc;
+        tctx.drawImage(th, bx + (bw - dw)/2, s0 + (bh - dh)/2, dw, dh);
+      } else if (bw > 30*dpr){
+        tctx.fillStyle = "rgba(253,253,249,0.3)"; tctx.font = `400 ${8*dpr}px ${MONO}`;
+        tctx.textAlign = "center"; tctx.textBaseline = "middle";
+        tctx.fillText("LOADING", bx + bw/2, s0 + bh/2);
+      }
+    } else if (s.kind === "placeholder"){
+      tctx.fillStyle = s.bg; tctx.fillRect(bx, s0, bw, bh);
+      const r = Math.min(bh * 0.27, bw * 0.38);
+      if (r > 3*dpr) drawShape(tctx, s.shape, bx + bw/2, s0 + bh/2, r, s.rot, s.fg);
     } else {
-      tctx.fillStyle = cut.isBoundary ? "#C5093B" : "rgba(255,255,255,0.35)";
-      tctx.fillRect(x - dpr, H*0.09, 2*dpr, H*0.16);
+      const bd = s.kind === "intro" ? backdrop(C.introBg) : backdrop(C.endBg);
+      tctx.fillStyle = bd.base; tctx.fillRect(bx, s0, bw, bh);
+      const txt = (s.kind === "intro" ? (C.introTitle || "") : (C.title || "")).trim().toLowerCase();
+      tctx.fillStyle = bd.ink; tctx.font = `700 ${11*dpr}px ${FONT}`; tctx.textAlign = "left"; tctx.textBaseline = "alphabetic";
+      tctx.fillText(fitText(tctx, txt, bw - 10*dpr), bx + 5*dpr, s1 - 7*dpr);
+      if (bw > 40*dpr) drawYogo(tctx, bx + 5*dpr, s0 + 5*dpr, 9*dpr, bd.ink, 1);
+    }
+    if ((s.kind === "video" || s.kind === "placeholder") && bw > 34*dpr){
+      tctx.fillStyle = "rgba(28,18,16,0.62)"; tctx.fillRect(bx, s1 - 12*dpr, 18*dpr, 12*dpr);
+      tctx.fillStyle = N[0]; tctx.font = `400 ${7.5*dpr}px ${MONO}`; tctx.textAlign = "left"; tctx.textBaseline = "middle";
+      tctx.fillText(String(s.shotInProj).padStart(2, "0"), bx + 3*dpr, s1 - 6*dpr);
+    }
+    tctx.restore();
+    if (k === cur){ tctx.strokeStyle = N[0]; tctx.lineWidth = 1.5*dpr; tctx.strokeRect(bx + 0.75*dpr, s0 + 0.75*dpr, bw - 1.5*dpr, bh - 1.5*dpr); }
+    else if (tlHover && tlHover.type === "shot" && tlHover.i === k){ tctx.strokeStyle = "rgba(253,253,249,0.55)"; tctx.lineWidth = dpr; tctx.strokeRect(bx + 0.5*dpr, s0 + 0.5*dpr, bw - dpr, bh - dpr); }
+  });
+
+  // ---- cut markers ----
+  cuts.forEach((cut, c) => {
+    const x = X(shots[c+1].start);
+    const hov = tlHover && tlHover.type === "cut" && tlHover.c === c;
+    if (cut.kind !== "cut"){
+      tctx.fillStyle = hov ? "rgba(253,253,249,0.9)" : "rgba(253,253,249,0.55)";
+      tctx.fillRect(x - 0.75*dpr, s0, 1.5*dpr, s1 - s0);
+      const cy = (c1 + s0) / 2, r = (hov ? 7 : 5.5) * dpr;
+      tctx.beginPath(); tctx.moveTo(x, cy - r); tctx.lineTo(x + r, cy); tctx.lineTo(x, cy + r); tctx.lineTo(x - r, cy); tctx.closePath();
+      tctx.fillStyle = N[0]; tctx.fill();
+      tctx.strokeStyle = cut.isBoundary ? HEAT : N[6]; tctx.lineWidth = 1.5*dpr; tctx.stroke();
+    } else {
+      tctx.fillStyle = cut.isBoundary ? HEAT : "rgba(253,253,249,0.5)";
+      tctx.fillRect(x - dpr, c1 - 2*dpr, 2*dpr, (s0 - c1) + 4*dpr);
+      if (hov){ tctx.fillStyle = "rgba(253,253,249,0.9)"; tctx.fillRect(x - dpr, s0, 2*dpr, s1 - s0); }
     }
   });
-  tctx.fillStyle = "rgba(255,255,255,0.28)";
-  for (const b of S.beats){
-    const t = b - S.timeline.musicStart;
-    if (t < 0 || t > duration) continue;
-    tctx.fillRect(t/duration*W, H*0.84, 1.5*dpr, H*0.10);
-  }
-  const x = S.t/duration*W;
-  tctx.fillStyle = "#C5093B";
-  tctx.fillRect(x-1, 0, 2.5*dpr, H);
+
+  // ---- playhead ----
+  const px = X(S.t);
+  tctx.fillStyle = HEAT;
+  tctx.fillRect(px - dpr, 0, 2*dpr, H);
+  tctx.beginPath(); tctx.moveTo(px - 5*dpr, 0); tctx.lineTo(px + 5*dpr, 0); tctx.lineTo(px, 6*dpr); tctx.closePath(); tctx.fill();
 }
 
 // ---------- timeline editing ----------------------------------------------------
@@ -1560,19 +1840,126 @@ function commitManualFromShots(){
   manualEnd = titleShot ? musicStart + titleShot.start : null;
   buildTimeline(false);
 }
+const tip = $("tlTip");
+function tlTarget(px, py){
+  if (!S.timeline) return null;
+  const W = tl.clientWidth, dur = S.timeline.duration;
+  if (py >= TLG.m0 && py <= TLG.m1){
+    const pts = C.musicEnv || [];
+    for (let i = 0; i < pts.length; i++){
+      const x = pts[i].t / dur * W, y = TLG.m1 - 2 - Math.min(1.5, pts[i].v * C.musicVol / 100) / 1.5 * (TLG.m1 - TLG.m0 - 4);
+      if (Math.hypot(px - x, py - y) <= 7) return { type: "envpt", i };
+    }
+    if (px <= 8) return { type: "mhandle", side: "l" };
+    if (px >= W - 8) return { type: "mhandle", side: "r" };
+    return { type: "music" };
+  }
+  if (py >= TLG.v0 && py <= TLG.v1){
+    const t = px / W * dur;
+    const vo = S.vo.find(v => t >= v.start && t <= v.start + v.duration);
+    return vo ? { type: "vo", id: vo.id } : { type: "volane" };
+  }
+  if (py >= TLG.r0) return { type: "ruler" };
+  const c = cutNearX(px);
+  if (c >= 0) return { type: "cut", c };
+  return { type: "shot", i: findShot(px / W * dur) };
+}
+function describeTarget(tg){
+  const { shots, cuts } = S.timeline;
+  if (tg.type === "cut"){
+    const cut = cuts[tg.c];
+    return `<b>${escH(TRANS_LABELS[cut.kind] || cut.kind)}</b> · ${escH(cut.label)}<br><span>drag to move the cut · click to change the transition</span>`;
+  }
+  if (tg.type === "shot"){
+    const s = shots[tg.i], d = (s.end - s.start).toFixed(1) + "s";
+    if (s.kind === "intro") return `<b>Opening title</b> · ${d}<br><span>edit it under Look</span>`;
+    if (s.kind === "title") return `<b>Sign-off card</b> · ${d}<br><span>edit it under Look</span>`;
+    const what = s.kind === "video" ? `${escH(s.clip.name)} · from ${s.srcOffset.toFixed(1)}s in` : "no footage yet · plays as a shape";
+    return `<b>${escH(s.projName)}</b> · shot ${s.shotInProj} · ${d}<br><span>${what} · click to open this project</span>`;
+  }
+  if (tg.type === "envpt"){ const pt = C.musicEnv[tg.i]; return `<b>Volume ${Math.round(pt.v * 100)}%</b> at ${fmtT(pt.t)}<br><span>drag up or down · double-click to remove</span>`; }
+  if (tg.type === "music") return `<b>Music</b> · starts ${fmtT(S.timeline.musicStart)} into the song<br><span>drag left or right to slide the song under the reel · double-click to add a volume point</span>`;
+  if (tg.type === "mhandle") return tg.side === "l" ? `<b>Where the music starts</b><br><span>drag to trim the start and keep the end</span>` : `<b>Where the music ends</b><br><span>drag to make the reel longer or shorter</span>`;
+  if (tg.type === "vo"){ const vo = S.vo.find(v => v.id === tg.id); return `<b>${escH(vo.name)}</b> · ${vo.duration.toFixed(1)}s from ${fmtT(vo.start)}<br><span>drag to move it · delete it under Sound</span>`; }
+  if (tg.type === "volane") return `<b>Voice-over lane</b><br><span>record a take under Sound, then drag it here</span>`;
+  return `<span>click or drag to scrub through the music</span>`;
+}
+function showTip(tg, px){
+  tip.innerHTML = describeTarget(tg); tip.hidden = false;
+  const w = tip.offsetWidth, left = Math.min(Math.max(0, px - w/2), Math.max(0, tl.clientWidth - w));
+  tip.style.left = left + "px";
+  tip.style.setProperty("--ax", Math.min(Math.max(8, px - left), w - 8) + "px");
+}
+function hideTip(){ tip.hidden = true; }
+function setHover(tg){
+  const same = JSON.stringify(tg) === JSON.stringify(tlHover);
+  tlHover = tg;
+  if (!same) drawTimeline();
+}
 tl.addEventListener("pointerdown", e => {
   if (!S.timeline || S.exporting) return;
-  tlDrag = { c: cutNearX(e.offsetX), moved: false, x0: e.offsetX, committed: false };
+  const tg = tlTarget(e.offsetX, e.offsetY);
+  const lane = ["music","mhandle","envpt","vo","volane"].includes(tg.type);
+  const c = !lane && e.offsetY < TLG.r0 ? cutNearX(e.offsetX) : -1;
+  tlDrag = { c, moved: false, x0: e.offsetX, y0: e.offsetY, committed: false, type: lane ? tg.type : (c >= 0 ? "cut" : "scrub"), tg,
+             start0: S.timeline.musicStart, dur0: S.timeline.duration };
+  if (tg.type === "vo"){ const vo = S.vo.find(v => v.id === tg.id); tlDrag.vo = vo; tlDrag.vs0 = vo.start; }
   tl.setPointerCapture(e.pointerId);
+});
+function laneDrag(e){
+  const d = tlDrag, W = tl.clientWidth, dur = S.timeline.duration, full = S.audioBuf.duration;
+  const dsec = (e.offsetX - d.x0) / W * dur;
+  if (d.type === "music"){ d.pStart = Math.max(0, Math.min(full - dur, d.start0 - dsec)); drawTimeline(); }
+  else if (d.type === "mhandle"){
+    if (d.tg.side === "r"){ d.pDur = Math.max(5, Math.min(120, full - d.start0, d.dur0 + dsec)); }
+    else { const ns = Math.max(0, Math.min(d.start0 + d.dur0 - 5, d.start0 + dsec)); d.pStart = ns; d.pDur = d.start0 + d.dur0 - ns; }
+    setStatus(d.tg.side === "r" ? `Reel ends at ${fmtT(d.start0 + (d.pDur ?? d.dur0))} in the song (${Math.round(d.pDur ?? d.dur0)}s long)` : `Music starts ${fmtT(d.pStart ?? d.start0)} into the song`);
+  }
+  else if (d.type === "envpt"){
+    if (!d.committed){ commit("env"); d.committed = true; }
+    const pt = C.musicEnv[d.tg.i];
+    pt.t = Math.max(0, Math.min(dur, e.offsetX / W * dur));
+    pt.v = Math.max(0, Math.min(1.5, (TLG.m1 - 2 - e.offsetY) / (TLG.m1 - TLG.m0 - 4) * 1.5)) / Math.max(0.01, C.musicVol / 100);
+    pt.v = Math.min(1.5, pt.v);
+    drawTimeline();
+  }
+  else if (d.type === "vo"){
+    if (!d.committed){ commit("vo"); d.committed = true; }
+    d.vo.start = Math.max(0, Math.min(dur - d.vo.duration, d.vs0 + dsec));
+    drawTimeline();
+  }
+}
+function laneDrop(d){
+  if (d.type === "music" && d.pStart != null){ setMusicWindow(d.pStart, d.pStart + d.dur0); return; }
+  if (d.type === "mhandle"){ if (d.pStart != null || d.pDur != null) setMusicWindow(d.pStart ?? d.start0, (d.pStart ?? d.start0) + (d.pDur ?? d.dur0)); return; }
+  if (d.type === "envpt"){ C.musicEnv.sort((a, b) => a.t - b.t); onConfig("musicEnv"); return; }
+  if (d.type === "vo"){ renderVO(); scheduleSave(); if (S.playing) seekTo(S.t); }
+}
+tl.addEventListener("dblclick", e => {
+  if (!S.timeline || S.exporting) return;
+  const tg = tlTarget(e.offsetX, e.offsetY);
+  if (tg.type === "envpt"){ commit("env"); C.musicEnv.splice(tg.i, 1); onConfig("musicEnv"); setStatus("Volume point removed."); }
+  else if (tg.type === "music"){
+    commit("env");
+    const dur = S.timeline.duration, t = e.offsetX / tl.clientWidth * dur;
+    const v = Math.min(1.5, Math.max(0, (TLG.m1 - 2 - e.offsetY) / (TLG.m1 - TLG.m0 - 4) * 1.5) / Math.max(0.01, C.musicVol / 100));
+    C.musicEnv = [...(C.musicEnv || []), { t: +t.toFixed(2), v: +v.toFixed(2) }].sort((a, b) => a.t - b.t);
+    onConfig("musicEnv"); setStatus(`Volume point added at ${fmtT(t)} — drag it up or down.`);
+  }
 });
 tl.addEventListener("pointermove", e => {
   if (!S.timeline || S.exporting) return;
   if (!tlDrag){
-    tl.style.cursor = cutNearX(e.offsetX) >= 0 ? "col-resize" : "pointer";
+    const tg = tlTarget(e.offsetX, e.offsetY);
+    tl.style.cursor = tg.type === "cut" || tg.type === "mhandle" ? "col-resize" : tg.type === "shot" ? "pointer" : tg.type === "music" || tg.type === "vo" ? "grab" : tg.type === "envpt" ? "ns-resize" : "ew-resize";
+    setHover(tg); showTip(tg, e.offsetX);
     return;
   }
-  if (Math.abs(e.offsetX - tlDrag.x0) > 3) tlDrag.moved = true;
+  if (Math.abs(e.offsetX - tlDrag.x0) > 3 || (tlDrag.type === "envpt" && Math.abs(e.offsetY - tlDrag.y0) > 3)) tlDrag.moved = true;
   if (!tlDrag.moved) return;
+  hideTip();
+  if (["music","mhandle","envpt","vo"].includes(tlDrag.type)){ laneDrag(e); return; }
+  if (tlDrag.type === "volane") return;
   const { shots, cuts, duration, musicStart } = S.timeline;
   if (tlDrag.c >= 0){
     if (!tlDrag.committed){ commit("drag"); tlDrag.committed = true; }
@@ -1589,18 +1976,26 @@ tl.addEventListener("pointermove", e => {
     seekTo(e.offsetX / tl.clientWidth * duration);
   }
 });
+tl.addEventListener("pointerleave", () => { if (!tlDrag){ hideTip(); setHover(null); } });
 ["pointerup", "pointercancel"].forEach(ev => tl.addEventListener(ev, e => {
   if (!S.timeline || S.exporting){ tlDrag = null; return; }
   const d = tlDrag; tlDrag = null;
   if (!d) return;
   if (d.moved){
+    if (["music","mhandle","envpt","vo"].includes(d.type)){ laneDrop(d); drawTimeline(); return; }
     if (d.c >= 0){ commitManualFromShots(); setStatus("Cut moved. <b>Auto cuts</b> puts everything back on the beat."); }
     return;
   }
-  const c = cutNearX(e.offsetX);
-  const inMarkerBand = e.offsetY < tl.clientHeight * 0.32;
-  if (c >= 0 && inMarkerBand) openCutPopup(c, e);
-  else seekTo(e.offsetX / tl.clientWidth * S.timeline.duration);
+  const tg = tlTarget(e.offsetX, e.offsetY);
+  if (tg.type === "vo"){ const vo = S.vo.find(v => v.id === tg.id); seekTo(vo.start); return; }
+  if (["music","mhandle","envpt","volane"].includes(tg.type)){ seekTo(e.offsetX / tl.clientWidth * S.timeline.duration); return; }
+  if (tg.type === "cut" && e.offsetY < TLG.s0 + 8){ openCutPopup(tg.c, e); return; }
+  const t = e.offsetX / tl.clientWidth * S.timeline.duration;
+  seekTo(t);
+  if (tg.type === "shot"){
+    const s = S.timeline.shots[tg.i];
+    if (s.projId != null && s.projId !== UI.sel){ selectProject(s.projId, { seek: false }); if (UI.tab !== "projects") showTab("projects"); }
+  }
 }));
 function splitAtPlayhead(){
   if (!S.timeline || S.exporting) return;
@@ -1768,28 +2163,85 @@ function ensureCtx(){
     gainNode.connect(actx.destination);
     msDest = actx.createMediaStreamDestination();
     gainNode.connect(msDest);
+    voGain = actx.createGain();
+    voGain.gain.value = C.voVol / 100;
+    voGain.connect(actx.destination);
+    voGain.connect(msDest);
   }
   if (actx.state === "suspended") actx.resume();
+}
+// music level at reel time t: volume × your points × fades × ducking under the voice-over
+const clamp01 = x => Math.min(1, Math.max(0, x));
+function envAt(t){
+  const pts = C.musicEnv || [];
+  if (!pts.length) return 1;
+  if (t <= pts[0].t) return pts[0].v;
+  for (let i = 1; i < pts.length; i++){
+    if (t <= pts[i].t){ const a = pts[i-1], b = pts[i]; const f = (t - a.t) / Math.max(1e-6, b.t - a.t); return a.v + (b.v - a.v) * f; }
+  }
+  return pts[pts.length-1].v;
+}
+function duckAt(t){
+  if (!C.duck || !S.vo.length) return 1;
+  const R = 0.35, L = 0.22;
+  let g = 1;
+  for (const vo of S.vo){
+    const a = vo.start, b = vo.start + vo.duration;
+    let f = 0;
+    if (t >= a && t <= b) f = 1;
+    else if (t > a - R && t < a) f = (t - (a - R)) / R;
+    else if (t > b && t < b + R) f = 1 - (t - b) / R;
+    g = Math.min(g, 1 - f * (1 - L));
+  }
+  return g;
+}
+function gainAt(t){
+  if (S.musicMuted) return 0;
+  const dur = S.timeline ? S.timeline.duration : +C.duration;
+  let g = (C.musicVol / 100) * envAt(t) * duckAt(t);
+  if (C.fadeIn > 0) g *= clamp01(t / C.fadeIn);
+  if (C.fadeOut > 0) g *= clamp01((dur - t) / C.fadeOut);
+  return Math.max(0, g);
 }
 function startAudio(fromT){
   ensureCtx();
   stopAudio();
+  const { musicStart, duration } = S.timeline;
+  const remain = Math.max(0.05, duration - fromT);
+  const now = actx.currentTime;
+  // music
   srcNode = actx.createBufferSource();
   srcNode.buffer = S.audioBuf;
   srcNode.connect(gainNode);
-  const { musicStart, duration } = S.timeline;
-  const remain = duration - fromT;
-  gainNode.gain.cancelScheduledValues(actx.currentTime);
-  gainNode.gain.setValueAtTime(1, actx.currentTime);
-  const fadeAt = actx.currentTime + Math.max(0, remain - 1.2);
-  gainNode.gain.setValueAtTime(1, fadeAt);
-  gainNode.gain.linearRampToValueAtTime(0.0001, fadeAt + 1.2);
-  srcNode.start(0, musicStart + fromT, remain + 0.05);
-  playStartCtxT = actx.currentTime;
+  const n = Math.max(2, Math.ceil(remain / 0.04));
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) curve[i] = gainAt(fromT + i * remain / (n - 1));
+  const g = gainNode.gain;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(curve[0], now);
+  try { g.setValueCurveAtTime(curve, now + 0.002, remain); } catch (e) { g.setValueAtTime(curve[0], now); }
+  const musicAvail = S.audioBuf.duration - (musicStart + fromT);
+  if (musicAvail > 0.02) srcNode.start(now, musicStart + fromT, Math.min(remain, musicAvail) + 0.05);
+  // voice-over takes
+  voGain.gain.value = C.voVol / 100;
+  voNodes = [];
+  for (const vo of S.vo){
+    if (!vo.buffer) continue;
+    const end = vo.start + vo.duration;
+    if (end <= fromT) continue;
+    const src = actx.createBufferSource();
+    src.buffer = vo.buffer; src.connect(voGain);
+    const when = now + Math.max(0, vo.start - fromT), off = Math.max(0, fromT - vo.start);
+    const len = Math.min(vo.duration - off, remain - Math.max(0, vo.start - fromT));
+    if (len > 0.02){ src.start(when, off, len); voNodes.push(src); }
+  }
+  playStartCtxT = now;
   playStartReelT = fromT;
 }
 function stopAudio(){
   if (srcNode){ try { srcNode.stop(); } catch(e){} srcNode.disconnect(); srcNode = null; }
+  for (const s of voNodes){ try { s.stop(); } catch(e){} s.disconnect(); }
+  voNodes = [];
 }
 function play(){
   if (!S.timeline || S.playing) return;
@@ -1832,6 +2284,7 @@ function loop(){
 }
 function finishPlayback(){
   pause();
+  if (voRec){ stopVO(); return; }
   if (S.exporting) stopExport();
   else S.t = 0;
   updateTimecode();
@@ -1855,7 +2308,33 @@ function refresh(structural){
 }
 
 // ---------- export --------------------------------------------------------------
-let recorder = null, recChunks = [];
+let recorder = null, recChunks = [], lastExport = null;
+function downloadLastExport(){
+  if (!lastExport) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(lastExport.blob);
+  a.download = lastExport.name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+async function saveLastExport(){
+  if (!lastExport) return;
+  try {
+    const h = await window.showSaveFilePicker({
+      suggestedName: lastExport.name,
+      types: [{ description: "Video", accept: { [lastExport.blob.type.split(";")[0] || "video/webm"]: ["." + lastExport.ext] } }],
+    });
+    const w = await h.createWritable(); await w.write(lastExport.blob); await w.close();
+    setStatus(`Saved <b>${escH(h.name)}</b>.`);
+  } catch (e){
+    if (e && e.name === "AbortError") setStatus(`Not saved. <button id="saveBtn">Save to your computer…</button><button id="dlBtn" class="ghost">Download instead</button>`);
+    else { downloadLastExport(); setStatus("Couldn't open the save dialog, so it went to your downloads instead."); }
+  }
+}
+$("status").addEventListener("click", e => {
+  if (e.target.id === "saveBtn") saveLastExport();
+  else if (e.target.id === "dlBtn"){ downloadLastExport(); setStatus("Downloading…"); }
+});
 function pickMime(){
   const cands = [
     ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "mp4"], ["video/mp4;codecs=avc1,mp4a.40.2", "mp4"],
@@ -1901,12 +2380,13 @@ function startExport(){
   recorder.onstop = () => {
     const blob = new Blob(recChunks, { type: rec.mimeType });
     const name = exportName(ext);
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
-    setStatus(`Exported <b>${name}</b> (${(blob.size/1e6).toFixed(1)} MB) — check your downloads.`);
+    lastExport = { blob, name, ext };
+    if (window.showSaveFilePicker){
+      setStatus(`Done — <b>${name}</b> (${(blob.size/1e6).toFixed(1)} MB) is ready. <button id="saveBtn">Save to your computer…</button><button id="dlBtn" class="ghost">Download instead</button>`);
+    } else {
+      downloadLastExport();
+      setStatus(`Exported <b>${name}</b> (${(blob.size/1e6).toFixed(1)} MB) — check your downloads.`);
+    }
   };
   S.exporting = true;
   $("exportBtn").textContent = "⏺ Recording… click to cancel";
@@ -1925,6 +2405,87 @@ function stopExport(cancel){
   if (cancel) pause();
 }
 $("exportBtn").addEventListener("click", () => S.exporting ? stopExport(true) : startExport());
+// ---------- voice-over ---------------------------------------------------------
+let voRec = null;   // { rec, chunks, startT, stream, mime }
+function peaksOf(buf, n){
+  n = n || Math.max(40, Math.round(buf.duration * 30));
+  const ch = buf.getChannelData(0), step = Math.max(1, Math.floor(ch.length / n)), out = new Float32Array(n);
+  let mx = 0;
+  for (let i = 0; i < n; i++){ let pk = 0; const a = i*step, b = Math.min(ch.length, a + step); for (let k = a; k < b; k += 2){ const v = Math.abs(ch[k]); if (v > pk) pk = v; } out[i] = pk; if (pk > mx) mx = pk; }
+  if (mx > 0) for (let i = 0; i < n; i++) out[i] /= mx;
+  return out;
+}
+async function startVO(){
+  if (!S.timeline){ setStatus("Add music first, then record over the reel.", true); return; }
+  if (S.exporting) return;
+  if (!navigator.mediaDevices || !window.MediaRecorder){ setStatus("This browser can't record from a microphone.", true); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"].find(m => MediaRecorder.isTypeSupported(m)) || "";
+    const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    pause();
+    if (S.t >= S.timeline.duration - 0.5) S.t = 0;
+    voRec = { rec, chunks, startT: S.t, stream, mime };
+    S.musicMuted = !C.voMonitor;
+    rec.start(100);
+    play();
+    updateVOButton();
+    setStatus(`Recording from ${fmtT(voRec.startT)} — talk over the reel, then press <b>Stop</b>.`);
+  } catch (e){
+    setStatus("Couldn't use the microphone: " + (e.message || e.name) + ". Check the browser's mic permission.", true);
+  }
+}
+async function stopVO(){
+  const r = voRec; if (!r) return;
+  voRec = null; S.musicMuted = false;
+  const stopped = new Promise(res => { r.rec.onstop = res; });
+  try { r.rec.stop(); } catch (e) {}
+  pause();
+  updateVOButton();
+  await stopped;
+  r.stream.getTracks().forEach(t => t.stop());
+  const blob = new Blob(r.chunks, { type: r.mime || "audio/webm" });
+  try {
+    const buf = await actx.decodeAudioData(await blob.arrayBuffer());
+    const vo = { id: voIdSeq++, name: `Take ${S.vo.length + 1}`, start: r.startT, buffer: buf, blob, duration: buf.duration, peaks: peaksOf(buf) };
+    S.vo.push(vo);
+    if (!restoring) putMedia("vo:" + vo.id, blob);
+    renderVO(); drawTimeline(); scheduleSave();
+    setStatus(`Saved <b>${vo.name}</b> (${buf.duration.toFixed(1)}s) at ${fmtT(r.startT)}. Play it back, or drag it on the voice-over lane.`);
+  } catch (e){
+    setStatus("Couldn't process that recording: " + e.message, true);
+  }
+}
+function updateVOButton(){
+  const b = $("voBtn");
+  b.textContent = voRec ? "■ Stop recording" : "● Record voice-over";
+  b.classList.toggle("on", !!voRec);
+}
+function renderVO(){
+  const box = $("voList");
+  if (!S.vo.length){ box.innerHTML = `<div class="none" style="padding:10px 0 4px">No takes yet.</div>`; return; }
+  box.innerHTML = "";
+  S.vo.forEach(vo => {
+    const row = document.createElement("div");
+    row.className = "vo-row";
+    row.innerHTML = `<div><b>${escH(vo.name)}</b><small>starts at ${fmtT(vo.start)} · ${vo.duration.toFixed(1)}s</small></div>
+      <button class="btn" style="height:30px;font-size:12px">▶ Play</button><button class="ib" title="Delete this take" aria-label="Delete ${escH(vo.name)}">×</button>`;
+    row.querySelector(".btn").addEventListener("click", ev => { ev.stopPropagation(); seekTo(vo.start); play(); });
+    row.querySelector(".ib").addEventListener("click", ev => {
+      ev.stopPropagation();
+      if (!confirm(`Delete ${vo.name}? This can't be undone.`)) return;
+      S.vo = S.vo.filter(v => v.id !== vo.id);
+      renderVO(); drawTimeline(); scheduleSave();
+      if (S.playing) seekTo(S.t);
+    });
+    row.addEventListener("click", () => seekTo(vo.start));
+    box.appendChild(row);
+  });
+}
+$("voBtn").addEventListener("click", () => voRec ? stopVO() : startVO());
+
 function renderExportMeta(){
   const el = $("exportMeta");
   if (!S.audioBuf){ el.textContent = "Add a track to export."; return; }
@@ -1936,9 +2497,21 @@ function renderExportMeta(){
 }
 
 // ---------- music -----------------------------------------------------------------
+function computeWave(buf){
+  const ch = buf.getChannelData(0), n = 1200, step = Math.floor(ch.length / n) || 1;
+  const out = new Float32Array(n); let mx = 0;
+  for (let i = 0; i < n; i++){
+    let pk = 0; const a = i * step, b = Math.min(ch.length, a + step);
+    for (let k = a; k < b; k += 4){ const v = Math.abs(ch[k]); if (v > pk) pk = v; }
+    out[i] = pk; if (pk > mx) mx = pk;
+  }
+  if (mx > 0) for (let i = 0; i < n; i++) out[i] /= mx;
+  return out;
+}
 async function useTrack(buf, name, opts){
   opts = opts || {};
   S.audioBuf = buf; S.musicName = name; S.musicFile = opts.file || null; S.musicDemo = !!opts.demo;
+  S.wave = computeWave(buf);
   $("trackName").textContent = name;
   $("trackMeta").innerHTML = `Analyzing beats… <progress id="anprog" max="1" value="0" style="width:120px;accent-color:#141414"></progress>`;
   $("musicEmpty").hidden = true; $("musicLoaded").hidden = false;
@@ -1953,6 +2526,7 @@ async function useTrack(buf, name, opts){
   setCanvasSize();
   buildTimeline(true);
   renderSteps();
+  updateAudioLabels(); drawScrub(); renderVO();
   if (!restoring) setStatus(opts.demo ? "Demo beat loaded — add your projects, or just press play." : `<b>${escH(name)}</b> loaded — every cut will land on the beat.`);
 }
 async function loadMusic(files){
@@ -2046,11 +2620,33 @@ document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", 
 $("goExport").addEventListener("click", () => showTab("export"));
 
 // ---------- panel: settings bindings ---------------------------------------------
+function updateAudioLabels(){
+  $("musicVolVal").textContent = `${C.musicVol}%`;
+  $("fadeInVal").textContent = `${C.fadeIn}s`;
+  $("fadeOutVal").textContent = `${C.fadeOut}s`;
+  $("voVolVal").textContent = `${C.voVol}%`;
+  const ms = musicStartSec();
+  $("musicStartIn").value = ms.toFixed(1);
+  $("musicEndIn").value = (ms + +C.duration).toFixed(1);
+  $("musicEndHint").textContent = S.audioBuf ? `of ${fmtT(S.audioBuf.duration)}` : "seconds in";
+}
+function musicStartSec(){
+  if (S.timeline) return S.timeline.musicStart;
+  return C.musicStart === "auto" ? (S.autoStart || 0) : (+C.musicStart || 0);
+}
 function onConfig(key){
+  if (AUDIO_KEYS.has(key)){
+    if (voGain) voGain.gain.value = C.voVol / 100;
+    updateAudioLabels(); drawTimeline();
+    if (S.playing) seekTo(S.t);
+    scheduleSave();
+    return;
+  }
   if (key === "format") setCanvasSize();
   if (S.audioBuf) rebuild(STRUCTURAL.has(key));
-  if (["introTitle","introSub","introBg","introFx","introBeats"].includes(key) && S.timeline && !S.playing && S.timeline.shots[0]?.kind === "intro") seekTo(0.7);
-  if (["title","subtitle","endBg","endMark"].includes(key) && S.timeline && !S.playing){
+  if (key === "musicStart" || key === "duration"){ updateAudioLabels(); drawScrub(); }
+  if (["introTitle","introSub","introBg","introFx","introBeats","titleLayout"].includes(key) && S.timeline && !S.playing && S.timeline.shots[0]?.kind === "intro") seekTo(0.7);
+  if (["title","subtitle","endBg","endMark","titleLayout"].includes(key) && S.timeline && !S.playing){
     const t = S.timeline.shots.find(s => s.kind === "title"); if (t) seekTo(t.start + 0.7);
   }
   if (key === "duration") $("durationVal").textContent = `${C.duration} seconds`;
@@ -2088,6 +2684,8 @@ function bindControls(){
       } else {
         if (seg.dataset.num) v = +v;
         if (seg.dataset.bool) v = v === "true";
+        if (key === "musicStart" && v === "custom") v = +musicStartSec().toFixed(1);
+        if (key === "musicStart" && v === "0") v = 0;
         C[key] = v;
       }
       syncControls();
@@ -2103,13 +2701,95 @@ function syncControls(){
   document.querySelectorAll("[data-seg]").forEach(seg => {
     const key = seg.dataset.seg, cur = C[key];
     seg.querySelectorAll("button").forEach(b => {
-      const on = seg.dataset.multi ? (cur || []).includes(b.dataset.v) : String(cur) === b.dataset.v;
+      let on = seg.dataset.multi ? (cur || []).includes(b.dataset.v) : String(cur) === b.dataset.v;
+      if (key === "musicStart" && b.dataset.v === "custom") on = typeof cur === "number" && cur !== 0;
       b.setAttribute("aria-pressed", String(on));
     });
   });
   $("durationVal").textContent = `${C.duration} seconds`;
   $("shotVal").textContent = `${C.shotMin}–${C.shotMax} seconds`;
+  updateAudioLabels();
 }
+// numeric start / end
+function setMusicWindow(start, end){
+  const full = S.audioBuf ? S.audioBuf.duration : Infinity;
+  let dur = Math.min(120, Math.max(5, end - start));
+  start = Math.max(0, Math.min(start, full - 5));
+  dur = Math.min(dur, full - start);
+  commit("musicwin");
+  C.musicStart = +start.toFixed(2);
+  C.duration = Math.round(dur);
+  syncControls();
+  if (S.audioBuf) rebuild(true);
+  updateAudioLabels(); drawScrub(); scheduleSave();
+}
+$("musicStartIn").addEventListener("change", () => { const s = +$("musicStartIn").value || 0; setMusicWindow(s, s + +C.duration); });
+$("musicEndIn").addEventListener("change", () => { const s = musicStartSec(); setMusicWindow(s, +$("musicEndIn").value || s + 5); });
+$("envClear").addEventListener("click", () => { commit("env"); C.musicEnv = []; onConfig("musicEnv"); setStatus("Volume points cleared."); });
+
+// the whole song, with the reel's window on it
+const scrub = $("trackScrub"), sctx = scrub.getContext("2d");
+let scrubDrag = null;
+function drawScrub(){
+  const dpr = devicePixelRatio || 1;
+  const W = scrub.width = Math.max(1, scrub.clientWidth * dpr), H = scrub.height = 56 * dpr;
+  sctx.clearRect(0, 0, W, H);
+  if (!S.wave || !S.audioBuf) return;
+  const full = S.audioBuf.duration, n = S.wave.length;
+  const start = scrubDrag && scrubDrag.pStart != null ? scrubDrag.pStart : musicStartSec();
+  const dur = scrubDrag && scrubDrag.pDur != null ? scrubDrag.pDur : +C.duration;
+  const x0 = start / full * W, x1 = Math.min(W, (start + dur) / full * W);
+  sctx.fillStyle = "rgba(255,68,76,0.16)"; sctx.fillRect(x0, 0, x1 - x0, H);
+  const mid = H / 2, amp = H / 2 - 4*dpr;
+  for (let px = 0; px < W; px += dpr){
+    const k = Math.min(n - 1, Math.floor(px / W * n)), a = Math.max(0.5*dpr, S.wave[k] * amp);
+    sctx.fillStyle = px >= x0 && px <= x1 ? HEAT : "rgba(253,253,249,0.28)";
+    sctx.fillRect(px, mid - a, dpr, a * 2);
+  }
+  sctx.fillStyle = N[0];
+  sctx.fillRect(x0, 0, 2*dpr, H); sctx.fillRect(x1 - 2*dpr, 0, 2*dpr, H);
+  sctx.fillRect(x1 - 6*dpr, mid - 8*dpr, 6*dpr, 16*dpr);   // right-edge grip
+  if (S.autoStart > 0.5){ const ax = S.autoStart / full * W; sctx.fillStyle = "rgba(253,253,249,0.6)"; sctx.fillRect(ax, 0, dpr, H); sctx.font = `400 ${7.5*dpr}px ${MONO}`; sctx.textBaseline = "top"; sctx.fillText("DROP", ax + 3*dpr, 2*dpr); }
+  sctx.fillStyle = "rgba(253,253,249,0.75)"; sctx.font = `400 ${8*dpr}px ${MONO}`; sctx.textBaseline = "bottom"; sctx.textAlign = "left";
+  sctx.fillText(`${fmtT(start)} – ${fmtT(start + dur)}`, Math.min(x0 + 5*dpr, W - 70*dpr), H - 3*dpr);
+}
+scrub.addEventListener("pointerdown", e => {
+  if (!S.audioBuf) return;
+  const full = S.audioBuf.duration, W = scrub.clientWidth;
+  const start = musicStartSec(), dur = +C.duration;
+  const x0 = start / full * W, x1 = (start + dur) / full * W, px = e.offsetX;
+  let mode = "jump";
+  if (Math.abs(px - x1) <= 8) mode = "end";
+  else if (px >= x0 && px <= x1) mode = "move";
+  scrubDrag = { mode, x: px, start, dur, pStart: start, pDur: dur, moved: false };
+  scrub.setPointerCapture(e.pointerId);
+  scrub.style.cursor = mode === "end" ? "col-resize" : "grabbing";
+});
+scrub.addEventListener("pointermove", e => {
+  if (!S.audioBuf) return;
+  const full = S.audioBuf.duration, W = scrub.clientWidth;
+  if (!scrubDrag){
+    const x1 = (musicStartSec() + +C.duration) / full * W;
+    scrub.style.cursor = Math.abs(e.offsetX - x1) <= 8 ? "col-resize" : "grab";
+    return;
+  }
+  const d = scrubDrag, dsec = (e.offsetX - d.x) / W * full;
+  if (Math.abs(e.offsetX - d.x) > 2) d.moved = true;
+  if (d.mode === "move") d.pStart = Math.max(0, Math.min(full - d.dur, d.start + dsec));
+  else if (d.mode === "end") d.pDur = Math.max(5, Math.min(120, full - d.start, d.dur + dsec));
+  drawScrub();
+});
+["pointerup", "pointercancel"].forEach(ev => scrub.addEventListener(ev, e => {
+  const d = scrubDrag; scrubDrag = null; scrub.style.cursor = "grab";
+  if (!d || !S.audioBuf) return;
+  const full = S.audioBuf.duration, W = scrub.clientWidth;
+  if (d.mode === "jump"){ const s = Math.max(0, Math.min(full - d.dur, e.offsetX / W * full)); setMusicWindow(s, s + d.dur); return; }
+  if (!d.moved){ drawScrub(); return; }
+  if (d.mode === "move") setMusicWindow(d.pStart, d.pStart + d.dur);
+  else setMusicWindow(d.start, d.start + d.pDur);
+}));
+window.addEventListener("resize", drawScrub);
+
 $("shuffleBtn").addEventListener("click", () => {
   commit("seed");
   C.seed = Math.floor(Math.random()*10000);
@@ -2185,14 +2865,14 @@ function renderProjects(){
   renderInspector();
 }
 function clearDropMarks(){ document.querySelectorAll(".row.drop-above,.row.drop-below,.row.fileover").forEach(r => r.classList.remove("drop-above","drop-below","fileover")); }
-function selectProject(id){
+function selectProject(id, opts){
   UI.sel = id;
   renderProjects();
   drawTimeline();
   const insp = $("insp");
   if (!insp.hidden) setTimeout(() => insp.scrollIntoView({ block: "nearest", behavior: "smooth" }), 20);
   // the stage jumps to the project's first shot, so you see what you're editing
-  if (S.timeline && !S.playing){
+  if (S.timeline && !S.playing && !(opts && opts.seek === false)){
     const s = S.timeline.shots.find(x => x.projId === id);
     if (s) seekTo(s.start + Math.min(0.4, (s.end - s.start) / 2));
   }
@@ -2336,6 +3016,7 @@ const HIST = { undo: [], redo: [] };
 let lastCommit = { key: null, t: 0 };
 function snapshot(){
   return JSON.stringify({ C, projects: P.projects, nextId: P.nextId, sel: UI.sel,
+    vo: S.vo.map(v => ({ id: v.id, start: v.start })),
     ov: { boundaryOverrides, cutOverrides, slipOverrides, manualStarts, manualEnd } });
 }
 function commit(key){
@@ -2351,6 +3032,8 @@ function commit(key){
 function applySnapshot(json){
   const s = JSON.parse(json);
   C = s.C; P.projects = s.projects; P.nextId = s.nextId; UI.sel = s.sel;
+  for (const sv of s.vo || []){ const vo = S.vo.find(v => v.id === sv.id); if (vo) vo.start = sv.start; }
+  renderVO(); drawScrub(); updateAudioLabels();
   ({ boundaryOverrides, cutOverrides, slipOverrides, manualStarts, manualEnd } = s.ov);
   manualStarts = manualStarts || null; manualEnd = manualEnd ?? null;
   syncControls();
@@ -2428,6 +3111,7 @@ function collectState(){
     C, projects: P.projects, nextId: P.nextId, clipIdSeq, sel: UI.sel, tab: UI.tab,
     clips: [...CLIPS.values()].filter(c => used.has(c.id)).map(c => ({ id: c.id, name: c.name, duration: c.duration || 0, segments: c.segments || null, mediaKey: "clip:" + c.id })),
     music: S.audioBuf ? (S.musicDemo ? { demo: true, name: S.musicName } : { name: S.musicName, mediaKey: "music" }) : null,
+    vo: S.vo.map(v => ({ id: v.id, name: v.name, start: v.start, duration: v.duration, mediaKey: "vo:" + v.id })), voIdSeq,
     ov: { boundaryOverrides, cutOverrides, slipOverrides, manualStarts, manualEnd },
   };
 }
@@ -2447,6 +3131,7 @@ async function saveNow(){
     $("resumeCard").hidden = true;
     const live = new Set(st.clips.map(c => c.mediaKey));
     if (st.music && st.music.mediaKey) live.add("music");
+    for (const v of st.vo || []) live.add(v.mediaKey);
     for (const k of await mediaKeys()) if (!live.has(k)) idb("media", "readwrite", s => s.delete(k)).catch(() => {});
   } catch (e) { /* storage unavailable (private window, quota) — keep working without it */ }
   saving = false;
@@ -2476,6 +3161,18 @@ async function restoreState(st){
         else missing++;
       }
     }
+    S.vo = [];
+    voIdSeq = st.voIdSeq || 1;
+    for (const sv of st.vo || []){
+      const blob = await getMedia(sv.mediaKey);
+      if (!blob){ missing++; continue; }
+      try {
+        ensureCtx();
+        const buf = await actx.decodeAudioData(await blob.arrayBuffer());
+        S.vo.push({ id: sv.id, name: sv.name, start: sv.start, buffer: buf, blob, duration: buf.duration, peaks: peaksOf(buf) });
+      } catch (e){ missing++; }
+    }
+    renderVO();
     const ov = st.ov || {};
     boundaryOverrides = ov.boundaryOverrides || {};
     cutOverrides = ov.cutOverrides || {};
@@ -2518,9 +3215,11 @@ const HELP = [
   { t: "Each project is a chapter", v: "rows",
     b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings onto a project, or anywhere on the page. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Set the opening title, pick a red backdrop and how the words move, choose the pace and the transitions between projects, and finish with a sign-off card.</p><p>The preview updates as you go. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Titles follow the brand book: Saans Bold, lowercase, set large and low, Hot Heat on a Slow Burn field. Pick a backdrop and how the words move, set the pace and the transitions, and finish with a sign-off card.</p><p>The preview updates as you go. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+  { t: "Sound: music, volume, voice", v: "beat",
+    b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",
-    b: `<p>The strip under the preview is the whole reel. Drag any cut to move it, and it snaps to the beat. Click a ◆ to change that transition or merge two shots.</p><p>Paused on a shot with footage, drag the preview itself to slip the footage left or right inside the shot.</p>` },
+    b: `<p>The strip under the preview is the whole reel, shot by shot: a band of chapters on top, what's in each shot in the middle, and the music underneath. Hover anything for a plain-words explanation.</p><p>Drag any cut to move it, and it snaps to the beat. Click a ◆ to change that transition or merge two shots. Paused on a shot with footage, drag the preview itself to slip the footage inside the shot.</p>` },
   { t: "Handy to know", v: "keys",
     b: `<ul>
       <li><kbd>Space</kbd><span>Play or pause.</span></li>
@@ -2534,7 +3233,7 @@ const HELP = [
 const HELP_VIS = {
   beat: `<div class="hv"><div class="hv-stage"><div class="hv-beat">${"<i></i>".repeat(9)}</div></div></div>`,
   rows: `<div class="hv"><div class="hv-stage light" style="background:#FAFAFA"><div class="hv-rows">${[0,1,2,3].map(k => `<div class="hv-row${k === 1 ? " drag" : ""}"><i style="background:${PAIRS[k][0]}"></i><b style="width:${[62,48,70,54][k]}%"></b></div>`).join("")}</div></div></div>`,
-  title: `<div class="hv"><div class="hv-stage" style="background:radial-gradient(ellipse at 30% 30%,#C5093B,#2A0510 70%)"><div class="hv-title">lululemon UX</div></div></div>`,
+  title: `<div class="hv"><div class="hv-stage" style="background:#9C413C"><div class="hv-title">what we<br>shipped.</div></div></div>`,
   cut: `<div class="hv"><div class="hv-stage"><div class="hv-play"></div><div class="hv-shots">${PAIRS.slice(0,6).map(p => `<i style="background:${p[0]}"></i>`).join("")}<div class="hv-head"></div></div></div></div>`,
   keys: `<div class="hv"><div class="hv-keys"><kbd>␣</kbd><kbd>S</kbd><kbd>⌘Z</kbd><kbd>←</kbd><kbd>→</kbd><kbd>?</kbd></div></div>`,
 };
@@ -2583,7 +3282,7 @@ function envSummary(){
   return [
     `sizzler ${VERSION}`,
     S.audioBuf ? `track: ${S.musicName} · ${S.tempo.toFixed(0)} BPM · ${S.beats.length} beats` : "no track loaded",
-    `${P.projects.length} projects · ${clips} clips · ${C.duration}s · ${C.format}`,
+    `${P.projects.length} projects · ${clips} clips · ${C.duration}s · ${C.format} · music ${C.musicVol}% · ${S.vo.length} voice take${S.vo.length===1?"":"s"}`,
     `tab ${UI.tab} · ${manualStarts ? "manual cuts" : "auto cuts"}`,
     navigator.userAgent,
     `${screen.width}×${screen.height} @${devicePixelRatio}`,
@@ -2619,7 +3318,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape"){ if (!$("fbM
 })();
 
 // ---------- init -------------------------------------------------------------------
-["Fit Finder", "Virtual Fitting Room", "Checkout Redesign", "Membership App"].forEach(addProject);   // sample chapters to rename
+["fit finder", "virtual fitting room", "checkout redesign", "membership app"].forEach(addProject);   // sample chapters to rename
 bindControls();
 syncControls();
 setCanvasSize();

@@ -280,6 +280,18 @@ body.panel-open .panel{transform:none}
 .feed-cta{background:#fff;color:var(--p-fg);border:1px solid var(--p-fg)}
 .feed-cta:hover{background:var(--p-soft)}
 .feed-cta svg{color:var(--p-fg)}
+.share{display:grid;gap:6px}
+.share small{font-size:12px;color:var(--p-mute)}
+body.viewer .panel,body.viewer .fab,body.viewer .help{display:none!important}
+body.viewer .stage{right:0!important}
+.todo{display:grid;gap:6px;font-size:12.5px;color:var(--p-mute)}
+.todo-h{display:flex;justify-content:space-between;align-items:baseline;font:600 14px/1.2 var(--sans);color:var(--p-fg)}
+.todo-h small{font:400 12px var(--sans);color:var(--p-mute)}
+.todo ul{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:220px;overflow:auto}
+.todo li button{display:grid;grid-template-columns:auto 1fr;gap:8px;width:100%;text-align:left;padding:6px 8px;border:1px solid var(--p-line-2);border-radius:4px;background:#fff;font:400 12.5px/1.3 var(--sans);color:var(--p-fg)}
+.todo li button:hover{border-color:var(--p-fg)}
+.todo li b{font-weight:600;white-space:nowrap}
+.todo .done{color:#1f8a5b}
 .views{font-size:12.5px;color:var(--p-mute);display:grid;gap:4px}
 .views-h{font:600 14px/1.2 var(--sans);color:var(--p-fg)}
 .views ol{margin:6px 0 4px 18px;padding:0;color:var(--p-fg)}
@@ -607,6 +619,11 @@ body:not(.panel-open) .arc{right:0}
   </div>
   <div class="p-head">
     <div class="p-title"><div class="p-title-row"><b>Story Builder</b><button class="help-btn" id="help-open" aria-label="How Story Builder works" title="How it works (?)">?</button></div><small>Scroll moves one composition into the next.</small></div>
+    <div class="share" id="share">
+      <button class="btn pri" id="share-btn">Copy share link</button>
+      <small>Opens just this story, as a customer sees it, with Stories For You after it.</small>
+    </div>
+    <div class="todo" id="todo"></div>
     <div class="views" id="views"></div>
     <select id="preset" aria-label="Load a preset">
       <option value="">Start from a preset</option>
@@ -779,7 +796,7 @@ const perLetter = s => s.text.anim === 'letters' || s.text.anim === 'type';
    so any section can become any composition. */
 const BASE = () => ({
   id: uid(), name: 'Section', feel: null, beat: 'build', motion: 'glide', hold: 'push', dwell: 1,
-  media: { kind: 'video', layout: 'full', items: [], shots: [], focus: [], inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
+  media: { kind: 'video', layout: 'full', items: [], shots: [], focus: [], scrub: false, inset: 'm', mx: 'center', count: 3, arrange: 'row', fit: 'auto' },
   text: { x: 'left', y: 'bottom', align: 'auto', width: 'medium', size: 'xl', ink: 'dark', anim: 'rise', blend: 'auto' },
   overlay: 30, eyebrow: '', showEyebrow: false, headline: 'Headline', body: '',
   cta: { show: false, label: 'Shop now' },
@@ -950,7 +967,7 @@ const PRESETS = {
   golf: () => {
     const P = (name, tag = '') => ({ name, price:'$XX', tag });
     return [
-      make({ beat:'hook', name:'First group out', hold:'push', media:{ kind:'video', layout:'full', items:['b:story-library/golf/golf-alpine-hero.mp4'], shots:['Hero video · dew on the first fairway at dawn, a golfer walks into frame'] },
+      make({ beat:'hook', name:'First group out', hold:'push', media:{ kind:'video', layout:'full', scrub:true, items:['b:story-library/golf/golf-alpine-hero.mp4'], shots:['Hero video · dew on the first fairway at dawn, a golfer walks into frame'] },
         overlay:36, text:{ x:'left', y:'bottom', size:'xl', ink:'light', anim:'rise' }, showEyebrow:true, eyebrow:'6:40 am', headline:'First group out.', body:'The course before anyone else wakes up.' }),
       make({ beat:'build', name:'One outfit', hold:'drift', overlay:0, media:{ kind:'image', layout:'inset', mx:'left', inset:'l', items:['b:story-library/golf/NA_Mar26_Q1_2026Masters_Ecomm_Alpine_MegaNavPromo_M_GolfClothes.jpg'], shots:['Walking to the first tee, bag on the shoulder'] },
         text:{ x:'right', y:'middle', size:'m', width:'narrow', anim:'cascade' }, showEyebrow:true, eyebrow:'Hole 1', headline:'Eighteen holes. Four hours. One outfit that keeps up.' }),
@@ -1067,7 +1084,8 @@ if (!S) S = normalize({});
 if (!S.sections.length) S.sections = PRESETS.pool(); // an empty or first-time story starts with City Run; its page settings are kept
 sel = S.sections[0] && S.sections[0].id;
 
-const save = () => { if (FEED) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }; // the feed is a viewer: it never overwrites the saved story
+const VIEWER = /^#(v|story)=/.test(location.hash); // opened from a share link: just the story, no editor
+const save = () => { if (FEED || VIEWER) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }; // the feed is a viewer: it never overwrites the saved story
 let FEED = null;
 let future = []; // redo stack: cleared by any new change
 const histButtons = () => { $undo.disabled = $('m-undo').disabled = !history.length; $('redo').disabled = $('m-redo').disabled = !future.length; };
@@ -1629,6 +1647,22 @@ const kbStr = (m, extraY = 0, extraS = 0) => `translate(${m.x}%,${m.y + extraY}%
 // how far a section has come toward its resting point: 0 when it arrives, 1 at rest. Unveil and Focus
 // play over the hold, so the viewer sees them resolve after the transition, not hidden inside it.
 const restQ = (s, u) => clamp(u / Math.max(.2, restU(s)));
+/* Video that plays with the scroll: its time follows the viewer's position through
+   the section, forwards and backwards. One seek at a time, so it keeps up smoothly. */
+function scrub(s, m, u) {
+  if (!s.media.scrub) return;
+  const v = m.querySelector('video'); if (!v) return;
+  if (!v.paused) v.pause();
+  const d = v.duration; if (!d || !isFinite(d)) return;
+  const lead = S.sections[0] === s ? 0 : .35; // later sections start moving as they arrive; the opening starts at frame one
+  const q = clamp((u + lead) / (Math.max(.4, s.dwell) + lead)), at = q * (d - .05);
+  // one seek at a time, but a slow one gives way after 150 ms so the picture can't get stuck
+  const now = performance.now();
+  if (Math.abs((v._want ?? v.currentTime) - at) < .02 && !v.seeking) return;
+  if (v.seeking && now - (v._seekT || 0) < 150) { v._want = at; return; }
+  v._want = at; v._seekT = now;
+  try { v.currentTime = at; } catch (e) {}
+}
 function holdFX(s, m, u) {
   const q = easeIO(restQ(s, u));
   if (s.hold === 'unveil') m.style.clipPath = `inset(${(1 - q) * 14}% ${(1 - q) * 18}%)`;
@@ -1786,7 +1820,7 @@ function drawPair(i, j, t, ui, uj) {
       L.on = on; const vis = on ? 'visible' : 'hidden';
       L.el.style.visibility = vis; if (L.card) L.card.style.visibility = vis; L.extras.forEach(e => e.style.visibility = vis);
       L.media.forEach(m => { if (!m) return; m.style.visibility = vis;
-        const v = m.querySelector('video[data-stage]'); if (v) on ? v.play().catch(() => {}) : v.pause(); });
+        const v = m.querySelector('video[data-stage]'); if (v) on && !S.sections[k].media.scrub ? v.play().catch(() => {}) : v.pause(); }); // scrubbed video never plays on its own
     }
     if (on) { // the arriving composition always sits on top, whichever way the story is moving
       const z = k === j ? 2 : 1;
@@ -1817,14 +1851,14 @@ function drawPair(i, j, t, ui, uj) {
 
   // imagery inside the frames keeps moving with every scroll
   const kbi = kenBurns(si, ui);
-  layers[i].media.forEach((m, k) => { if (!m) return; m.firstChild.style.transform = kbFor(si, k, kbi, 0, 0, m.firstChild); holdFX(si, m, ui); });
+  layers[i].media.forEach((m, k) => { if (!m) return; m.firstChild.style.transform = kbFor(si, k, kbi, 0, 0, m.firstChild); holdFX(si, m, ui); scrub(si, m, ui); });
   if (sj) {
     const kbj = kenBurns(sj, uj);
     const c = motion === 'dissolve' || motion === 'sweep' ? (t < .5 ? 0 : 1) : easeIO(clamp((t - .18) / .6));
     layers[i].media.forEach(m => m && (m.style.opacity = motion === 'iris' ? 1 : 1 - c));
     layers[j].media.forEach((m, mk) => {
       if (!m) return;
-      const z = m.firstChild; holdFX(sj, m, uj);
+      const z = m.firstChild; holdFX(sj, m, uj); scrub(sj, m, uj);
       // the same picture in the same frame on both sides (a story card growing into its opening): swap, don't crossfade
       const mi = layers[i].media[mk];
       if (mi && si.media.items[mk] && si.media.items[mk] === sj.media.items[mk] && motion !== 'sweep') {
@@ -2927,6 +2961,9 @@ function renderInspector() {
       field('Arrangement', seg([['cdp','Product grid'],['row','Row'],['grid','Grid'],['stagger','Stagger'],['mosaic','Mosaic']], m.arrange, up(v => m.arrange = v)))));
     mg.append(field(m.kind === 'gallery' ? 'Tiles · drag from the Library, or click to choose' : 'Content · drag from the Library, or click to choose', slotsFor(s)));
     { const crops = cropEditors(s); if (crops) mg.append(field(count(s) > 1 ? 'Crop position · per tile' : 'Crop position', crops)); }
+    if (m.kind === 'video' || (m.kind === 'gallery' && m.items.some(id => (asset(id) || {}).type === 'video')))
+      mg.append(field('Video playback', seg([[false,'Loop'],[true,'Plays with the scroll']], !!m.scrub, up(v => m.scrub = v))),
+        h('p', { class:'hint' }, m.scrub ? 'The clip moves frame by frame with the scroll, forwards and backwards, and stops when the viewer stops.' : 'The clip loops on its own while the section is on screen.'));
     mg.append(field('Image fit', seg([['auto','Auto'],['fill','Fill frame'],['fit','Show whole']], m.fit, up(v => m.fit = v))),
       h('p', { class:'hint' }, m.fit === 'fill' ? 'Crops the image to fill the frame.' : m.fit === 'fit' ? 'Shows the whole image on a matching background.' : 'Product flat lays show whole on their grey; editorial photos fill the frame.'));
     if (m.kind !== 'gallery') {
@@ -3046,7 +3083,7 @@ function renderGlobals() {
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
-function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); renderSpark(); if (!$('view-library').hidden) renderLibrary(); if (!$('arc').hidden) renderArc(); save(); }
+function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); renderSpark(); if (typeof renderTodo === 'function' && !$('view-story').hidden) renderTodo(); if (!$('view-library').hidden) renderLibrary(); if (!$('arc').hidden) renderArc(); save(); }
 
 $('add').addEventListener('click', () => setPool(!poolOpen));
 $('preset').addEventListener('change', e => {
@@ -3078,6 +3115,7 @@ $('file').addEventListener('change', async e => {
 
 const $fab = $('fab');
 function togglePanel(force) {
+  if (VIEWER && force !== false) return; // a shared story has no editor
   if (FEED && force !== false && !document.body.classList.contains('panel-open')) { backToOwnStory(); force = true; } // the editor edits your story, not the path beyond it
   const open = document.body.classList.toggle('panel-open', force);
   if (open && isPhone()) setSheet(sheet === 'full' ? 'half' : sheet); else fitStage();
@@ -3125,6 +3163,7 @@ const HELP = [
       <li><kbd>Space</kbd><span>Play or pause.</span></li>
       <li><kbd>Remix</kbd><span>Shuffles the layouts and keeps your words.</span></li>
       <li><kbd>Export</kbd><span>Saves the story as a file. <b>Import</b> opens one again.</span></li>
+      <li><kbd>Share</kbd><span><b>Copy share link</b> in the Story tab opens just the story, as a customer sees it. <b>Content to finish</b> lists every placeholder left.</span></li>
       <li><kbd>Settings</kbd><span><b>Page settings</b> tunes scroll speed, smoothing, transitions, the Play button and touch swiping.</span></li>
       <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
     </ul>` },
@@ -3184,7 +3223,7 @@ addEventListener('keydown', e => {
 { // first visit, or a refresh
   const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {};
   const reloaded = nav.type === 'reload' || (performance.navigation && performance.navigation.type === 1);
-  if (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0')) setTimeout(() => openHelp(0), 250);
+  if (!VIEWER && (!lsGet(HELP_SEEN) || (reloaded && lsGet(HELP_RELOAD) !== '0'))) setTimeout(() => openHelp(0), 250);
 }
 
 /* ---------- editing on a phone ----------
@@ -3234,12 +3273,12 @@ function mobileBack(i) {
 $('m-done').addEventListener('click', () => togglePanel(false));
 $('m-help').addEventListener('click', () => openHelp(0));
 $('m-undo').addEventListener('click', undo); $('m-redo').addEventListener('click', redo);
-$('tab-story').addEventListener('click', () => { picking = null; showTab('story'); });
+$('tab-story').addEventListener('click', () => { picking = null; showTab('story'); renderTodo(); });
 // story-level controls live in the header on a computer and in the Story tab on a phone
 function placeControls() {
   const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
   const inHead = [$('arc-open'), document.querySelector('.hist')];
-  const inStory = [$('views'), $('preset'), $('remix').parentElement, $('pageset')];
+  const inStory = [$('share'), $('todo'), $('views'), $('preset'), $('remix').parentElement, $('pageset')];
   (phone ? [...inStory.slice(0, 1), inHead[0], ...inStory.slice(1), inHead[1]] : inStory).forEach(n => pane.appendChild(n));
   if (!phone) inHead.forEach(n => head.appendChild(n));
   $('pageset').open = !phone; // on a computer the Story tab shows the page settings straight away
@@ -3408,7 +3447,71 @@ function renderViews() {
 $('fexit').addEventListener('click', exitFeed);
 renderViews();
 
+/* ---------- share link ----------
+   The story (sections and pacing) is compressed into the link itself, so nothing is
+   uploaded anywhere. Library images and the campaign films travel as paths; files
+   someone added to their own browser can't, so they show as their shot labels. */
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+async function packStory() {
+  const own = FEED ? JSON.parse(FEED.saved) : S;
+  const keep = ['pace','motionTime','transTime','scrollMode','holdAmt','swiper','player','playSpeed','magnet','trans','pacingV'];
+  const data = { sections: own.sections.map(x => { const c = clone(x); delete c.story; c.media.items = c.media.items.map(id => id && id.startsWith('u:') ? null : id); return c; }) };
+  keep.forEach(k => data[k] = own[k]);
+  const z = new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  return b64u(await new Response(z).arrayBuffer());
+}
+async function unpackStory(code) {
+  const z = new Blob([unb64u(code)]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return JSON.parse(await new Response(z).text());
+}
+$('share-btn').addEventListener('click', async () => {
+  const own = FEED ? JSON.parse(FEED.saved) : S;
+  const local = own.sections.some(x => x.media.items.some(id => id && id.startsWith('u:')));
+  const url = location.href.split('#')[0] + '#v=' + await packStory();
+  try { await navigator.clipboard.writeText(url); } catch (e) { prompt('Copy this link:', url); }
+  $('share-btn').textContent = 'Link copied';
+  setTimeout(() => $('share-btn').textContent = 'Copy share link', 1800);
+  if (local) alert('Link copied. Files you added from your computer stay in this browser, so others will see those frames as placeholders.');
+});
+async function openShared() {
+  const m = location.hash.match(/^#(v|story)=(.+)$/); if (!m) return;
+  document.body.classList.add('viewer'); document.body.classList.remove('panel-open');
+  try {
+    const d = m[1] === 'story' ? { sections: (PRESETS[m[2]] || PRESETS.pool)() } : await unpackStory(m[2]);
+    S = normalize({ ...S, ...d }); sel = S.sections[0] && S.sections[0].id;
+  } catch (e) { /* a broken link still shows something: the default story */ }
+  render(); scrollTo(0, 0); ys = 0; update();
+}
+
+/* ---------- content to finish ----------
+   Every placeholder still in the story, so a real-content pass is a list to tick off. */
+function placeholders() {
+  const out = [], hasPh = t => /placeholder|\$XX|product name|^headline$|^feature$/i.test(t || '');
+  S.sections.forEach((x, i) => {
+    const m = x.media;
+    if (m.kind !== 'none') for (let k = 0; k < count(x); k++) if (!asset(m.items[k])) out.push([i, 'Shot', (m.shots || [])[k] || (count(x) > 1 ? `Tile ${k + 1}` : `${m.kind} needed`)]);
+    [['Headline', x.headline], ['Body', x.body], ['Quote', x.quote.on && x.quote.attr]].forEach(([w, t]) => { if (hasPh(t)) out.push([i, w, t]); });
+    if (x.card.on && hasPh(x.card.name + ' ' + x.card.price)) out.push([i, 'Product card', `${x.card.name} · ${x.card.price}`]);
+    if (x.shop.on) { const bad = x.shop.items.slice(0, count(x)).filter(it => hasPh(it.name + ' ' + it.price)); if (bad.length) out.push([i, 'Prices', bad.map(it => it.name).join(', ')]); }
+    if (x.spots.on) x.spots.items.forEach(sp => { if (sp.label && hasPh(sp.label + ' ' + sp.sub)) out.push([i, 'Hotspot', `${sp.label} · ${sp.sub}`]); });
+    if (x.feats.on) x.feats.items.forEach(f => { if (f.t && hasPh(f.t + ' ' + f.d)) out.push([i, 'Feature', f.t]); });
+    if (x.stats.on) x.stats.items.forEach(st => { if ((st.v || st.l) && hasPh(st.v + ' ' + st.l)) out.push([i, 'Stat', `${st.v} ${st.l}`]); });
+  });
+  return out;
+}
+function renderTodo() {
+  if (FEED) return;
+  const list = placeholders();
+  $('todo').replaceChildren(h('div', { class:'todo-h' }, 'Content to finish', h('small', {}, list.length ? `${list.length} to go` : '')),
+    list.length ? h('ul', {}, list.map(([i, what, t]) => h('li', {}, h('button', { onclick:() => { showTab('sections'); select(S.sections[i].id, true); } },
+      h('b', {}, `${i + 1}. ${what}`), h('span', {}, String(t).slice(0, 90))))))
+      : h('span', { class:'done' }, 'Nothing left: every frame has its picture and nothing is marked placeholder.'));
+}
+
 render();
+renderTodo();
+if (VIEWER) openShared();
 loadUserAssets();
 })();
 </script>
