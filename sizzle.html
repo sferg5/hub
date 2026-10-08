@@ -220,6 +220,49 @@
   details#advanced { margin-top: 4px; border-top: 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
   details#advanced summary { margin-bottom: 4px; }
   details#advanced[open] summary { margin-bottom: 10px; }
+  /* ---------- beta kit ---------- */
+  .beta {
+    font: 700 10px system-ui; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--red); border: 1px solid var(--red); border-radius: 20px; padding: 3px 9px; white-space: nowrap;
+  }
+  #resumeBar {
+    display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;
+    padding: 9px 16px; background: #1b0409; border-bottom: 1px solid var(--red); font-size: 13px;
+  }
+  #resumeBar[hidden] { display: none; }
+  #betaNotes { max-width: 640px; margin-top: 18px; }
+  #betaNotes summary {
+    cursor: pointer; list-style: none; color: var(--ink-dim); user-select: none;
+    font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  }
+  #betaNotes summary::-webkit-details-marker { display: none; }
+  #betaNotes summary::before { content: "▸ "; color: var(--red); }
+  #betaNotes[open] summary::before { content: "▾ "; }
+  #betaNotes ol { margin: 10px 0 4px 18px; color: var(--ink-dim); font-size: 13px; line-height: 1.6; }
+  #betaNotes li b { color: var(--ink); font-weight: 600; }
+  #fbModal {
+    position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.7);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #fbModal[hidden] { display: none; }
+  .fbbox {
+    width: min(560px, 100%); background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+  .fbbox h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+  .fbbox p { color: var(--ink-dim); font-size: 13px; margin-bottom: 12px; }
+  .fbbox textarea {
+    width: 100%; min-height: 130px; resize: vertical; background: var(--panel2); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font: inherit;
+  }
+  .fbrow { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .fbenv { font: 11px ui-monospace, monospace; color: var(--ink-dim); margin-top: 12px; word-break: break-word; }
+  .proj { min-width: 200px; }
+  .proj .pcap {
+    width: 100%; margin: 0 0 7px; font-size: 11.5px; padding: 3px 7px; border-style: dashed;
+  }
+  .proj .pcap:focus { border-style: solid; border-color: var(--red); outline: none; }
+  #status progress { width: 220px; }
 </style>
 </head>
 <body>
@@ -232,8 +275,16 @@
     <button class="step locked" data-step="3"><i>3</i> The look</button>
     <button class="step locked" data-step="4"><i>4</i> Ship it</button>
   </nav>
-  <div class="priv">runs entirely in your browser — nothing is uploaded anywhere</div>
+  <div class="priv">runs in your browser — nothing is uploaded · autosaves on this device</div>
+  <span class="beta" id="verPill">beta</span>
+  <button class="btn ghost small" id="feedbackBtn" title="tell Sean what worked and what didn't">✉ Feedback</button>
+  <button class="btn ghost small" id="resetBtn" title="clear the saved reel on this device and start fresh">↺ Start over</button>
 </header>
+<div id="resumeBar" hidden>
+  <span>Welcome back — there's a saved reel on this device.</span>
+  <button class="btn small" id="resumeBtn">Resume where I left off</button>
+  <button class="btn ghost small" id="freshBtn">Start fresh</button>
+</div>
 
 <main>
   <!-- ── STEP 1 · the beat ─────────────────────────────────────────── -->
@@ -243,6 +294,18 @@
     <div class="drop bigdrop" id="musicDrop"><b>Drop your track here</b><br>or click to browse · mp3, wav or m4a</div>
     <input type="file" id="musicFile" accept="audio/*" hidden>
     <div class="fileinfo" id="musicInfo"></div>
+    <details class="gcard" id="betaNotes">
+      <summary>Beta testers — what to try</summary>
+      <ol>
+        <li><b>Drop a track</b> (mp3, wav or m4a). Does the BPM feel right? Does the reel start at the drop?</li>
+        <li><b>Add 2–4 projects</b> with screen recordings. Try one card with no footage.</li>
+        <li><b>Add a caption</b> to a project card and check it shows on its shots.</li>
+        <li><b>Edit the cut</b>: drag a cut, press <b>S</b> to split, click a ◆ to change a transition, drag the preview to slip footage.</li>
+        <li><b>Refresh the page</b>, then hit Resume — everything should come back.</li>
+        <li><b>Export</b> and watch the file back. Audio in sync? Cuts on the beat?</li>
+        <li>Anything odd → <b>✉ Feedback</b> (top right). Include what you expected.</li>
+      </ol>
+    </details>
     <div class="navrow"><span></span><button class="btn" id="toStep2" data-go="2" disabled>Next · add your projects →</button></div>
   </section>
 
@@ -335,6 +398,12 @@
               <option value="blush">Blush pulse</option>
               <option value="noir">Noir minimal</option>
             </select></label>
+          <label class="row"><span>Mark</span>
+            <select id="endMark">
+              <option value="logo" selected>lululemon logo</option>
+              <option value="ring">Red ring</option>
+              <option value="none">None</option>
+            </select></label>
           <div class="hint">Clear the title to skip the end card.</div>
         </div>
 
@@ -403,6 +472,20 @@
     <div class="hint" style="text-align:right">Export records in real time — a 40s reel takes 40s. Downloads as .mp4 when your browser supports it, otherwise .webm.</div>
   </section>
   <div id="cutpop"></div>
+  <div id="fbModal" hidden>
+    <div class="fbbox">
+      <h3>Beta feedback</h3>
+      <p>What happened, and what did you expect? Short is fine. The technical details below get attached automatically.</p>
+      <textarea id="fbText" placeholder="e.g. The cuts drifted off the beat after the second project…"></textarea>
+      <div class="fbrow">
+        <button class="btn" id="fbMail">Send by email</button>
+        <button class="btn ghost" id="fbCopy">Copy for Teams</button>
+        <span style="flex:1"></span>
+        <button class="btn ghost" id="fbClose">Close</button>
+      </div>
+      <div class="fbenv" id="fbEnv"></div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -437,6 +520,12 @@ const TRANSITIONS = {
 const STOCK = Object.keys(TRANSITIONS).filter(k => k !== "cut");
 const DEFAULT_ON = ["crossfade","wipeleft","slideleft","circleopen"];
 const ENDCARD_BEATS = 6;
+const VERSION = "beta 0.9 · 2026-10-08";
+const FEEDBACK_TO = "sferguson5@lululemon.com";
+const FONT = '"Saans", system-ui, -apple-system, "Segoe UI", sans-serif';
+const LOGO_PATH = new Path2D(document.querySelector("header .logo path").getAttribute("d"));
+let restoring = false;      // true while a saved reel is being rebuilt (suppresses autosave)
+let lastError = "";
 
 // ---------- state ---------------------------------------------------------
 const P = { projects: [], nextId: 1 };
@@ -684,7 +773,7 @@ async function detectSceneCuts(file, clip){
 
 // ---------- projects -------------------------------------------------------
 function addProject(name){
-  const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, clips: [] };
+  const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clips: [] };
   P.projects.push(proj);
   return proj;
 }
@@ -866,7 +955,7 @@ function buildTimeline(structural){
         start: bounds[sIdx + off], end: bounds[sIdx + off + 1],
         kind: clip ? "video" : "placeholder",
         idx: sIdx + off, projIdx: pIdx, projId: proj.id, projName: proj.name,
-        shotInProj: j + 1,
+        shotInProj: j + 1, caption: proj.caption || "",
         clip, srcOffset, srcEnd, bg, fg,
         shape: SHAPES[(sIdx*3 + Math.floor(rr()*2)) % SHAPES.length],
         zoomDir: rr() < 0.5 ? -1 : 1,
@@ -917,6 +1006,7 @@ function buildTimeline(structural){
   S.t = Math.min(S.t, realDur - 0.01);
   renderFrame(S.t);
   updateTimecode();
+  scheduleSave();
 }
 
 // per-shot video elements (allows the same clip on both sides of a cut)
@@ -1014,7 +1104,7 @@ function drawMesh(ctx, styleKey, t, W, H, pulse){
 function drawAnimatedTitle(ctx, title, sub, fx, local, pulse, W, H){
   if (!title) return;
   const fsize = Math.round(H / 7);
-  const font = `800 ${fsize}px system-ui`;
+  const font = `800 ${fsize}px ${FONT}`;
   const cx = W / 2, cy = H / 2 - (sub ? H * 0.02 : 0);
   const T = 1.0;
   const e = smoothstep(Math.min(1, local / T));
@@ -1104,7 +1194,7 @@ function drawAnimatedTitle(ctx, title, sub, fx, local, pulse, W, H){
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.globalAlpha = se * 0.9;
       ctx.fillStyle = "#fff";
-      ctx.font = `700 ${Math.round(H / 28)}px system-ui`;
+      ctx.font = `700 ${Math.round(H / 28)}px ${FONT}`;
       const spaced = sub.toUpperCase().split("").join("  ");
       ctx.fillText(spaced, W / 2, cy + fsize * 0.85 + (1 - se) * H * 0.03);
       ctx.restore();
@@ -1178,18 +1268,35 @@ function drawShot(ctx, shot, reelT){
     const endBg = $("endBg").value;
     if (endBg === "black"){ ctx.fillStyle = "#000"; ctx.fillRect(0,0,W,H); }
     else drawMesh(ctx, endBg, trackT, W, H, pulse);
-    const rr = Math.min(W,H)*0.36*(1+0.05*pulse);
-    ctx.strokeStyle = "#C5093B"; ctx.lineWidth = Math.max(3, H*0.012);
-    ctx.beginPath(); ctx.arc(W/2, H/2, rr, 0, 7); ctx.stroke();
+    const mark = $("endMark").value;
+    const e = smoothstep(local / 0.6);                 // settle in over the first beat
+    ctx.save();
+    ctx.globalAlpha = e;
+    let titleY = H/2, subY = H/2 + H*0.09;
+    if (mark === "logo"){
+      const sz = H * 0.26 * (1 + 0.03*pulse);
+      ctx.save();
+      ctx.translate(W/2 - sz/2, H*0.33 - sz/2 - (1 - e) * H*0.03);
+      ctx.scale(sz/216, sz/216);
+      ctx.fillStyle = "#C5093B"; ctx.fill(LOGO_PATH);
+      ctx.restore();
+      titleY = H*0.62; subY = H*0.70;
+    } else if (mark === "ring"){
+      const rr = Math.min(W,H)*0.36*(1+0.05*pulse);
+      ctx.strokeStyle = "#C5093B"; ctx.lineWidth = Math.max(3, H*0.012);
+      ctx.beginPath(); ctx.arc(W/2, H/2, rr, 0, 7); ctx.stroke();
+      titleY = H/2 + H*0.02; subY = H/2 + H*0.10;
+    }
     ctx.fillStyle = "#fff"; ctx.textAlign = "center";
-    ctx.font = `800 ${Math.round(H/8)}px system-ui`;
-    ctx.fillText($("title").value.trim(), W/2, H/2 + H*0.02);
+    ctx.font = `700 ${Math.round(H/8)}px ${FONT}`;
+    ctx.fillText($("title").value.trim(), W/2, titleY + (1 - e) * H*0.02);
     const sub = $("subtitle").value.trim();
     if (sub){
       ctx.fillStyle = "#C5093B";
-      ctx.font = `700 ${Math.round(H/26)}px system-ui`;
-      ctx.fillText(sub, W/2, H/2 + H*0.10);
+      ctx.font = `700 ${Math.round(H/26)}px ${FONT}`;
+      ctx.fillText(sub, W/2, subY + (1 - e) * H*0.02);
     }
+    ctx.restore();
     ctx.textAlign = "start";
     return;
   }
@@ -1203,14 +1310,24 @@ function drawShot(ctx, shot, reelT){
       const dw = vw*sc, dh = vh*sc;
       ctx.drawImage(v, (W-dw)/2, (H-dh)/2, dw, dh);
     }
-    // subtle project tag
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    // subtle project tag (+ optional caption line beneath it)
     const tag = shot.projName.toUpperCase();
-    ctx.font = `700 ${Math.max(12, Math.round(H/40))}px system-ui`;
+    const cap = (shot.caption || "").trim();
+    const tagY = cap ? H*0.845 : H*0.90;
+    ctx.font = `700 ${Math.max(12, Math.round(H/40))}px ${FONT}`;
     const tw = ctx.measureText(tag).width;
-    ctx.fillRect(W*0.03, H*0.90, tw + 16, H*0.05);
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(W*0.03, tagY, tw + 16, H*0.05);
     ctx.fillStyle = "#fff";
-    ctx.fillText(tag, W*0.03 + 8, H*0.935);
+    ctx.fillText(tag, W*0.03 + 8, tagY + H*0.035);
+    if (cap){
+      ctx.font = `500 ${Math.max(12, Math.round(H/42))}px ${FONT}`;
+      const cw = ctx.measureText(cap).width;
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(W*0.03, H*0.90, cw + 16, H*0.05);
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.fillText(cap, W*0.03 + 8, H*0.935);
+    }
     return;
   }
 
@@ -1222,8 +1339,14 @@ function drawShot(ctx, shot, reelT){
   const r = base*scale*(1 + 0.12*pulse);
   drawShape(ctx, shot.shape, W/2, H/2, r, shot.rot*local*3 + shot.rot, shot.fg);
   ctx.fillStyle = hexMix(shot.bg, shot.fg, 0.55);
-  ctx.font = `700 ${Math.max(14, Math.round(H/32))}px system-ui`;
+  ctx.font = `700 ${Math.max(14, Math.round(H/32))}px ${FONT}`;
   ctx.fillText(`${shot.projName.toUpperCase()} · SHOT ${String(shot.shotInProj).padStart(2,"0")}`, cv.width*0.04, cv.height*0.93);
+  const pcap = (shot.caption || "").trim();
+  if (pcap){
+    ctx.fillStyle = hexMix(shot.bg, shot.fg, 0.85);
+    ctx.font = `500 ${Math.max(13, Math.round(H/36))}px ${FONT}`;
+    ctx.fillText(pcap, cv.width*0.04, cv.height*0.88);
+  }
 }
 
 function findShot(t){
@@ -1323,7 +1446,7 @@ function drawTimeline(){
     tctx.strokeRect(x+1, H*0.30, Math.max(1,w-2), H*0.48);
     if (s.kind === "title" || s.kind === "intro"){
       tctx.fillStyle = "#C5093B";
-      tctx.font = `700 ${9*dpr}px system-ui`;
+      tctx.font = `700 ${9*dpr}px ${FONT}`;
       tctx.fillText(s.kind === "intro" ? "INTRO" : "END", x+4*dpr, H*0.62);
     }
   }
@@ -1464,6 +1587,14 @@ document.addEventListener("keydown", e => {
       !/input|select|textarea/i.test(e.target.tagName) && !e.target.isContentEditable)
     splitAtPlayhead();
 });
+document.addEventListener("keydown", e => {
+  if (/input|select|textarea/i.test(e.target.tagName) || e.target.isContentEditable) return;
+  if (!S.timeline || S.exporting || e.metaKey || e.ctrlKey) return;
+  if (e.code === "Space"){ e.preventDefault(); S.playing ? pause() : play(); }
+  else if (e.key === "ArrowLeft"){ e.preventDefault(); seekTo(S.t - (e.shiftKey ? 1 : 0.1)); }
+  else if (e.key === "ArrowRight"){ e.preventDefault(); seekTo(S.t + (e.shiftKey ? 1 : 0.1)); }
+  else if (e.key === "Home"){ e.preventDefault(); seekTo(0); }
+});
 $("autoCutsBtn").addEventListener("click", () => {
   manualStarts = null; manualEnd = null;
   $("autoCutsBtn").style.display = "none";
@@ -1522,6 +1653,7 @@ document.addEventListener("click", e => {
 
 // ---------- storyboard (drag & drop) -------------------------------------------
 let dragInfo = null;
+const escA = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 function renderStoryboard(){
   const row = $("projrow");
   row.innerHTML = "";
@@ -1537,6 +1669,7 @@ function renderStoryboard(){
         <div class="pname" contenteditable="true" spellcheck="false">${proj.name}</div>
         <div class="pdel" title="remove project">✕</div>
       </div>
+      <input class="pcap" type="text" spellcheck="false" placeholder="caption shown on its shots (optional)" value="${escA(proj.caption || "")}">
       <div class="cliprow"></div>
       ${proj.clips.length ? "" : `<div class="placeholder-note">no clips → placeholder shapes</div>`}`;
     const cliprow = card.querySelector(".cliprow");
@@ -1589,6 +1722,11 @@ function renderStoryboard(){
     card.querySelector(".pname").addEventListener("keydown", ev => {
       if (ev.key === "Enter"){ ev.preventDefault(); ev.target.blur(); }
     });
+    const cap = card.querySelector(".pcap");
+    cap.addEventListener("focus", () => { card.draggable = false; });
+    cap.addEventListener("blur", () => { card.draggable = true; });
+    cap.addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
+    cap.addEventListener("change", ev => { proj.caption = ev.target.value.trim(); refresh(false); });
     card.querySelector(".pdel").addEventListener("click", () => {
       P.projects.splice(pi, 1);
       refresh(true);
@@ -1656,7 +1794,8 @@ function addClipsToProject(proj, files){
   for (const f of files){
     if (!f.type.startsWith("video")) continue;
     const url = URL.createObjectURL(f);
-    const clip = { id: clipIdSeq++, name: f.name, url, duration: 0, segments: null };
+    const clip = { id: clipIdSeq++, name: f.name, url, duration: 0, segments: null, file: f };
+    if (!restoring) putMedia("clip:" + clip.id, f);
     const probe = document.createElement("video");
     probe.preload = "metadata"; probe.src = url;
     probe.onloadedmetadata = () => { clip.duration = probe.duration; if (S.timeline) buildTimeline(false); };
@@ -1681,6 +1820,7 @@ $("addProj").addEventListener("click", () => { addProject(); refresh(true); });
 function refresh(structural){
   renderStoryboard();
   if (S.audioBuf) buildTimeline(structural);
+  scheduleSave();
 }
 
 // ---------- playback ---------------------------------------------------------
@@ -1748,6 +1888,7 @@ function loop(){
   syncVideos(S.t, true);
   renderFrame(S.t);
   updateTimecode();
+  if (S.exporting) exportProgress();
   rafId = requestAnimationFrame(loop);
 }
 function finishPlayback(){
@@ -1774,8 +1915,30 @@ function pickMime(){
   for (const [m, ext] of cands) if (MediaRecorder.isTypeSupported(m)) return [m, ext];
   return ["", "webm"];
 }
+function exportName(ext){
+  const slug = ($("title").value.trim() || "lululemon sizzler").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return `${slug || "lululemon-sizzler"}_${cv.width}x${cv.height}.${ext}`;
+}
+let lastProg = 0;
+function exportProgress(){
+  const now = performance.now();
+  if (now - lastProg < 250) return;
+  lastProg = now;
+  const p = Math.min(1, S.t / S.timeline.duration);
+  setStatus(`Recording… <progress max="1" value="${p.toFixed(3)}"></progress> ${Math.round(p*100)}% — keep this tab visible.`);
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && S.exporting){
+    stopExport(true);
+    setStatus("Export canceled — the tab went into the background, and frames would have been dropped. Keep it visible and export again.", true);
+  }
+});
 function startExport(){
   if (!S.timeline || S.exporting) return;
+  if (!window.MediaRecorder || !cv.captureStream){
+    setStatus("This browser can't record video. Use Chrome or Edge to export.", true); return;
+  }
   ensureCtx();
   pause();
   S.t = 0; renderFrame(0);
@@ -1788,12 +1951,13 @@ function startExport(){
   recorder.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
   recorder.onstop = () => {
     const blob = new Blob(recChunks, { type: rec.mimeType });
+    const name = exportName(ext);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `lululemon_sizzler.${ext}`;
+    a.download = name;
     a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
-    setStatus(`Exported <b>lululemon_sizzler.${ext}</b> (${(blob.size/1e6).toFixed(1)} MB) — check your downloads.`);
+    setStatus(`Exported <b>${name}</b> (${(blob.size/1e6).toFixed(1)} MB) — check your downloads.`);
   };
   S.exporting = true;
   $("exportBtn").textContent = "⏺ Recording… click to cancel";
@@ -1824,6 +1988,12 @@ function wireDrop(dropId, inputId, handler){
 async function loadMusic(files){
   const f = files[0];
   if (!f) return;
+  if (f.type && !f.type.startsWith("audio")){
+    $("musicInfo").textContent = "That doesn't look like an audio file — try an mp3, wav or m4a.";
+    return;
+  }
+  S.musicFile = f;
+  if (!restoring) putMedia("music", f);
   $("musicInfo").textContent = "Decoding…";
   try {
     ensureCtx();
@@ -1880,7 +2050,7 @@ function rebuild(structural){
     (id === "shotMin" ? $("shotMax") : $("shotMin")).value = $(id).value;
   rebuild(true);
 }));
-["format","transMode","title","subtitle","endBg","introTitle","introSub","introBg","introFx"]
+["format","transMode","title","subtitle","endBg","endMark","introTitle","introSub","introBg","introFx"]
   .forEach(id => $(id).addEventListener("change", () => rebuild(false)));
 // live-preview the intro while tweaking its look
 ["introBg","introFx","introTitle","introSub"].forEach(id => $(id).addEventListener("change", () => {
@@ -2022,6 +2192,7 @@ function gotoStep(n){
     seekTo(Math.min(0.7, S.timeline.duration - 0.1));   // show the intro while styling
   updateStepper();
   window.scrollTo(0, 0);
+  scheduleSave();
 }
 document.querySelectorAll("[data-go]").forEach(b =>
   b.addEventListener("click", () => gotoStep(b.dataset.go)));
@@ -2032,6 +2203,208 @@ updateStepper();
 setCanvasSize();
 renderStoryboard();
 mctx.fillStyle = "#000"; mctx.fillRect(0,0,cv.width,cv.height);
+
+// ---------- brand font for the canvas ------------------------------------------
+// Saans lives next to this page in the hub; falls back to system-ui silently.
+(async () => {
+  try {
+    const faces = [
+      new FontFace("Saans", 'url("lululemon-saans-regular.woff2")', { weight: "400" }),
+      new FontFace("Saans", 'url("lululemon-saans-semibold.woff2")', { weight: "500 600" }),
+      new FontFace("Saans", 'url("lululemon-saans-bold.woff2")', { weight: "700 900" }),
+    ];
+    await Promise.all(faces.map(f => f.load().then(l => document.fonts.add(l))));
+    if (S.timeline && !S.playing) renderFrame(S.t);
+  } catch (e) { /* font optional */ }
+})();
+
+// ---------- autosave on this device (IndexedDB) ----------------------------------
+// Small JSON state is written on every change; media blobs are written once when
+// added and referenced by key, so a 300 MB screen recording isn't rewritten per edit.
+const DB_NAME = "lulu-sizzler", DB_VER = 1, SAVE_VER = 1;
+const SAVE_IDS = ["introTitle","introSub","introBg","introFx","introBeats","shotMin","shotMax",
+  "energy","transMode","beatPulse","title","subtitle","endBg","endMark","musicStartMode","seed","duration","format"];
+function openDB(){
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error("no indexedDB"));
+    const r = indexedDB.open(DB_NAME, DB_VER);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains("state")) db.createObjectStore("state");
+      if (!db.objectStoreNames.contains("media")) db.createObjectStore("media");
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idb(store, mode, fn){
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, mode);
+    const req = fn(tx.objectStore(store));
+    tx.oncomplete = () => { db.close(); res(req && req.result); };
+    tx.onerror = () => { db.close(); rej(tx.error); };
+    tx.onabort = () => { db.close(); rej(tx.error); };
+  });
+}
+const putMedia = (k, blob) => idb("media", "readwrite", s => s.put(blob, k)).catch(() => {});
+const getMedia = k => idb("media", "readonly", s => s.get(k)).catch(() => null);
+const mediaKeys = () => idb("media", "readonly", s => s.getAllKeys()).catch(() => []);
+const putState = st => idb("state", "readwrite", s => s.put(st, "current"));
+const getState = () => idb("state", "readonly", s => s.get("current")).catch(() => null);
+async function clearSaved(){
+  try { await idb("state", "readwrite", s => s.clear()); await idb("media", "readwrite", s => s.clear()); } catch (e) {}
+}
+function collectState(){
+  const settings = {};
+  for (const id of SAVE_IDS){ const el = $(id); if (el) settings[id] = el.type === "checkbox" ? el.checked : el.value; }
+  return {
+    version: SAVE_VER, savedAt: Date.now(), app: VERSION,
+    settings,
+    trans: [...document.querySelectorAll("#transChecks input:checked")].map(x => x.value),
+    projects: P.projects.map(p => ({
+      id: p.id, name: p.name, caption: p.caption || "",
+      clips: p.clips.map(c => ({ id: c.id, name: c.name, duration: c.duration || 0, segments: c.segments || null, mediaKey: "clip:" + c.id })),
+    })),
+    nextId: P.nextId, clipIdSeq,
+    music: S.musicFile ? { name: S.musicFile.name, mediaKey: "music" } : null,
+    ov: { boundary: boundaryOverrides, cut: cutOverrides, slip: slipOverrides, manualStarts, manualEnd },
+    curStep,
+  };
+}
+let saveTimer = 0, saving = false;
+function hasWork(){ return !!S.audioBuf || P.projects.some(p => p.clips.length); }
+function scheduleSave(){
+  if (restoring || !hasWork()) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 700);
+}
+async function saveNow(){
+  if (restoring || saving || !hasWork()) return;
+  saving = true;
+  try {
+    const st = collectState();
+    await putState(st);
+    $("resumeBar").hidden = true;
+    // drop media nobody references any more
+    const live = new Set(st.projects.flatMap(p => p.clips.map(c => c.mediaKey)));
+    if (st.music) live.add("music");
+    for (const k of await mediaKeys()) if (!live.has(k)) idb("media", "readwrite", s => s.delete(k)).catch(() => {});
+  } catch (e) { /* storage unavailable (private window, quota) — keep working without it */ }
+  saving = false;
+}
+async function restoreState(st){
+  restoring = true;
+  try {
+    for (const [id, v] of Object.entries(st.settings || {})){
+      const el = $(id); if (!el) continue;
+      if (el.type === "checkbox") el.checked = !!v; else el.value = v;
+    }
+    $("durLabel").textContent = $("duration").value + "s";
+    if (Array.isArray(st.trans))
+      document.querySelectorAll("#transChecks input").forEach(cb => { cb.checked = st.trans.includes(cb.value); });
+    P.projects.length = 0;
+    P.nextId = st.nextId || 1;
+    clipIdSeq = st.clipIdSeq || 1;
+    let missing = 0;
+    for (const sp of st.projects || []){
+      const proj = { id: sp.id, name: sp.name, caption: sp.caption || "", clips: [] };
+      for (const sc of sp.clips || []){
+        const blob = await getMedia(sc.mediaKey);
+        if (!blob){ missing++; continue; }
+        const url = URL.createObjectURL(blob);
+        const clip = { id: sc.id, name: sc.name, url, duration: sc.duration || 0, segments: sc.segments || null, file: blob };
+        if (!clip.duration){
+          const probe = document.createElement("video");
+          probe.preload = "metadata"; probe.src = url;
+          probe.onloadedmetadata = () => { clip.duration = probe.duration; if (S.timeline) buildTimeline(false); };
+        }
+        proj.clips.push(clip);
+      }
+      P.projects.push(proj);
+    }
+    renderStoryboard();
+    if (st.music){
+      const blob = await getMedia(st.music.mediaKey);
+      if (blob) await loadMusic([blob]); else missing++;
+    }
+    const ov = st.ov || {};
+    boundaryOverrides = ov.boundary || {};
+    cutOverrides = ov.cut || {};
+    slipOverrides = ov.slip || {};
+    manualStarts = Array.isArray(ov.manualStarts) ? ov.manualStarts : null;
+    manualEnd = ov.manualEnd ?? null;
+    $("autoCutsBtn").style.display = manualStarts ? "" : "none";
+    if (S.audioBuf){ setCanvasSize(); buildTimeline(false); }
+    restoring = false;
+    gotoStep(Math.min(st.curStep || 1, maxStep()));
+    setStatus(missing ? `Restored your reel, but ${missing} file${missing > 1 ? "s" : ""} couldn't be recovered — add them again.`
+                      : "Restored your reel from this device.");
+  } catch (e){
+    restoring = false;
+    setStatus("Couldn't restore the saved reel: " + e.message, true);
+  }
+}
+(async () => {
+  const st = await getState();
+  if (!st || (!st.music && !(st.projects || []).some(p => p.clips && p.clips.length))) return;
+  const when = st.savedAt ? new Date(st.savedAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+  $("resumeBar").querySelector("span").textContent =
+    `Welcome back — there's a saved reel on this device${when ? " from " + when : ""}.`;
+  $("resumeBar").hidden = false;
+  $("resumeBtn").onclick = () => { $("resumeBar").hidden = true; restoreState(st); };
+  $("freshBtn").onclick = async () => { $("resumeBar").hidden = true; await clearSaved(); };
+})();
+$("resetBtn").addEventListener("click", async () => {
+  if (!confirm("Clear the saved reel on this device and start over?")) return;
+  await clearSaved();
+  location.reload();
+});
+
+// ---------- beta: version, feedback, error capture ---------------------------------
+$("verPill").textContent = VERSION;
+$("verPill").title = "lululemon sizzler " + VERSION;
+window.addEventListener("error", e => {
+  lastError = `${e.message} @${e.lineno}`;
+  setStatus(`Something went wrong (${e.message}). Please send this through ✉ Feedback.`, true);
+});
+window.addEventListener("unhandledrejection", e => {
+  lastError = String(e.reason && e.reason.message || e.reason);
+});
+function envSummary(){
+  const clips = P.projects.reduce((n, p) => n + p.clips.length, 0);
+  const parts = [
+    `sizzler ${VERSION}`,
+    S.audioBuf ? `track: ${S.musicFile ? S.musicFile.name : "?"} · ${S.tempo.toFixed(0)} BPM · ${S.beats.length} beats` : "no track loaded",
+    `${P.projects.length} projects · ${clips} clips · ${$("duration").value}s · ${$("format").value}`,
+    `step ${curStep} · ${manualStarts ? "manual cuts" : "auto cuts"}`,
+    navigator.userAgent,
+    `${screen.width}×${screen.height} @${devicePixelRatio}`,
+    lastError ? `last error: ${lastError}` : "",
+  ];
+  return parts.filter(Boolean).join("\n");
+}
+function openFeedback(){
+  $("fbEnv").textContent = envSummary().replace(/\n/g, " · ");
+  $("fbModal").hidden = false;
+  $("fbText").focus();
+}
+function feedbackBody(){
+  return `${$("fbText").value.trim() || "(no notes)"}\n\n— details —\n${envSummary()}`;
+}
+$("feedbackBtn").addEventListener("click", openFeedback);
+$("fbClose").addEventListener("click", () => { $("fbModal").hidden = true; });
+$("fbModal").addEventListener("click", e => { if (e.target === $("fbModal")) $("fbModal").hidden = true; });
+$("fbMail").addEventListener("click", () => {
+  const subject = encodeURIComponent(`sizzler beta feedback (${VERSION})`);
+  window.location.href = `mailto:${FEEDBACK_TO}?subject=${subject}&body=${encodeURIComponent(feedbackBody())}`;
+});
+$("fbCopy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(feedbackBody()); $("fbCopy").textContent = "Copied ✓"; }
+  catch (e){ $("fbCopy").textContent = "Copy failed — select the text"; }
+  setTimeout(() => { $("fbCopy").textContent = "Copy for Teams"; }, 1800);
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("fbModal").hidden) $("fbModal").hidden = true; });
 </script>
 </body>
 </html>
