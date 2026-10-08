@@ -285,6 +285,20 @@ body.panel-open .panel{transform:none}
 body.viewer .panel,body.viewer .fab,body.viewer .help{display:none!important}
 body.viewer .stage{right:0!important}
 .todo{display:grid;gap:6px;font-size:12.5px;color:var(--p-mute)}
+.voice{display:grid;gap:6px;font-size:12.5px;color:var(--p-mute)}
+.voice .seg{flex-wrap:nowrap;gap:4px}
+.voice .seg button{flex:1 1 auto;min-width:0;padding:0 7px;font-size:12.5px}
+.voice-now{padding:8px 10px;border:1px solid var(--p-line-2);border-radius:4px;background:#fff;color:var(--p-fg);line-height:1.4}
+.voice-now b{font-weight:600}
+.voice-links{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.vchip{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:30;pointer-events:none;font:400 10.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  padding:6px 10px;border-radius:99px;background:rgba(255,255,255,.82);box-shadow:0 0 0 1px rgba(0,0,0,.08);color:#141414;backdrop-filter:blur(6px);opacity:0;transition:opacity .4s}
+.vchip.on{opacity:1}
+body.viewer .vchip{display:none}
+.copy.vt-l .bd{font-size:clamp(17px,1.5cqw,23px);line-height:1.5;max-width:34ch}
+.copy.vt-l .feats b{font-size:17px}.copy.vt-l .feats small{font-size:16px}
+.copy.vt-l .eb,.copy.vt-l .attr,.copy.vt-l .stats small{font-size:13.5px}
+.copy.vt-l .cta{height:52px;padding:0 28px;font-size:16px}
 .todo-h{display:flex;justify-content:space-between;align-items:baseline;font:600 14px/1.2 var(--sans);color:var(--p-fg)}
 .todo-h small{font:400 12px var(--sans);color:var(--p-mute)}
 .todo ul{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:220px;overflow:auto}
@@ -623,6 +637,7 @@ body:not(.panel-open) .arc{right:0}
       <button class="btn pri" id="share-btn">Copy share link</button>
       <small>Opens just this story, as a customer sees it, with Stories For You after it.</small>
     </div>
+    <div class="voice" id="voice"></div>
     <div class="todo" id="todo"></div>
     <div class="views" id="views"></div>
     <select id="preset" aria-label="Load a preset">
@@ -813,6 +828,7 @@ const BASE = () => ({
   swatches: { on: false, items: [{ n: 'Black', c: '#141414' }, { n: 'Bone', c: '#E6DFD3' }, { n: 'Sage', c: '#9AAE97' }, { n: '', c: '#cccccc' }] },
   launch: { on: false, label: 'Drops', date: 'Oct 15' },                              // launches: a dated badge
   card: { on: false, x: 'right', y: 'bottom', name: 'Product name', price: '$XX' },
+  voices: {}, // this section's own copy per voice: { genz:{ h, b, c }, ... }
 });
 const make = o => merge(BASE(), clone(o));
 
@@ -1018,6 +1034,972 @@ const PRESETS = {
   blank: () => [make(STARTERS.hero.o)],
 };
 
+/* ---------- voices ----------
+   One brand voice, spoken four ways, the way a person code-switches: the same values
+   and point of view, with different words, rhythm and pace for each audience. Copy for
+   each voice comes from the section's own edits, then the voice library (matched on
+   the brand headline), then a light automatic version. Testimonials never change. */
+const VOICES = {
+  brand:      { label:'Brand',      who:'The master voice, exactly as written.', motion:1, pace:1, type:1 },
+  genz:       { label:'Gen Z',      who:'Born about 1997–2012. Fewest words, direct, a little dry; community first. Quicker cuts, more movement.', motion:1.2, pace:.75, type:1 },
+  millennial: { label:'Millennial', who:'Born about 1981–96. Feeling and wellbeing first, the ritual and the experience; the full story.', motion:1, pace:1, type:1 },
+  genx:       { label:'Gen X',      who:'Born about 1965–80. Straight talk, proof first: what it does and why it lasts. Steadier motion.', motion:.8, pace:1, type:1 },
+  boomer:     { label:'Boomer',     who:'Born about 1946–64. Clear and unhurried: comfort, fit, quality, easy to buy. Larger copy, calmer motion.', motion:.6, pace:1.3, type:1.15 },
+};
+const VOICE_KEYS = Object.keys(VOICES).filter(k => k !== 'brand');
+const VOICE_COPY = /*VOICE_COPY · drafts for the copywriter to review*/{
+ "Feel nothing but the practice.": {
+  "genz": {
+   "h": "Just you and the practice.",
+   "c": "Shop Align",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Let the practice be all you feel.",
+   "b": "One class, start to finish, in the Align pant, with nothing pulling you out of it.",
+   "c": "Find your Align"
+  },
+  "genx": {
+   "h": "Nothing in the way of the practice.",
+   "b": "The Align pant: high rise, no side seams, buttery-soft Nulu. One class, start to finish.",
+   "c": "Shop the pant"
+  },
+  "boomer": {
+   "h": "So comfortable, you feel only the practice.",
+   "b": "The Align pant is buttery-soft and stays where you put it, from the first stretch to the last.",
+   "c": "Find your fit"
+  }
+ },
+ "Buttery-soft. Weightless.": {
+  "genz": {
+   "h": "Soft. Light. That’s it."
+  },
+  "millennial": {
+   "h": "Soft as a slow exhale. Light as nothing."
+  },
+  "genx": {
+   "h": "Buttery-soft. Weighs next to nothing.",
+   "b": "Nulu fabric, soft enough that you stop noticing it."
+  },
+  "boomer": {
+   "h": "Soft to the touch, light to wear.",
+   "b": "Nulu fabric feels buttery-soft and almost weightless on."
+  }
+ },
+ "Every transition, uninterrupted.": {
+  "genz": {
+   "h": "Flow. No fixing.",
+   "b": "Down dog to warrior, nothing to adjust."
+  },
+  "millennial": {
+   "h": "Move from one pose to the next, unbroken.",
+   "b": "Nulu fabric stays with you from down dog to warrior, so your attention stays on your breath."
+  },
+  "genx": {
+   "h": "No stopping to adjust.",
+   "b": "Four-way stretch Nulu moves with you from down dog to warrior. No tugging between poses."
+  },
+  "boomer": {
+   "h": "Move freely from pose to pose.",
+   "b": "Nulu fabric stretches with you from down dog to warrior, so there’s nothing to adjust along the way."
+  }
+ },
+ "Hold still. Nothing shifts.": {
+  "genz": {
+   "h": "Hold. It holds too."
+  },
+  "millennial": {
+   "h": "Stay in the stillness. Everything stays with you."
+  },
+  "genx": {
+   "h": "Hold the pose. The pant holds too.",
+   "b": "A high rise that stays where you put it."
+  },
+  "boomer": {
+   "h": "Hold a pose with confidence. Nothing slips.",
+   "b": "The high rise stays where you put it, so you can settle in."
+  }
+ },
+ "The pant.": {
+  "genz": {
+   "h": "This one.",
+   "b": "High rise, no side seams, hidden pocket."
+  },
+  "millennial": {
+   "h": "The pant you’ll reach for first.",
+   "b": "High rise, no side seams and a hidden waistband pocket, made to feel like part of you."
+  },
+  "genx": {
+   "h": "The pant, specifically.",
+   "b": "High rise. No side seams. A hidden waistband pocket. That’s the whole pitch."
+  },
+  "boomer": {
+   "h": "Meet the pant.",
+   "b": "A high rise that stays where you put it, no side seams, and a hidden pocket in the waistband."
+  }
+ },
+ "Built for the deep end of class.": {
+  "genz": {
+   "h": "Made for the hard part."
+  },
+  "millennial": {
+   "h": "Made for the part of class where you go deepest."
+  },
+  "genx": {
+   "h": "Holds up when class gets serious.",
+   "b": "28″ inseam, four-way stretch, zero side seams."
+  },
+  "boomer": {
+   "h": "Made for every stretch, even the deep ones.",
+   "b": "A 28″ inseam, four-way stretch and no side seams, for comfort through the whole class."
+  }
+ },
+ "Take it with you.": {
+  "genz": {
+   "h": "Keep going.",
+   "c": "Shop it"
+  },
+  "millennial": {
+   "h": "Carry the feeling with you.",
+   "c": "Shop the collection"
+  },
+  "genx": {
+   "h": "Wear it out the door.",
+   "c": "See the collection"
+  },
+  "boomer": {
+   "h": "Bring the comfort along.",
+   "c": "Browse the collection"
+  }
+ },
+ "The city is the track.": {
+  "genz": {
+   "h": "Streets count."
+  },
+  "millennial": {
+   "h": "Every street is a run waiting to happen."
+  },
+  "genx": {
+   "h": "No track needed. You have streets."
+  },
+  "boomer": {
+   "h": "Your city, one run at a time."
+  }
+ },
+ "Wake the legs.": {
+  "genz": {
+   "h": "Get moving."
+  },
+  "millennial": {
+   "h": "Wake up the body, gently."
+  },
+  "genx": {
+   "h": "Get the legs working."
+  },
+  "boomer": {
+   "h": "An easy start for the legs."
+  }
+ },
+ "Before the city wakes up.": {
+  "genz": {
+   "h": "Up first.",
+   "b": "Thirty minutes, no plan."
+  },
+  "millennial": {
+   "h": "The quiet hour that’s just yours.",
+   "b": "One route, thirty minutes and no plan past the next corner. That’s the whole ritual."
+  },
+  "genx": {
+   "h": "Early. Quiet. Clear roads.",
+   "b": "One route, thirty minutes. No plan past the next corner."
+  },
+  "boomer": {
+   "h": "An early run, while the streets are quiet.",
+   "b": "One route and thirty minutes, at your own pace."
+  }
+ },
+ "Out the door.": {
+  "genz": {
+   "h": "Gone."
+  },
+  "millennial": {
+   "h": "Step out. Breathe in."
+  },
+  "genx": {
+   "h": "Shoes on. Door shut."
+  },
+  "boomer": {
+   "h": "Step out and set your pace."
+  }
+ },
+ "Three blocks in.": {
+  "genz": {
+   "h": "Block three."
+  },
+  "millennial": {
+   "h": "Three blocks in, the mind goes quiet."
+  },
+  "genx": {
+   "h": "Three blocks in. Warmed up."
+  },
+  "boomer": {
+   "h": "A few blocks in, finding your stride."
+  }
+ },
+ "Hold the pace.": {
+  "genz": {
+   "h": "Stay on it.",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Find your rhythm and stay there.",
+   "b": "Light enough to forget you’re wearing it, warm enough to keep you going."
+  },
+  "genx": {
+   "h": "Steady pace. No distractions.",
+   "b": "Light enough you don’t notice it, warm enough you don’t stop."
+  },
+  "boomer": {
+   "h": "Settle into a steady pace.",
+   "b": "Light to wear, and warm enough to keep you comfortable as you go."
+  }
+ },
+ "Breathe with the traffic lights.": {
+  "genz": {
+   "h": "Red means breathe."
+  },
+  "millennial": {
+   "h": "Let every red light be a breath."
+  },
+  "genx": {
+   "h": "Red light. Recovery interval."
+  },
+  "boomer": {
+   "h": "Take a breath at every light."
+  }
+ },
+ "Louder than the traffic.": {
+  "genz": {
+   "h": "Turn it up."
+  },
+  "millennial": {
+   "h": "Your heartbeat, louder than the city."
+  },
+  "genx": {
+   "h": "Drown out the traffic."
+  },
+  "boomer": {
+   "h": "Your run, above the noise."
+  }
+ },
+ "Nobody runs alone.": {
+  "genz": {
+   "h": "Bring your people."
+  },
+  "millennial": {
+   "h": "Run together. Feel it together."
+  },
+  "genx": {
+   "h": "Easier with company. Ask anyone."
+  },
+  "boomer": {
+   "h": "Running is better in good company."
+  }
+ },
+ "Every corner is a decision. Every decision is a run.": {
+  "genz": {
+   "h": "Every corner, your call."
+  },
+  "millennial": {
+   "h": "Every corner is a choice. Every choice becomes the run."
+  },
+  "genx": {
+   "h": "Left or right. Either way, you’re running."
+  },
+  "boomer": {
+   "h": "Choose your corners. Make the run your own."
+  }
+ },
+ "The wind jacket.": {
+  "genz": {
+   "h": "Wind? Handled.",
+   "b": "Placeholder: packs small."
+  },
+  "millennial": {
+   "h": "Your shell against the weather.",
+   "b": "Placeholder: packs small and sheds the first rain, so the weather never decides for you."
+  },
+  "genx": {
+   "h": "The wind jacket. Does what it says.",
+   "b": "Placeholder: packs small, sheds the first rain."
+  },
+  "boomer": {
+   "h": "A light jacket for windy mornings.",
+   "b": "Placeholder: packs small and sheds the first rain."
+  }
+ },
+ "By the numbers.": {
+  "genz": {
+   "h": "The numbers."
+  },
+  "millennial": {
+   "h": "What the run adds up to."
+  },
+  "genx": {
+   "h": "The numbers, plainly."
+  },
+  "boomer": {
+   "h": "The details, at a glance."
+  }
+ },
+ "Two ways to layer.": {
+  "genz": {
+   "h": "Pick one. Or both."
+  },
+  "millennial": {
+   "h": "Two layers, for however the morning feels."
+  },
+  "genx": {
+   "h": "Two tanks. Layer as needed."
+  },
+  "boomer": {
+   "h": "Two easy ways to layer."
+  }
+ },
+ "Warm for the way home.": {
+  "genz": {
+   "h": "Cool-down, covered.",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Something warm for the walk back.",
+   "b": "Pull it on after the cool-down and let the run settle in."
+  },
+  "genx": {
+   "h": "A warm layer for after.",
+   "b": "Pull it on after the cool-down. Skip the chill."
+  },
+  "boomer": {
+   "h": "Stay warm on the way home.",
+   "b": "An easy layer to pull on after your cool-down."
+  }
+ },
+ "Run the city.": {
+  "genz": {
+   "h": "City’s yours.",
+   "c": "Shop it"
+  },
+  "millennial": {
+   "h": "Make the city your run.",
+   "c": "Shop the collection"
+  },
+  "genx": {
+   "h": "Run the whole city.",
+   "c": "See the collection"
+  },
+  "boomer": {
+   "h": "Enjoy the city on foot.",
+   "c": "Browse the collection"
+  }
+ },
+ "The road forward is yours.": {
+  "genz": {
+   "h": "Your road. Your crew.",
+   "c": "Find your crew"
+  },
+  "millennial": {
+   "h": "Wherever you run next, it’s yours.",
+   "c": "Find your run club"
+  },
+  "genx": {
+   "h": "Where you go next is your call.",
+   "c": "Find a run club"
+  },
+  "boomer": {
+   "h": "Go at your own pace, your own way.",
+   "c": "Find a run club near you"
+  }
+ },
+ "Same time tomorrow.": {
+  "genz": {
+   "h": "Again tomorrow?",
+   "b": "Bring someone.",
+   "c": "Save the route"
+  },
+  "millennial": {
+   "h": "Same time tomorrow, same feeling.",
+   "b": "Save the route and bring someone along. It’s better shared.",
+   "c": "Plan your route"
+  },
+  "genx": {
+   "h": "Tomorrow. Same route.",
+   "b": "Save the route. Bring someone to keep you honest.",
+   "c": "Plan a route"
+  },
+  "boomer": {
+   "h": "See you tomorrow morning.",
+   "b": "Save your route, and bring a friend along next time.",
+   "c": "Plan your route"
+  }
+ },
+ "See you at the start.": {
+  "genz": {
+   "h": "See you there.",
+   "c": "Get the kit"
+  },
+  "millennial": {
+   "h": "We’ll meet you at the start line.",
+   "c": "Shop the kit"
+  },
+  "genx": {
+   "h": "Gear up. Show up.",
+   "c": "See the kit"
+  },
+  "boomer": {
+   "h": "Ready when you are.",
+   "c": "Shop the kit"
+  }
+ },
+ "Feel nothing.": {
+  "genz": {
+   "h": "Just nothing."
+  },
+  "millennial": {
+   "h": "Feel nothing but yourself."
+  },
+  "genx": {
+   "h": "You won’t feel a thing."
+  },
+  "boomer": {
+   "h": "So comfortable, you’ll barely feel it."
+  }
+ },
+ "No waistband digging in. No seams to notice. No second thoughts.": {
+  "genz": {
+   "h": "No digging. No seams. No thoughts."
+  },
+  "millennial": {
+   "h": "Nothing pressing, nothing pulling. Just room to breathe."
+  },
+  "genx": {
+   "h": "No digging waistband. No side seams. No fidgeting."
+  },
+  "boomer": {
+   "h": "A waistband that doesn’t dig in, and no side seams to notice."
+  }
+ },
+ "Just the stretch you meant to make.": {
+  "genz": {
+   "h": "Just the stretch.",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Only the stretch you came here for.",
+   "b": "Buttery-soft Nulu fabric that moves the way you do, breath by breath."
+  },
+  "genx": {
+   "h": "Stretch without the pant fighting back.",
+   "b": "Four-way stretch Nulu fabric moves the way you do."
+  },
+  "boomer": {
+   "h": "Stretch as far as feels right.",
+   "b": "Buttery-soft Nulu fabric moves with you, so the pant never holds you back."
+  }
+ },
+ "Every body. Every pose.": {
+  "genz": {
+   "h": "All bodies. All poses."
+  },
+  "millennial": {
+   "h": "Made for every body, in every pose."
+  },
+  "genx": {
+   "h": "Every body, every pose. No exceptions."
+  },
+  "boomer": {
+   "h": "Comfortable on every body, in every pose."
+  }
+ },
+ "Why it disappears.": {
+  "genz": {
+   "h": "The why.",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Why it feels like nothing at all.",
+   "b": "Three quiet details, so all you feel is you."
+  },
+  "genx": {
+   "h": "How it disappears.",
+   "b": "Three details doing the work so you don’t notice."
+  },
+  "boomer": {
+   "h": "What makes it so comfortable.",
+   "b": "Three thoughtful details you’ll never feel."
+  }
+ },
+ "Find your Align.": {
+  "genz": {
+   "h": "Pick your Align."
+  },
+  "millennial": {
+   "h": "Find the Align that feels like you."
+  },
+  "genx": {
+   "h": "Pant, tank, short, jogger. Choose."
+  },
+  "boomer": {
+   "h": "Find the Align that fits you best."
+  }
+ },
+ "Feel nothing. Do everything.": {
+  "genz": {
+   "h": "Feel nothing. Do it all.",
+   "c": "Shop Align"
+  },
+  "millennial": {
+   "h": "Feel nothing holding you back.",
+   "c": "Find your Align"
+  },
+  "genx": {
+   "h": "Forget the pant. Do the work.",
+   "c": "Shop Align"
+  },
+  "boomer": {
+   "h": "Comfort you won’t notice, for everything you do.",
+   "c": "Find your fit"
+  }
+ },
+ "First group out.": {
+  "genz": {
+   "h": "Dawn tee time.",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Dew on the fairway. The day still yours.",
+   "b": "The course is quiet, before anyone else wakes up."
+  },
+  "genx": {
+   "h": "First tee time. Empty course.",
+   "b": "The course before anyone else wakes up."
+  },
+  "boomer": {
+   "h": "An early start on a quiet course.",
+   "b": "Enjoy the course before anyone else arrives."
+  }
+ },
+ "Eighteen holes. Four hours. One outfit that keeps up.": {
+  "genz": {
+   "h": "18 holes. One fit."
+  },
+  "millennial": {
+   "h": "Eighteen holes, four hours, one outfit that feels good through all of it."
+  },
+  "genx": {
+   "h": "Four hours, eighteen holes, one outfit. It keeps up."
+  },
+  "boomer": {
+   "h": "One comfortable outfit for all eighteen holes."
+  }
+ },
+ "Built for the full turn.": {
+  "genz": {
+   "h": "Full swing, no pull."
+  },
+  "millennial": {
+   "h": "Made for the swing that feels free."
+  },
+  "genx": {
+   "h": "Made for the full turn.",
+   "b": "Four-way stretch, so nothing pulls at the top of the swing."
+  },
+  "boomer": {
+   "h": "Freedom to make your full swing.",
+   "b": "Four-way stretch means nothing pulls at the top of your swing."
+  }
+ },
+ "Between shots, golf is a long walk.": {
+  "genz": {
+   "h": "Golf is mostly walking."
+  },
+  "millennial": {
+   "h": "Between shots, the walk is the round."
+  },
+  "genx": {
+   "h": "Most of golf is walking. Dress for it."
+  },
+  "boomer": {
+   "h": "Between shots, enjoy the walk."
+  }
+ },
+ "Walk. Settle. Swing.": {
+  "genz": {
+   "h": "Walk. Swing. Repeat."
+  },
+  "millennial": {
+   "h": "Walk, breathe, settle in, swing."
+  },
+  "genx": {
+   "h": "Walk up. Line up. Swing."
+  },
+  "boomer": {
+   "h": "Walk, settle in, and swing."
+  }
+ },
+ "Every detail, down to the tee pocket.": {
+  "genz": {
+   "h": "Even the tee pocket."
+  },
+  "millennial": {
+   "h": "Thought through, down to the tee pocket."
+  },
+  "genx": {
+   "h": "Details that earn their place. Tee pocket included."
+  },
+  "boomer": {
+   "h": "Thoughtful details, right down to the tee pocket."
+  }
+ },
+ "Tee to clubhouse.": {
+  "genz": {
+   "h": "Tee to table."
+  },
+  "millennial": {
+   "h": "From the first tee to the clubhouse, comfortable all day."
+  },
+  "genx": {
+   "h": "Works on the course. Works in the clubhouse."
+  },
+  "boomer": {
+   "h": "Comfortable from the first tee to the clubhouse."
+  }
+ },
+ "Same time next week?": {
+  "genz": {
+   "h": "Next week, yeah?",
+   "c": "Shop golf"
+  },
+  "millennial": {
+   "h": "Same group, same time next week?",
+   "c": "Shop the golf collection"
+  },
+  "genx": {
+   "h": "Same tee time next week?",
+   "c": "Shop golf"
+  },
+  "boomer": {
+   "h": "Shall we book next week?",
+   "c": "Browse golf"
+  }
+ },
+ "Run light. Carry more.": {
+  "genz": {
+   "h": "Light. Loaded."
+  },
+  "millennial": {
+   "h": "Run free, with everything you need."
+  },
+  "genx": {
+   "h": "Carry more. Notice less."
+  },
+  "boomer": {
+   "h": "Carry what you need, comfortably."
+  }
+ },
+ "Phone. Keys. Gel. Nothing bouncing.": {
+  "genz": {
+   "h": "All in. Zero bounce."
+  },
+  "millennial": {
+   "h": "Everything with you, nothing pulling you out of the run."
+  },
+  "genx": {
+   "h": "Phone, keys, gel. All of it stays put."
+  },
+  "boomer": {
+   "h": "Room for your phone and keys, without the bounce."
+  }
+ },
+ "Meet the Modular Running Vest.": {
+  "genz": {
+   "h": "Meet the vest."
+  },
+  "millennial": {
+   "h": "Say hello to the Modular Running Vest."
+  },
+  "genx": {
+   "h": "The Modular Running Vest. Here’s how it works."
+  },
+  "boomer": {
+   "h": "Introducing the Modular Running Vest.",
+   "b": "A running vest with a clip-on bag you can move to where you need it."
+  }
+ },
+ "Built around the run.": {
+  "genz": {
+   "h": "Built for the run."
+  },
+  "millennial": {
+   "h": "Shaped around how you run."
+  },
+  "genx": {
+   "h": "Designed around the run, not the other way round.",
+   "b": "Clip the bag to the front, the back or the side."
+  },
+  "boomer": {
+   "h": "Designed around your run.",
+   "b": "Clip the bag to the front, back or side, wherever it’s most comfortable."
+  }
+ },
+ "Short run. Long run. Race day.": {
+  "genz": {
+   "h": "5K. Long run. Race day."
+  },
+  "millennial": {
+   "h": "Every distance, every kind of day."
+  },
+  "genx": {
+   "h": "One vest. Any distance."
+  },
+  "boomer": {
+   "h": "Ready for any distance you choose."
+  }
+ },
+ "Shop the look.": {
+  "genz": {
+   "h": "Get the look.",
+   "c": "Shop all"
+  },
+  "millennial": {
+   "h": "Wear the whole look.",
+   "c": "Shop the look"
+  },
+  "genx": {
+   "h": "The full outfit.",
+   "c": "Shop all"
+  },
+  "boomer": {
+   "h": "Shop the complete look.",
+   "c": "Shop all"
+  }
+ },
+ "Go further, lighter.": {
+  "genz": {
+   "h": "Further. Lighter.",
+   "c": "Get the vest"
+  },
+  "millennial": {
+   "h": "Go further, feel lighter.",
+   "c": "Shop the vest"
+  },
+  "genx": {
+   "h": "More miles, less bounce.",
+   "c": "See the details"
+  },
+  "boomer": {
+   "h": "Go the distance, comfortably.",
+   "c": "Find your vest"
+  }
+ },
+ "Shop the run kit.": {
+  "genz": {
+   "h": "Get the kit."
+  },
+  "millennial": {
+   "h": "Everything for your morning run."
+  },
+  "genx": {
+   "h": "Run kit. Pick what you need."
+  },
+  "boomer": {
+   "h": "Your run kit, all in one place."
+  }
+ },
+ "The full kit.": {
+  "genz": {
+   "h": "All of it."
+  },
+  "millennial": {
+   "h": "Your whole run, head to toe."
+  },
+  "genx": {
+   "h": "Everything, in one view."
+  },
+  "boomer": {
+   "h": "The complete collection, all together."
+  }
+ },
+ "Layers for every mile.": {
+  "genz": {
+   "h": "Layer up.",
+   "c": "Shop tops",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Layers that change with every mile.",
+   "b": "Four pieces that work together, however the run unfolds.",
+   "c": "Shop tops"
+  },
+  "genx": {
+   "h": "Mix and match by the mile.",
+   "b": "Four pieces that work together. Add or drop as needed.",
+   "c": "Shop tops"
+  },
+  "boomer": {
+   "h": "Easy layers for any distance.",
+   "b": "Four pieces that work well together, so you can dress for the day.",
+   "c": "Shop tops"
+  }
+ },
+ "Built for the long way home.": {
+  "genz": {
+   "h": "Long way home? Sure."
+  },
+  "millennial": {
+   "h": "For the runs you don’t want to end."
+  },
+  "genx": {
+   "h": "For when you take the long way. Again."
+  },
+  "boomer": {
+   "h": "Comfortable for the longer route home."
+  }
+ },
+ "Layer for the first mile.": {
+  "genz": {
+   "h": "Start warm.",
+   "b": "Peel back as you go.",
+   "c": "Shop layers"
+  },
+  "millennial": {
+   "h": "Start cozy. Let the miles warm you.",
+   "b": "Start warm and peel back as the run finds you.",
+   "c": "Shop layers"
+  },
+  "genx": {
+   "h": "Dress for mile one.",
+   "b": "Start warm, peel back as you go. Simple.",
+   "c": "Shop layers"
+  },
+  "boomer": {
+   "h": "Stay warm at the start.",
+   "b": "Begin in a warm layer and take it off as you warm up.",
+   "c": "Shop layers"
+  }
+ },
+ "The new run short.": {
+  "genz": {
+   "h": "New short.",
+   "c": "Shop it",
+   "b": ""
+  },
+  "millennial": {
+   "h": "Your next run short is here.",
+   "b": "Placeholder line about the product.",
+   "c": "Shop now"
+  },
+  "genx": {
+   "h": "The new run short. Hidden pocket, split hem.",
+   "b": "A hidden pocket that fits a phone, and a split hem for a full stride.",
+   "c": "See the details"
+  },
+  "boomer": {
+   "h": "Introducing our new run short.",
+   "b": "A hidden pocket fits your phone, and a split hem leaves room for a full stride.",
+   "c": "Find your size"
+  }
+ },
+ "Meet the Mesh Tank.": {
+  "genz": {
+   "h": "The Mesh Tank.",
+   "c": "Shop it"
+  },
+  "millennial": {
+   "h": "Breathe easy in the Mesh Tank.",
+   "c": "Shop the Mesh Tank"
+  },
+  "genx": {
+   "h": "The Mesh Tank. Open-knit, for a reason.",
+   "c": "See the details"
+  },
+  "boomer": {
+   "h": "A closer look at the Mesh Tank.",
+   "c": "Find your size"
+  }
+ },
+ "Every detail, on purpose.": {
+  "genz": {
+   "h": "Nothing extra."
+  },
+  "millennial": {
+   "h": "Every detail, made with intention."
+  },
+  "genx": {
+   "h": "No detail is decoration."
+  },
+  "boomer": {
+   "h": "Thoughtful details throughout."
+  }
+ }
+}/*END_VOICE_COPY*/;
+const firstSentence = t => (String(t).match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
+// the section as this voice says it (layout, media and modules untouched)
+function said(s, v) {
+  if (!v || v === 'brand' || !VOICES[v]) return s;
+  const own = ((s.voices || {})[v]) || {}, lib = s.quote.on ? {} : ((VOICE_COPY[s.headline] || {})[v] || {});
+  const pick = k => own[k] != null && own[k] !== '' ? own[k] : lib[k];
+  const o = { ...s }, hl = pick('h'), c = pick('c');
+  let b = own.b != null && own.b !== '' ? own.b : lib.b;
+  if (b == null && v === 'genz' && s.body && !VOICE_COPY[s.headline]) b = firstSentence(s.body); // no written copy yet: Gen Z keeps it short
+  if (hl && !s.quote.on) o.headline = hl;
+  if (b != null) o.body = b;
+  if (c && s.cta.show) o.cta = { ...s.cta, label:c };
+  return o;
+}
+/* Adapt: which voice to use, learned in this browser only. The link a viewer arrived by
+   (?aud=genz, or a utm_source such as tiktok) gives the first guess; how they move
+   through the story refines it. The voice only changes between stories, never mid-story. */
+const AUD_SOURCES = { tiktok:'genz', snapchat:'genz', twitch:'genz', discord:'genz', instagram:'millennial', pinterest:'millennial', youtube:'millennial', podcast:'millennial',
+  facebook:'genx', linkedin:'genx', reddit:'genx', email:'boomer', newsletter:'boomer', print:'boomer', tv:'boomer' };
+const LEARN_KEY = 'storyBuilder.voiceLearn';
+let LEARN = { recent:[] };
+try { const l = JSON.parse(localStorage.getItem(LEARN_KEY) || 'null'); if (l && Array.isArray(l.recent)) LEARN = l; } catch (e) {}
+function entryVoice() {
+  const q = new URLSearchParams(location.search), a = (q.get('aud') || '').toLowerCase(), src = (q.get('utm_source') || '').toLowerCase();
+  if (VOICE_KEYS.includes(a)) return [a, `they came in on a ${VOICES[a].label} link`];
+  for (const k in AUD_SOURCES) if (src.includes(k)) return [AUD_SOURCES[k], `they came from ${({ tiktok:'TikTok', youtube:'YouTube', linkedin:'LinkedIn' })[k] || k[0].toUpperCase() + k.slice(1)}`];
+  return null;
+}
+const secs = ms => Math.round(ms / 1000) + ' s';
+function inferVoice() {
+  const r = LEARN.recent.filter(x => !x.t || Date.now() - x.t < 12 * 3600e3).slice(-8), n = r.length; // this visit's habits, not last month's
+  if (n >= 4) {
+    const fast = r.filter(x => x.ms < 1500).length, slow = r.filter(x => x.ms > 7000).length;
+    const proof = r.filter(x => x.proof).reduce((a, x) => a + x.ms, 0), story = r.filter(x => !x.proof).reduce((a, x) => a + x.ms, 0);
+    if (fast / n > .5) return ['genz', `they're moving fast: ${fast} of the last ${n} sections in under 1.5 s`];
+    if (slow / n > .5) return ['boomer', `they're taking their time: ${slow} of the last ${n} sections held over 7 seconds`];
+    if (proof > 6000 && proof > story * 1.2) return ['genx', `they linger on the details: ${secs(proof)} on product proof, ${secs(story)} on story`];
+    if (story > 6000 && story > proof * 1.5) return ['millennial', `they linger on the story: ${secs(story)} on story, ${secs(proof)} on product proof`];
+  }
+  return entryVoice() || ['brand', 'no signals yet, so the brand voice'];
+}
+let homeVoice = /[?&]aud=/.test(location.search) && entryVoice() || inferVoice(); // the voice for your own story, fixed for the visit so it never changes mid-story
+const voiceOf = s => S.voice !== 'adapt' ? S.voice : (s && s.story && s.story.voice) || homeVoice[0];
+const voiceNow = () => VOICES[voiceOf(S.sections[curI])] || VOICES.brand;
+const motionT = () => S.motionTime * voiceNow().pace;
+const transT = () => S.transTime * voiceNow().pace;
+let learnAt = 0, learnI = -1;
+function learnStep(i) {
+  const now = performance.now(), prev = S.sections[learnI];
+  if (prev && learnAt && !prev.dark && !document.body.classList.contains('panel-open')) {
+    const proof = prev.beat === 'proof' || prev.shop.on || prev.card.on || prev.feats.on || prev.specs.on || prev.stats.on;
+    LEARN.recent.push({ ms:Math.min(20000, now - learnAt), proof, t:Date.now() });
+    LEARN.recent = LEARN.recent.slice(-12);
+    try { localStorage.setItem(LEARN_KEY, JSON.stringify(LEARN)); } catch (e) {}
+  }
+  learnAt = now; learnI = i;
+}
+
 /* ---------- state ---------- */
 const KEY = 'storyBuilder.v2';
 let S, sel = null, history = [];
@@ -1059,6 +2041,7 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
   pace: d.pacingV === 2 ? clamp(+d.pace || .5, .3, 2.5) : .5,
   arc: validArc(d.arc) ? d.arc : null,
   smooth: d.smooth !== false,
+  voice: d.voice === 'adapt' || VOICES[d.voice] ? d.voice : 'adapt',
   swiper: d.swiper === 'off' ? 'off' : 'on',
   scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
   player: d.player !== false,
@@ -1552,14 +2535,16 @@ function renderStage() {
       }
       return f.appendChild(lay);
     });
-    const T = textLayer(s, i);
+    const v = voiceOf(s), T = textLayer(said(s, v), i); T.s = s;
+    if (VOICES[v] && VOICES[v].type > 1) T.copy.classList.add('vt-l');
     if (W < 720) phoneCopy(s, T);
     tw.append(T.el); if (T.card) tw.append(T.card); T.extras.forEach(e => tw.append(e));
     return { media, spots, ...T };
   });
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
-    h('nav', { class:'dots', id:'dots', 'aria-label':'Sections' }));
+    h('nav', { class:'dots', id:'dots', 'aria-label':'Sections' }),
+    h('div', { class:'vchip', id:'vchip', 'aria-live':'polite' }));
   dotsBid = null; buildDots(curI);
   $stage.classList.toggle('has-swiper', touchSwipe());
   if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
@@ -1594,7 +2579,7 @@ const HOLDS = {
   focus: ['Focus',   'The image starts softly blurred and sharpens as the section settles.'],
 };
 const DEPTH = [.7, 1.35, .95, 1.15, .85, 1.25]; // per-frame parallax rates for tiles
-const amt = () => S.holdAmt;
+const amt = () => S.holdAmt * voiceNow().motion;
 // never fully flat at the ends, so a transition always moves a little
 const glide = t => .82 * easeIO(t) + .18 * t;
 
@@ -1883,6 +2868,7 @@ function drawPair(i, j, t, ui, uj) {
 }
 function setCurrent(i) {
   curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
+  learnStep(i); voiceChip();
   if (FEED) feedOnSection(i);
   if (FEED) buildDots(i);
   $stage.querySelectorAll('.dots button').forEach(b => b.classList.toggle('on', +b.dataset.sec === i));
@@ -1916,7 +2902,7 @@ const goTo = i => {
 function playHold(k) {
   cancelAnimationFrame(swipeAnim);
   const A = starts[k], B = restOf(k), dB = B - A; if (!(dB > 1)) return;
-  const tB = dB / (UNIT / (1000 * S.motionTime)), t0 = performance.now();
+  const tB = dB / (UNIT / (1000 * motionT())), t0 = performance.now();
   swipeGoal = k; swBase = k; swipeDirect = true; document.documentElement.classList.remove('magnet');
   const step = now => {
     const q = clamp((now - t0) / tB), e = q < .5 ? 2 * q * q : 1 - 2 * (1 - q) * (1 - q);
@@ -1934,7 +2920,7 @@ let jumpTarget = 0, jumpQueue = 0; // a flick or swipe made during a jump plays 
 function jumpTo(from, to, then) {
   jumpTarget = to; jumpQueue = 0;
   cancelAnimationFrame(swipeAnim); swipeDirect = false;
-  const t0 = performance.now(), dur = S.transTime * 1000 * 1.6; // a far move changes more of the composition, so it takes a little longer
+  const t0 = performance.now(), dur = transT() * 1000 * 1.6; // a far move changes more of the composition, so it takes a little longer
   const u0 = Math.max(0, (ys - starts[from]) / UNIT);
   jumping = true; document.documentElement.classList.remove('magnet');
   const step = now => {
@@ -1966,7 +2952,7 @@ let swiperHeld = false; // while the swiper is driving, magnet snapping stays of
 const magnetOn = () => document.documentElement.classList.toggle('magnet', S.magnet);
 let swipeGoal = null; // the section an in-flight swipe is heading for
 // the move between sections takes the Transition duration; a hard flick trims up to 30% off, so it still feels thrown
-const transMs = v0 => S.transTime * 1000 * clamp(1.6 / Math.max(1.6, (v0 || 0) * 1.2), .7, 1);
+const transMs = v0 => transT() * 1000 * clamp(1.6 / Math.max(1.6, (v0 || 0) * 1.2), .7, 1);
 function animateTo(target, v0 = 0) {
   cancelAnimationFrame(swipeAnim);
   const from = scrollY, dist = target - from, t0 = performance.now();
@@ -1993,7 +2979,7 @@ function swipeForward(k, v0 = 0) {
   swipeGoal = k;
   if (swBase == null) swBase = settledAt(from);
   const tA = transMs(v0);
-  const base = UNIT / (1000 * S.motionTime), tB = dB / base, vB = 2 * dB / tB; // ease-out hold, one story unit per Section motion duration
+  const base = UNIT / (1000 * motionT()), tB = dB / base, vB = 2 * dB / tB; // ease-out hold, one story unit per Section motion duration
   const va = Math.min(v0, 3 * Math.abs(dA) / tA), t0 = performance.now();
   document.documentElement.classList.remove('magnet'); swipeDirect = true;
   const step = now => {
@@ -2992,6 +3978,18 @@ function renderInspector() {
       s.cta.show ? field('Button label', text(s.cta.label, v => s.cta.label = v)) : h('span')),
   );
 
+  // the same section in each voice; blank fields use the voice library's draft
+  const vk = VOICE_KEYS.includes(S.voice) ? S.voice : (VOICE_KEYS.includes(voiceOf(s)) ? voiceOf(s) : 'genz');
+  const draft = said({ ...s, voices:{} }, vk), own = (s.voices || {})[vk] || {};
+  const vtext = (k, base, multi) => { const el = text(own[k] || '', v => { const o = s.voices[vk] || (s.voices[vk] = {}); if (v) o[k] = v; else delete o[k]; }, multi); el.placeholder = base || ''; return el; };
+  const voiceGrp = grp('Voices',
+    field('Speak as', seg(VOICE_KEYS.map(k => [k, VOICES[k].label]), vk, up(v => S.voice = v), 'Voice')),
+    h('p', { class:'hint' }, VOICES[vk].who + ' Choosing one shows the whole story in that voice; set Speak to back to Adapt in the Story tab.'),
+    s.quote.on ? h('p', { class:'hint' }, 'Quote style is on: a real person’s words stay word for word in every voice.') : field('Headline', vtext('h', draft.headline, true)),
+    field('Body', vtext('b', draft.body, true)),
+    s.cta.show ? field('Button label', vtext('c', draft.cta.label)) : null,
+    h('p', { class:'hint' }, VOICE_COPY[s.headline] ? 'The grey text is the drafted copy for this voice. Type to replace it for this section; clear a field to go back to the draft.' : 'No drafted copy for this headline yet, so this voice uses the brand words' + (vk === 'genz' ? ' with the body cut to one sentence' : '') + '. Type to write it.'));
+
   const modGrp = grp('Modules',
     field('Quote style', seg([[false,'Off'],[true,'On']], s.quote.on, up(v => s.quote.on = v))));
   const md = modGrp.lastChild;
@@ -3061,7 +4059,7 @@ function renderInspector() {
   );
 
   const head = h('div', { class:'p-insp-h' }, mobileBack(i), h('small', {}, `Section ${i + 1} of ${S.sections.length}`), h('b', {}, s.name));
-  $insp.replaceChildren(head, layoutGrp(s), textGrp, mediaGrp, motionGrp, contentGrp, modGrp);
+  $insp.replaceChildren(head, layoutGrp(s), textGrp, mediaGrp, motionGrp, contentGrp, voiceGrp, modGrp);
   $insp.scrollTop = keepScroll;
 }
 
@@ -3083,7 +4081,7 @@ function renderGlobals() {
   $('holdamt').replaceChildren(...slider(.4, 2, .1, S.holdAmt, v => v.toFixed(1) + '×', v => S.holdAmt = v, update).childNodes);
   document.documentElement.classList.toggle('magnet', S.magnet);
 }
-function render() { renderGlobals(); renderStage(); renderList(); renderInspector(); renderSpark(); if (typeof renderTodo === 'function' && !$('view-story').hidden) renderTodo(); if (!$('view-library').hidden) renderLibrary(); if (!$('arc').hidden) renderArc(); save(); }
+function render() { renderVoice(); renderGlobals(); renderStage(); renderList(); renderInspector(); renderSpark(); if (typeof renderTodo === 'function' && !$('view-story').hidden) renderTodo(); if (!$('view-library').hidden) renderLibrary(); if (!$('arc').hidden) renderArc(); save(); }
 
 $('add').addEventListener('click', () => setPool(!poolOpen));
 $('preset').addEventListener('change', e => {
@@ -3122,6 +4120,7 @@ function togglePanel(force) {
   $fab.querySelector('.fa').textContent = open ? '›' : '‹'; $fab.querySelector('.ft').textContent = open ? 'Close' : 'Edit story';
   $fab.title = (open ? 'Close the editor' : 'Edit the story') + ' (E)'; $fab.setAttribute('aria-expanded', String(open));
   setTimeout(() => { measure(); update(); }, 380);
+  voiceChip();
 }
 $fab.addEventListener('click', () => togglePanel());
 addEventListener('keydown', e => {
@@ -3163,6 +4162,7 @@ const HELP = [
       <li><kbd>Space</kbd><span>Play or pause.</span></li>
       <li><kbd>Remix</kbd><span>Shuffles the layouts and keeps your words.</span></li>
       <li><kbd>Export</kbd><span>Saves the story as a file. <b>Import</b> opens one again.</span></li>
+      <li><kbd>Voices</kbd><span><b>Speak to</b> in the Story tab tells each story in one brand voice four ways: Gen Z, Millennial, Gen X or Boomer. <b>Adapt</b> picks one from the link a viewer came in on and how they scroll, and switches only between stories.</span></li>
       <li><kbd>Share</kbd><span><b>Copy share link</b> in the Story tab opens just the story, as a customer sees it. <b>Content to finish</b> lists every placeholder left.</span></li>
       <li><kbd>Settings</kbd><span><b>Page settings</b> tunes scroll speed, smoothing, transitions, the Play button and touch swiping.</span></li>
       <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
@@ -3278,7 +4278,7 @@ $('tab-story').addEventListener('click', () => { picking = null; showTab('story'
 function placeControls() {
   const phone = isPhone(), head = document.querySelector('.p-head'), pane = $('story-pane');
   const inHead = [$('arc-open'), document.querySelector('.hist')];
-  const inStory = [$('share'), $('todo'), $('views'), $('preset'), $('remix').parentElement, $('pageset')];
+  const inStory = [$('share'), $('voice'), $('todo'), $('views'), $('preset'), $('remix').parentElement, $('pageset')];
   (phone ? [...inStory.slice(0, 1), inHead[0], ...inStory.slice(1), inHead[1]] : inStory).forEach(n => pane.appendChild(n));
   if (!phone) inHead.forEach(n => head.appendChild(n));
   $('pageset').open = !phone; // on a computer the Story tab shows the page settings straight away
@@ -3349,30 +4349,46 @@ function upNext(block, title, n) {
     showEyebrow:true, eyebrow:`Story ${String(n).padStart(2, '0')} · next`, headline:title, body: tease ? `“${tease}”` : '',
     ticker:{ on:true, text:`Next story · ${title} · `, y:'top' } });
 }
+// the picks page, in each voice: headline, line, button, grid heading
+const SALE_COPY = {
+  brand:      n => [`Still thinking about the ${n}?`, 'You spent the most time with this one.', 'Shop now', 'More you lingered on.'],
+  genz:       n => [`Still on your mind: the ${n}.`, 'You kept coming back to this one.', 'Shop it', 'Also on your radar.'],
+  millennial: n => [`Still thinking about the ${n}?`, 'This is the one that held your attention.', 'Make it yours', 'More that caught your eye.'],
+  genx:       n => [`The ${n}. You looked twice.`, 'Most of your time went here, so here it is up close.', 'See the details', 'Also worth a look.'],
+  boomer:     n => [`Still thinking about the ${n}?`, 'You spent the most time with this one. Take your time; it will be here when you are ready.', 'Find your fit', 'More you took a closer look at.'],
+};
 function saleBlock() {
   // most-watched first; if nothing has been watched yet, what the viewer has scrolled past
   let picks = Object.entries(VIEWS).filter(([n, v]) => v.ms > 400).sort((a, b) => b[1].ms - a[1].ms).map(([name, v]) => ({ name, price:v.price, img:v.img }));
   if (!picks.length) { const seen = new Map(); S.sections.slice(0, curI + 1).forEach(x => productsIn(x).forEach(p => seen.set(p.name, p))); picks = [...seen.values()]; }
   if (!picks.length) return [];
   const [top, ...rest] = picks, grid = rest.slice(0, 6);
+  const say = SALE_COPY[S.voice === 'adapt' ? inferVoice()[0] : S.voice] || SALE_COPY.brand, [sh, sb, sc, sg] = say(top.name);
   const out = [make({ name:'Picked for you', beat:'close', motion:'iris', hold:'push', overlay:0,
     media:{ kind:'image', layout:'inset', mx:'right', inset:'m', items:[top.img].filter(Boolean), shots:[top.name] },
     card:{ on:true, x:'left', y:'bottom', name:top.name, price:top.price || '$XX' },
     text:{ x:'left', y:'middle', size:'m', width:'narrow', anim:'rise' }, showEyebrow:true, eyebrow:'Picked for you',
-    headline:`Still thinking about the ${top.name}?`, body:'You spent the most time with this one.', cta:{ show:true, label:'Shop now' } })];
+    headline:sh, body:sb, cta:{ show:true, label:sc } })];
   if (grid.length >= 2) out.push(make({ name:'More you lingered on', beat:'close', motion:'glide', hold:'drift', overlay:0,
     media:{ kind:'gallery', layout:'full', count:Math.min(6, grid.length), arrange:'cdp', items:grid.map(p => p.img) },
     shop:{ on:true, items:grid.map(p => ({ name:p.name, price:p.price || '$XX', tag:'' })) },
-    text:{ x:'center', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:'More you lingered on.', cta:{ show:false } }));
+    text:{ x:'center', y:'top', size:'s', width:'wide', anim:'cascade' }, headline:sg, cta:{ show:false } }));
   return tagged(out, 'For you');
 }
 function nextBlock() {
+  const b = nextBlockRaw(), own = b.length && b[b.length - 1].story && b[b.length - 1].story.bid === FEED.ownBid;
+  const v = own ? homeVoice[0] : inferVoice()[0];
+  b.forEach(x => { if (x.story) x.story.voice = v; });
+  return b;
+}
+function nextBlockRaw() {
   const F = FEED;
   if (F.since === 3) { F.since = 0; const b = saleBlock(); if (b.length) { F.lastWasSale = true; return b; } }
   const [title, key] = F.order[F.next++ % F.order.length];
   const story = key === '__own' ? JSON.parse(F.saved).sections : PRESETS[key]();
   F.since++; F.lastWasSale = false;
   const block = tagged(story, title);
+  if (key === '__own' && !F.ownBid) F.ownBid = block[0].story.bid;
   F.count = (F.count || 1) + (S.sections.length ? 1 : 0);
   if (S.sections.length) { const card = tagged([upNext(block, title, F.count)], title)[0]; card.story = { title, k:-1, of:block.length, bid:block[0].story.bid }; block[0].motion = 'glide'; block.unshift(card); }
   return block;
@@ -3431,6 +4447,7 @@ function exitFeed(landAt) {
   if (!FEED) return;
   clearInterval(FEED.timer); lsSet(VIEWS_KEY, JSON.stringify(VIEWS));
   const saved = FEED.saved, wasOpen = FEED.wasOpen; FEED = null;
+  homeVoice = inferVoice(); // back at the start of your own story: a natural moment to adapt
   document.body.classList.remove('feed'); S = normalize(JSON.parse(saved)); sel = S.sections[0] && S.sections[0].id;
   render();
   if (landAt != null) { measure(); scrollTo({ top:restOf(landAt), behavior:'instant' }); ys = scrollY; update(); sel = (S.sections[landAt] || {}).id || sel; renderList(); }
@@ -3444,6 +4461,39 @@ function renderViews() {
         h('button', { class:'linkbtn', onclick:() => { if (!confirm('Clear the viewing data?')) return; VIEWS = {}; lsSet(VIEWS_KEY, '{}'); renderViews(); } }, 'Clear viewing data'))
     : h('div', {}, 'When a viewer scrolls past the end of a story, it carries on into more stories, with a page of picks after every three built from what they lingered on. Viewing time per product is kept in this browser only.'));
 }
+/* ---------- voice controls ---------- */
+let chipV = null, chipT = 0;
+function voiceChip() {
+  const el = $('vchip'); if (!el) return;
+  const v = voiceOf(S.sections[curI]), changed = chipV !== null && v !== chipV;
+  chipV = v;
+  el.textContent = 'Speaking · ' + (VOICES[v] || VOICES.brand).label + (S.voice === 'adapt' ? '' : ' · fixed');
+  const show = !VIEWER && S.sections.length && (document.body.classList.contains('panel-open') || changed);
+  el.classList.toggle('on', !!show);
+  clearTimeout(chipT); if (changed && !document.body.classList.contains('panel-open')) chipT = setTimeout(() => el.classList.remove('on'), 3500);
+}
+const shareBase = aud => location.origin + location.pathname + (aud ? '?aud=' + aud : '');
+function renderVoice() {
+  if (FEED) return;
+  const [gv, why] = inferVoice(), fixed = S.voice !== 'adapt';
+  const opts = [['adapt','Adapt'], ['brand','Brand'], ...VOICE_KEYS.map(k => [k, VOICES[k].label])];
+  $('voice').replaceChildren(h('b', { class:'views-h' }, 'Speak to'),
+    seg(opts, S.voice, act(v => S.voice = v), 'Voice'),
+    h('div', { class:'voice-now' }, fixed
+      ? h('span', {}, h('b', {}, VOICES[S.voice].label + ': '), VOICES[S.voice].who)
+      : h('span', {}, 'This visit: ', h('b', {}, VOICES[homeVoice[0]].label), `, because ${homeVoice[1]}.`,
+          gv !== homeVoice[0] ? h('span', {}, ' Next story: ', h('b', {}, VOICES[gv].label), `, ${why}.`) : null)),
+    h('small', {}, fixed
+      ? 'Every story speaks this voice. Edit a section’s words for it under Voices in the section’s settings.'
+      : 'Learns from the link someone arrived by and how they move through the story. It only changes between stories, never mid-story. Kept in this browser only.'),
+    h('div', { class:'voice-links' }, h('small', {}, 'Copy a test link as:'),
+      ...VOICE_KEYS.map(k => h('button', { class:'linkbtn', onclick: async e => {
+        const url = shareBase(k) + '#v=' + await packStory();
+        try { await navigator.clipboard.writeText(url); e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = VOICES[k].label, 1500); } catch (err) { prompt('Copy this link:', url); }
+      } }, VOICES[k].label)),
+      h('button', { class:'linkbtn', onclick:() => { LEARN = { recent:[] }; lsSet(LEARN_KEY, JSON.stringify(LEARN)); homeVoice = inferVoice(); render(); } }, 'Forget what it learned')));
+  voiceChip();
+}
 $('fexit').addEventListener('click', exitFeed);
 renderViews();
 
@@ -3455,7 +4505,7 @@ const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\
 const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 async function packStory() {
   const own = FEED ? JSON.parse(FEED.saved) : S;
-  const keep = ['pace','motionTime','transTime','scrollMode','holdAmt','swiper','player','playSpeed','magnet','trans','pacingV'];
+  const keep = ['voice','pace','motionTime','transTime','scrollMode','holdAmt','swiper','player','playSpeed','magnet','trans','pacingV'];
   const data = { sections: own.sections.map(x => { const c = clone(x); delete c.story; c.media.items = c.media.items.map(id => id && id.startsWith('u:') ? null : id); return c; }) };
   keep.forEach(k => data[k] = own[k]);
   const z = new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream('deflate-raw'));

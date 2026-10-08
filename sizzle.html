@@ -70,6 +70,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tlwrap{position:relative;flex:0 0 auto}
 #timeline{height:150px;width:100%;border-radius:8px;cursor:pointer;display:block;background:#241B18}
 #trackScrub{width:100%;height:56px;border-radius:8px;display:block;background:#241B18;cursor:grab;touch-action:none}
+.tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tpl{display:grid;gap:5px;padding:5px;border:1px solid var(--p-line);border-radius:6px;background:var(--p-card);cursor:pointer;text-align:left}
+.tpl:hover{border-color:var(--p-fg)}
+.tpl[aria-pressed="true"]{border-color:var(--p-fg);box-shadow:inset 0 0 0 1px var(--p-fg)}
+.tpl canvas{width:100%;aspect-ratio:16/9;border-radius:3px;display:block;background:var(--n7)}
+.tpl span{font:400 10px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--p-mute);padding:0 2px 1px}
+.tpl[aria-pressed="true"] span{color:var(--p-fg)}
+.cardfields{display:grid;gap:12px;margin-top:12px}
+.cardfields textarea{min-height:64px}
+.stock{margin:0 -20px}
+.stock-row{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:9px 20px;border-top:1px solid var(--p-line-2)}
+.stock-row:last-child{border-bottom:1px solid var(--p-line-2)}
+.stock-row b{font-weight:600;font-size:14px}
+.stock-row small{display:block;color:var(--p-mute);font-size:12px}
+.stock-row .pl{width:34px;height:34px;border-radius:50%;border:1px solid var(--p-line);background:var(--p-card);font-size:12px;display:grid;place-items:center}
+.stock-row .pl:hover{border-color:var(--p-fg)}
+.stock-row .pl[aria-pressed="true"]{background:var(--heat);border-color:var(--heat);color:var(--n0)}
+.stock-row.is-cur{background:var(--p-soft)}
 .check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--p-mute);cursor:pointer}
 .check input{accent-color:var(--heat);width:16px;height:16px;margin:0}
 .rec{background:var(--heat)!important;border-color:var(--heat)!important;color:var(--n0)!important}
@@ -302,8 +320,9 @@ details.grp .gb{padding:0 0 8px}
         <h2>your reel plays here.</h2>
         <p>Drop a music track anywhere on this page to set the beat. Add your team's projects on the right, and every cut will land on the music.</p>
         <div class="es-row">
-          <button class="tbtn pri" id="esMusic">Choose a track</button>
-          <button class="tbtn" id="esDemo">Try the demo beat</button>
+          <button class="tbtn pri" id="esMusic">Pick a song</button>
+          <button class="tbtn" id="esUpload">Upload my own</button>
+          <button class="tbtn" id="esDemo">Demo beat</button>
         </div>
       </div>
     </div>
@@ -356,12 +375,12 @@ details.grp .gb{padding:0 0 8px}
       <div class="crow"><button class="btn pri" id="resumeBtn">Resume where I left off</button><button class="btn" id="freshBtn">Start fresh</button></div>
     </div>
     <h3>start with the music.</h3>
-    <p class="lede">The sizzler finds the tempo, maps every beat, and spots the moment the song kicks in. Your reel starts right at the drop.</p>
+    <p class="lede">Pick a stock song or drop in your own. The sizzler finds the tempo, maps every beat, and spots the moment the song kicks in, so your reel starts right at the drop.</p>
     <div id="musicEmpty">
-      <div class="drop" id="musicDrop"><b>Drop your track here</b>or click to browse · mp3, wav or m4a</div>
+      <div class="f"><span class="lbl">Pick a song <small>press ▶ to listen first</small></span><div class="stock" id="stockList"></div></div>
       <div class="or">or</div>
-      <button class="btn big" id="demoBtn">Try the demo beat</button>
-      <p class="hint" style="margin-top:10px">A simple built-in beat, so you can see how the tool works before you pick a song.</p>
+      <div class="drop" id="musicDrop"><b>Drop your own track here</b>or click to browse · mp3, wav or m4a</div>
+      <p class="hint" style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">No song handy? <button class="btn" id="demoBtn" style="height:28px;font-size:12px">Try the synthetic demo beat</button> <button class="btn" id="cancelReplace" style="height:28px;font-size:12px" hidden>Keep the current track</button></p>
     </div>
     <div id="musicLoaded" hidden>
       <div class="card ok">
@@ -432,25 +451,28 @@ details.grp .gb{padding:0 0 8px}
   <!-- ---- 3 · look ---- -->
   <section class="view" id="view-look" hidden>
     <h3>make it feel like us.</h3>
-    <p class="lede">The preview on the left updates as you go. Press play any time.</p>
+    <p class="lede">Templates for every card and for text over footage. The preview on the left updates as you go.</p>
     <div class="p-row" style="margin-bottom:6px"><button class="btn" id="shuffleBtn">🎲 Shuffle the look</button><span class="hint" style="margin:0">Another take on the same reel.</span></div>
 
     <details class="grp" open>
       <summary>Opening title</summary>
       <div class="gb">
-        <div class="f2">
-          <div class="f"><span class="lbl">Title</span><input type="text" data-c="introTitle" placeholder="what we shipped."></div>
-          <div class="f"><span class="lbl">Eyebrow</span><input type="text" data-c="introSub" placeholder="ux · sizzle reel"></div>
-        </div>
-        <div class="f"><span class="lbl">Backdrop</span>
+        <div class="f"><span class="lbl">Template</span><div class="tpls" id="introTpls"></div></div>
+        <div class="cardfields" id="introFields"></div>
+        <div class="f" style="margin-top:12px"><span class="lbl">Backdrop</span>
           <select data-c="introBg"><option value="slowburn">Slow Burn field · Hot Heat type</option><option value="hotheat">Hot Heat field</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath · warm glow</option><option value="bone">Bone · light</option><option value="noir">Noir</option></select></div>
-        <div class="f"><span class="lbl">Layout</span>
-          <div class="seg" data-seg="titleLayout"><button data-v="low">Statement · set low</button><button data-v="center">Centered</button></div></div>
-        <p class="hint">Statement style follows the brand book: Saans Bold, lowercase, set large and low.</p>
         <div class="f"><span class="lbl">How the words move</span>
           <select data-c="introFx"><option value="rise">Rise &amp; fade</option><option value="cascade">Letter cascade</option><option value="tracking">Track in</option><option value="punch">Beat punch</option><option value="blur">Blur reveal</option><option value="words">Word slide</option></select></div>
         <div class="f"><span class="lbl">Holds for</span>
           <div class="seg" data-seg="introBeats" data-num="1"><button data-v="0">No intro</button><button data-v="4">4 beats</button><button data-v="8">8 beats</button><button data-v="12">12</button><button data-v="16">16</button></div></div>
+      </div>
+    </details>
+
+    <details class="grp">
+      <summary>Text over footage</summary>
+      <div class="gb">
+        <div class="f"><span class="lbl">Default for every project</span><div class="tpls" id="ovlTpls"></div></div>
+        <p class="hint" style="margin-top:12px">Uses each project's name and caption. Any project can pick its own style under Projects, and any project can open with a text card of its own.</p>
       </div>
     </details>
 
@@ -479,11 +501,9 @@ details.grp .gb{padding:0 0 8px}
     <details class="grp">
       <summary>Sign-off card</summary>
       <div class="gb">
-        <div class="f2">
-          <div class="f"><span class="lbl">Title</span><input type="text" data-c="title" placeholder="Leave empty to skip"></div>
-          <div class="f"><span class="lbl">Eyebrow</span><input type="text" data-c="subtitle"></div>
-        </div>
-        <div class="f"><span class="lbl">Background</span>
+        <div class="f"><span class="lbl">Template</span><div class="tpls" id="endTpls"></div></div>
+        <div class="cardfields" id="endFields"></div>
+        <div class="f" style="margin-top:12px"><span class="lbl">Background</span>
           <select data-c="endBg"><option value="noir">Noir</option><option value="slowburn">Slow Burn field · Hot Heat type</option><option value="hotheat">Hot Heat field</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath · warm glow</option><option value="bone">Bone · light</option></select></div>
         <div class="f"><span class="lbl">Yogo</span>
           <div class="seg" data-seg="endMark"><button data-v="logo">Show the Yogo</button><button data-v="none">No mark</button></div></div>
@@ -573,12 +593,36 @@ const ENDCARD_BEATS = 6;
 
 // every setting the panel edits lives here, so undo, presets and autosave are one JSON blob
 const DEFAULTS = {
-  introTitle: "what we shipped.", introSub: "ux · sizzle reel", introBg: "slowburn", introFx: "rise", introBeats: 8, titleLayout: "low",
+  introTitle: "what we shipped.", introSub: "ux · sizzle reel", introBody: "", introTpl: "statement", introBg: "slowburn", introFx: "rise", introBeats: 8, titleLayout: "low",
+  endTpl: "statement", endBody: "", overlayTpl: "tag",
   shotMin: 2, shotMax: 4, pace: "punchy", trans: DEFAULT_ON.slice(), transMode: "cycle", beatPulse: false,
   title: "lululemon ux", subtitle: "made to feel", endBg: "noir", endMark: "logo",
   musicStart: "auto", seed: 7, duration: 40, format: "1280x720",
   musicVol: 100, fadeIn: 0, fadeOut: 1.5, duck: true, musicEnv: [], voVol: 100, voMonitor: true,
 };
+// card templates (fields: which text boxes they use, and what to call them)
+const TPL = {
+  statement: { name: "Statement", eyebrow: "Eyebrow", title: "Statement", body: null,
+               sample: { eyebrow: "ux · sizzle reel", title: "what we shipped.", body: "" } },
+  centered:  { name: "Centered", eyebrow: "Eyebrow", title: "Statement", body: null,
+               sample: { eyebrow: "ux · sizzle reel", title: "made to feel", body: "" } },
+  poster:    { name: "Poster", eyebrow: "Top-right label", title: "Headline", body: "Bottom line",
+               sample: { eyebrow: "summer '26", title: "checkout redesign", body: "designed in b.c." } },
+  stat:      { name: "Big number", eyebrow: "Eyebrow", title: "The number", body: "What it means",
+               sample: { eyebrow: "checkout", title: "3 steps", body: "down from five. nothing accidental." } },
+  quote:     { name: "Quote", eyebrow: null, title: "The quote", body: "Who said it",
+               sample: { eyebrow: "", title: "It's one foot in front of the other.", body: "Rob Watson · lifelong runner" } },
+  list:      { name: "List", eyebrow: "Eyebrow", title: "Heading", body: "One item per line",
+               sample: { eyebrow: "what shipped", title: "this quarter", body: "fit finder\nvirtual fitting room\ncheckout" } },
+};
+const OVL = {
+  tag:      { name: "Tag + caption" },
+  lower:    { name: "Lower third" },
+  headline: { name: "Headline" },
+  corner:   { name: "Corner label" },
+  none:     { name: "Nothing" },
+};
+const SERIF = '"Marist", Georgia, "Times New Roman", serif';
 const AUDIO_KEYS = new Set(["musicVol","fadeIn","fadeOut","duck","musicEnv","voVol","voMonitor"]);
 // which settings change the shot structure (and therefore discard hand-edited cuts)
 const STRUCTURAL = new Set(["introBeats","shotMin","shotMax","pace","musicStart","seed","duration"]);
@@ -592,8 +636,15 @@ const S = {
   audioBuf: null, beats: [], tempo: 0, autoStart: 0,
   timeline: null, playing: false, t: 0, exporting: false,
   musicFile: null, musicName: "", musicDemo: false,
-  vo: [], musicMuted: false,
+  vo: [], musicMuted: false, musicStock: null,
 };
+// stock songs that ship with the hub (hub/music/)
+const STOCK_MUSIC = [
+  { file: "music/First Kiss (Instrumental Version).mp3", name: "First Kiss", note: "instrumental" },
+  { file: "music/Given in to You.mp3",                   name: "Given in to You", note: "" },
+  { file: "music/Lifeline (Instrumental Version).mp3",   name: "Lifeline", note: "instrumental" },
+  { file: "music/Not about Us (Instrumental Version).mp3", name: "Not about Us", note: "instrumental" },
+];
 let voIdSeq = 1;
 const UI = { tab: "music", sel: null };
 let boundaryOverrides = {};   // gap key ("0","1",..., "intro", "end") -> transition kind
@@ -686,14 +737,23 @@ async function analyzeBeats(buf, progress){
 
   let best = {score:-1, lag:0};
   const lagMin = Math.floor(fr*60/180), lagMax = Math.ceil(fr*60/60);
+  const scores = new Float64Array(lagMax + 2);
   for (let lag=lagMin; lag<=lagMax; lag++){
     let s=0;
     for (let f=0; f+lag<nFrames; f++) s += env[f]*env[f+lag];
     const bpm = 60*fr/lag;
     const bias = Math.exp(-0.5*Math.pow((bpm-120)/50, 2));
+    scores[lag] = s*bias;
     if (s*bias > best.score) best = {score:s*bias, lag};
   }
-  let bpm = 60*fr/best.lag;
+  // refine the lag between whole frames (a frame is ~5 BPM near 120), so real songs don't drift
+  let lagF = best.lag;
+  if (best.lag > lagMin && best.lag < lagMax){
+    const a = scores[best.lag-1], b = scores[best.lag], c2 = scores[best.lag+1];
+    const den = a - 2*b + c2;
+    if (den < 0) lagF = best.lag + 0.5 * (a - c2) / den;
+  }
+  let bpm = 60*fr/lagF;
   if (bpm < 75) bpm *= 2; else if (bpm > 170) bpm /= 2;
   const period = 60/bpm;
 
@@ -849,7 +909,8 @@ async function detectSceneCuts(file, clip){
 
 // ---------- projects & clips ------------------------------------------------
 function addProject(name){
-  const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [] };
+  const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [],
+                 overlay: "default", card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
   P.projects.push(proj);
   return proj;
 }
@@ -1043,6 +1104,12 @@ function buildTimeline(structural){
     const [bg, fg] = projColor(pIdx);
     for (let j=0; j<alloc[pIdx]; j++){
       if (sIdx >= nContent) break;
+      if (j === 0 && proj.card && proj.card.on){
+        shots.push({ start: bounds[sIdx + off], end: bounds[sIdx + off + 1], kind: "text",
+          idx: sIdx + off, projIdx: pIdx, projId: proj.id, projName: proj.name, shotInProj: 1, caption: proj.caption || "",
+          card: proj.card, clip: null, bg: backdrop(proj.card.bg).base, fg: backdrop(proj.card.bg).ink });
+        sIdx++; continue;
+      }
       const rr = mulberry32(seed*1000 + sIdx);
       let clip = null, srcOffset = 0, srcEnd = null;
       const sources = srcLists[pIdx];
@@ -1349,6 +1416,164 @@ function drawAnimatedTitle(ctx, title, sub, fx, local, pulse, W, H, opts){
   }
 }
 
+// ---------- card templates ----------------------------------------------------
+// One renderer for the opening title, the sign-off, and text cards inside a project.
+function drawCard(ctx, card, bd, fx, local, pulse, W, H, opts){
+  opts = opts || {};
+  const tpl = TPL[card.tpl] ? card.tpl : "statement";
+  const ink = bd.ink, sub = bd.sub;
+  const eyebrow = (card.eyebrow || "").trim(), title = (card.title || "").trim(), body = (card.body || "").trim();
+  const m = W * 0.06;
+  const e = smoothstep(local / 0.7);
+  const rise = (1 - e) * H * 0.04;
+  const yogo = opts.yogo === "none" ? "none" : (tpl === "centered" ? "center" : "tl");
+  if (yogo === "tl") drawYogo(ctx, m, H*0.08, H*0.075, ink, smoothstep(local / 0.5));
+  if (yogo === "center"){ const sz = H*0.16; drawYogo(ctx, W/2 - sz/2, H*0.14 - rise/2, sz, ink, e); }
+  ctx.save();
+  ctx.textBaseline = "alphabetic";
+  const mono = (size, color, spacing) => { ctx.font = `400 ${Math.round(size)}px ${MONO}`; ctx.fillStyle = color; if ("letterSpacing" in ctx) ctx.letterSpacing = spacing || "0.12em"; };
+  const sans = (w, size, color, spacing) => { ctx.font = `${w} ${Math.round(size)}px ${FONT}`; ctx.fillStyle = color; if ("letterSpacing" in ctx) ctx.letterSpacing = spacing || "-0.02em"; };
+  switch (tpl){
+    case "statement":
+    case "centered":
+      ctx.restore();
+      drawAnimatedTitle(ctx, title, eyebrow, fx, local, pulse, W, H, { ink, sub, layout: tpl === "centered" ? "center" : "low" });
+      return;
+    case "poster": {
+      ctx.globalAlpha = e;
+      if (eyebrow){ mono(H/34, sub); ctx.textAlign = "right"; ctx.fillText(eyebrow.toUpperCase(), W - m, H*0.08 + H/34); }
+      ctx.textAlign = "left";
+      sans(700, H/9, ink, "-0.03em");
+      const lines = wrapLines(ctx, title, W*0.7, 2);
+      lines.forEach((l, i) => ctx.fillText(l, m, H*0.52 + i * H/9 * 0.95 + rise));
+      if (body){ sans(700, H/22, ink, "-0.02em"); ctx.fillText(body, m, H*0.90 + rise); }
+      break;
+    }
+    case "stat": {
+      if (eyebrow){ ctx.globalAlpha = e; mono(H/34, sub); ctx.textAlign = "left"; ctx.fillText(eyebrow.toUpperCase(), m, H*0.24); }
+      // count the number up over the first beat or so
+      const mt = title.match(/^(\D*?)(-?\d[\d,]*)(\.\d+)?(.*)$/);
+      let shown = title;
+      if (mt){
+        const n = parseFloat((mt[2] + (mt[3] || "")).replace(/,/g, ""));
+        const k = smoothstep(Math.min(1, local / 0.9));
+        const val = n * k;
+        const dec = mt[3] ? mt[3].length - 1 : 0;
+        const str = dec ? val.toFixed(dec) : Math.round(val).toLocaleString();
+        shown = mt[1] + str + mt[4];
+      }
+      ctx.globalAlpha = Math.min(1, local / 0.3);
+      ctx.textAlign = "left";
+      let fs = H / 2.8;
+      sans(700, fs, ink, "-0.05em");
+      while (ctx.measureText(shown).width > W*0.88 && fs > H/10){ fs *= 0.92; sans(700, fs, ink, "-0.05em"); }
+      ctx.fillText(shown, m - fs*0.03, H*0.66 + rise);
+      if (body){
+        ctx.globalAlpha = e;
+        sans(400, H/22, ink, "0em");
+        const lines = wrapLines(ctx, body, W*0.8, 2);
+        lines.forEach((l, i) => ctx.fillText(l, m, H*0.78 + i * H/22 * 1.3 + rise));
+      }
+      break;
+    }
+    case "quote": {
+      ctx.globalAlpha = e;
+      ctx.textAlign = "left";
+      const q = title ? `“${title.replace(/^["“]|["”]$/g, "")}”` : "";
+      let fs = H / 10;
+      ctx.font = `400 ${Math.round(fs)}px ${SERIF}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.01em";
+      let lines = wrapLines(ctx, q, W*0.78, 4);
+      while (lines.length * fs * 1.15 > H*0.55 && fs > H/18){ fs *= 0.92; ctx.font = `400 ${Math.round(fs)}px ${SERIF}`; lines = wrapLines(ctx, q, W*0.78, 4); }
+      const lh = fs * 1.15, blockH = lines.length * lh;
+      const y0 = H*0.52 - blockH/2 + fs*0.8;
+      ctx.fillStyle = ink;
+      lines.forEach((l, i) => ctx.fillText(l, m, y0 + i*lh + rise));
+      if (body){ mono(H/36, sub); ctx.fillText(body.toUpperCase(), m, y0 + blockH + fs*0.4 + rise); }
+      break;
+    }
+    case "list": {
+      ctx.textAlign = "left";
+      ctx.globalAlpha = e;
+      if (eyebrow){ mono(H/34, sub); ctx.fillText(eyebrow.toUpperCase(), m, H*0.24); }
+      if (title){ sans(700, H/11, ink, "-0.03em"); ctx.fillText(title, m, H*0.36 + rise); }
+      const items = body.split(/\n+/).map(s => s.trim()).filter(Boolean).slice(0, 6);
+      const top = title ? H*0.46 : H*0.32, step = Math.min(H*0.085, (H*0.92 - top) / Math.max(1, items.length));
+      items.forEach((it, i) => {
+        const le = smoothstep(Math.min(1, Math.max(0, (local - 0.25 - i*0.12) / 0.5)));
+        ctx.globalAlpha = le;
+        mono(H/30, sub); ctx.fillText(String(i+1).padStart(2, "0"), m, top + i*step + H/30);
+        sans(400, H/20, ink, "0em"); ctx.fillText(it, m + H*0.11, top + i*step + H/30 + (1 - le) * H*0.02);
+      });
+      break;
+    }
+  }
+  ctx.restore();
+}
+function overlayFor(shot){
+  const proj = projById(shot.projId);
+  const o = proj && proj.overlay && proj.overlay !== "default" ? proj.overlay : C.overlayTpl;
+  return OVL[o] ? o : "tag";
+}
+function scrim(ctx, W, H, from, strength){
+  const g = ctx.createLinearGradient(0, H*from, 0, H);
+  g.addColorStop(0, "rgba(28,18,16,0)"); g.addColorStop(1, `rgba(28,18,16,${strength})`);
+  ctx.fillStyle = g; ctx.fillRect(0, H*from, W, H*(1 - from));
+}
+// text over footage
+function drawOverlay(ctx, shot, local, W, H){
+  const kind = overlayFor(shot);
+  if (kind === "none") return;
+  const name = shot.projName, cap = (shot.caption || "").trim();
+  const m = W * 0.05, e = smoothstep(local / 0.45), rise = (1 - e) * H * 0.03;
+  ctx.save();
+  ctx.globalAlpha = e;
+  if (kind === "tag"){
+    const pad = H * 0.012, tagH = H * 0.048, capH = H * 0.056, baseY = H - H * 0.07;
+    const tagY = cap ? baseY - capH - H*0.012 - tagH : baseY - tagH;
+    ctx.font = `400 ${Math.max(11, Math.round(H/48))}px ${MONO}`;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+    ctx.textBaseline = "middle";
+    const tag = name.toUpperCase(), tw = ctx.measureText(tag).width;
+    ctx.fillStyle = HEAT; ctx.fillRect(m, tagY + rise, tw + pad*2 + 2, tagH);
+    ctx.fillStyle = N[0]; ctx.fillText(tag, m + pad, tagY + tagH/2 + 1 + rise);
+    if (cap){
+      if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
+      ctx.font = `600 ${Math.max(13, Math.round(H/34))}px ${FONT}`;
+      const cw = ctx.measureText(cap).width;
+      ctx.fillStyle = "rgba(28,18,16,0.72)"; ctx.fillRect(m, baseY - capH + rise, cw + pad*2 + 4, capH);
+      ctx.fillStyle = N[0]; ctx.fillText(cap, m + pad + 2, baseY - capH/2 + 1 + rise);
+    }
+  } else if (kind === "lower"){
+    scrim(ctx, W, H, 0.6, 0.8);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.fillStyle = HEAT; ctx.fillRect(m, H*0.84 - H*0.03 + rise, H*0.012, cap ? H*0.105 : H*0.05);
+    ctx.font = `700 ${Math.round(H/24)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.02em";
+    ctx.fillStyle = N[0]; ctx.fillText(name.toLowerCase(), m + H*0.035, H*0.86 + rise);
+    if (cap){ ctx.font = `400 ${Math.round(H/32)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0em"; ctx.fillStyle = "rgba(253,253,249,0.9)"; ctx.fillText(cap, m + H*0.035, H*0.915 + rise); }
+  } else if (kind === "headline"){
+    scrim(ctx, W, H, 0.35, 0.82);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+    const text = cap || name;
+    ctx.fillStyle = HEAT;
+    let fs = H / 7; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.03em";
+    let lines = wrapLines(ctx, text.toLowerCase(), W*0.86, 2);
+    while (lines.some(l => ctx.measureText(l).width > W*0.86) && fs > H/14){ fs *= 0.92; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; lines = wrapLines(ctx, text.toLowerCase(), W*0.86, 2); }
+    const lh = fs * 0.92, bottom = H - H*0.08;
+    ctx.fillStyle = N[0];
+    lines.forEach((l, i) => ctx.fillText(l, m, bottom - (lines.length - 1 - i) * lh + rise));
+    if (cap){ ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em"; ctx.fillStyle = HEAT; ctx.fillText(name.toUpperCase(), m, bottom - lines.length * lh - H*0.02 + rise); }
+  } else if (kind === "corner"){
+    drawYogo(ctx, m, H*0.07, H*0.06, N[0], e);
+    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+    ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = H*0.01;
+    ctx.fillStyle = N[0]; ctx.fillText(name.toUpperCase(), m + H*0.085, H*0.07 + H/40*0.9);
+    if (cap){ ctx.fillStyle = "rgba(253,253,249,0.85)"; ctx.fillText(cap.toUpperCase(), m + H*0.085, H*0.07 + H/40*0.9 + H*0.04); }
+  }
+  ctx.restore();
+}
+
 function drawShape(ctx, shape, cx, cy, r, rot, color){
   ctx.fillStyle = color; ctx.strokeStyle = color;
   const poly = (n, rad, phase=0) => {
@@ -1408,29 +1633,23 @@ function drawShot(ctx, shot, reelT){
 
   if (shot.kind === "intro"){
     drawMesh(ctx, C.introBg, trackT, W, H, pulse);
-    const bd = backdrop(C.introBg);
-    const ye = smoothstep(local / 0.5);
-    drawYogo(ctx, W*0.06, H*0.08, H*0.075, bd.ink, ye);          // small Yogo, top left, like the posters
-    drawAnimatedTitle(ctx, (C.introTitle || "").trim(), (C.introSub || "").trim(), C.introFx, local, pulse, W, H,
-                      { ink: bd.ink, sub: bd.sub, layout: C.titleLayout });
+    drawCard(ctx, { tpl: C.introTpl, eyebrow: C.introSub, title: C.introTitle, body: C.introBody }, backdrop(C.introBg),
+             C.introFx, local, pulse, W, H, { yogo: "auto" });
     return;
   }
 
   if (shot.kind === "title"){
     drawMesh(ctx, C.endBg, trackT, W, H, pulse);
-    const bd = backdrop(C.endBg);
-    const e = smoothstep(local / 0.6);
-    const low = C.titleLayout !== "center";
-    if (C.endMark === "logo"){
-      if (low) drawYogo(ctx, W*0.06, H*0.08, H*0.10 * (1 + 0.03*pulse), bd.ink, e);
-      else {
-        const sz = H * 0.20 * (1 + 0.03*pulse);
-        drawYogo(ctx, W/2 - sz/2, H*0.16 - (1 - e) * H*0.02, sz, bd.ink, e);
-      }
-    }
-    // the sign-off settles in once and then holds (local is large, so fx are already landed)
-    drawAnimatedTitle(ctx, (C.title || "").trim(), (C.subtitle || "").trim(), "rise", Math.max(local, 0), pulse, W, H,
-                      { ink: bd.ink, sub: bd.sub, layout: low ? "low" : "center" });
+    drawCard(ctx, { tpl: C.endTpl, eyebrow: C.subtitle, title: C.title, body: C.endBody }, backdrop(C.endBg),
+             "rise", local, pulse, W, H, { yogo: C.endMark === "logo" ? "auto" : "none" });
+    return;
+  }
+
+  if (shot.kind === "text"){
+    const card = shot.card;
+    drawMesh(ctx, card.bg, trackT, W, H, pulse);
+    drawCard(ctx, { tpl: card.tpl, eyebrow: card.eyebrow, title: card.title || shot.projName, body: card.body }, backdrop(card.bg),
+             C.introFx, local, pulse, W, H, { yogo: "auto" });
     return;
   }
 
@@ -1443,32 +1662,8 @@ function drawShot(ctx, shot, reelT){
       const dw = vw*sc, dh = vh*sc;
       ctx.drawImage(v, (W-dw)/2, (H-dh)/2, dw, dh);
     }
-    // project tag: a Hot Heat beacon in mono caps; caption beneath it in Saans
-    const tag = shot.projName.toUpperCase();
-    const cap = (shot.caption || "").trim();
-    const m = W * 0.04, pad = H * 0.012;
-    const tagH = H * 0.048, capH = H * 0.056;
-    const baseY = H - H * 0.07;
-    const tagY = cap ? baseY - capH - H*0.012 - tagH : baseY - tagH;
-    ctx.save();
-    ctx.font = `400 ${Math.max(11, Math.round(H/48))}px ${MONO}`;
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
-    ctx.textBaseline = "middle";
-    const tw = ctx.measureText(tag).width;
-    ctx.fillStyle = HEAT;
-    ctx.fillRect(m, tagY, tw + pad*2 + 2, tagH);
-    ctx.fillStyle = N[0];
-    ctx.fillText(tag, m + pad, tagY + tagH/2 + 1);
-    if (cap){
-      if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
-      ctx.font = `600 ${Math.max(13, Math.round(H/34))}px ${FONT}`;
-      const cw = ctx.measureText(cap).width;
-      ctx.fillStyle = "rgba(28,18,16,0.72)";
-      ctx.fillRect(m, baseY - capH, cw + pad*2 + 4, capH);
-      ctx.fillStyle = N[0];
-      ctx.fillText(cap, m + pad + 2, baseY - capH/2 + 1);
-    }
-    ctx.restore();
+    drawOverlay(ctx, shot, local, W, H);
+    ctx.save();    ctx.restore();
     return;
   }
 
@@ -1766,9 +1961,9 @@ function drawTimeline(){
       const r = Math.min(bh * 0.27, bw * 0.38);
       if (r > 3*dpr) drawShape(tctx, s.shape, bx + bw/2, s0 + bh/2, r, s.rot, s.fg);
     } else {
-      const bd = s.kind === "intro" ? backdrop(C.introBg) : backdrop(C.endBg);
+      const bd = s.kind === "intro" ? backdrop(C.introBg) : s.kind === "text" ? backdrop(s.card.bg) : backdrop(C.endBg);
       tctx.fillStyle = bd.base; tctx.fillRect(bx, s0, bw, bh);
-      const txt = (s.kind === "intro" ? (C.introTitle || "") : (C.title || "")).trim().toLowerCase();
+      const txt = (s.kind === "intro" ? (C.introTitle || "") : s.kind === "text" ? (s.card.title || s.projName) : (C.title || "")).trim().toLowerCase();
       tctx.fillStyle = bd.ink; tctx.font = `700 ${11*dpr}px ${FONT}`; tctx.textAlign = "left"; tctx.textBaseline = "alphabetic";
       tctx.fillText(fitText(tctx, txt, bw - 10*dpr), bx + 5*dpr, s1 - 7*dpr);
       if (bw > 40*dpr) drawYogo(tctx, bx + 5*dpr, s0 + 5*dpr, 9*dpr, bd.ink, 1);
@@ -1874,6 +2069,7 @@ function describeTarget(tg){
     const s = shots[tg.i], d = (s.end - s.start).toFixed(1) + "s";
     if (s.kind === "intro") return `<b>Opening title</b> · ${d}<br><span>edit it under Look</span>`;
     if (s.kind === "title") return `<b>Sign-off card</b> · ${d}<br><span>edit it under Look</span>`;
+    if (s.kind === "text") return `<b>${escH(s.projName)}</b> · text card · ${d}<br><span>${escH(TPL[s.card.tpl] ? TPL[s.card.tpl].name : "card")} · click to edit it</span>`;
     const what = s.kind === "video" ? `${escH(s.clip.name)} · from ${s.srcOffset.toFixed(1)}s in` : "no footage yet · plays as a shape";
     return `<b>${escH(s.projName)}</b> · shot ${s.shotInProj} · ${d}<br><span>${what} · click to open this project</span>`;
   }
@@ -2245,6 +2441,7 @@ function stopAudio(){
 }
 function play(){
   if (!S.timeline || S.playing) return;
+  stopAudition();
   if (S.t >= S.timeline.duration - 0.05) S.t = 0;
   S.playing = true;
   $("playBtn").textContent = "⏸ Pause";
@@ -2510,7 +2707,8 @@ function computeWave(buf){
 }
 async function useTrack(buf, name, opts){
   opts = opts || {};
-  S.audioBuf = buf; S.musicName = name; S.musicFile = opts.file || null; S.musicDemo = !!opts.demo;
+  S.audioBuf = buf; S.musicName = name; S.musicFile = opts.file || null; S.musicDemo = !!opts.demo; S.musicStock = opts.stock || null;
+  $("cancelReplace").hidden = true; renderStockList();
   S.wave = computeWave(buf);
   $("trackName").textContent = name;
   $("trackMeta").innerHTML = `Analyzing beats… <progress id="anprog" max="1" value="0" style="width:120px;accent-color:#141414"></progress>`;
@@ -2529,7 +2727,7 @@ async function useTrack(buf, name, opts){
   updateAudioLabels(); drawScrub(); renderVO();
   if (!restoring) setStatus(opts.demo ? "Demo beat loaded — add your projects, or just press play." : `<b>${escH(name)}</b> loaded — every cut will land on the beat.`);
 }
-async function loadMusic(files){
+async function loadMusic(files, stock){
   const f = files && files[0];
   if (!f) return;
   if (f.type && !f.type.startsWith("audio") && !/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(f.name || "")){
@@ -2539,8 +2737,8 @@ async function loadMusic(files){
   try {
     ensureCtx();
     const buf = await actx.decodeAudioData(await f.arrayBuffer());
-    if (!restoring) putMedia("music", f);
-    await useTrack(buf, f.name || "track", { file: f });
+    if (!restoring && !stock) putMedia("music", f);
+    await useTrack(buf, stock ? stock.label : (f.name || "track"), { file: f, stock: stock ? stock.file : null });
   } catch (err){
     setStatus("Couldn't decode that file: " + err.message, true);
   }
@@ -2591,11 +2789,60 @@ function wireDrop(dropId, inputId, handler){
   d.addEventListener("drop", e => { e.preventDefault(); e.stopPropagation(); d.classList.remove("over"); handler(e.dataTransfer.files); });
   inp.addEventListener("change", () => { handler(inp.files); inp.value = ""; });
 }
-wireDrop("musicDrop", "musicFile", loadMusic);
-$("demoBtn").addEventListener("click", loadDemo);
+wireDrop("musicDrop", "musicFile", files => loadMusic(files));
+
+// ---------- stock songs ----------------------------------------------------------
+let audition = null;   // { audio, i }
+function stopAudition(){
+  if (!audition) return;
+  try { audition.audio.pause(); audition.audio.src = ""; } catch (e) {}
+  audition = null;
+  document.querySelectorAll(".stock-row .pl").forEach(b => { b.setAttribute("aria-pressed", "false"); b.textContent = "▶"; });
+}
+function toggleAudition(i, btn){
+  if (audition && audition.i === i){ stopAudition(); return; }
+  stopAudition();
+  const a = new Audio(encodeURI(STOCK_MUSIC[i].file));
+  a.volume = 0.9;
+  a.addEventListener("ended", stopAudition);
+  a.addEventListener("error", () => { stopAudition(); setStatus("Couldn't play that song.", true); });
+  audition = { audio: a, i };
+  btn.setAttribute("aria-pressed", "true"); btn.textContent = "■";
+  if (S.playing) pause();
+  a.play().catch(() => stopAudition());
+}
+async function loadStock(i){
+  const t = typeof i === "number" ? STOCK_MUSIC[i] : STOCK_MUSIC.find(s => s.file === i) || { file: i, name: String(i).split("/").pop().replace(/\.[^.]+$/, ""), note: "" };
+  stopAudition();
+  setStatus(`Loading <b>${escH(t.name)}</b>…`);
+  try {
+    const r = await fetch(encodeURI(t.file));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const blob = await r.blob();
+    const f = new File([blob], t.file.split("/").pop(), { type: blob.type || "audio/mpeg" });
+    await loadMusic([f], { file: t.file, label: t.name + (t.note ? ` · ${t.note}` : "") });
+  } catch (e){
+    setStatus(`Couldn't load ${escH(t.name)}: ${escH(e.message)}`, true);
+  }
+}
+function renderStockList(){
+  const box = $("stockList");
+  box.innerHTML = "";
+  STOCK_MUSIC.forEach((t, i) => {
+    const row = document.createElement("div");
+    row.className = "stock-row" + (S.musicStock === t.file ? " is-cur" : "");
+    row.innerHTML = `<button class="pl" aria-pressed="false" title="Listen">▶</button><div><b>${escH(t.name)}</b><small>${escH(t.note || "with vocals")}${S.musicStock === t.file ? " · in use" : ""}</small></div><button class="btn" style="height:30px">Use</button>`;
+    row.querySelector(".pl").addEventListener("click", ev => { ev.stopPropagation(); toggleAudition(i, ev.currentTarget); });
+    row.querySelector(".btn").addEventListener("click", ev => { ev.stopPropagation(); loadStock(i); });
+    box.appendChild(row);
+  });
+}
+$("esMusic").addEventListener("click", () => { showTab("music"); $("musicEmpty").hidden = false; setTimeout(() => $("stockList").scrollIntoView({ block: "center", behavior: "smooth" }), 50); });
+$("esUpload").addEventListener("click", () => $("musicFile").click());
+$("cancelReplace").addEventListener("click", () => { $("musicEmpty").hidden = true; $("cancelReplace").hidden = true; stopAudition(); });
+$("demoBtn").addEventListener("click", () => { stopAudition(); loadDemo(); });
 $("esDemo").addEventListener("click", loadDemo);
-$("esMusic").addEventListener("click", () => $("musicFile").click());
-$("replaceTrack").addEventListener("click", () => $("musicFile").click());
+$("replaceTrack").addEventListener("click", () => { $("musicEmpty").hidden = false; $("cancelReplace").hidden = false; setTimeout(() => $("musicEmpty").scrollIntoView({ block: "start", behavior: "smooth" }), 50); });
 
 // ---------- panel: steps / tabs --------------------------------------------------
 function showTab(name){
@@ -2790,6 +3037,84 @@ scrub.addEventListener("pointermove", e => {
 }));
 window.addEventListener("resize", drawScrub);
 
+// ---------- card template pickers + field editors ----------------------------------
+const PREVIEW_BD = backdrop("slowburn");
+function tplPreview(canvas, tpl){
+  const ctx = canvas.getContext("2d");
+  canvas.width = 192; canvas.height = 108;
+  drawMesh(ctx, "slowburn", 0, 192, 108, 0);
+  const t = TPL[tpl];
+  drawCard(ctx, { tpl, ...t.sample }, PREVIEW_BD, "rise", 5, 0, 192, 108, { yogo: "auto" });
+}
+function ovlPreview(canvas, kind){
+  const ctx = canvas.getContext("2d");
+  canvas.width = 192; canvas.height = 108;
+  const g = ctx.createLinearGradient(0, 0, 192, 108); g.addColorStop(0, "#5E504B"); g.addColorStop(1, "#2A201D");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 192, 108);
+  ctx.fillStyle = "rgba(253,253,249,0.08)"; ctx.fillRect(30, 18, 132, 70);
+  const fake = { projId: -9, projName: "checkout", caption: kind === "corner" ? "3 steps" : "3 steps instead of 5" };
+  const saved = C.overlayTpl; C.overlayTpl = kind;
+  drawOverlay(ctx, fake, 5, 192, 108);
+  C.overlayTpl = saved;
+}
+function tplPicker(el, kinds, current, onPick, previewFn){
+  el.innerHTML = "";
+  for (const k of kinds){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tpl"; b.dataset.k = k;
+    b.setAttribute("aria-pressed", String(k === current));
+    const cnv = document.createElement("canvas"); previewFn(cnv, k);
+    const lbl = document.createElement("span"); lbl.textContent = (TPL[k] || OVL[k]).name;
+    b.append(cnv, lbl);
+    b.addEventListener("click", () => { el.querySelectorAll(".tpl").forEach(x => x.setAttribute("aria-pressed", String(x === b))); onPick(k); });
+    el.appendChild(b);
+  }
+}
+function cardFields(el, get, set, opts){
+  const card = get(), t = TPL[card.tpl] || TPL.statement;
+  el.innerHTML = "";
+  const field = (key, label, multi) => {
+    if (!label) return;
+    const f = document.createElement("div"); f.className = "f";
+    f.innerHTML = `<span class="lbl">${label}</span>` + (multi ? `<textarea spellcheck="false"></textarea>` : `<input type="text" spellcheck="false">`);
+    const inp = f.querySelector("input,textarea");
+    inp.value = card[key] || "";
+    if (opts && opts.placeholder && opts.placeholder[key]) inp.placeholder = opts.placeholder[key];
+    inp.addEventListener("change", () => set({ [key]: inp.value }));
+    if (!multi) inp.addEventListener("keydown", ev => { if (ev.key === "Enter") inp.blur(); });
+    el.appendChild(f);
+  };
+  field("eyebrow", t.eyebrow); field("title", t.title); field("body", t.body, true);
+}
+function renderCardEditors(){
+  // opening title
+  const introGet = () => ({ tpl: C.introTpl, eyebrow: C.introSub, title: C.introTitle, body: C.introBody });
+  const introSet = patch => {
+    commit("introcard");
+    if ("tpl" in patch) C.introTpl = patch.tpl;
+    if ("eyebrow" in patch) C.introSub = patch.eyebrow;
+    if ("title" in patch) C.introTitle = patch.title;
+    if ("body" in patch) C.introBody = patch.body;
+    onConfig("introTitle");
+  };
+  tplPicker($("introTpls"), Object.keys(TPL), C.introTpl, k => { introSet({ tpl: k }); cardFields($("introFields"), introGet, introSet); }, tplPreview);
+  cardFields($("introFields"), introGet, introSet, { placeholder: { title: "what we shipped.", eyebrow: "ux · sizzle reel" } });
+  // sign-off
+  const endGet = () => ({ tpl: C.endTpl, eyebrow: C.subtitle, title: C.title, body: C.endBody });
+  const endSet = patch => {
+    commit("endcard");
+    if ("tpl" in patch) C.endTpl = patch.tpl;
+    if ("eyebrow" in patch) C.subtitle = patch.eyebrow;
+    if ("title" in patch) C.title = patch.title;
+    if ("body" in patch) C.endBody = patch.body;
+    onConfig("title");
+  };
+  tplPicker($("endTpls"), Object.keys(TPL), C.endTpl, k => { endSet({ tpl: k }); cardFields($("endFields"), endGet, endSet); }, tplPreview);
+  cardFields($("endFields"), endGet, endSet, { placeholder: { title: "leave empty to skip the sign-off" } });
+  // text over footage default
+  tplPicker($("ovlTpls"), Object.keys(OVL), C.overlayTpl, k => { commit("overlay"); C.overlayTpl = k; onConfig("overlayTpl"); renderProjects(); }, ovlPreview);
+}
+
 $("shuffleBtn").addEventListener("click", () => {
   commit("seed");
   C.seed = Math.floor(Math.random()*10000);
@@ -2819,7 +3144,7 @@ function renderProjects(){
       <span class="grip" title="Drag to reorder">⋮⋮</span>
       <div class="thumb">${thumb ? `<img src="${thumb.thumb}" alt="">` : `<i></i>`}</div>
       <div class="nm"><b>${escH(proj.name)}</b>
-        <small class="${clips.length ? "" : "warn"}">${clips.length ? `${clips.length} clip${clips.length>1?"s":""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
+        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${clips.length ? `${clips.length} clip${clips.length>1?"s":""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
       <button class="ib" title="Remove project" aria-label="Remove ${escH(proj.name)}">×</button>`;
     row.addEventListener("click", e => {
       if (e.target.closest(".ib")) return;
@@ -2890,7 +3215,17 @@ function renderInspector(){
     <div class="f"><span class="lbl">Caption <small>shown on its shots</small></span><input type="text" id="inspCap" value="${escH(proj.caption || "")}" placeholder="e.g. Checkout in 3 steps instead of 5" spellcheck="false"></div>
     <div class="f"><span class="lbl">Footage <small>${clips.length ? "drag to reorder · hover for ✕" : "optional"}</small></span>
       <div class="clips" id="inspClips"></div></div>
-    <p class="hint">Clips that already have edits in them are detected (the ✂ badge) and each scene becomes a shot point, so the reel never cuts in the middle of your cut.</p>`;
+    <p class="hint">Clips that already have edits in them are detected (the ✂ badge) and each scene becomes a shot point, so the reel never cuts in the middle of your cut.</p>
+    <div class="f"><span class="lbl">Text over this project's footage</span>
+      <select id="inspOverlay"><option value="default">Same as the rest of the reel</option>${Object.keys(OVL).map(k => `<option value="${k}">${OVL[k].name}</option>`).join("")}</select></div>
+    <div class="f"><label class="check"><input type="checkbox" id="inspCardOn"> Open this project with a text card</label></div>
+    <div id="inspCard" hidden>
+      <div class="f"><span class="lbl">Template</span><div class="tpls" id="inspTpls"></div></div>
+      <div class="cardfields" id="inspFields"></div>
+      <div class="f" style="margin-top:12px"><span class="lbl">Backdrop</span>
+        <select id="inspCardBg"><option value="slowburn">Slow Burn field · Hot Heat type</option><option value="hotheat">Hot Heat field</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath · warm glow</option><option value="bone">Bone · light</option><option value="noir">Noir</option></select></div>
+      <p class="hint">The card takes the project's first shot, so it lands on the beat like everything else.</p>
+    </div>`;
   const grid = $("inspClips");
   clips.forEach((clip, ci) => {
     const el = document.createElement("div");
@@ -2936,6 +3271,19 @@ function renderInspector(){
   });
   $("inspName").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
   $("inspCap").addEventListener("change", ev => { commit("caption"); proj.caption = ev.target.value.trim(); refresh(false); });
+  if (!proj.card) proj.card = { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" };
+  $("inspOverlay").value = proj.overlay || "default";
+  $("inspOverlay").addEventListener("change", ev => { commit("overlay"); proj.overlay = ev.target.value; if (S.audioBuf) rebuild(false); scheduleSave(); });
+  $("inspCardOn").checked = !!proj.card.on;
+  $("inspCard").hidden = !proj.card.on;
+  const cardGet = () => proj.card;
+  const cardSet = patch => { commit("card"); Object.assign(proj.card, patch); if (S.audioBuf) rebuild(false); drawTimeline(); scheduleSave();
+    if (S.timeline && !S.playing){ const s = S.timeline.shots.find(x => x.kind === "text" && x.projId === proj.id); if (s) seekTo(s.start + 0.8); } };
+  $("inspCardOn").addEventListener("change", ev => { cardSet({ on: ev.target.checked }); $("inspCard").hidden = !ev.target.checked; renderProjects(); });
+  tplPicker($("inspTpls"), Object.keys(TPL), proj.card.tpl, k => { cardSet({ tpl: k }); cardFields($("inspFields"), cardGet, cardSet, { placeholder: { title: proj.name } }); }, tplPreview);
+  cardFields($("inspFields"), cardGet, cardSet, { placeholder: { title: proj.name } });
+  $("inspCardBg").value = proj.card.bg || "slowburn";
+  $("inspCardBg").addEventListener("change", ev => cardSet({ bg: ev.target.value }));
   $("inspCap").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
   $("inspRemove").addEventListener("click", () => {
     commit("rmproj");
@@ -3033,7 +3381,7 @@ function applySnapshot(json){
   const s = JSON.parse(json);
   C = s.C; P.projects = s.projects; P.nextId = s.nextId; UI.sel = s.sel;
   for (const sv of s.vo || []){ const vo = S.vo.find(v => v.id === sv.id); if (vo) vo.start = sv.start; }
-  renderVO(); drawScrub(); updateAudioLabels();
+  renderVO(); drawScrub(); updateAudioLabels(); renderCardEditors();
   ({ boundaryOverrides, cutOverrides, slipOverrides, manualStarts, manualEnd } = s.ov);
   manualStarts = manualStarts || null; manualEnd = manualEnd ?? null;
   syncControls();
@@ -3110,7 +3458,7 @@ function collectState(){
     version: SAVE_VER, savedAt: Date.now(), app: VERSION,
     C, projects: P.projects, nextId: P.nextId, clipIdSeq, sel: UI.sel, tab: UI.tab,
     clips: [...CLIPS.values()].filter(c => used.has(c.id)).map(c => ({ id: c.id, name: c.name, duration: c.duration || 0, segments: c.segments || null, mediaKey: "clip:" + c.id })),
-    music: S.audioBuf ? (S.musicDemo ? { demo: true, name: S.musicName } : { name: S.musicName, mediaKey: "music" }) : null,
+    music: S.audioBuf ? (S.musicDemo ? { demo: true, name: S.musicName } : S.musicStock ? { stock: S.musicStock, name: S.musicName } : { name: S.musicName, mediaKey: "music" }) : null,
     vo: S.vo.map(v => ({ id: v.id, name: v.name, start: v.start, duration: v.duration, mediaKey: "vo:" + v.id })), voIdSeq,
     ov: { boundaryOverrides, cutOverrides, slipOverrides, manualStarts, manualEnd },
   };
@@ -3140,6 +3488,8 @@ async function restoreState(st){
   restoring = true;
   try {
     C = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), st.C || {});
+    if (!(st.C || {}).introTpl && (st.C || {}).titleLayout === "center"){ C.introTpl = "centered"; C.endTpl = "centered"; }
+    renderCardEditors();
     let missing = 0;
     CLIPS.clear();
     for (const sc of st.clips || []){
@@ -3147,7 +3497,8 @@ async function restoreState(st){
       if (!blob){ missing++; continue; }
       registerClip(blob, { id: sc.id, name: sc.name, duration: sc.duration, segments: sc.segments });
     }
-    P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)) }));
+    P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)),
+      overlay: p.overlay || "default", card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
     P.nextId = st.nextId || 1;
     clipIdSeq = Math.max(clipIdSeq, st.clipIdSeq || 1);
     UI.sel = st.sel ?? null;
@@ -3155,6 +3506,7 @@ async function restoreState(st){
     renderProjects();
     if (st.music){
       if (st.music.demo){ ensureCtx(); await useTrack(await makeDemoBeat(), st.music.name || "Demo beat (built in)", { demo: true }); }
+      else if (st.music.stock){ ensureCtx(); await loadStock(st.music.stock); if (!S.audioBuf) missing++; }
       else {
         const blob = await getMedia(st.music.mediaKey);
         if (blob){ const f = blob.name ? blob : new File([blob], st.music.name || "track", { type: blob.type }); await loadMusic([f]); }
@@ -3209,13 +3561,13 @@ $("resetBtn").addEventListener("click", async () => {
 // ---------- help tour ------------------------------------------------------------
 const HELP = [
   { t: "Make a sizzle reel in minutes", v: "beat",
-    b: `<p>Drop in a song, add the projects your team shipped, and export a video. Every cut lands on the beat.</p><p>Nothing is uploaded anywhere. The reel autosaves on this device, so you can close the tab and pick it up later.</p>` },
+    b: `<p>Pick one of the stock songs (or drop in your own), add the projects your team shipped, and export a video. Every cut lands on the beat.</p><p>Nothing is uploaded anywhere. The reel autosaves on this device, so you can close the tab and pick it up later.</p>` },
   { t: "Start with the music", v: "beat",
-    b: `<p>The sizzler listens to the track, finds the tempo and the moment the song kicks in, and starts the reel right at the drop.</p><p>No song handy? <b>Try the demo beat</b> to see how it all works first.</p>` },
+    b: `<p>Four stock songs are built in. Press ▶ to listen, then <b>Use</b>. Or drop in your own mp3.</p><p>The sizzler listens to the track, finds the tempo and the moment the song kicks in, and starts the reel right at the drop.</p>` },
   { t: "Each project is a chapter", v: "rows",
     b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings onto a project, or anywhere on the page. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Titles follow the brand book: Saans Bold, lowercase, set large and low, Hot Heat on a Slow Burn field. Pick a backdrop and how the words move, set the pace and the transitions, and finish with a sign-off card.</p><p>The preview updates as you go. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage, from a tag to a full headline. Any project can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
   { t: "Sound: music, volume, voice", v: "beat",
     b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",
@@ -3321,6 +3673,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape"){ if (!$("fbM
 ["fit finder", "virtual fitting room", "checkout redesign", "membership app"].forEach(addProject);   // sample chapters to rename
 bindControls();
 syncControls();
+renderCardEditors();
+renderStockList();
 setCanvasSize();
 renderProjects();
 renderSteps();
