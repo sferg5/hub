@@ -78,6 +78,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tpl span{font:400 10px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--p-mute);padding:0 2px 1px}
 .tpl[aria-pressed="true"] span{color:var(--p-fg)}
 .cardfields{display:grid;gap:12px;margin-top:12px}
+.ovl-ed{display:grid;gap:14px;margin-top:4px}
+.ovl-ed .f{margin-bottom:0}
+.ovl-ed .seg button{height:36px;font-size:12.5px}
+.ovl-ed .pos9{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:96px;aspect-ratio:16/10;padding:5px;border:1px solid var(--p-line);border-radius:4px;background:var(--p-card)}
+.ovl-ed .pos9 button{border-radius:2px;display:grid;place-items:center}
+.ovl-ed .pos9 button::after{content:"";width:12px;height:3px;border-radius:1px;background:#BDBDBD}
+.ovl-ed .pos9 button:hover{background:var(--p-soft)}
+.ovl-ed .pos9 button[aria-pressed="true"]{background:var(--p-fg)}
+.ovl-ed .pos9 button[aria-pressed="true"]::after{background:#fff}
+.ovl-ed .pos9 button[disabled]{visibility:hidden}
 .cardfields textarea{min-height:64px}
 .stock{margin:0 -20px}
 .stock-row{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:9px 20px;border-top:1px solid var(--p-line-2)}
@@ -439,13 +449,13 @@ details.grp .gb{padding:0 0 8px}
   <!-- ---- 2 · projects ---- -->
   <section class="view" id="view-projects" hidden>
     <h3>what did your team ship?</h3>
-    <p class="lede">Each project is a chapter of the reel, told in this order. Drop screen recordings onto a project. No footage yet? It plays as bold shapes so the reel still flows.</p>
+    <p class="lede">Each project is a chapter of the reel, told in this order. Drop screen recordings or images onto a project; they play in the order you add them, cutting on the beat. No footage yet? It plays as bold shapes so the reel still flows.</p>
     <div class="p-list-h"><b>Reel order</b><button class="btn" id="addProj">+ Add project</button></div>
     <div class="rows" id="rows"></div>
-    <div class="drop small" id="projDrop" style="margin-top:12px"><b>Drop videos here to make a new project</b>one project per file, or several files into one</div>
+    <div class="drop small" id="projDrop" style="margin-top:12px"><b>Drop videos or images here to make a new project</b>one project per file, or several files into one</div>
     <div class="insp" id="insp" hidden></div>
-    <input type="file" id="clipFiles" accept="video/*" multiple hidden>
-    <input type="file" id="projFiles" accept="video/*" multiple hidden>
+    <input type="file" id="clipFiles" accept="video/*,image/*" multiple hidden>
+    <input type="file" id="projFiles" accept="video/*,image/*" multiple hidden>
   </section>
 
   <!-- ---- 3 · look ---- -->
@@ -471,8 +481,8 @@ details.grp .gb{padding:0 0 8px}
     <details class="grp">
       <summary>Text over footage</summary>
       <div class="gb">
-        <div class="f"><span class="lbl">Default for every project</span><div class="tpls" id="ovlTpls"></div></div>
-        <p class="hint" style="margin-top:12px">Uses each project's name and caption. Any project can pick its own style under Projects, and any project can open with a text card of its own.</p>
+        <p class="hint" style="margin-top:0">The default for every project. Each project uses its own name as the title and its body copy underneath. Any project can override all of this under Projects.</p>
+        <div class="ovl-ed" id="ovlEditor"></div>
       </div>
     </details>
 
@@ -489,7 +499,9 @@ details.grp .gb{padding:0 0 8px}
           </div></div>
         <div class="f"><span class="lbl">Transitions between projects <small>pick any</small></span>
           <div class="seg chips" data-seg="trans" data-multi="1"></div></div>
-        <p class="hint">Shots inside a project hard-cut on the beat. These play when the reel moves to the next project.</p>
+        <div class="f"><span class="lbl">Transitions play</span>
+          <div class="seg" data-seg="transWhere"><button data-v="projects">Between projects</button><button data-v="all">Between every upload</button><button data-v="none">Never · hard cuts</button></div></div>
+        <p class="hint">Inside a project your uploads play in order and change on the beat. A clip keeps rolling across beats until it runs out, then the next upload starts. Images hold for one shot each with a slow drift.</p>
         <div class="f"><span class="lbl">Order</span>
           <div class="seg" data-seg="transMode"><button data-v="cycle">In order</button><button data-v="random">Random</button></div></div>
         <div class="f"><span class="lbl">Pulse to the beat</span>
@@ -588,14 +600,14 @@ const TRANS_LABELS = {
   slideleft: "Slide left", slideup: "Slide up", circleopen: "Circle open", flash: "Flash",
 };
 const STOCK = Object.keys(TRANSITIONS).filter(k => k !== "cut");
-const DEFAULT_ON = ["crossfade","wipeleft","slideleft","circleopen"];
+const DEFAULT_ON = ["crossfade"];
 const ENDCARD_BEATS = 6;
 
 // every setting the panel edits lives here, so undo, presets and autosave are one JSON blob
 const DEFAULTS = {
   introTitle: "what we shipped.", introSub: "ux · sizzle reel", introBody: "", introTpl: "statement", introBg: "slowburn", introFx: "rise", introBeats: 8, titleLayout: "low",
-  endTpl: "statement", endBody: "", overlayTpl: "tag",
-  shotMin: 2, shotMax: 4, pace: "punchy", trans: DEFAULT_ON.slice(), transMode: "cycle", beatPulse: false,
+  endTpl: "statement", endBody: "", overlayTpl: "tag", ovl: { style: "tag", show: "all", anim: "once", in: "rise", out: "fade", pos: "bl", size: "m", bodyMode: "same", bg: "slowburn", title: "" },
+  shotMin: 2, shotMax: 4, pace: "punchy", trans: DEFAULT_ON.slice(), transMode: "cycle", transWhere: "projects", beatPulse: false,
   title: "lululemon ux", subtitle: "made to feel", endBg: "noir", endMark: "logo",
   musicStart: "auto", seed: 7, duration: 40, format: "1280x720",
   musicVol: 100, fadeIn: 0, fadeOut: 1.5, duck: true, musicEnv: [], voVol: 100, voMonitor: true,
@@ -616,12 +628,17 @@ const TPL = {
                sample: { eyebrow: "what shipped", title: "this quarter", body: "fit finder\nvirtual fitting room\ncheckout" } },
 };
 const OVL = {
-  tag:      { name: "Tag + caption" },
+  tag:      { name: "Tag + body" },
   lower:    { name: "Lower third" },
   headline: { name: "Headline" },
   corner:   { name: "Corner label" },
+  split:    { name: "Split panel" },
   none:     { name: "Nothing" },
 };
+// text over footage: the reel default (C.ovl) and per-project overrides (proj.ovl) share this shape
+const OVL_DEFAULT = { style: "tag", show: "all", anim: "once", in: "rise", out: "fade", pos: "bl", size: "m", bodyMode: "same", bg: "slowburn", title: "" };
+const OVL_IN = { rise: "Rise", fade: "Fade", slide: "Slide in", wipe: "Wipe", none: "Just appear" };
+const OVL_OUT = { fade: "Fade out", slide: "Slide away", none: "Stay to the cut" };
 const SERIF = '"Marist", Georgia, "Times New Roman", serif';
 const AUDIO_KEYS = new Set(["musicVol","fadeIn","fadeOut","duck","musicEnv","voVol","voMonitor"]);
 // which settings change the shot structure (and therefore discard hand-edited cuts)
@@ -910,7 +927,7 @@ async function detectSceneCuts(file, clip){
 // ---------- projects & clips ------------------------------------------------
 function addProject(name){
   const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [],
-                 overlay: "default", card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
+                 ovl: null, card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
   P.projects.push(proj);
   return proj;
 }
@@ -926,12 +943,33 @@ function registerClip(file, meta){
                  duration: meta.duration || 0, segments: meta.segments || null, thumb: null };
   if (clip.id >= clipIdSeq) clipIdSeq = clip.id + 1;
   CLIPS.set(clip.id, clip);
+  if ((file.type || "").startsWith("image") || meta.isImage){
+    clip.isImage = true; clip.duration = 0; clip.segments = null;
+    const img = new Image();
+    img.onload = () => {
+      clip.img = img;
+      const c = document.createElement("canvas"); c.width = 192; c.height = 108;
+      const x = c.getContext("2d"), sc = Math.max(192 / img.naturalWidth, 108 / img.naturalHeight);
+      x.drawImage(img, (192 - img.naturalWidth*sc)/2, (108 - img.naturalHeight*sc)/2, img.naturalWidth*sc, img.naturalHeight*sc);
+      clip.thumbCanvas = c; clip.thumb = c.toDataURL("image/jpeg", 0.7);
+      renderProjects();
+      if (S.timeline){ drawTimeline(); if (!S.playing) renderFrame(S.t); }
+    };
+    img.src = url;
+    return clip;
+  }
   const probe = document.createElement("video");
   probe.preload = "metadata"; probe.muted = true; probe.src = url;
+  const finishProbe = () => { makeThumb(clip, probe); if (S.timeline) buildTimeline(false); };
   probe.onloadedmetadata = () => {
+    if (!isFinite(probe.duration) || probe.duration <= 0){
+      // some recorders (webm from browser-based tools) don't write a length: seek to the end to find it
+      probe.onseeked = () => { probe.onseeked = null; clip.duration = isFinite(probe.duration) ? probe.duration : 0; finishProbe(); };
+      probe.currentTime = 1e101;
+      return;
+    }
     clip.duration = probe.duration;
-    makeThumb(clip, probe);
-    if (S.timeline) buildTimeline(false);
+    finishProbe();
   };
   return clip;
 }
@@ -952,14 +990,16 @@ function makeThumb(clip, v){
     v.currentTime = t;
   } catch (e) {}
 }
+const isMedia = f => (f.type || "").startsWith("video") || (f.type || "").startsWith("image");
 function addClipsToProject(proj, files, opts){
-  const vids = [...files].filter(f => f.type.startsWith("video"));
-  if (!vids.length){ setStatus("Those weren't video files — drop screen recordings (mp4 or mov).", true); return; }
+  const vids = [...files].filter(isMedia);
+  if (!vids.length){ setStatus("Those weren't video or image files — drop screen recordings (mp4, mov) or pictures (jpg, png).", true); return; }
   if (!(opts && opts.silent)) commit("clips:" + proj.id);
   for (const f of vids){
     const clip = registerClip(f);
     proj.clipIds.push(clip.id);
     if (!restoring) putMedia("clip:" + clip.id, f);
+    if (clip.isImage) continue;
     // find the clip's own cut points (keyframes verified by visual diff)
     detectSceneCuts(f, clip).then(n => {
       if (n){
@@ -970,7 +1010,7 @@ function addClipsToProject(proj, files, opts){
   }
   UI.sel = proj.id;
   refresh(true);
-  setStatus(`Added ${vids.length} clip${vids.length>1?"s":""} to <b>${escH(proj.name)}</b>.`);
+  setStatus(`Added ${vids.length} file${vids.length>1?"s":""} to <b>${escH(proj.name)}</b> — they play in this order.`);
 }
 function removeClip(proj, clipId){
   commit("rmclip");
@@ -1069,12 +1109,14 @@ function buildTimeline(structural){
 
   // ---- distribute shots across projects (weighted by clip count) ----
   const projs = P.projects.length ? P.projects : [{ id: 0, name: "Untitled", caption: "", clipIds: [] }];
+  // every upload in a project, in order: whole clips, or a clip's own scenes, or an image
   const projectSources = p => {
     const out = [];
     for (const clip of projClips(p)){
-      if (clip.segments && clip.segments.length > 1)
-        clip.segments.forEach(sg => out.push({ clip, fixed: sg.start, len: sg.end - sg.start }));
-      else out.push({ clip, fixed: null, len: 0 });
+      if (clip.isImage) out.push({ clip, image: true, fixed: null, start: 0, end: Infinity, key: clip.id + ":img" });
+      else if (clip.segments && clip.segments.length > 1)
+        clip.segments.forEach((sg, i) => out.push({ clip, fixed: sg.start, start: sg.start, end: sg.end, key: clip.id + ":" + i }));
+      else out.push({ clip, fixed: null, start: 0, end: clip.duration || Infinity, key: clip.id + ":x" });
     }
     return out;
   };
@@ -1098,7 +1140,10 @@ function buildTimeline(structural){
   if (introOn){
     shots.push({ start: bounds[0], end: bounds[1], kind: "intro", idx: 0, projIdx: -2, projName: "Intro" });
   }
-  const clipUse = new Map();
+  // a cursor per project walks its uploads front to back: a clip keeps rolling across beats
+  // until it runs out, an image holds for one shot, then the next upload starts
+  const lead = s => s.image ? 0 : (s.fixed === null ? 0.2 : 0.03);
+  const cursors = srcLists.map(l => ({ si: 0, off: l.length ? l[0].start + lead(l[0]) : 0 }));
   let sIdx = 0;
   projs.forEach((proj, pIdx) => {
     const [bg, fg] = projColor(pIdx);
@@ -1107,37 +1152,38 @@ function buildTimeline(structural){
       if (j === 0 && proj.card && proj.card.on){
         shots.push({ start: bounds[sIdx + off], end: bounds[sIdx + off + 1], kind: "text",
           idx: sIdx + off, projIdx: pIdx, projId: proj.id, projName: proj.name, shotInProj: 1, caption: proj.caption || "",
-          card: proj.card, clip: null, bg: backdrop(proj.card.bg).base, fg: backdrop(proj.card.bg).ink });
+          card: proj.card, clip: null, bg: backdrop(proj.card.bg).base, fg: backdrop(proj.card.bg).ink, srcKey: "text" });
         sIdx++; continue;
       }
       const rr = mulberry32(seed*1000 + sIdx);
-      let clip = null, srcOffset = 0, srcEnd = null;
+      let clip = null, srcOffset = 0, srcEnd = null, srcKey = null;
       const sources = srcLists[pIdx];
       if (sources.length){
         const shotDur = bounds[sIdx + off + 1] - bounds[sIdx + off];
-        let src = null;
-        for (let k = 0; k < sources.length; k++){
-          const cand = sources[(j + k) % sources.length];
-          if (cand.fixed === null || cand.len >= shotDur + 0.15){ src = cand; break; }
+        const cur = cursors[pIdx];
+        let src = sources[cur.si], offSrc = cur.off, tries = 0;
+        // skip anything that can't fill most of this shot
+        while (tries < sources.length && !src.image && (src.end - offSrc) < shotDur * 0.85){
+          cur.si = (cur.si + 1) % sources.length; src = sources[cur.si]; offSrc = src.start + lead(src); tries++;
         }
-        if (!src){
-          const segs = sources.filter(s => s.fixed !== null);
-          src = segs.length ? segs.reduce((a, b) => b.len > a.len ? b : a) : sources[j % sources.length];
+        if (tries >= sources.length){            // everything is shorter than the shot: take the longest and hold its last frame
+          let best = 0; sources.forEach((s, i) => { if ((s.end - s.start) > (sources[best].end - sources[best].start)) best = i; });
+          cur.si = best; src = sources[best]; offSrc = src.start + lead(src);
         }
-        clip = src.clip;
-        const key = clip.id + ":" + (src.fixed ?? "x");
-        const used = clipUse.get(key) || 0;
-        clipUse.set(key, used + 1);
-        if (src.fixed !== null){
-          const room = Math.max(0, src.len - shotDur - 0.15);
-          srcOffset = src.fixed + 0.03 + Math.min(used * 1.2, room);
-          srcEnd = src.fixed + src.len;
+        clip = src.clip; srcOffset = offSrc; srcKey = src.key;
+        srcEnd = src.image ? null : (src.fixed !== null ? src.end : (clip.duration || null));
+        // move on when this upload is used up, or when the uploads still waiting need the remaining shots
+        const remShots = alloc[pIdx] - (j + 1);
+        const unseenAfter = cur.wrapped ? 0 : sources.length - 1 - cur.si;
+        const mustAdvance = unseenAfter > 0 && unseenAfter >= remShots;
+        if (src.image || mustAdvance || offSrc + shotDur >= src.end - 0.3){
+          cur.si = (cur.si + 1) % sources.length; cur.off = sources[cur.si].start + lead(sources[cur.si]);
+          if (cur.si === 0) cur.wrapped = true;
         } else {
-          srcOffset = 0.4 + used * 4.0;
+          cur.off = offSrc + shotDur;                           // keep rolling
         }
-        if (clip.duration) srcOffset = Math.min(srcOffset, Math.max(0, clip.duration - 1.5));
         const sl = slipOverrides[proj.id + ":" + (j + 1)];
-        if (sl && sl.clipId === clip.id && clip.duration){
+        if (sl && sl.clipId === clip.id && clip.duration && !clip.isImage){
           const r = applySlip(clip, shotDur, sl.offset);
           srcOffset = r.off; srcEnd = r.srcEnd;
         }
@@ -1147,7 +1193,7 @@ function buildTimeline(structural){
         kind: clip ? "video" : "placeholder",
         idx: sIdx + off, projIdx: pIdx, projId: proj.id, projName: proj.name,
         shotInProj: j + 1, caption: proj.caption || "",
-        clip, srcOffset, srcEnd, bg, fg,
+        clip, srcOffset, srcEnd, srcKey, bg, fg,
         shape: SHAPES[(sIdx*3 + Math.floor(rr()*2)) % SHAPES.length],
         zoomDir: rr() < 0.5 ? -1 : 1,
         rot: (rr()*50 - 25) * Math.PI/180,
@@ -1158,6 +1204,15 @@ function buildTimeline(structural){
   if (title){
     shots.push({ start: bounds[bounds.length-2], end: bounds[bounds.length-1], kind: "title", idx: shots.length, projIdx: -1 });
   }
+  // where each project begins and ends, so titles can hold across all of its shots
+  const span = new Map();
+  for (const s of shots){
+    if (s.projId == null) continue;
+    const o = span.get(s.projId) || { start: s.start, end: s.end, count: 0 };
+    o.start = Math.min(o.start, s.start); o.end = Math.max(o.end, s.end); o.count++;
+    span.set(s.projId, o);
+  }
+  for (const s of shots){ const o = span.get(s.projId); if (o){ s.pStart = o.start; s.pEnd = o.end; s.pCount = o.count; } }
 
   // ---- cuts: hard cut within a project, stock transition at project changes ----
   const stock = C.trans && C.trans.length ? C.trans : ["crossfade"];
@@ -1167,18 +1222,22 @@ function buildTimeline(structural){
   for (let c=0; c<shots.length-1; c++){
     const a = shots[c], b = shots[c+1];
     const isBoundary = a.projIdx !== b.projIdx;
+    // a real change of upload inside a project (the same clip rolling on is not a cut you can see)
+    const newSrc = !isBoundary && (a.srcKey || a.kind) !== (b.srcKey || b.kind) && !(a.kind === "placeholder" && b.kind === "placeholder");
+    const pick = () => C.transMode === "random" ? stock[Math.floor(rng()*stock.length)] : stock[boundarySeq % stock.length];
     let kind, gapKey = null;
     if (isBoundary){
       gapKey = b.kind === "title" ? "end" : (a.kind === "intro" ? "intro" : String(gapNo++));
-      kind = boundaryOverrides[gapKey]
-          ?? (C.transMode === "random" ? stock[Math.floor(rng()*stock.length)] : stock[boundarySeq % stock.length]);
+      kind = boundaryOverrides[gapKey] ?? (C.transWhere === "none" ? "cut" : pick());
       boundarySeq++;
+    } else if (newSrc && C.transWhere === "all"){
+      kind = pick(); boundarySeq++;
     } else {
       kind = "cut";
     }
     if (cutOverrides[c] !== undefined) kind = cutOverrides[c];
     const maxDur = Math.min(TRANSITIONS[kind] ?? 0, (b.end - b.start) * 0.8, (a.end - a.start) * 0.8);
-    cuts.push({ kind, dur: Math.max(0, maxDur), isBoundary, gapKey,
+    cuts.push({ kind, dur: Math.max(0, maxDur), isBoundary, gapKey, newSrc,
                 label: isBoundary
                   ? (b.kind === "title" ? `${a.projName} → sign-off` : a.kind === "intro" ? `Intro → ${b.projName}` : `${a.projName} → ${b.projName}`)
                   : `${a.projName} · shot ${a.shotInProj} → ${b.shotInProj}` });
@@ -1203,7 +1262,7 @@ function setupShotVideos(){
   shotVideos = [];
   if (!S.timeline) return;
   for (const shot of S.timeline.shots){
-    if (shot.kind !== "video"){ shotVideos.push(null); continue; }
+    if (shot.kind !== "video" || shot.clip.isImage){ shotVideos.push(null); continue; }
     const v = document.createElement("video");
     v.src = shot.clip.url;
     v.muted = true; v.playsInline = true; v.preload = "auto";
@@ -1509,67 +1568,166 @@ function drawCard(ctx, card, bd, fx, local, pulse, W, H, opts){
   }
   ctx.restore();
 }
-function overlayFor(shot){
+function resolveOvl(shot){
   const proj = projById(shot.projId);
-  const o = proj && proj.overlay && proj.overlay !== "default" ? proj.overlay : C.overlayTpl;
-  return OVL[o] ? o : "tag";
+  const o = Object.assign({}, OVL_DEFAULT, C.ovl || {});
+  if (proj && proj.ovl) Object.assign(o, proj.ovl);
+  if (!OVL[o.style]) o.style = "tag";
+  return o;
 }
-function scrim(ctx, W, H, from, strength){
-  const g = ctx.createLinearGradient(0, H*from, 0, H);
+function scrim(ctx, W, H, from, strength, fromTop){
+  const g = fromTop ? ctx.createLinearGradient(0, H*(1 - from), 0, 0) : ctx.createLinearGradient(0, H*from, 0, H);
   g.addColorStop(0, "rgba(28,18,16,0)"); g.addColorStop(1, `rgba(28,18,16,${strength})`);
-  ctx.fillStyle = g; ctx.fillRect(0, H*from, W, H*(1 - from));
+  ctx.fillStyle = g;
+  if (fromTop) ctx.fillRect(0, 0, W, H*(1 - from)); else ctx.fillRect(0, H*from, W, H*(1 - from));
 }
-// text over footage
-function drawOverlay(ctx, shot, local, W, H){
-  const kind = overlayFor(shot);
-  if (kind === "none") return;
-  const name = shot.projName, cap = (shot.caption || "").trim();
-  const m = W * 0.05, e = smoothstep(local / 0.45), rise = (1 - e) * H * 0.03;
+// footage (or the placeholder field) drawn cover-fit into a rectangle
+function drawFootage(ctx, shot, x, y, w, h, local, pulse, radius){
   ctx.save();
-  ctx.globalAlpha = e;
-  if (kind === "tag"){
-    const pad = H * 0.012, tagH = H * 0.048, capH = H * 0.056, baseY = H - H * 0.07;
-    const tagY = cap ? baseY - capH - H*0.012 - tagH : baseY - tagH;
-    ctx.font = `400 ${Math.max(11, Math.round(H/48))}px ${MONO}`;
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
-    ctx.textBaseline = "middle";
-    const tag = name.toUpperCase(), tw = ctx.measureText(tag).width;
-    ctx.fillStyle = HEAT; ctx.fillRect(m, tagY + rise, tw + pad*2 + 2, tagH);
-    ctx.fillStyle = N[0]; ctx.fillText(tag, m + pad, tagY + tagH/2 + 1 + rise);
-    if (cap){
-      if ("letterSpacing" in ctx) ctx.letterSpacing = "0em";
-      ctx.font = `600 ${Math.max(13, Math.round(H/34))}px ${FONT}`;
-      const cw = ctx.measureText(cap).width;
-      ctx.fillStyle = "rgba(28,18,16,0.72)"; ctx.fillRect(m, baseY - capH + rise, cw + pad*2 + 4, capH);
-      ctx.fillStyle = N[0]; ctx.fillText(cap, m + pad + 2, baseY - capH/2 + 1 + rise);
+  if (radius){ ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.clip(); }
+  else { ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); }
+  if (shot.kind === "video" && shot.clip.isImage){
+    const img = shot.clip.img;
+    ctx.fillStyle = "#1C1210"; ctx.fillRect(x, y, w, h);
+    if (img && img.naturalWidth){
+      // a slow drift so a still never feels frozen: zoom in or out, panning a little
+      const p = Math.min(1, Math.max(0, local / Math.max(0.1, shot.end - shot.start)));
+      const z = shot.zoomDir > 0 ? 1 + 0.08 * p : 1.08 - 0.08 * p;
+      const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight) * z;
+      const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+      const px = (p - 0.5) * (dw - w) * 0.4 * (shot.rot > 0 ? 1 : -1);
+      ctx.drawImage(img, x + (w - dw)/2 + px, y + (h - dh)/2, dw, dh);
     }
-  } else if (kind === "lower"){
-    scrim(ctx, W, H, 0.6, 0.8);
-    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    ctx.fillStyle = HEAT; ctx.fillRect(m, H*0.84 - H*0.03 + rise, H*0.012, cap ? H*0.105 : H*0.05);
-    ctx.font = `700 ${Math.round(H/24)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.02em";
-    ctx.fillStyle = N[0]; ctx.fillText(name.toLowerCase(), m + H*0.035, H*0.86 + rise);
-    if (cap){ ctx.font = `400 ${Math.round(H/32)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0em"; ctx.fillStyle = "rgba(253,253,249,0.9)"; ctx.fillText(cap, m + H*0.035, H*0.915 + rise); }
-  } else if (kind === "headline"){
-    scrim(ctx, W, H, 0.35, 0.82);
-    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
-    const text = cap || name;
-    ctx.fillStyle = HEAT;
-    let fs = H / 7; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.03em";
-    let lines = wrapLines(ctx, text.toLowerCase(), W*0.86, 2);
-    while (lines.some(l => ctx.measureText(l).width > W*0.86) && fs > H/14){ fs *= 0.92; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; lines = wrapLines(ctx, text.toLowerCase(), W*0.86, 2); }
-    const lh = fs * 0.92, bottom = H - H*0.08;
-    ctx.fillStyle = N[0];
-    lines.forEach((l, i) => ctx.fillText(l, m, bottom - (lines.length - 1 - i) * lh + rise));
-    if (cap){ ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em"; ctx.fillStyle = HEAT; ctx.fillText(name.toUpperCase(), m, bottom - lines.length * lh - H*0.02 + rise); }
-  } else if (kind === "corner"){
-    drawYogo(ctx, m, H*0.07, H*0.06, N[0], e);
-    ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    ctx.font = `400 ${Math.round(H/40)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
+  } else if (shot.kind === "video"){
+    const v = shotVideos[shot.idx];
+    ctx.fillStyle = "#000"; ctx.fillRect(x, y, w, h);
+    if (v && v.readyState >= 2){
+      const vw = v.videoWidth, vh = v.videoHeight, sc = Math.max(w/vw, h/vh), dw = vw*sc, dh = vh*sc;
+      ctx.drawImage(v, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+    }
+  } else {
+    ctx.fillStyle = hexMix(shot.bg, "#FFFFFF", 0.10*pulse); ctx.fillRect(x, y, w, h);
+    const base = Math.min(w, h)*0.30, scale = 1 + 0.05*shot.zoomDir*local, r = base*scale*(1 + 0.12*pulse);
+    drawShape(ctx, shot.shape, x + w/2, y + h/2, r, shot.rot*local*3 + shot.rot, shot.fg);
+  }
+  ctx.restore();
+}
+// what the overlay says and when it is on screen
+function ovlState(shot, reelT, local, ov){
+  const once = ov.anim !== "each";
+  const tIn = once ? reelT - (shot.pStart ?? shot.start) : local;
+  const tOut = once ? (shot.pEnd ?? shot.end) - reelT : shot.end - reelT;
+  const visible = ov.show === "first" ? shot.shotInProj === 1 : ov.show === "last" ? shot.shotInProj === (shot.pCount || 1) : true;
+  const lines = (shot.caption || "").split(/\n/).map(s => s.trim()).filter(Boolean);
+  const body = ov.bodyMode === "per-shot" ? (lines[(shot.shotInProj || 1) - 1] || "") : lines.join("  ");
+  const title = (ov.title || "").trim() || shot.projName;
+  const e = ov.in === "none" ? 1 : smoothstep(tIn / 0.5);
+  const x = ov.out === "none" ? 1 : smoothstep(tOut / 0.4);
+  const k = ov.size === "s" ? 0.8 : ov.size === "l" ? 1.3 : 1;
+  return { visible, title, body, e, x, k };
+}
+function ovlTransform(ctx, ov, st, W, H){
+  const right = (ov.pos || "bl").endsWith("r");
+  let dx = 0, dy = 0, alpha = 1;
+  if (ov.in === "rise"){ dy = (1 - st.e) * H * 0.03; alpha = st.e; }
+  else if (ov.in === "fade"){ alpha = st.e; }
+  else if (ov.in === "slide"){ dx = (1 - st.e) * W * 0.06 * (right ? 1 : -1); alpha = st.e; }
+  if (ov.out === "fade") alpha *= st.x;
+  else if (ov.out === "slide"){ dy += (1 - st.x) * H * 0.05; alpha *= st.x; }
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+  ctx.translate(dx, dy);
+  if (ov.in === "wipe" && st.e < 1){ ctx.beginPath(); ctx.rect(right ? W * (1 - st.e) : 0, 0, W * st.e, H); ctx.clip(); }
+}
+// text over footage, in five styles, anchored to a corner or the centre
+function drawOverlay(ctx, shot, reelT, local, W, H, ov){
+  if (ov.style === "none" || ov.style === "split") return;
+  const st = ovlState(shot, reelT, local, ov);
+  if (!st.visible) return;
+  const { title, body, k } = st;
+  const pos = ov.pos || "bl", left = pos.endsWith("l"), right = pos.endsWith("r"), top = pos.startsWith("t"), center = pos === "c";
+  const m = W * 0.05;
+  const ax = left ? m : right ? W - m : W / 2;
+  const align = left ? "left" : right ? "right" : "center";
+  const bx = (w) => left ? ax : right ? ax - w : ax - w / 2;     // box x for a given width
+  ctx.save();
+  ovlTransform(ctx, ov, st, W, H);
+  ctx.textAlign = align; ctx.textBaseline = "alphabetic";
+  const mono = (size, color, sp) => { ctx.font = `400 ${Math.round(size)}px ${MONO}`; ctx.fillStyle = color; if ("letterSpacing" in ctx) ctx.letterSpacing = sp || "0.12em"; };
+  const sans = (w, size, color, sp) => { ctx.font = `${w} ${Math.round(size)}px ${FONT}`; ctx.fillStyle = color; if ("letterSpacing" in ctx) ctx.letterSpacing = sp || "-0.02em"; };
+  if (ov.style === "tag"){
+    const pad = H*0.012, tagH = H*0.048*k, capH = H*0.056*k;
+    const total = tagH + (body ? capH + H*0.012 : 0);
+    let y = top ? H*0.08 : center ? H/2 - total/2 : H - H*0.07 - total;
+    mono(Math.max(11, H/48*k), N[0]); ctx.textBaseline = "middle";
+    const tag = title.toUpperCase(), tw = ctx.measureText(tag).width + pad*2 + 2;
+    ctx.fillStyle = HEAT; ctx.fillRect(bx(tw), y, tw, tagH);
+    ctx.fillStyle = N[0]; ctx.fillText(tag, left ? ax + pad : right ? ax - pad : ax, y + tagH/2 + 1);
+    if (body){
+      y += tagH + H*0.012;
+      sans(600, Math.max(13, H/34*k), N[0], "0em");
+      const cw = ctx.measureText(body).width + pad*2 + 4;
+      ctx.fillStyle = "rgba(28,18,16,0.72)"; ctx.fillRect(bx(cw), y, cw, capH);
+      ctx.fillStyle = N[0]; ctx.fillText(body, left ? ax + pad + 2 : right ? ax - pad - 2 : ax, y + capH/2 + 1);
+    }
+  } else if (ov.style === "lower"){
+    if (!center) scrim(ctx, W, H, 0.6, 0.8, top);
+    const th = H/24*k, bh = H/32*k, block = th + (body ? bh*1.6 : 0);
+    const yTitle = top ? H*0.08 + th : center ? H/2 - block/2 + th : H*0.86 - (body ? 0 : 0);
+    const barX = left ? ax : right ? ax - H*0.012 : ax - H*0.012/2;
+    const tx = left ? ax + H*0.035 : right ? ax - H*0.035 : ax;
+    ctx.fillStyle = HEAT; if (!center) ctx.fillRect(barX, yTitle - th*0.9, H*0.012, th*0.9 + (body ? bh*1.6 : 0));
+    sans(700, th, N[0]); ctx.fillText(title.toLowerCase(), tx, yTitle);
+    if (body){ sans(400, bh, "rgba(253,253,249,0.9)", "0em"); ctx.fillText(body, tx, yTitle + bh*1.6); }
+  } else if (ov.style === "headline"){
+    if (!center) scrim(ctx, W, H, 0.35, 0.82, top);
+    const text = (body || title).toLowerCase();
+    let fs = H/7*k; sans(700, fs, N[0], "-0.03em");
+    let lines = wrapLines(ctx, text, W*0.86, 2);
+    while (lines.some(l => ctx.measureText(l).width > W*0.86) && fs > H/16){ fs *= 0.92; sans(700, fs, N[0], "-0.03em"); lines = wrapLines(ctx, text, W*0.86, 2); }
+    const lh = fs*0.92, block = lines.length*lh;
+    const yFirst = top ? H*0.08 + fs*0.8 : center ? H/2 - block/2 + fs*0.8 : H - H*0.08 - (lines.length - 1)*lh;
+    lines.forEach((l, i) => ctx.fillText(l, ax, yFirst + i*lh));
+    if (body){ mono(H/40*k, HEAT); ctx.fillText(title.toUpperCase(), ax, top ? yFirst + block + H*0.02 : yFirst - fs*0.8 - H*0.025); }
+  } else if (ov.style === "corner"){
+    const ys = H*0.06, yy = top || center ? (center ? H/2 - H*0.03 : H*0.07) : H - H*0.07 - ys;
+    const yoX = left ? ax : right ? ax - ys : ax - ys/2;
+    drawYogo(ctx, yoX, yy, ys, N[0], 1);
     ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = H*0.01;
-    ctx.fillStyle = N[0]; ctx.fillText(name.toUpperCase(), m + H*0.085, H*0.07 + H/40*0.9);
-    if (cap){ ctx.fillStyle = "rgba(253,253,249,0.85)"; ctx.fillText(cap.toUpperCase(), m + H*0.085, H*0.07 + H/40*0.9 + H*0.04); }
+    mono(H/40*k, N[0]);
+    const tx = left ? ax + ys + H*0.025 : right ? ax - ys - H*0.025 : ax;
+    if (center){ ctx.fillText(title.toUpperCase(), ax, yy + ys + H*0.05); if (body) ctx.fillText(body.toUpperCase(), ax, yy + ys + H*0.09); }
+    else { ctx.fillText(title.toUpperCase(), tx, yy + H/40*0.9*k); if (body){ ctx.fillStyle = "rgba(253,253,249,0.85)"; ctx.fillText(body.toUpperCase(), tx, yy + H/40*0.9*k + H*0.04*k); } }
+  }
+  ctx.restore();
+}
+// split panel: footage inset on a brand field, text beside it
+function drawSplit(ctx, shot, reelT, local, trackT, pulse, W, H, ov){
+  drawMesh(ctx, ov.bg || "slowburn", trackT, W, H, pulse);
+  const bd = backdrop(ov.bg || "slowburn");
+  const textRight = (ov.pos || "bl").endsWith("r");
+  const fw = W*0.56, fh = H*0.8, fy = H*0.1, fx = textRight ? W*0.06 : W - W*0.06 - fw;
+  drawFootage(ctx, shot, fx, fy, fw, fh, local, pulse, Math.round(H*0.02));
+  const st = ovlState(shot, reelT, local, ov);
+  if (!st.visible) return;
+  const { title, body, k } = st;
+  const cx = textRight ? fx + fw + W*0.05 : W*0.06, cw = W - fw - W*0.17;
+  ctx.save();
+  ovlTransform(ctx, ov, st, W, H);
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  drawYogo(ctx, cx, fy, H*0.07, bd.ink, 1);
+  ctx.font = `400 ${Math.round(H/36)}px ${MONO}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em"; ctx.fillStyle = bd.sub;
+  ctx.fillText(shot.projName.toUpperCase(), cx, fy + H*0.07 + H*0.06);
+  let fs = H/9*k; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.03em";
+  let lines = wrapLines(ctx, title.toLowerCase(), cw, 3);
+  while (lines.some(l => ctx.measureText(l).width > cw) && fs > H/16){ fs *= 0.92; ctx.font = `700 ${Math.round(fs)}px ${FONT}`; lines = wrapLines(ctx, title.toLowerCase(), cw, 3); }
+  const lh = fs*0.94, bodyLines = body ? (ctx.font = `400 ${Math.round(H/26*k)}px ${FONT}`, "letterSpacing" in ctx && (ctx.letterSpacing = "0em"), wrapLines(ctx, body, cw, 4)) : [];
+  const bodyH = bodyLines.length ? bodyLines.length * H/26*k*1.35 + H*0.03 : 0;
+  const yBottom = fy + fh - H*0.02 - bodyH;
+  ctx.font = `700 ${Math.round(fs)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.03em"; ctx.fillStyle = bd.ink;
+  lines.forEach((l, i) => ctx.fillText(l, cx, yBottom - (lines.length - 1 - i)*lh));
+  if (bodyLines.length){
+    ctx.font = `400 ${Math.round(H/26*k)}px ${FONT}`; if ("letterSpacing" in ctx) ctx.letterSpacing = "0em"; ctx.fillStyle = bd.ink; ctx.globalAlpha *= 0.85;
+    bodyLines.forEach((l, i) => ctx.fillText(l, cx, yBottom + H*0.03 + (i + 1) * H/26*k*1.35));
   }
   ctx.restore();
 }
@@ -1653,41 +1811,13 @@ function drawShot(ctx, shot, reelT){
     return;
   }
 
-  if (shot.kind === "video"){
-    const v = shotVideos[shot.idx];
-    ctx.fillStyle = "#000"; ctx.fillRect(0,0,W,H);
-    if (v && v.readyState >= 2){
-      const vw = v.videoWidth, vh = v.videoHeight;
-      const sc = Math.max(W/vw, H/vh);
-      const dw = vw*sc, dh = vh*sc;
-      ctx.drawImage(v, (W-dw)/2, (H-dh)/2, dw, dh);
-    }
-    drawOverlay(ctx, shot, local, W, H);
-    ctx.save();    ctx.restore();
+  if (shot.kind === "video" || shot.kind === "placeholder"){
+    const ov = resolveOvl(shot);
+    if (ov.style === "split"){ drawSplit(ctx, shot, reelT, local, trackT, pulse, W, H, ov); return; }
+    drawFootage(ctx, shot, 0, 0, W, H, local, pulse, 0);
+    drawOverlay(ctx, shot, reelT, local, W, H, ov);
     return;
   }
-
-  // placeholder: bold shape in the project's colours
-  const bgP = hexMix(shot.bg, "#FFFFFF", 0.10*pulse);
-  ctx.fillStyle = bgP; ctx.fillRect(0,0,W,H);
-  const base = Math.min(W,H)*0.30;
-  const scale = 1 + 0.05*shot.zoomDir*local;
-  const r = base*scale*(1 + 0.12*pulse);
-  drawShape(ctx, shot.shape, W/2, H/2, r, shot.rot*local*3 + shot.rot, shot.fg);
-  ctx.save();
-  ctx.textBaseline = "alphabetic";
-  const pcap = (shot.caption || "").trim();
-  ctx.fillStyle = shot.fg;
-  ctx.font = `400 ${Math.max(11, Math.round(H/46))}px ${MONO}`;
-  if ("letterSpacing" in ctx) ctx.letterSpacing = "0.12em";
-  ctx.fillText(`${shot.projName.toUpperCase()} · ${String(shot.shotInProj).padStart(2,"0")}`, W*0.06, pcap ? H*0.84 : H*0.90);
-  if (pcap){
-    if ("letterSpacing" in ctx) ctx.letterSpacing = "-0.02em";
-    ctx.font = `700 ${Math.max(16, Math.round(H/22))}px ${FONT}`;
-    ctx.fillText(pcap.toLowerCase(), W*0.06, H*0.90);
-  }
-  drawYogo(ctx, W - W*0.06 - H*0.06, H*0.08, H*0.06, shot.fg, 0.9);
-  ctx.restore();
 }
 
 function findShot(t){
@@ -1778,11 +1908,11 @@ let tlHover = null;   // { type: "shot", i } | { type: "cut", c } | { type: "rul
 // frame grabs for the shots row, one hidden video per clip, fetched one at a time
 const THUMBS = new Map(); const thumbVideos = new Map(); let thumbQueue = [], thumbBusy = false;
 const thumbKey = s => s.clip.id + "@" + (Math.round(s.srcOffset * 4) / 4).toFixed(2);
-function thumbFor(s){ const v = THUMBS.get(thumbKey(s)); return v && v.width ? v : null; }
+function thumbFor(s){ if (s.clip && s.clip.isImage) return s.clip.thumbCanvas || null; const v = THUMBS.get(thumbKey(s)); return v && v.width ? v : null; }
 function requestThumbs(){
   if (!S.timeline) return;
   for (const s of S.timeline.shots){
-    if (s.kind !== "video") continue;
+    if (s.kind !== "video" || s.clip.isImage) continue;
     const k = thumbKey(s);
     if (THUMBS.has(k)) continue;
     THUMBS.set(k, "pending");
@@ -2070,7 +2200,7 @@ function describeTarget(tg){
     if (s.kind === "intro") return `<b>Opening title</b> · ${d}<br><span>edit it under Look</span>`;
     if (s.kind === "title") return `<b>Sign-off card</b> · ${d}<br><span>edit it under Look</span>`;
     if (s.kind === "text") return `<b>${escH(s.projName)}</b> · text card · ${d}<br><span>${escH(TPL[s.card.tpl] ? TPL[s.card.tpl].name : "card")} · click to edit it</span>`;
-    const what = s.kind === "video" ? `${escH(s.clip.name)} · from ${s.srcOffset.toFixed(1)}s in` : "no footage yet · plays as a shape";
+    const what = s.kind === "video" ? (s.clip.isImage ? `${escH(s.clip.name)} · image` : `${escH(s.clip.name)} · from ${s.srcOffset.toFixed(1)}s in`) : "no footage yet · plays as a shape";
     return `<b>${escH(s.projName)}</b> · shot ${s.shotInProj} · ${d}<br><span>${what} · click to open this project</span>`;
   }
   if (tg.type === "envpt"){ const pt = C.musicEnv[tg.i]; return `<b>Volume ${Math.round(pt.v * 100)}%</b> at ${fmtT(pt.t)}<br><span>drag up or down · double-click to remove</span>`; }
@@ -2882,6 +3012,7 @@ function musicStartSec(){
   return C.musicStart === "auto" ? (S.autoStart || 0) : (+C.musicStart || 0);
 }
 function onConfig(key){
+  if (key === "ovl"){ if (S.timeline && !S.playing) renderFrame(S.t); drawTimeline(); scheduleSave(); return; }
   if (AUDIO_KEYS.has(key)){
     if (voGain) voGain.gain.value = C.voVol / 100;
     updateAudioLabels(); drawTimeline();
@@ -3046,16 +3177,66 @@ function tplPreview(canvas, tpl){
   const t = TPL[tpl];
   drawCard(ctx, { tpl, ...t.sample }, PREVIEW_BD, "rise", 5, 0, 192, 108, { yogo: "auto" });
 }
-function ovlPreview(canvas, kind){
+function ovlPreview(canvas, kind, ovBase){
   const ctx = canvas.getContext("2d");
   canvas.width = 192; canvas.height = 108;
+  const ov = Object.assign({}, OVL_DEFAULT, ovBase || {}, { style: kind, in: "none", out: "none", show: "all", anim: "once" });
+  const fake = { kind: "placeholder", projId: -9, projName: "checkout", caption: kind === "corner" ? "3 steps" : "3 steps instead of 5",
+                 shotInProj: 1, pCount: 1, start: 0, end: 4, pStart: 0, pEnd: 4, bg: "#3B3428", fg: "#D2CDC4", shape: "ring", rot: 0.2, zoomDir: 1 };
+  if (kind === "split"){ drawSplit(ctx, fake, 2, 2, 0, 0, 192, 108, ov); return; }
   const g = ctx.createLinearGradient(0, 0, 192, 108); g.addColorStop(0, "#5E504B"); g.addColorStop(1, "#2A201D");
   ctx.fillStyle = g; ctx.fillRect(0, 0, 192, 108);
   ctx.fillStyle = "rgba(253,253,249,0.08)"; ctx.fillRect(30, 18, 132, 70);
-  const fake = { projId: -9, projName: "checkout", caption: kind === "corner" ? "3 steps" : "3 steps instead of 5" };
-  const saved = C.overlayTpl; C.overlayTpl = kind;
-  drawOverlay(ctx, fake, 5, 192, 108);
-  C.overlayTpl = saved;
+  drawOverlay(ctx, fake, 2, 2, 192, 108, ov);
+}
+// the full editor for text over footage (reel default under Look, per project under Projects)
+function ovlEditor(el, get, set, opts){
+  opts = opts || {};
+  const sel = (r, map) => `<select data-r="${r}">${Object.entries(map).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select>`;
+  el.innerHTML = `
+    <div class="f"><span class="lbl">Style</span><div class="tpls" data-r="style"></div></div>
+    ${opts.project ? `<div class="f"><span class="lbl">Title <small>blank uses the project name</small></span><input type="text" data-r="title" spellcheck="false"></div>` : ""}
+    <div class="f"><span class="lbl">Body copy</span><div class="seg" data-r="bodyMode"><button data-v="same">Same on every shot</button><button data-v="per-shot">One line per shot</button></div></div>
+    <p class="hint" style="margin:-6px 0 0">One line per shot puts the first line of the body copy on the project's first shot, the second line on the second, and so on.</p>
+    <div class="f"><span class="lbl">Show it on</span><div class="seg" data-r="show"><button data-v="all">Every shot</button><button data-v="first">First shot only</button><button data-v="last">Last shot only</button></div></div>
+    <div class="f"><span class="lbl">Animate</span><div class="seg" data-r="anim"><button data-v="once">Once, then hold</button><button data-v="each">On every shot</button></div></div>
+    <div class="f2">
+      <div class="f"><span class="lbl">Comes in</span>${sel("in", OVL_IN)}</div>
+      <div class="f"><span class="lbl">Goes out</span>${sel("out", OVL_OUT)}</div>
+    </div>
+    <div class="f2">
+      <div class="f"><span class="lbl">Position</span><div class="pos9" data-r="pos" role="group" aria-label="Position">
+        <button data-v="tl" title="Top left"></button><button disabled></button><button data-v="tr" title="Top right"></button>
+        <button disabled></button><button data-v="c" title="Centre"></button><button disabled></button>
+        <button data-v="bl" title="Bottom left"></button><button disabled></button><button data-v="br" title="Bottom right"></button></div></div>
+      <div class="f"><span class="lbl">Size</span><div class="seg" data-r="size"><button data-v="s">S</button><button data-v="m">M</button><button data-v="l">L</button></div></div>
+    </div>
+    <div class="f" data-only="split"><span class="lbl">Panel colour <small>split panel</small></span>
+      <select data-r="bg"><option value="slowburn">Slow Burn</option><option value="hotheat">Hot Heat</option><option value="ember">Ember glow</option><option value="soundbath">Sound bath</option><option value="bone">Bone · light</option><option value="noir">Noir</option></select></div>
+    <p class="hint" style="margin:-6px 0 0" data-only="split">For the split panel, position picks which side the words sit on.</p>`;
+  const sync = () => {
+    const ov = Object.assign({}, OVL_DEFAULT, get());
+    el.querySelectorAll("[data-r]").forEach(ctrl => {
+      const r = ctrl.dataset.r;
+      if (ctrl.classList.contains("tpls")) return;
+      if (ctrl.tagName === "SELECT" || ctrl.tagName === "INPUT") ctrl.value = ov[r] ?? "";
+      else ctrl.querySelectorAll("button[data-v]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === String(ov[r]))));
+    });
+    el.querySelectorAll("[data-only]").forEach(x => { x.style.display = ov.style === x.dataset.only ? "" : "none"; });
+    el.querySelectorAll(".tpls .tpl").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === ov.style)));
+  };
+  tplPicker(el.querySelector('[data-r="style"]'), Object.keys(OVL), (get().style || "tag"), k => { set({ style: k }); sync(); }, (cnv, k) => ovlPreview(cnv, k, get()));
+  el.querySelectorAll(".seg[data-r], .pos9[data-r]").forEach(seg => seg.querySelectorAll("button[data-v]").forEach(b => b.addEventListener("click", () => { set({ [seg.dataset.r]: b.dataset.v }); sync(); })));
+  el.querySelectorAll("select[data-r], input[data-r]").forEach(ctrl => {
+    ctrl.addEventListener("change", () => { set({ [ctrl.dataset.r]: ctrl.value }); sync(); });
+    if (ctrl.tagName === "INPUT") ctrl.addEventListener("keydown", ev => { if (ev.key === "Enter") ctrl.blur(); });
+  });
+  sync();
+}
+function previewOverlayShot(projId){
+  if (!S.timeline || S.playing) return;
+  const s = S.timeline.shots.find(x => (x.kind === "video" || x.kind === "placeholder") && (projId == null || x.projId === projId));
+  if (s) seekTo(s.start + 0.6);
 }
 function tplPicker(el, kinds, current, onPick, previewFn){
   el.innerHTML = "";
@@ -3112,7 +3293,7 @@ function renderCardEditors(){
   tplPicker($("endTpls"), Object.keys(TPL), C.endTpl, k => { endSet({ tpl: k }); cardFields($("endFields"), endGet, endSet); }, tplPreview);
   cardFields($("endFields"), endGet, endSet, { placeholder: { title: "leave empty to skip the sign-off" } });
   // text over footage default
-  tplPicker($("ovlTpls"), Object.keys(OVL), C.overlayTpl, k => { commit("overlay"); C.overlayTpl = k; onConfig("overlayTpl"); renderProjects(); }, ovlPreview);
+  ovlEditor($("ovlEditor"), () => C.ovl || {}, patch => { commit("ovl"); C.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {}, patch); onConfig("ovl"); previewOverlayShot(null); });
 }
 
 $("shuffleBtn").addEventListener("click", () => {
@@ -3144,7 +3325,7 @@ function renderProjects(){
       <span class="grip" title="Drag to reorder">⋮⋮</span>
       <div class="thumb">${thumb ? `<img src="${thumb.thumb}" alt="">` : `<i></i>`}</div>
       <div class="nm"><b>${escH(proj.name)}</b>
-        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${clips.length ? `${clips.length} clip${clips.length>1?"s":""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
+        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${proj.ovl ? "own text style · " : ""}${clips.length ? `${clips.length} upload${clips.length>1?"s":""}${clips.some(c => c.isImage) ? ` · ${clips.filter(c => c.isImage).length} image${clips.filter(c => c.isImage).length>1?"s":""}` : ""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
       <button class="ib" title="Remove project" aria-label="Remove ${escH(proj.name)}">×</button>`;
     row.addEventListener("click", e => {
       if (e.target.closest(".ib")) return;
@@ -3212,12 +3393,12 @@ function renderInspector(){
     <div class="insp-h"><div><b>${escH(proj.name)}</b><small>Chapter ${projIndex(proj)+1} of ${P.projects.length}</small></div>
       <button class="btn danger" id="inspRemove">Remove</button></div>
     <div class="f"><span class="lbl">Project name</span><input type="text" id="inspName" value="${escH(proj.name)}" spellcheck="false"></div>
-    <div class="f"><span class="lbl">Caption <small>shown on its shots</small></span><input type="text" id="inspCap" value="${escH(proj.caption || "")}" placeholder="e.g. Checkout in 3 steps instead of 5" spellcheck="false"></div>
+    <div class="f"><span class="lbl">Body copy <small>over its footage · one line, or one line per shot</small></span><textarea id="inspCap" rows="3" placeholder="e.g. Checkout in 3 steps instead of 5" spellcheck="false">${escH(proj.caption || "")}</textarea></div>
     <div class="f"><span class="lbl">Footage <small>${clips.length ? "drag to reorder · hover for ✕" : "optional"}</small></span>
       <div class="clips" id="inspClips"></div></div>
     <p class="hint">Clips that already have edits in them are detected (the ✂ badge) and each scene becomes a shot point, so the reel never cuts in the middle of your cut.</p>
-    <div class="f"><span class="lbl">Text over this project's footage</span>
-      <select id="inspOverlay"><option value="default">Same as the rest of the reel</option>${Object.keys(OVL).map(k => `<option value="${k}">${OVL[k].name}</option>`).join("")}</select></div>
+    <div class="f"><label class="check"><input type="checkbox" id="inspOvlSame"> Same text style as the rest of the reel</label></div>
+    <div class="ovl-ed" id="inspOvl" hidden></div>
     <div class="f"><label class="check"><input type="checkbox" id="inspCardOn"> Open this project with a text card</label></div>
     <div id="inspCard" hidden>
       <div class="f"><span class="lbl">Template</span><div class="tpls" id="inspTpls"></div></div>
@@ -3231,7 +3412,7 @@ function renderInspector(){
     const el = document.createElement("div");
     el.className = "clip"; el.draggable = true; el.title = clip.name;
     const nseg = clip.segments && clip.segments.length > 1 ? clip.segments.length : 0;
-    el.innerHTML = `${clip.thumb ? `<img src="${clip.thumb}" alt="">` : ""}${nseg ? `<span class="cb">${nseg} ✂</span>` : ""}<span class="cn">${escH(clip.name)}</span><button class="cx" title="Remove clip" aria-label="Remove ${escH(clip.name)}">×</button>`;
+    el.innerHTML = `${clip.thumb ? `<img src="${clip.thumb}" alt="">` : ""}${clip.isImage ? `<span class="cb" style="background:var(--n5)">IMAGE</span>` : nseg ? `<span class="cb">${nseg} ✂</span>` : ""}<span class="cn">${escH(clip.name)}</span><button class="cx" title="Remove clip" aria-label="Remove ${escH(clip.name)}">×</button>`;
     el.querySelector(".cx").addEventListener("click", ev => { ev.stopPropagation(); removeClip(proj, clip.id); });
     el.addEventListener("dragstart", ev => { ev.stopPropagation(); dragInfo = { type: "clip", pid: proj.id, cid: clip.id }; el.classList.add("dragging"); });
     el.addEventListener("dragend", () => { el.classList.remove("dragging"); dragInfo = null; });
@@ -3270,10 +3451,19 @@ function renderInspector(){
     commit("name"); proj.name = v; refresh(false);
   });
   $("inspName").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
-  $("inspCap").addEventListener("change", ev => { commit("caption"); proj.caption = ev.target.value.trim(); refresh(false); });
+  $("inspCap").addEventListener("change", ev => { commit("caption"); proj.caption = ev.target.value.replace(/\s+$/, ""); refresh(false); previewOverlayShot(proj.id); });
   if (!proj.card) proj.card = { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" };
-  $("inspOverlay").value = proj.overlay || "default";
-  $("inspOverlay").addEventListener("change", ev => { commit("overlay"); proj.overlay = ev.target.value; if (S.audioBuf) rebuild(false); scheduleSave(); });
+  $("inspOvlSame").checked = !proj.ovl;
+  $("inspOvl").hidden = !proj.ovl;
+  const ovlGet = () => Object.assign({}, OVL_DEFAULT, C.ovl || {}, proj.ovl || {});
+  const ovlSet = patch => { commit("ovl"); proj.ovl = Object.assign({}, proj.ovl || Object.assign({}, OVL_DEFAULT, C.ovl || {}), patch); onConfig("ovl"); previewOverlayShot(proj.id); };
+  if (proj.ovl) ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true });
+  $("inspOvlSame").addEventListener("change", ev => {
+    commit("ovl");
+    if (ev.target.checked){ proj.ovl = null; $("inspOvl").hidden = true; }
+    else { proj.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {}); $("inspOvl").hidden = false; ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true }); }
+    onConfig("ovl"); previewOverlayShot(proj.id);
+  });
   $("inspCardOn").checked = !!proj.card.on;
   $("inspCard").hidden = !proj.card.on;
   const cardGet = () => proj.card;
@@ -3284,7 +3474,6 @@ function renderInspector(){
   cardFields($("inspFields"), cardGet, cardSet, { placeholder: { title: proj.name } });
   $("inspCardBg").value = proj.card.bg || "slowburn";
   $("inspCardBg").addEventListener("change", ev => cardSet({ bg: ev.target.value }));
-  $("inspCap").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
   $("inspRemove").addEventListener("click", () => {
     commit("rmproj");
     P.projects = P.projects.filter(p => p.id !== proj.id);
@@ -3332,7 +3521,7 @@ $("addProj").addEventListener("click", () => {
   setTimeout(() => { const el = $("inspName"); if (el){ el.focus(); el.select(); } }, 30);
 });
 function newProjectFromFiles(files){
-  const vids = [...files].filter(f => f.type.startsWith("video"));
+  const vids = [...files].filter(isMedia);
   if (!vids.length) return;
   commit("addproj");
   let stem = vids[0].name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
@@ -3353,10 +3542,10 @@ document.addEventListener("drop", e => {
   const files = [...(e.dataTransfer?.files || [])];
   if (!files.length) return;
   const audio = files.find(f => f.type.startsWith("audio"));
-  const vids = files.filter(f => f.type.startsWith("video"));
+  const vids = files.filter(isMedia);
   if (audio) loadMusic([audio]);
   if (vids.length){ newProjectFromFiles(vids); showTab("projects"); }
-  if (!audio && !vids.length) setStatus("Drop an audio file for the music, or video files for a project.", true);
+  if (!audio && !vids.length) setStatus("Drop an audio file for the music, or videos and images for a project.", true);
 });
 
 // ---------- undo / redo --------------------------------------------------------------
@@ -3489,6 +3678,7 @@ async function restoreState(st){
   try {
     C = Object.assign(JSON.parse(JSON.stringify(DEFAULTS)), st.C || {});
     if (!(st.C || {}).introTpl && (st.C || {}).titleLayout === "center"){ C.introTpl = "centered"; C.endTpl = "centered"; }
+    if (!(st.C || {}).ovl) C.ovl = Object.assign({}, OVL_DEFAULT, { style: (st.C || {}).overlayTpl || "tag" });
     renderCardEditors();
     let missing = 0;
     CLIPS.clear();
@@ -3498,7 +3688,8 @@ async function restoreState(st){
       registerClip(blob, { id: sc.id, name: sc.name, duration: sc.duration, segments: sc.segments });
     }
     P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)),
-      overlay: p.overlay || "default", card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
+      ovl: p.ovl || (p.overlay && p.overlay !== "default" ? Object.assign({}, OVL_DEFAULT, { style: p.overlay }) : null),
+      card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
     P.nextId = st.nextId || 1;
     clipIdSeq = Math.max(clipIdSeq, st.clipIdSeq || 1);
     UI.sel = st.sel ?? null;
@@ -3565,9 +3756,9 @@ const HELP = [
   { t: "Start with the music", v: "beat",
     b: `<p>Four stock songs are built in. Press ▶ to listen, then <b>Use</b>. Or drop in your own mp3.</p><p>The sizzler listens to the track, finds the tempo and the moment the song kicks in, and starts the reel right at the drop.</p>` },
   { t: "Each project is a chapter", v: "rows",
-    b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings onto a project, or anywhere on the page. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
+    b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings or images onto a project, or anywhere on the page. They play in the order you add them: a clip keeps rolling until it runs out, an image holds for a shot, and the reel changes to the next one on the beat. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage, from a tag to a full headline. Any project can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Any project can override the reel's style, or open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
   { t: "Sound: music, volume, voice", v: "beat",
     b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",

@@ -286,7 +286,7 @@ body.viewer .panel,body.viewer .fab,body.viewer .help{display:none!important}
 body.viewer .stage{right:0!important}
 .todo{display:grid;gap:6px;font-size:12.5px;color:var(--p-mute)}
 .voice{display:grid;gap:6px;font-size:12.5px;color:var(--p-mute)}
-.voice .seg{flex-wrap:nowrap;gap:4px}
+.voice .seg{flex-wrap:wrap;gap:4px}
 .voice .seg button{flex:1 1 auto;min-width:0;padding:0 7px;font-size:12.5px}
 .voice-now{padding:8px 10px;border:1px solid var(--p-line-2);border-radius:4px;background:#fff;color:var(--p-fg);line-height:1.4}
 .voice-now b{font-weight:600}
@@ -294,6 +294,38 @@ body.viewer .stage{right:0!important}
 .vchip{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:30;pointer-events:none;font:400 10.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
   padding:6px 10px;border-radius:99px;background:rgba(255,255,255,.82);box-shadow:0 0 0 1px rgba(0,0,0,.08);color:#141414;backdrop-filter:blur(6px);opacity:0;transition:opacity .4s}
 .vchip.on{opacity:1}
+.shopbar{position:absolute;left:50%;bottom:20px;z-index:13;display:flex;align-items:center;gap:12px;padding:6px 6px 6px 8px;border-radius:8px;background:#fff;color:var(--ink);
+  box-shadow:0 8px 28px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.06);transform:translate(-50%,140%);opacity:0;transition:transform .5s var(--ease-out),opacity .3s;max-width:calc(100% - 140px)}
+.shopbar.on{transform:translate(-50%,0);opacity:1}
+.shopbar .sb-th{display:block;width:40px;height:40px;border-radius:4px;background-color:#EFEDEA;background-size:cover;background-position:center;flex:none}
+.shopbar .sb-t{display:grid;gap:2px;min-width:0}
+.shopbar .sb-t b{font:600 13.5px/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shopbar .sb-t small{font:400 12px var(--sans);color:var(--mute)}
+.shopbar .sb-add{height:40px;padding:0 18px;border-radius:4px;background:var(--ink);color:#fff;font:600 13.5px/1 var(--sans);white-space:nowrap}
+.shopbar .sb-more{height:40px;padding:0 8px;font:400 12.5px var(--sans);color:var(--ink);text-decoration:underline;white-space:nowrap}
+.shopbar .sb-shop{height:40px;padding:0 16px;display:flex;gap:10px;align-items:baseline;font:600 13.5px/40px var(--sans);color:var(--ink)}
+.shopbar .sb-shop small{font-weight:400;color:var(--mute)}
+.stage.has-shopbar .toast{bottom:88px}
+.tray{position:absolute;left:16px;right:16px;bottom:16px;z-index:14;background:#fff;border-radius:10px;box-shadow:0 18px 60px rgba(0,0,0,.22);padding:16px 18px 18px;color:var(--ink)}
+.tray[hidden]{display:none}
+.tray-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.tray-h b{font:600 16px var(--sans)}.tray-h small{font:400 12.5px var(--sans);color:var(--mute)}
+.tray-x{margin-left:auto;width:32px;height:32px;border-radius:50%;border:1px solid #DDD;font-size:18px;line-height:1}
+.tray-l{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px}
+.tray-i{flex:0 0 180px;display:grid;grid-template-rows:180px auto;grid-template-columns:1fr auto;gap:8px;align-items:start}
+.tray-i .tray-im{grid-column:1/3;height:180px;border-radius:6px;background-color:#EFEDEA;background-size:cover;background-position:center}
+.tray-i b{display:block;font:600 13px/1.25 var(--sans)}.tray-i small{font:400 12px var(--sans);color:var(--mute)}
+.tray-i .qa{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;font-size:16px}
+@media (max-width:760px){
+  .shopbar{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));max-width:none;transform:translateY(140%)}
+  .shopbar.on{transform:none}
+  .shopbar .sb-t{flex:1}
+  .shopbar .sb-shop{flex:1;justify-content:center}
+  .stage.has-shopbar .player{display:none}
+  .tray{left:8px;right:8px;bottom:8px;padding:14px}
+  .tray-i{flex-basis:140px;grid-template-rows:140px auto}
+  .tray-i .tray-im{height:140px}
+}
 body.viewer .vchip{display:none}
 .copy.vt-l .bd{font-size:clamp(17px,1.5cqw,23px);line-height:1.5;max-width:34ch}
 .copy.vt-l .feats b{font-size:17px}.copy.vt-l .feats small{font-size:16px}
@@ -1986,8 +2018,8 @@ function inferVoice() {
 let homeVoice = /[?&]aud=/.test(location.search) && entryVoice() || inferVoice(); // the voice for your own story, fixed for the visit so it never changes mid-story
 const voiceOf = s => S.voice !== 'adapt' ? S.voice : (s && s.story && s.story.voice) || homeVoice[0];
 const voiceNow = () => VOICES[voiceOf(S.sections[curI])] || VOICES.brand;
-const motionT = () => S.motionTime * voiceNow().pace;
-const transT = () => S.transTime * voiceNow().pace;
+const motionT = () => S.motionTime * voiceNow().pace * shopNow().pace;
+const transT = () => S.transTime * voiceNow().pace * shopNow().pace;
 let learnAt = 0, learnI = -1;
 function learnStep(i) {
   const now = performance.now(), prev = S.sections[learnI];
@@ -1998,6 +2030,75 @@ function learnStep(i) {
     try { localStorage.setItem(LEARN_KEY, JSON.stringify(LEARN)); } catch (e) {}
   }
   learnAt = now; learnI = i;
+}
+
+/* ---------- shopping mindset ----------
+   A second dial beside the voice: how much this person enjoys shopping, and whether
+   they mean to buy now. Four mindsets from those two questions. The story's sections
+   stay the same; how much shopping it puts in front of them changes.
+     enjoys shopping + buying now  → Loves to shop: everything shoppable, a Shop this story tray, picks often
+     enjoys shopping + just looking → Browsing: the story as built (the default)
+     dislikes shopping + buying now → On a mission: plain words, one product, one button that's always there
+     dislikes shopping + just looking → Story first: no prices or labels, one quiet way to shop at the end */
+const SHOP_MODES = {
+  browse:  { label:'Browsing',      who:'Enjoys looking, not buying yet. The story as built: shoppable moments where you placed them.', picks:3, pace:1 },
+  shopper: { label:'Loves to shop', who:'Enjoys shopping and is ready to buy. Every product moment is shoppable, a Shop this story tray holds everything in the story, and picks come every other story.', picks:2, pace:1 },
+  mission: { label:'On a mission',  who:'Needs to buy, doesn’t enjoy shopping. Plain words, a quicker story, and one bar with the main product and Add to bag the whole way through.', picks:2, pace:.8 },
+  story:   { label:'Story first',   who:'Here for the story, not to shop. No prices, labels or hotspot prices; one quiet way to see the pieces at the end, and no picks pages.', picks:99, pace:1 },
+};
+const SHOP_KEYS = Object.keys(SHOP_MODES);
+function shopEntry() {
+  const q = new URLSearchParams(location.search), a = (q.get('shop') || '').toLowerCase();
+  const med = (q.get('utm_medium') || '').toLowerCase(), camp = (q.get('utm_campaign') || '').toLowerCase();
+  if (SHOP_MODES[a]) return [a, `they came in on a ${SHOP_MODES[a].label} link`];
+  if (/cpc|ppc|search|shopping/.test(med)) return ['mission', 'they came from a search ad, so they likely know what they want'];
+  if (/sale|drop|launch|new/.test(camp)) return ['shopper', 'they came from a launch or sale campaign'];
+  if (/social|organic|editorial/.test(med)) return ['browse', 'they came from social, looking around'];
+  return null;
+}
+const learnEvent = k => { (LEARN.ev = LEARN.ev || []).push({ k, t:Date.now() }); LEARN.ev = LEARN.ev.slice(-30); try { localStorage.setItem(LEARN_KEY, JSON.stringify(LEARN)); } catch (e) {} };
+function inferShop() {
+  const fresh = x => !x.t || Date.now() - x.t < 12 * 3600e3;
+  const r = LEARN.recent.filter(fresh).slice(-8), ev = (LEARN.ev || []).filter(fresh);
+  const n = k => ev.filter(x => x.k === k).length, bag = n('bag'), tray = n('tray'), cta = n('cta');
+  const looked = r.filter(x => x.proof && x.ms > 4000).length, skipped = r.filter(x => x.proof && x.ms < 1500).length;
+  const enjoy = bag + tray + looked - 1.5 * skipped, intent = bag + cta > 0;
+  if (ev.length || r.length >= 4) {
+    if (intent && enjoy >= 2) return ['shopper', `they're adding to bag and taking time over products (${bag} added, ${looked} product moments lingered on)`];
+    if (intent) return ['mission', `they're ready to buy but skip past the product detail (reached to buy ${bag + cta} time${bag + cta === 1 ? '' : 's'}, skipped ${skipped} product moments)`];
+    if (enjoy >= 1.5) return ['browse', `they enjoy the product moments but haven't bought (${looked} lingered on, ${tray} tray opens)`];
+    if (enjoy <= -1.5) return ['story', `they skip past the product moments (${skipped} skipped)`];
+  }
+  return shopEntry() || ['browse', 'no signals yet, so the story as built'];
+}
+let homeShop = /[?&]shop=/.test(location.search) && shopEntry() || inferShop();
+const shopOf = s => S.shopMode !== 'adapt' ? S.shopMode : (s && s.story && s.story.shop) || homeShop[0];
+const shopNow = () => SHOP_MODES[shopOf(S.sections[curI])] || SHOP_MODES.browse;
+// the section as this mindset sees it (always applied after the voice)
+function asSeen(s, m, last) {
+  if (!m || m === 'browse' || s.dark || (s.story && s.story.title === 'For you')) return s;
+  const o = { ...s }, hasProduct = s.shop.on || s.card.on || (s.spots.on && s.spots.items.some(x => /\$/.test(x.sub || '')));
+  if (m === 'story') {
+    if (s.shop.on) o.shop = { ...s.shop, on:false };
+    if (s.card.on) o.card = { ...s.card, on:false };
+    if (s.spots.on) o.spots = { ...s.spots, items: s.spots.items.map(x => /\$/.test(x.sub || '') ? { ...x, sub:'' } : x) };
+    o.cta = last ? { show:true, label: s.beat === 'close' && s.cta.show ? s.cta.label : 'See the pieces' } : { ...s.cta, show:false };
+  } else if (m === 'shopper') {
+    if (!s.cta.show && (hasProduct || s.beat === 'proof' || s.beat === 'close')) o.cta = { show:true, label:'Shop now' };
+    if (s.shop.on) o.shop = { ...s.shop, items: s.shop.items.map((x, k) => x.tag || k ? x : { ...x, tag:'Bestseller' }) }; // placeholder badge for the demo
+  } else if (m === 'mission') {
+    if (s.beat === 'build' || s.beat === 'hook') o.body = ''; // the plain version: headline only until the product
+    o.cta = { ...s.cta, show:false }; // the bar at the bottom is the one way to buy
+    if (s.card.on) o.card = { ...s.card, on:false };
+  }
+  return o;
+}
+// the products of the story on screen: the one this story is about, and the rest
+function storyProducts(i) {
+  const at = S.sections[i], bid = at && at.story && at.story.bid, seen = new Map();
+  S.sections.forEach(x => { if (!bid || (x.story && x.story.bid === bid)) productsIn(x).forEach(p => { if (!seen.has(p.name)) seen.set(p.name, p); }); });
+  const list = [...seen.values()], hero = S.sections.filter(x => !bid || (x.story && x.story.bid === bid)).find(x => x.card.on && realName(x.card.name));
+  return { list, main: hero ? list.find(p => p.name === hero.card.name) : list[0] };
 }
 
 /* ---------- state ---------- */
@@ -2042,6 +2143,7 @@ const normalize = d => { d = isObj(d) ? d : {}; return {
   arc: validArc(d.arc) ? d.arc : null,
   smooth: d.smooth !== false,
   voice: d.voice === 'adapt' || VOICES[d.voice] ? d.voice : 'adapt',
+  shopMode: d.shopMode === 'adapt' || SHOP_MODES[d.shopMode] ? d.shopMode : 'adapt',
   swiper: d.swiper === 'off' ? 'off' : 'on',
   scrollMode: d.scrollMode === 'free' ? 'free' : 'chapter',
   player: d.player !== false,
@@ -2446,7 +2548,7 @@ function textLayer(s, i) {
     P(s.swatches.on ? h('div', { class:'swatches' }, s.swatches.items.filter(x => x.n).map(x => h('span', {}, h('i', { style:{ background: inkSafe(s, x.c) } }), x.n))) : null),
     P(s.feats.on ? h('div', { class:'feats' }, s.feats.items.filter(x => x.t).map((x, k) => h('div', {}, h('em', {}, String(k + 1).padStart(2, '0')), h('b', {}, x.t), x.d && h('small', {}, x.d)))) : null),
     P(s.stats.on ? h('div', { class:'stats' }, s.stats.items.filter(x => x.v || x.l).map(x => h('div', {}, h('b', {}, x.v), h('small', {}, x.l)))) : null),
-    P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => e.preventDefault() }, s.cta.label, ' →') : null),
+    P(s.cta.show ? h('a', { class:'cta', href:'#', onclick:e => { e.preventDefault(); learnEvent('cta'); } }, s.cta.label, ' →') : null),
   );
   const el = h('div', { class:'tr', 'data-x':t.x, 'data-y':t.y, 'data-layout':layout, 'data-ink': inkOf(s), 'data-blend': blendOf(s) }, copy);
   let card = null;
@@ -2503,7 +2605,9 @@ function renderStage() {
   W = $stage.clientWidth; H = $stage.clientHeight; lastNarrow = W < 720; lastH = H; SAFE = lastNarrow ? safeInsets() : { t:0, b:0 };
   const fw = h('div', { class:'frames' }), tw = h('div', { class:'texts' });
   frames = Array.from({ length:FR }, () => fw.appendChild(h('div', { class:'frame' })));
-  layers = S.sections.map((s, i) => {
+  layers = S.sections.map((s0, i) => {
+    const last = i === S.sections.length - 1 || ((S.sections[i + 1] || {}).story || {}).bid !== (s0.story || {}).bid;
+    const s = asSeen(said(s0, voiceOf(s0)), shopOf(s0), last);
     const n = count(s), single = s.media.kind !== 'gallery', spots = [];
     const media = frames.map((f, k) => {
       if (k >= n) return null;
@@ -2535,7 +2639,7 @@ function renderStage() {
       }
       return f.appendChild(lay);
     });
-    const v = voiceOf(s), T = textLayer(said(s, v), i); T.s = s;
+    const v = voiceOf(s0), T = textLayer(s, i); T.s = s0;
     if (VOICES[v] && VOICES[v].type > 1) T.copy.classList.add('vt-l');
     if (W < 720) phoneCopy(s, T);
     tw.append(T.el); if (T.card) tw.append(T.card); T.extras.forEach(e => tw.append(e));
@@ -2544,7 +2648,8 @@ function renderStage() {
   $stage.replaceChildren(fw, tw,
     h('div', { class:'toast', id:'toast', role:'status' }),
     h('nav', { class:'dots', id:'dots', 'aria-label':'Sections' }),
-    h('div', { class:'vchip', id:'vchip', 'aria-live':'polite' }));
+    h('div', { class:'vchip', id:'vchip', 'aria-live':'polite' }),
+    shopBar(), shopTray());
   dotsBid = null; buildDots(curI);
   $stage.classList.toggle('has-swiper', touchSwipe());
   if (S.player && S.sections.length > 1) $stage.append(buildPlayer(), h('div', { class:'pbar', id:'pbar' }));
@@ -2620,7 +2725,7 @@ function holdSpots(L, u) {
 }
 let toastT = 0;
 function addToBag(e, name) {
-  e.stopPropagation();
+  e.stopPropagation(); learnEvent('bag');
   const t = $('toast'); if (!t) return;
   t.textContent = `Added to bag · ${name || 'Product'}`; t.classList.add('on');
   clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1600);
@@ -2868,7 +2973,7 @@ function drawPair(i, j, t, ui, uj) {
 }
 function setCurrent(i) {
   curI = i; if (i === shownI) return; shownI = i; if (swBase == null) swiperEnds();
-  learnStep(i); voiceChip();
+  learnStep(i); voiceChip(); updateShopBar(i);
   if (FEED) feedOnSection(i);
   if (FEED) buildDots(i);
   $stage.querySelectorAll('.dots button').forEach(b => b.classList.toggle('on', +b.dataset.sec === i));
@@ -4162,7 +4267,7 @@ const HELP = [
       <li><kbd>Space</kbd><span>Play or pause.</span></li>
       <li><kbd>Remix</kbd><span>Shuffles the layouts and keeps your words.</span></li>
       <li><kbd>Export</kbd><span>Saves the story as a file. <b>Import</b> opens one again.</span></li>
-      <li><kbd>Voices</kbd><span><b>Speak to</b> in the Story tab tells each story in one brand voice four ways: Gen Z, Millennial, Gen X or Boomer. <b>Adapt</b> picks one from the link a viewer came in on and how they scroll, and switches only between stories.</span></li>
+      <li><kbd>Voices</kbd><span><b>Speak to</b> in the Story tab tells each story in one brand voice four ways: Gen Z, Millennial, Gen X or Boomer. <b>Adapt</b> picks one from the link a viewer came in on and how they scroll, and switches only between stories. <b>Shopping</b> sets how much shopping each viewer sees: Story first, Browsing, Loves to shop or On a mission. Adapt picks it from whether they enjoy shopping and whether they're buying now.</span></li>
       <li><kbd>Share</kbd><span><b>Copy share link</b> in the Story tab opens just the story, as a customer sees it. <b>Content to finish</b> lists every placeholder left.</span></li>
       <li><kbd>Settings</kbd><span><b>Page settings</b> tunes scroll speed, smoothing, transitions, the Play button and touch swiping.</span></li>
       <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
@@ -4378,12 +4483,13 @@ function saleBlock() {
 function nextBlock() {
   const b = nextBlockRaw(), own = b.length && b[b.length - 1].story && b[b.length - 1].story.bid === FEED.ownBid;
   const v = own ? homeVoice[0] : inferVoice()[0];
-  b.forEach(x => { if (x.story) x.story.voice = v; });
+  const m = own ? homeShop[0] : inferShop()[0];
+  b.forEach(x => { if (x.story) { x.story.voice = v; x.story.shop = m; } });
   return b;
 }
 function nextBlockRaw() {
   const F = FEED;
-  if (F.since === 3) { F.since = 0; const b = saleBlock(); if (b.length) { F.lastWasSale = true; return b; } }
+  if (F.since >= shopNow().picks) { F.since = 0; const b = saleBlock(); if (b.length) { F.lastWasSale = true; return b; } }
   const [title, key] = F.order[F.next++ % F.order.length];
   const story = key === '__own' ? JSON.parse(F.saved).sections : PRESETS[key]();
   F.since++; F.lastWasSale = false;
@@ -4395,7 +4501,7 @@ function nextBlockRaw() {
 }
 function extendFeed() {
   // stories are added well ahead; a sale page waits until two sections from the end, so it reflects nearly everything watched
-  if (!FEED || S.sections.length - curI > (FEED.since === 3 ? 2 : 4)) return;
+  if (!FEED || S.sections.length - curI > (FEED.since >= shopNow().picks ? 2 : 4)) return;
   if (swipeGoal != null || jumping || drag || playing) { setTimeout(extendFeed, 300); return; } // never rebuild the stage mid-move
   S.sections.push(...nextBlock()); renderStage(); feedHud(curI);
 }
@@ -4447,7 +4553,7 @@ function exitFeed(landAt) {
   if (!FEED) return;
   clearInterval(FEED.timer); lsSet(VIEWS_KEY, JSON.stringify(VIEWS));
   const saved = FEED.saved, wasOpen = FEED.wasOpen; FEED = null;
-  homeVoice = inferVoice(); // back at the start of your own story: a natural moment to adapt
+  homeShop = inferShop(); homeVoice = inferVoice(); // back at the start of your own story: a natural moment to adapt
   document.body.classList.remove('feed'); S = normalize(JSON.parse(saved)); sel = S.sections[0] && S.sections[0].id;
   render();
   if (landAt != null) { measure(); scrollTo({ top:restOf(landAt), behavior:'instant' }); ys = scrollY; update(); sel = (S.sections[landAt] || {}).id || sel; renderList(); }
@@ -4461,18 +4567,66 @@ function renderViews() {
         h('button', { class:'linkbtn', onclick:() => { if (!confirm('Clear the viewing data?')) return; VIEWS = {}; lsSet(VIEWS_KEY, '{}'); renderViews(); } }, 'Clear viewing data'))
     : h('div', {}, 'When a viewer scrolls past the end of a story, it carries on into more stories, with a page of picks after every three built from what they lingered on. Viewing time per product is kept in this browser only.'));
 }
+/* ---------- shopping bar and tray ----------
+   On a mission: one bar with the story's main product and Add to bag, there the whole way.
+   Loves to shop: a Shop this story button opening a tray of everything in the story. */
+const stopPd = el => { ['pointerdown', 'click', 'wheel', 'touchstart'].forEach(t => el.addEventListener(t, e => e.stopPropagation(), { passive:true })); return el; };
+const thumbOf = id => { const a = asset(id); return a && a.type === 'image' ? { backgroundImage:`url("${a.src}")` } : null; };
+function shopBar() { return stopPd(h('div', { class:'shopbar', id:'shopbar' })); }
+function shopTray() { return stopPd(h('div', { class:'tray', id:'tray', role:'dialog', 'aria-label':'Shop this story', hidden:true })); }
+function openTray(i) {
+  const t = $('tray'); if (!t) return;
+  const { list } = storyProducts(i); learnEvent('tray');
+  t.replaceChildren(h('div', { class:'tray-h' }, h('b', {}, 'Shop this story'), h('small', {}, `${list.length} piece${list.length === 1 ? '' : 's'}`),
+      h('button', { class:'tray-x', 'aria-label':'Close', onclick:() => t.hidden = true }, '×')),
+    h('div', { class:'tray-l' }, list.map(p => h('div', { class:'tray-i' }, h('div', { class:'tray-im', style: thumbOf(p.img) }),
+      h('div', {}, h('b', {}, p.name), h('small', {}, p.price || '')), h('button', { class:'qa', 'aria-label':`Add ${p.name} to bag`, onclick:e => addToBag(e, p.name) }, '+')))));
+  t.hidden = false;
+}
+function updateShopBar(i) {
+  const bar = $('shopbar'), sec = S.sections[i]; if (!bar) return;
+  const m = shopOf(sec), { list, main } = storyProducts(i);
+  const off = !sec || sec.dark || (sec.story && sec.story.title === 'For you') || !list.length || !(m === 'mission' || m === 'shopper');
+  $stage.classList.toggle('has-shopbar', !off);
+  if (off) { bar.classList.remove('on'); const t = $('tray'); if (t) t.hidden = true; return; }
+  const key = m + (main && main.name) + list.length; if (bar.dataset.key === key) { bar.classList.add('on'); return; }
+  bar.dataset.key = key;
+  bar.replaceChildren(...(m === 'mission' && main
+    ? [h('i', { class:'sb-th', style: thumbOf(main.img) }), h('div', { class:'sb-t' }, h('b', {}, main.name), h('small', {}, main.price || '')),
+       h('button', { class:'sb-add', onclick:e => addToBag(e, main.name) }, 'Add to bag'),
+       list.length > 1 ? h('button', { class:'sb-more', onclick:() => openTray(i) }, `+${list.length - 1} more`) : null]
+    : [h('button', { class:'sb-shop', onclick:() => openTray(i) }, h('b', {}, 'Shop this story'), h('small', {}, `${list.length} piece${list.length === 1 ? '' : 's'}`))]).filter(Boolean));
+  bar.classList.add('on');
+}
+
 /* ---------- voice controls ---------- */
 let chipV = null, chipT = 0;
 function voiceChip() {
   const el = $('vchip'); if (!el) return;
-  const v = voiceOf(S.sections[curI]), changed = chipV !== null && v !== chipV;
-  chipV = v;
-  el.textContent = 'Speaking · ' + (VOICES[v] || VOICES.brand).label + (S.voice === 'adapt' ? '' : ' · fixed');
+  const v = voiceOf(S.sections[curI]), key = v + shopOf(S.sections[curI]), changed = chipV !== null && key !== chipV;
+  chipV = key;
+  el.textContent = (VOICES[v] || VOICES.brand).label + ' · ' + (SHOP_MODES[shopOf(S.sections[curI])] || SHOP_MODES.browse).label;
   const show = !VIEWER && S.sections.length && (document.body.classList.contains('panel-open') || changed);
   el.classList.toggle('on', !!show);
   clearTimeout(chipT); if (changed && !document.body.classList.contains('panel-open')) chipT = setTimeout(() => el.classList.remove('on'), 3500);
 }
 const shareBase = aud => location.origin + location.pathname + (aud ? '?aud=' + aud : '');
+function shopControls() {
+  const [gm, why] = inferShop(), fixed = S.shopMode !== 'adapt';
+  return [h('b', { class:'views-h', style:{ marginTop:'10px' } }, 'Shopping'),
+    seg([['adapt','Adapt'], ...SHOP_KEYS.map(k => [k, SHOP_MODES[k].label])], S.shopMode, act(v => S.shopMode = v), 'Shopping'),
+    h('div', { class:'voice-now' }, fixed
+      ? h('span', {}, h('b', {}, SHOP_MODES[S.shopMode].label + ': '), SHOP_MODES[S.shopMode].who)
+      : h('span', {}, 'This visit: ', h('b', {}, SHOP_MODES[homeShop[0]].label), `, because ${homeShop[1]}.`,
+          gm !== homeShop[0] ? h('span', {}, ' Next story: ', h('b', {}, SHOP_MODES[gm].label), `, because ${why}.`) : null)),
+    h('small', {}, fixed ? 'Every story shows this much shopping. The sections stay the same; only what’s shoppable changes.'
+      : 'Two questions decide it: do they enjoy shopping (lingering on products, opening the tray) and are they buying now (Add to bag, button clicks, or a search ad link)?'),
+    h('div', { class:'voice-links' }, h('small', {}, 'Copy a test link as:'),
+      ...SHOP_KEYS.map(k => h('button', { class:'linkbtn', onclick: async e => {
+        const url = location.origin + location.pathname + '?shop=' + k + '#v=' + await packStory();
+        try { await navigator.clipboard.writeText(url); e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = SHOP_MODES[k].label, 1500); } catch (err) { prompt('Copy this link:', url); }
+      } }, SHOP_MODES[k].label)))];
+}
 function renderVoice() {
   if (FEED) return;
   const [gv, why] = inferVoice(), fixed = S.voice !== 'adapt';
@@ -4491,7 +4645,9 @@ function renderVoice() {
         const url = shareBase(k) + '#v=' + await packStory();
         try { await navigator.clipboard.writeText(url); e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = VOICES[k].label, 1500); } catch (err) { prompt('Copy this link:', url); }
       } }, VOICES[k].label)),
-      h('button', { class:'linkbtn', onclick:() => { LEARN = { recent:[] }; lsSet(LEARN_KEY, JSON.stringify(LEARN)); homeVoice = inferVoice(); render(); } }, 'Forget what it learned')));
+    ),
+    ...shopControls(),
+    h('button', { class:'linkbtn', style:{ justifySelf:'start' }, onclick:() => { LEARN = { recent:[] }; lsSet(LEARN_KEY, JSON.stringify(LEARN)); homeVoice = inferVoice(); homeShop = inferShop(); render(); } }, 'Forget what it learned'));
   voiceChip();
 }
 $('fexit').addEventListener('click', exitFeed);
@@ -4505,7 +4661,7 @@ const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\
 const unb64u = str => Uint8Array.from(atob(str.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 async function packStory() {
   const own = FEED ? JSON.parse(FEED.saved) : S;
-  const keep = ['voice','pace','motionTime','transTime','scrollMode','holdAmt','swiper','player','playSpeed','magnet','trans','pacingV'];
+  const keep = ['voice','shopMode','pace','motionTime','transTime','scrollMode','holdAmt','swiper','player','playSpeed','magnet','trans','pacingV'];
   const data = { sections: own.sections.map(x => { const c = clone(x); delete c.story; c.media.items = c.media.items.map(id => id && id.startsWith('u:') ? null : id); return c; }) };
   keep.forEach(k => data[k] = own[k]);
   const z = new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
