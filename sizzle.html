@@ -481,8 +481,9 @@ details.grp .gb{padding:0 0 8px}
     <details class="grp">
       <summary>Text over footage</summary>
       <div class="gb">
-        <p class="hint" style="margin-top:0">The default for every project. Each project uses its own name as the title and its body copy underneath. Any project can override all of this under Projects.</p>
+        <p class="hint" style="margin-top:0">Every project has its own text style, edited under Projects. This is the starting style a new project gets. Each project uses its own name as the title and its body copy underneath.</p>
         <div class="ovl-ed" id="ovlEditor"></div>
+        <div class="p-row" style="margin-top:14px"><button class="btn" id="ovlApplyAll">Apply this style to every project</button></div>
       </div>
     </details>
 
@@ -927,7 +928,7 @@ async function detectSceneCuts(file, clip){
 // ---------- projects & clips ------------------------------------------------
 function addProject(name){
   const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [],
-                 ovl: null, card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
+                 ovl: Object.assign({}, OVL_DEFAULT, C.ovl || {}), card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
   P.projects.push(proj);
   return proj;
 }
@@ -3294,6 +3295,12 @@ function renderCardEditors(){
   cardFields($("endFields"), endGet, endSet, { placeholder: { title: "leave empty to skip the sign-off" } });
   // text over footage default
   ovlEditor($("ovlEditor"), () => C.ovl || {}, patch => { commit("ovl"); C.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {}, patch); onConfig("ovl"); previewOverlayShot(null); });
+  $("ovlApplyAll").onclick = () => {
+    commit("ovl-all");
+    for (const p of P.projects){ const title = p.ovl ? p.ovl.title : ""; p.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {}, { title }); }
+    onConfig("ovl"); renderProjects(); previewOverlayShot(null);
+    setStatus(`Applied this text style to ${P.projects.length} project${P.projects.length === 1 ? "" : "s"}. Each one keeps its own title and body copy.`);
+  };
 }
 
 $("shuffleBtn").addEventListener("click", () => {
@@ -3325,7 +3332,7 @@ function renderProjects(){
       <span class="grip" title="Drag to reorder">⋮⋮</span>
       <div class="thumb">${thumb ? `<img src="${thumb.thumb}" alt="">` : `<i></i>`}</div>
       <div class="nm"><b>${escH(proj.name)}</b>
-        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${proj.ovl ? "own text style · " : ""}${clips.length ? `${clips.length} upload${clips.length>1?"s":""}${clips.some(c => c.isImage) ? ` · ${clips.filter(c => c.isImage).length} image${clips.filter(c => c.isImage).length>1?"s":""}` : ""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
+        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${clips.length ? `${clips.length} upload${clips.length>1?"s":""}${clips.some(c => c.isImage) ? ` · ${clips.filter(c => c.isImage).length} image${clips.filter(c => c.isImage).length>1?"s":""}` : ""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
       <button class="ib" title="Remove project" aria-label="Remove ${escH(proj.name)}">×</button>`;
     row.addEventListener("click", e => {
       if (e.target.closest(".ib")) return;
@@ -3397,8 +3404,8 @@ function renderInspector(){
     <div class="f"><span class="lbl">Footage <small>${clips.length ? "drag to reorder · hover for ✕" : "optional"}</small></span>
       <div class="clips" id="inspClips"></div></div>
     <p class="hint">Clips that already have edits in them are detected (the ✂ badge) and each scene becomes a shot point, so the reel never cuts in the middle of your cut.</p>
-    <div class="f"><label class="check"><input type="checkbox" id="inspOvlSame"> Same text style as the rest of the reel</label></div>
-    <div class="ovl-ed" id="inspOvl" hidden></div>
+    <div class="f" style="margin-top:6px"><span class="lbl">Text over this project's footage</span></div>
+    <div class="ovl-ed" id="inspOvl"></div>
     <div class="f"><label class="check"><input type="checkbox" id="inspCardOn"> Open this project with a text card</label></div>
     <div id="inspCard" hidden>
       <div class="f"><span class="lbl">Template</span><div class="tpls" id="inspTpls"></div></div>
@@ -3453,17 +3460,10 @@ function renderInspector(){
   $("inspName").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
   $("inspCap").addEventListener("change", ev => { commit("caption"); proj.caption = ev.target.value.replace(/\s+$/, ""); refresh(false); previewOverlayShot(proj.id); });
   if (!proj.card) proj.card = { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" };
-  $("inspOvlSame").checked = !proj.ovl;
-  $("inspOvl").hidden = !proj.ovl;
-  const ovlGet = () => Object.assign({}, OVL_DEFAULT, C.ovl || {}, proj.ovl || {});
-  const ovlSet = patch => { commit("ovl"); proj.ovl = Object.assign({}, proj.ovl || Object.assign({}, OVL_DEFAULT, C.ovl || {}), patch); onConfig("ovl"); previewOverlayShot(proj.id); };
-  if (proj.ovl) ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true });
-  $("inspOvlSame").addEventListener("change", ev => {
-    commit("ovl");
-    if (ev.target.checked){ proj.ovl = null; $("inspOvl").hidden = true; }
-    else { proj.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {}); $("inspOvl").hidden = false; ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true }); }
-    onConfig("ovl"); previewOverlayShot(proj.id);
-  });
+  if (!proj.ovl) proj.ovl = Object.assign({}, OVL_DEFAULT, C.ovl || {});
+  const ovlGet = () => proj.ovl;
+  const ovlSet = patch => { commit("ovl"); Object.assign(proj.ovl, patch); onConfig("ovl"); previewOverlayShot(proj.id); };
+  ovlEditor($("inspOvl"), ovlGet, ovlSet, { project: true });
   $("inspCardOn").checked = !!proj.card.on;
   $("inspCard").hidden = !proj.card.on;
   const cardGet = () => proj.card;
@@ -3688,7 +3688,7 @@ async function restoreState(st){
       registerClip(blob, { id: sc.id, name: sc.name, duration: sc.duration, segments: sc.segments });
     }
     P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)),
-      ovl: p.ovl || (p.overlay && p.overlay !== "default" ? Object.assign({}, OVL_DEFAULT, { style: p.overlay }) : null),
+      ovl: p.ovl || Object.assign({}, OVL_DEFAULT, C.ovl || {}, p.overlay && p.overlay !== "default" ? { style: p.overlay } : {}),
       card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
     P.nextId = st.nextId || 1;
     clipIdSeq = Math.max(clipIdSeq, st.clipIdSeq || 1);
@@ -3758,7 +3758,7 @@ const HELP = [
   { t: "Each project is a chapter", v: "rows",
     b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings or images onto a project, or anywhere on the page. They play in the order you add them: a clip keeps rolling until it runs out, an image holds for a shot, and the reel changes to the next one on the beat. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Any project can override the reel's style, or open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Every project has its own text style, and any project can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
   { t: "Sound: music, volume, voice", v: "beat",
     b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",
