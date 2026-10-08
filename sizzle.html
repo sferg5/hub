@@ -558,10 +558,12 @@ details.grp .gb{padding:0 0 8px}
 <div class="modal" id="fbModal" hidden>
   <div class="mbox">
     <h3>Beta feedback</h3>
-    <p>What happened, and what did you expect? Short is fine. The technical details below get attached automatically.</p>
+    <p>What happened, and what did you expect? Short is fine. It goes straight to Sean's sizzler admin page, with the technical details below attached.</p>
+    <div class="f" style="margin-bottom:10px"><span class="lbl">Your name <small>optional, so Sean can follow up</small></span><input type="text" id="fbName" spellcheck="false" placeholder="e.g. Priya"></div>
     <textarea id="fbText" placeholder="e.g. The cuts drifted off the beat after the second project…"></textarea>
     <div class="mrow">
-      <button class="btn pri" id="fbMail">Send by email</button>
+      <button class="btn pri" id="fbSend">Send feedback</button>
+      <button class="btn" id="fbMail">Email instead</button>
       <button class="btn" id="fbCopy">Copy for Teams</button>
       <span style="flex:1"></span>
       <button class="btn" id="fbClose">Close</button>
@@ -2709,6 +2711,7 @@ function startExport(){
     const blob = new Blob(recChunks, { type: rec.mimeType });
     const name = exportName(ext);
     lastExport = { blob, name, ext };
+    track("export", { seconds: Math.round(S.timeline.duration), format: C.format, mb: +(blob.size/1e6).toFixed(1), projects: P.projects.length, uploads: P.projects.reduce((n, p) => n + p.clipIds.length, 0), vo: S.vo.length, music: S.musicDemo ? "demo" : S.musicStock ? "stock" : "upload" });
     if (window.showSaveFilePicker){
       setStatus(`Done — <b>${name}</b> (${(blob.size/1e6).toFixed(1)} MB) is ready. <button id="saveBtn">Save to your computer…</button><button id="dlBtn" class="ghost">Download instead</button>`);
     } else {
@@ -2782,6 +2785,7 @@ async function stopVO(){
     if (!restoring) putMedia("vo:" + vo.id, blob);
     renderVO(); drawTimeline(); scheduleSave();
     setStatus(`Saved <b>${vo.name}</b> (${buf.duration.toFixed(1)}s) at ${fmtT(r.startT)}. Play it back, or drag it on the voice-over lane.`);
+    track("vo", { seconds: +buf.duration.toFixed(1) });
   } catch (e){
     setStatus("Couldn't process that recording: " + e.message, true);
   }
@@ -2856,7 +2860,10 @@ async function useTrack(buf, name, opts){
   buildTimeline(true);
   renderSteps();
   updateAudioLabels(); drawScrub(); renderVO();
-  if (!restoring) setStatus(opts.demo ? "Demo beat loaded — add your projects, or just press play." : `<b>${escH(name)}</b> loaded — every cut will land on the beat.`);
+  if (!restoring){
+    setStatus(opts.demo ? "Demo beat loaded — add your projects, or just press play." : `<b>${escH(name)}</b> loaded — every cut will land on the beat.`);
+    track("track", { source: opts.demo ? "demo" : opts.stock ? "stock" : "upload", bpm: Math.round(res.tempo), seconds: Math.round(buf.duration) });
+  }
 }
 async function loadMusic(files, stock){
   const f = files && files[0];
@@ -3728,6 +3735,7 @@ async function restoreState(st){
     showTab(st.tab || (S.audioBuf ? "projects" : "music"));
     setStatus(missing ? `Restored your reel, but ${missing} file${missing > 1 ? "s" : ""} couldn't be recovered — add them again.`
                       : "Restored your reel from this device.");
+    track("resume", { missing });
   } catch (e){
     restoring = false;
     setStatus("Couldn't restore the saved reel: " + e.message, true);
@@ -3813,10 +3821,47 @@ $("help").addEventListener("keydown", e => {
 });
 
 // ---------- beta: version, feedback, error capture ---------------------------------
+// ---------- usage + feedback go to /api/sizzle (same store as the rest of the hub) ----------
+// An anonymous id per browser is all that's sent with usage events; a name only
+// travels if someone types it into the feedback form.
+const API = "/api/sizzle";
+const API_ON = /^https?:$/.test(location.protocol);
+const UID = (() => { let u = lsGet("sizzler.uid"); if (!/^u[a-z0-9]{6,24}$/.test(u || "")){ u = "u" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); lsSet("sizzler.uid", u); } return u; })();
+function track(event, props){
+  if (!API_ON) return;
+  try {
+    const body = JSON.stringify({ type: "event", uid: UID, event, props: Object.assign({ version: VERSION }, props || {}) });
+    if (navigator.sendBeacon) navigator.sendBeacon(API, new Blob([body], { type: "application/json" }));
+    else fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+  } catch (e) {}
+}
+async function sendFeedback(){
+  const text = $("fbText").value.trim();
+  if (!text){ $("fbText").focus(); setStatus("Write a line or two first.", true); return false; }
+  const name = $("fbName").value.trim(); lsSet("sizzler.fbName", name);
+  $("fbSend").disabled = true; $("fbSend").textContent = "Sending…";
+  try {
+    if (!API_ON) throw new Error("offline");
+    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "feedback", uid: UID, name, text, env: envSummary() }) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    $("fbModal").hidden = true; $("fbText").value = "";
+    setStatus(`Thanks${name ? ", " + escH(name) : ""} — your feedback is with Sean.`);
+    return true;
+  } catch (e){
+    setStatus("Couldn't reach the feedback inbox, so this will open as an email instead.", true);
+    $("fbMail").click();
+    return false;
+  } finally { $("fbSend").disabled = false; $("fbSend").textContent = "Send feedback"; }
+}
+$("fbSend").addEventListener("click", sendFeedback);
+$("fbName").value = lsGet("sizzler.fbName") || "";
+track("open", { screen: `${screen.width}x${screen.height}` });
 $("verPill").textContent = VERSION;
 $("verPill").title = "lululemon sizzler " + VERSION;
 window.addEventListener("error", e => {
   lastError = `${e.message} @${e.lineno}`;
+  track("error", { msg: String(e.message).slice(0, 120), line: e.lineno });
   setStatus(`Something went wrong (${escH(e.message)}). Please send this through Feedback.`, true);
 });
 window.addEventListener("unhandledrejection", e => { lastError = String(e.reason && e.reason.message || e.reason); });
