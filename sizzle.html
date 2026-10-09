@@ -79,6 +79,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tpl[aria-pressed="true"] span{color:var(--p-fg)}
 .cardfields{display:grid;gap:12px;margin-top:12px}
 .shots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.shots-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.shots-h .lbl{flex:1}
+.shots-h select{height:30px;font-size:12px;padding:0 26px 0 9px;width:auto;font-weight:600}
+.shotc .top{display:flex;align-items:center;gap:6px}
+.shotc .grip{color:var(--p-line);cursor:grab;font-size:13px;line-height:1}
+.shotc .top .sn{flex:1}
+.shotc .top .ib{width:22px;height:22px;font-size:13px}
+.shotc.dragging{opacity:.4}
+.shotc.drop-l{box-shadow:-3px 0 0 var(--heat)}
+.shotc.drop-r{box-shadow:3px 0 0 var(--heat)}
+.shots-warn{grid-column:1/-1;font-size:12px;color:var(--burn)}
 .shotc{border:1px solid var(--p-line);border-radius:6px;padding:6px;display:grid;gap:5px;background:var(--p-card)}
 .shotc.is-cur{border-color:var(--heat);box-shadow:inset 0 0 0 1px var(--heat)}
 .shotc.has{border-color:var(--p-fg)}
@@ -163,6 +174,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .btn.danger:hover{border-color:var(--burn)}
 .btn[disabled]{opacity:.35;cursor:default}
 .hist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.base{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;padding-top:12px;border-top:1px solid var(--p-line-2)}
+.base .lbl{margin-bottom:5px}
+.base-len{display:flex;align-items:center;gap:6px}
+.base-len input[type=range]{flex:1;min-width:60px}
+.base-len input[type=number]{width:58px;height:34px;padding:0 6px;text-align:right;font-family:var(--mono);font-size:12.5px}
+.base-len span{font:400 11px var(--mono);color:var(--p-mute)}
+.base select{height:34px;padding:0 22px 0 8px;font-size:12.5px;background-position:calc(100% - 12px) 50%,calc(100% - 7px) 50%}
 .hbtn{display:flex;align-items:center;justify-content:center;gap:8px;height:34px;border:1px solid var(--p-line);border-radius:4px;background:var(--p-card);font:600 13px/1 var(--sans)}
 .hbtn span{font-size:17px;line-height:1}
 .hbtn kbd{font:400 11px/1 var(--mono);color:var(--p-mute);letter-spacing:.04em}
@@ -380,6 +398,14 @@ details.grp .gb{padding:0 0 8px}
       <button class="hbtn" id="undoBtn" disabled title="Undo (⌘Z)"><span aria-hidden="true">↶</span> Undo <kbd>⌘Z</kbd></button>
       <button class="hbtn" id="redoBtn" disabled title="Redo (⇧⌘Z)"><span aria-hidden="true">↷</span> Redo <kbd>⇧⌘Z</kbd></button>
     </div>
+    <div class="base" role="group" aria-label="Reel settings">
+      <div><span class="lbl">Length <small class="range-val" id="durationVal">40s</small></span>
+        <div class="base-len"><input type="range" data-c="duration" data-structural="1" min="5" max="120" step="1" value="40" aria-label="Reel length in seconds"><input type="number" id="durationNum" min="5" max="120" step="1" inputmode="numeric" aria-label="Reel length in seconds, typed"><span>s</span></div></div>
+      <div><span class="lbl">Format</span>
+        <select data-c="format" aria-label="Export format"><option value="1280x720">720p 16:9</option><option value="1920x1080">1080p 16:9</option><option value="1080x1920">9:16 tall</option><option value="1080x1080">1:1 square</option></select></div>
+      <div><span class="lbl">Pace</span>
+        <select data-c="pace" data-structural="1" aria-label="Cutting pace"><option value="calm">Calm</option><option value="steady">Steady</option><option value="punchy">Punchy</option></select></div>
+    </div>
   </div>
 
   <nav class="steps" role="tablist" aria-label="Steps">
@@ -420,10 +446,7 @@ details.grp .gb{padding:0 0 8px}
             <div class="f"><span class="lbl">Starts at <small>seconds in</small></span><input type="number" id="musicStartIn" min="0" step="0.1" inputmode="decimal"></div>
             <div class="f"><span class="lbl">Ends at <small id="musicEndHint">seconds in</small></span><input type="number" id="musicEndIn" min="5" step="0.1" inputmode="decimal"></div>
           </div>
-          <div class="f"><span class="lbl">Reel length <small class="range-val" id="durationVal">40 seconds</small></span>
-            <input type="range" data-c="duration" data-structural="1" min="5" max="120" step="1" value="40" aria-label="Reel length in seconds">
-          </div>
-          <p class="hint">Shorter plays better in a meeting. 30–45 seconds is the sweet spot.</p>
+          <p class="hint">The reel's length is at the top of the panel, next to format and pace. Shorter plays better in a meeting: 30–45 seconds is the sweet spot.</p>
         </div>
       </details>
 
@@ -500,11 +523,18 @@ details.grp .gb{padding:0 0 8px}
     </details>
 
     <details class="grp" open>
+      <summary>Footage</summary>
+      <div class="gb">
+        <div class="f"><span class="lbl">How uploads fit the frame</span>
+          <div class="seg" data-seg="fit"><button data-v="contain-blur">Whole picture · soft edges</button><button data-v="contain-dark">Whole picture · dark edges</button><button data-v="cover">Fill the frame · crops</button></div></div>
+        <p class="hint">Whole picture always shows every pixel of a recording or image, at its own proportions, with the gaps filled by a blurred echo of it or by plain dark. Fill the frame scales it up to cover the reel's shape and trims the edges.</p>
+      </div>
+    </details>
+
+    <details class="grp" open>
       <summary>Pace &amp; cuts</summary>
       <div class="gb">
-        <div class="f"><span class="lbl">Pace</span>
-          <div class="seg" data-seg="pace"><button data-v="calm">Calm</button><button data-v="steady">Steady</button><button data-v="punchy">Punchy</button></div></div>
-        <p class="hint">Calm holds every shot as long as it can. Punchy mixes long and short shots.</p>
+        <p class="hint" style="margin-top:0">Pace is at the top of the panel: Calm holds every shot as long as it can, Punchy mixes long and short shots. Fine-tune the shot lengths here.</p>
         <div class="f"><span class="lbl">Shot length <small class="range-val" id="shotVal">2–4 seconds</small></span>
           <div class="f2">
             <select data-c="shotMin" data-structural="1" data-num="1" aria-label="Shortest shot"><option value="1">1s shortest</option><option value="2">2s shortest</option><option value="3">3s shortest</option><option value="4">4s shortest</option></select>
@@ -541,9 +571,7 @@ details.grp .gb{padding:0 0 8px}
   <!-- ---- 4 · export ---- -->
   <section class="view" id="view-export" hidden>
     <h3>ship it.</h3>
-    <p class="lede">Watch it through once on the left, then export. Recording happens in real time, so a 40-second reel takes 40 seconds.</p>
-    <div class="f"><span class="lbl">Format</span>
-      <div class="seg" data-seg="format"><button data-v="1280x720">Landscape 720p</button><button data-v="1920x1080">Landscape 1080p</button><button data-v="1080x1920">Vertical 9:16</button><button data-v="1080x1080">Square</button></div></div>
+    <p class="lede">Watch it through once on the left, then export. Recording happens in real time, so a 40-second reel takes 40 seconds. Length and format are at the top of the panel.</p>
     <div class="card" id="exportSummary"><b>Reel summary</b><div class="cmeta" id="exportMeta">Add a track to export.</div></div>
     <button class="btn pri big" id="exportBtn" disabled>⬇ Export video</button>
     <p class="hint" style="margin-top:10px">Keep this tab visible while it records. Music, fades and your voice-over are all mixed in. When it finishes you choose where to save it; Chrome and Edge make an .mp4, other browsers a .webm. Safari can preview but can't record.</p>
@@ -624,7 +652,7 @@ const DEFAULTS = {
   endTpl: "statement", endBody: "", overlayTpl: "tag", ovl: { style: "tag", show: "all", anim: "once", in: "rise", out: "fade", pos: "bl", size: "m", bodyMode: "same", bg: "slowburn", title: "" },
   shotMin: 2, shotMax: 4, pace: "punchy", trans: DEFAULT_ON.slice(), transMode: "cycle", transWhere: "projects", beatPulse: false,
   title: "lululemon ux", subtitle: "made to feel", endBg: "noir", endMark: "logo",
-  musicStart: "auto", seed: 7, duration: 40, format: "1280x720",
+  musicStart: "auto", seed: 7, duration: 40, format: "1280x720", fit: "contain-blur",
   musicVol: 100, fadeIn: 0, fadeOut: 1.5, duck: true, musicEnv: [], voVol: 100, voMonitor: true,
 };
 // card templates (fields: which text boxes they use, and what to call them)
@@ -942,7 +970,7 @@ async function detectSceneCuts(file, clip){
 // ---------- projects & clips ------------------------------------------------
 function addProject(name){
   const proj = { id: P.nextId++, name: name || `Project ${P.projects.length+1}`, caption: "", clipIds: [],
-                 ovl: Object.assign({}, OVL_DEFAULT, C.ovl || {}), shots: {}, card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
+                 ovl: Object.assign({}, OVL_DEFAULT, C.ovl || {}), shots: {}, plan: null, card: { on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" } };
   P.projects.push(proj);
   return proj;
 }
@@ -1034,6 +1062,34 @@ function removeClip(proj, clipId){
 }
 
 // ---------- timeline build ---------------------------------------------------
+// beats per shot for K shots in order: shots with a chosen length keep it, the rest share what's left at the pace
+function planSteps(K, req, total, nextStep){
+  if (K <= 0) return [];
+  const steps = req.map(b => b || 0);
+  let fixed = steps.reduce((a, b) => a + b, 0);
+  const freeI = []; steps.forEach((b, i) => { if (!b) freeI.push(i); });
+  let remain = total - fixed;
+  if (freeI.length){
+    if (remain < freeI.length){            // the chosen lengths take too much: shrink them proportionally
+      const target = Math.max(0, total - freeI.length), sumF = fixed || 1;
+      steps.forEach((b, i) => { if (b) steps[i] = Math.max(1, Math.floor(b * target / sumF)); });
+      fixed = steps.reduce((a, b) => a + b, 0); remain = total - fixed;
+    }
+    const raw = freeI.map(() => nextStep()), rs = raw.reduce((a, b) => a + b, 0) || 1;
+    let used = 0;
+    freeI.forEach((i, k) => { steps[i] = Math.max(1, Math.round(raw[k] / rs * remain)); used += steps[i]; });
+    let diff = remain - used, g = 0;
+    while (diff !== 0 && g < 10000){ const i = freeI[g % freeI.length]; if (diff > 0){ steps[i]++; diff--; } else if (steps[i] > 1){ steps[i]--; diff++; } g++; }
+  } else {
+    const sum = steps.reduce((a, b) => a + b, 0);
+    if (sum !== total){
+      let used = 0; steps.forEach((b, i) => { steps[i] = Math.max(1, Math.round(b * total / (sum || 1))); used += steps[i]; });
+      let diff = total - used, g = 0;
+      while (diff !== 0 && g < 10000){ const i = g % steps.length; if (diff > 0){ steps[i]++; diff--; } else if (steps[i] > 1){ steps[i]--; diff++; } g++; }
+    }
+  }
+  return steps;
+}
 function buildTimeline(structural){
   if (!S.audioBuf) return;
   if (structural){
@@ -1076,21 +1132,75 @@ function buildTimeline(structural){
 
   const limit = use.length - 1 - reserve;
   const first = introOn ? introBeats : 0;
-  const steps = [];
-  let acc = 0;
   const total = Math.max(0, limit - first);
-  while (acc < total){
-    const rem = total - acc;
-    if (rem <= nMax){ steps.push(rem); break; }
-    if (rem < nMin + nMax){
-      const half = Math.floor(rem / 2);
-      const splitPenalty = half >= nMin ? 1 : nMin / Math.max(1, half);
-      const singlePenalty = rem / nMax;
-      if (singlePenalty <= splitPenalty) steps.push(rem);
-      else steps.push(rem - half, half);
-      break;
+
+  // ---- projects, their uploads, and any shot lists made by hand ----
+  const projs = P.projects.length ? P.projects : [{ id: 0, name: "Untitled", caption: "", clipIds: [] }];
+  const projectSources = p => {
+    const out = [];
+    for (const clip of projClips(p)){
+      if (clip.isImage) out.push({ clip, image: true, fixed: null, start: 0, end: Infinity, key: clip.id + ":img" });
+      else if (clip.segments && clip.segments.length > 1)
+        clip.segments.forEach((sg, i) => out.push({ clip, fixed: sg.start, start: sg.start, end: sg.end, key: clip.id + ":" + i }));
+      else out.push({ clip, fixed: null, start: 0, end: clip.duration || Infinity, key: clip.id + ":x" });
     }
-    steps.push(nextStep()); acc += steps[steps.length - 1];
+    return out;
+  };
+  const srcLists = projs.map(projectSources);
+  const planned = projs.map(p => Array.isArray(p.plan) ? p.plan : null);
+  const cardOn = p => !!(p.card && p.card.on);
+  const anyPlan = planned.some(Boolean);
+  const weightOf = k => Math.min(8, Math.max(srcLists[k].length, 2));
+
+  // the shots the pace would make on its own
+  const autoSteps = [];
+  { let acc = 0;
+    while (acc < total){
+      const rem = total - acc;
+      if (rem <= nMax){ autoSteps.push(rem); break; }
+      if (rem < nMin + nMax){
+        const half = Math.floor(rem / 2);
+        const splitPenalty = half >= nMin ? 1 : nMin / Math.max(1, half);
+        const singlePenalty = rem / nMax;
+        if (singlePenalty <= splitPenalty) autoSteps.push(rem);
+        else autoSteps.push(rem - half, half);
+        break;
+      }
+      autoSteps.push(nextStep()); acc += autoSteps[autoSteps.length - 1];
+    } }
+  let steps = autoSteps, alloc = null;
+  S.planTrim = 0;
+  if (anyPlan){
+    // hand-made lists get exactly their shots; the other projects share what's left
+    const need = planned.map((pl, k) => pl ? pl.length + (cardOn(projs[k]) ? 1 : 0) : 0);
+    const needSum = need.reduce((a, b) => a + b, 0);
+    const freeIdx = projs.map((_, k) => k).filter(k => !planned[k]);
+    alloc = new Array(projs.length).fill(0);
+    if (freeIdx.length){
+      const freeCount = Math.max(freeIdx.length, autoSteps.length - needSum);
+      const w = freeIdx.map(weightOf), ws = w.reduce((a, b) => a + b, 0);
+      const a = w.map(x => Math.floor(x / ws * freeCount));
+      let left = freeCount - a.reduce((x, y) => x + y, 0);
+      const rema = w.map((x, i) => ({ i, r: x / ws * freeCount - a[i] })).sort((p, q) => q.r - p.r);
+      for (let z = 0; z < left; z++) a[rema[z % rema.length].i]++;
+      freeIdx.forEach((k, i) => { alloc[k] = Math.max(1, a[i]); });
+    }
+    planned.forEach((pl, k) => { if (pl) alloc[k] = need[k]; });
+    let K = alloc.reduce((a, b) => a + b, 0);
+    if (K > total){                      // more shots than beats: the end of the reel loses shots
+      let over = K - total;
+      for (let k = projs.length - 1; k >= 0 && over > 0; k--){ while (alloc[k] > (planned[k] ? 0 : 1) && over > 0){ alloc[k]--; over--; S.planTrim++; } }
+      K = alloc.reduce((a, b) => a + b, 0);
+    }
+    const req = [];
+    projs.forEach((p, k) => {
+      for (let j = 0; j < alloc[k]; j++){
+        let b = null;
+        if (planned[k]){ const ei = cardOn(p) ? j - 1 : j; const e = ei >= 0 ? planned[k][ei] : null; if (e && e.beats > 0) b = Math.round(e.beats); }
+        req.push(b);
+      }
+    });
+    steps = planSteps(K, req, total, nextStep);
   }
   const starts = [];
   let i = first;
@@ -1122,31 +1232,26 @@ function buildTimeline(structural){
   bounds.push(realDur);
   const nContent = starts.length;
 
-  // ---- distribute shots across projects (weighted by clip count) ----
-  const projs = P.projects.length ? P.projects : [{ id: 0, name: "Untitled", caption: "", clipIds: [] }];
-  // every upload in a project, in order: whole clips, or a clip's own scenes, or an image
-  const projectSources = p => {
-    const out = [];
-    for (const clip of projClips(p)){
-      if (clip.isImage) out.push({ clip, image: true, fixed: null, start: 0, end: Infinity, key: clip.id + ":img" });
-      else if (clip.segments && clip.segments.length > 1)
-        clip.segments.forEach((sg, i) => out.push({ clip, fixed: sg.start, start: sg.start, end: sg.end, key: clip.id + ":" + i }));
-      else out.push({ clip, fixed: null, start: 0, end: clip.duration || Infinity, key: clip.id + ":x" });
+  // ---- how many shots each project gets ----
+  if (!anyPlan){
+    const weights = srcLists.map((l, k) => weightOf(k));
+    const wsum = weights.reduce((a,b)=>a+b,0);
+    alloc = weights.map(w => Math.floor(w/wsum*nContent));
+    let leftover = nContent - alloc.reduce((a,b)=>a+b,0);
+    const rema = weights.map((w,k) => ({k, r: w/wsum*nContent - alloc[k]})).sort((a,b)=>b.r-a.r);
+    for (let z=0; z<leftover; z++) alloc[rema[z % rema.length].k]++;
+    for (let k=0; k<alloc.length && nContent >= alloc.length; k++){
+      if (alloc[k] === 0){
+        const big = alloc.indexOf(Math.max(...alloc));
+        alloc[big]--; alloc[k]++;
+      }
     }
-    return out;
-  };
-  const srcLists = projs.map(projectSources);
-  const weights = srcLists.map(l => Math.min(8, Math.max(l.length, 2)));
-  const wsum = weights.reduce((a,b)=>a+b,0);
-  let alloc = weights.map(w => Math.floor(w/wsum*nContent));
-  let leftover = nContent - alloc.reduce((a,b)=>a+b,0);
-  const rema = weights.map((w,k) => ({k, r: w/wsum*nContent - alloc[k]})).sort((a,b)=>b.r-a.r);
-  for (let z=0; z<leftover; z++) alloc[rema[z % rema.length].k]++;
-  for (let k=0; k<alloc.length && nContent >= alloc.length; k++){
-    if (alloc[k] === 0){
-      const big = alloc.indexOf(Math.max(...alloc));
-      alloc[big]--; alloc[k]++;
-    }
+  } else {
+    // hand-dragged cuts can change the shot count: settle the difference on the free projects, or at the end
+    let K = alloc.reduce((a, b) => a + b, 0);
+    const freeIdx = projs.map((_, k) => k).filter(k => !planned[k]);
+    while (K < nContent){ const k = freeIdx.length ? freeIdx[freeIdx.length - 1] : projs.length - 1; alloc[k]++; K++; }
+    while (K > nContent){ let k = projs.length - 1; while (k > 0 && alloc[k] === 0) k--; if (alloc[k] === 0) break; alloc[k]--; K--; }
   }
 
   // ---- build shots ----
@@ -1162,6 +1267,7 @@ function buildTimeline(structural){
   let sIdx = 0;
   projs.forEach((proj, pIdx) => {
     const [bg, fg] = projColor(pIdx);
+    const plan = planned[pIdx], lastEnd = {};
     for (let j=0; j<alloc[pIdx]; j++){
       if (sIdx >= nContent) break;
       if (j === 0 && proj.card && proj.card.on){
@@ -1171,10 +1277,24 @@ function buildTimeline(structural){
         sIdx++; continue;
       }
       const rr = mulberry32(seed*1000 + sIdx);
-      let clip = null, srcOffset = 0, srcEnd = null, srcKey = null;
+      let clip = null, srcOffset = 0, srcEnd = null, srcKey = null, entry = null;
       const sources = srcLists[pIdx];
-      if (sources.length){
-        const shotDur = bounds[sIdx + off + 1] - bounds[sIdx + off];
+      const shotDur = bounds[sIdx + off + 1] - bounds[sIdx + off];
+      if (plan){
+        // a shot list made by hand: each entry names an upload (or a shape) and keeps rolling where it left off
+        entry = plan[cardOn(proj) ? j - 1 : j] || null;
+        if (entry && entry.kind === "upload"){
+          const src = sources.find(s => s.clip.id === entry.clipId && (entry.seg == null ? s.fixed === null || s.image : s.key === entry.clipId + ":" + entry.seg))
+                   || sources.find(s => s.clip.id === entry.clipId);
+          if (src){
+            clip = src.clip; srcKey = src.key;
+            srcOffset = entry.from != null ? entry.from : (lastEnd[src.key] != null ? lastEnd[src.key] : src.start + lead(src));
+            if (!src.image && isFinite(src.end) && srcOffset > src.end - 0.5) srcOffset = src.start + lead(src);
+            srcEnd = src.image ? null : (src.fixed !== null ? src.end : (clip.duration || null));
+            if (!src.image) lastEnd[src.key] = srcOffset + shotDur;
+          }
+        }
+      } else if (sources.length){
         const cur = cursors[pIdx];
         let src = sources[cur.si], offSrc = cur.off, tries = 0;
         // skip anything that can't fill most of this shot
@@ -1207,7 +1327,7 @@ function buildTimeline(structural){
         start: bounds[sIdx + off], end: bounds[sIdx + off + 1],
         kind: clip ? "video" : "placeholder",
         idx: sIdx + off, projIdx: pIdx, projId: proj.id, projName: proj.name,
-        shotInProj: j + 1, caption: proj.caption || "",
+        shotInProj: j + 1, caption: proj.caption || "", entry,
         clip, srcOffset, srcEnd, srcKey, bg, fg,
         shape: SHAPES[(sIdx*3 + Math.floor(rr()*2)) % SHAPES.length],
         zoomDir: rr() < 0.5 ? -1 : 1,
@@ -1593,7 +1713,7 @@ function resolveOvl(shot){
   if (proj && o.vary === "cycle" && Array.isArray(o.varyStyles) && o.varyStyles.length && n)
     o.style = o.varyStyles[(n - 1) % o.varyStyles.length];
   // and any shot can be set by hand
-  const so = proj && proj.shots && n ? proj.shots[n] : null;
+  const so = shot.entry ? (shot.entry.ovl || null) : (proj && proj.shots && n ? proj.shots[n] : null);
   if (so){
     ["style", "pos", "size"].forEach(k => { if (so[k] && so[k] !== "inherit") o[k] = so[k]; });
     if (typeof so.text === "string" && so.text.trim()) o.shotText = so.text.trim();
@@ -1618,6 +1738,30 @@ function scrim(ctx, W, H, from, strength, fromTop){
   if (fromTop) ctx.fillRect(0, 0, W, H*(1 - from)); else ctx.fillRect(0, H*from, W, H*(1 - from));
 }
 // footage (or the placeholder field) drawn cover-fit into a rectangle
+// place a picture or a video frame in a rectangle: whole (letterboxed, bars filled with a blurred
+// echo or plain dark) or cover (cropped). drift moves images gently without ever cropping them.
+function drawMedia(ctx, src, mw, mh, x, y, w, h, drift){
+  if (!mw || !mh) return;
+  const fit = C.fit || "contain-blur";
+  const cover = Math.max(w / mw, h / mh), contain = Math.min(w / mw, h / mh);
+  if (fit === "cover"){
+    const sc = cover * (drift ? drift.zoom : 1), dw = mw * sc, dh = mh * sc;
+    ctx.drawImage(src, x + (w - dw) / 2 + (drift ? drift.p * (dw - w) * 0.4 : 0), y + (h - dh) / 2, dw, dh);
+    return;
+  }
+  if (cover - contain > 1e-3){
+    if (fit === "contain-blur"){
+      ctx.save();
+      ctx.filter = `blur(${Math.max(6, Math.round(h * 0.03))}px) brightness(0.5)`;
+      const dw = mw * cover * 1.12, dh = mh * cover * 1.12;
+      ctx.drawImage(src, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+      ctx.restore();
+    } else { ctx.fillStyle = "#1C1210"; ctx.fillRect(x, y, w, h); }
+  }
+  const dw = mw * contain, dh = mh * contain;
+  const px = drift ? drift.p * Math.min(w - dw, w * 0.015) : 0, py = drift ? drift.p * Math.min(h - dh, h * 0.015) : 0;
+  ctx.drawImage(src, x + (w - dw) / 2 + px, y + (h - dh) / 2 + py, dw, dh);
+}
 function drawFootage(ctx, shot, x, y, w, h, local, pulse, radius){
   ctx.save();
   if (radius){ ctx.beginPath(); ctx.roundRect(x, y, w, h, radius); ctx.clip(); }
@@ -1626,21 +1770,15 @@ function drawFootage(ctx, shot, x, y, w, h, local, pulse, radius){
     const img = shot.clip.img;
     ctx.fillStyle = "#1C1210"; ctx.fillRect(x, y, w, h);
     if (img && img.naturalWidth){
-      // a slow drift so a still never feels frozen: zoom in or out, panning a little
-      const p = Math.min(1, Math.max(0, local / Math.max(0.1, shot.end - shot.start)));
-      const z = shot.zoomDir > 0 ? 1 + 0.08 * p : 1.08 - 0.08 * p;
-      const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight) * z;
-      const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
-      const px = (p - 0.5) * (dw - w) * 0.4 * (shot.rot > 0 ? 1 : -1);
-      ctx.drawImage(img, x + (w - dw)/2 + px, y + (h - dh)/2, dw, dh);
+      // a slow drift so a still never feels frozen
+      const prog = Math.min(1, Math.max(0, local / Math.max(0.1, shot.end - shot.start)));
+      const zoom = shot.zoomDir > 0 ? 1 + 0.08 * prog : 1.08 - 0.08 * prog;
+      drawMedia(ctx, img, img.naturalWidth, img.naturalHeight, x, y, w, h, { zoom, p: (prog - 0.5) * (shot.rot > 0 ? 1 : -1) });
     }
   } else if (shot.kind === "video"){
     const v = shotVideos[shot.idx];
     ctx.fillStyle = "#000"; ctx.fillRect(x, y, w, h);
-    if (v && v.readyState >= 2){
-      const vw = v.videoWidth, vh = v.videoHeight, sc = Math.max(w/vw, h/vh), dw = vw*sc, dh = vh*sc;
-      ctx.drawImage(v, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
-    }
+    if (v && v.readyState >= 2) drawMedia(ctx, v, v.videoWidth, v.videoHeight, x, y, w, h, null);
   } else {
     ctx.fillStyle = hexMix(shot.bg, "#FFFFFF", 0.10*pulse); ctx.fillRect(x, y, w, h);
     const base = Math.min(w, h)*0.30, scale = 1 + 0.05*shot.zoomDir*local, r = base*scale*(1 + 0.12*pulse);
@@ -2373,6 +2511,8 @@ function splitAtPlayhead(){
   materializeStarts();
   manualStarts.push(t);
   manualStarts.sort((a, b) => a - b);
+  const sp = projById(s.projId);
+  if (sp && Array.isArray(sp.plan) && s.entry){ const i = sp.plan.indexOf(s.entry); if (i >= 0) sp.plan.splice(i + 1, 0, Object.assign({}, s.entry, { from: null, beats: null })); }
   buildTimeline(false);
   setStatus("Shot split — drag the new cut to taste, or click its ◆ to style the transition.");
 }
@@ -2406,8 +2546,11 @@ function applyCutChoice(c, k){
   commit("cut");
   if (k === "__merge"){
     materializeStarts();
-    const t = S.timeline.musicStart + S.timeline.shots[c + 1].start;
+    const gone = S.timeline.shots[c + 1];
+    const t = S.timeline.musicStart + gone.start;
     manualStarts = manualStarts.filter(x => Math.abs(x - t) > 0.05);
+    const mp = projById(gone.projId);
+    if (mp && Array.isArray(mp.plan) && gone.entry){ const i = mp.plan.indexOf(gone.entry); if (i >= 0) mp.plan.splice(i, 1); }
     buildTimeline(false);
     setStatus("Shots merged into one.");
     return;
@@ -3054,7 +3197,7 @@ function musicStartSec(){
   return C.musicStart === "auto" ? (S.autoStart || 0) : (+C.musicStart || 0);
 }
 function onConfig(key){
-  if (key === "ovl"){ if (S.timeline && !S.playing) renderFrame(S.t); drawTimeline(); scheduleSave(); return; }
+  if (key === "ovl" || key === "fit"){ if (S.timeline && !S.playing) renderFrame(S.t); drawTimeline(); scheduleSave(); return; }
   if (AUDIO_KEYS.has(key)){
     if (voGain) voGain.gain.value = C.voVol / 100;
     updateAudioLabels(); drawTimeline();
@@ -3069,7 +3212,7 @@ function onConfig(key){
   if (["title","subtitle","endBg","endMark","titleLayout"].includes(key) && S.timeline && !S.playing){
     const t = S.timeline.shots.find(s => s.kind === "title"); if (t) seekTo(t.start + 0.7);
   }
-  if (key === "duration") $("durationVal").textContent = `${C.duration} seconds`;
+  if (key === "duration"){ $("durationVal").textContent = `${C.duration}s`; $("durationNum").value = C.duration; }
   if (key === "shotMin" || key === "shotMax") $("shotVal").textContent = `${C.shotMin}–${C.shotMax} seconds`;
   renderSteps();
   scheduleSave();
@@ -3126,7 +3269,8 @@ function syncControls(){
       b.setAttribute("aria-pressed", String(on));
     });
   });
-  $("durationVal").textContent = `${C.duration} seconds`;
+  $("durationVal").textContent = `${C.duration}s`;
+  $("durationNum").value = C.duration;
   $("shotVal").textContent = `${C.shotMin}–${C.shotMax} seconds`;
   updateAudioLabels();
 }
@@ -3143,6 +3287,12 @@ function setMusicWindow(start, end){
   if (S.audioBuf) rebuild(true);
   updateAudioLabels(); drawScrub(); scheduleSave();
 }
+$("durationNum").addEventListener("change", () => {
+  const v = Math.round(Math.min(120, Math.max(5, +$("durationNum").value || C.duration)));
+  if (v === C.duration){ $("durationNum").value = v; return; }
+  commit("duration"); C.duration = v; syncControls(); onConfig("duration");
+});
+$("durationNum").addEventListener("keydown", ev => { if (ev.key === "Enter") ev.target.blur(); });
 $("musicStartIn").addEventListener("change", () => { const s = +$("musicStartIn").value || 0; setMusicWindow(s, s + +C.duration); });
 $("musicEndIn").addEventListener("change", () => { const s = musicStartSec(); setMusicWindow(s, +$("musicEndIn").value || s + 5); });
 $("envClear").addEventListener("click", () => { commit("env"); C.musicEnv = []; onConfig("musicEnv"); setStatus("Volume points cleared."); });
@@ -3275,47 +3425,123 @@ function ovlEditor(el, get, set, opts){
   });
   sync();
 }
-// the project's shots as they are right now, each with its own overrides
+// ---------- the shot list editor --------------------------------------------------
+// A project's shots start out chosen by the beat planner. The first hand edit turns the
+// current shots into a list (proj.plan) that the planner then follows exactly.
+const projShots = proj => S.timeline ? S.timeline.shots.filter(s => s.projId === proj.id && (s.kind === "video" || s.kind === "placeholder")) : [];
+function materializePlan(proj){
+  if (Array.isArray(proj.plan)) return proj.plan;
+  proj.plan = projShots(proj).map(s => {
+    const e = s.clip
+      ? { kind: "upload", clipId: s.clip.id, seg: s.srcKey && /:\d+$/.test(s.srcKey) ? +s.srcKey.split(":")[1] : null, from: s.clip.isImage ? null : +s.srcOffset.toFixed(2), beats: null }
+      : { kind: "shape", beats: null };
+    const so = proj.shots && proj.shots[s.shotInProj];
+    if (so && Object.keys(so).length) e.ovl = Object.assign({}, so);
+    return e;
+  });
+  proj.shots = {};
+  return proj.plan;
+}
+function planEdit(proj, label, fn){
+  commit(label);
+  const plan = materializePlan(proj);
+  fn(plan);
+  rebuild(true);
+  renderProjects();
+}
 function renderShotStrip(proj){
   const box = $("inspShots");
   if (!box || !proj) return;
   if (!proj.shots) proj.shots = {};
-  const shots = S.timeline ? S.timeline.shots.filter(s => s.projId === proj.id && (s.kind === "video" || s.kind === "placeholder")) : [];
-  if (!shots.length){ box.innerHTML = `<div class="none" style="grid-column:1/-1;padding:8px 0">${S.timeline ? "This project has no shots yet." : "Add music first, then this project's shots appear here."}</div>`; return; }
+  const shots = projShots(proj);
+  const clips = projClips(proj);
+  // the add menu: every upload, plus a shape
+  const add = $("inspAddShot");
+  if (add){
+    add.innerHTML = `<option value="">+ Add shot…</option>` + clips.map(c => `<option value="u:${c.id}">${escH(c.name)}${c.isImage ? " (image)" : ""}</option>`).join("") + `<option value="shape">A shape (no footage)</option>`;
+    add.onchange = () => {
+      const v = add.value; add.value = "";
+      if (!v || !S.timeline) return;
+      planEdit(proj, "addshot", plan => { plan.push(v === "shape" ? { kind: "shape", beats: null } : { kind: "upload", clipId: +v.slice(2), seg: null, from: null, beats: null }); });
+      setStatus("Shot added at the end of the project. Drag it where you want it.");
+    };
+  }
+  const auto = $("inspAutoShots");
+  if (auto){ auto.hidden = !Array.isArray(proj.plan); auto.onclick = () => { commit("autoshots"); proj.plan = null; rebuild(true); renderProjects(); setStatus("Back to automatic shots for this project."); }; }
+  if ($("inspShotsNote")) $("inspShotsNote").textContent = shots.length ? `${shots.length} · ${Array.isArray(proj.plan) ? "set by hand" : "automatic"}` : "";
+  if (!shots.length){ box.innerHTML = `<div class="none" style="grid-column:1/-1;padding:8px 0">${S.timeline ? "No shots yet — add one above." : "Add music first, then this project's shots appear here."}</div>`; return; }
   const cur = S.timeline ? findShot(S.t) : -1;
   const posNames = { tl: "Top left", tr: "Top right", c: "Centre", bl: "Bottom left", br: "Bottom right" };
-  box.innerHTML = shots.map(s => {
-    const n = s.shotInProj, so = proj.shots[n] || {}, ov = resolveOvl(s);
-    const has = !!(so.style && so.style !== "inherit" || so.pos && so.pos !== "inherit" || so.size && so.size !== "inherit" || (so.text || "").trim());
+  const beatOpts = [["", "Length: auto"], [1, "1 beat"], [2, "2 beats"], [3, "3 beats"], [4, "4 beats"], [6, "6 beats"], [8, "8 beats"], [12, "12 beats"], [16, "16 beats"]];
+  box.innerHTML = (S.planTrim ? `<div class="shots-warn">The reel is too short for every shot: ${S.planTrim} at the end won't fit. Make the reel longer, or shorten some shots.</div>` : "") + shots.map(s => {
+    const n = s.shotInProj, so = s.entry ? (s.entry.ovl || {}) : (proj.shots[n] || {}), ov = resolveOvl(s);
+    const has = !!(so.style || so.pos || so.size || (so.text || "").trim());
     const thumb = s.clip && s.clip.thumb ? `<img src="${s.clip.thumb}" alt="">` : `<i style="background:${s.bg || "#3B3428"}"></i>`;
     const what = s.clip ? (s.clip.isImage ? "image" : `${s.srcOffset.toFixed(1)}s in`) : "shape";
-    return `<div class="shotc${s.idx === cur ? " is-cur" : ""}${has ? " has" : ""}" data-n="${n}">
+    const beats = s.entry && s.entry.beats ? s.entry.beats : "";
+    return `<div class="shotc${s.idx === cur ? " is-cur" : ""}${has ? " has" : ""}" data-n="${n}" draggable="true">
+      <div class="top"><span class="grip" title="Drag to reorder">⋮⋮</span><span class="sn">shot ${n} · ${(s.end - s.start).toFixed(1)}s</span><button class="ib" data-act="dup" title="Duplicate this shot">⧉</button><button class="ib" data-act="rm" title="Remove this shot">×</button></div>
       <div class="st" title="Show this shot">${thumb}<b>${escH(OVL[ov.style].name)}</b></div>
-      <div class="sn">shot ${n} · ${escH(s.clip ? s.clip.name : "")} ${what} · ${(s.end - s.start).toFixed(1)}s</div>
+      <div class="sn">${escH(s.clip ? s.clip.name : "shape")} · ${what}</div>
+      <select data-k="beats">${beatOpts.map(([v, l]) => `<option value="${v}" ${String(beats) === String(v) ? "selected" : ""}>${l}</option>`).join("")}</select>
       <select data-k="style"><option value="inherit">Style: as above</option>${Object.keys(OVL).map(k => `<option value="${k}" ${so.style === k ? "selected" : ""}>${OVL[k].name}</option>`).join("")}</select>
       <select data-k="pos"><option value="inherit">Position: as above</option>${Object.keys(posNames).map(k => `<option value="${k}" ${so.pos === k ? "selected" : ""}>${posNames[k]}</option>`).join("")}</select>
       <input type="text" data-k="text" value="${escH(so.text || "")}" placeholder="Body copy for this shot" spellcheck="false">
     </div>`;
   }).join("");
+  let dragN = null;
   box.querySelectorAll(".shotc").forEach(card => {
     const n = +card.dataset.n, s = shots.find(x => x.shotInProj === n);
+    const entryIndex = () => Array.isArray(proj.plan) && s.entry ? proj.plan.indexOf(s.entry) : -1;
     card.querySelector(".st").addEventListener("click", () => { if (S.timeline && !S.playing) seekTo(s.start + Math.min(0.8, (s.end - s.start) / 2)); box.querySelectorAll(".shotc").forEach(c => c.classList.toggle("is-cur", c === card)); });
+    card.querySelector('[data-act="rm"]').addEventListener("click", () => {
+      planEdit(proj, "rmshot", plan => { const i = s.entry ? plan.indexOf(s.entry) : n - 1 - (cardOn(proj) ? 1 : 0); if (i >= 0) plan.splice(i, 1); });
+      setStatus("Shot removed. Its time went to the shots around it.");
+    });
+    card.querySelector('[data-act="dup"]').addEventListener("click", () => {
+      planEdit(proj, "dupshot", plan => { const i = s.entry ? plan.indexOf(s.entry) : n - 1 - (cardOn(proj) ? 1 : 0); const e = plan[i] || plan[plan.length - 1]; plan.splice(i + 1, 0, Object.assign({}, e, { from: null })); });
+    });
     card.querySelectorAll("[data-k]").forEach(ctrl => {
       ctrl.addEventListener("change", () => {
+        const k = ctrl.dataset.k;
+        if (k === "beats"){ planEdit(proj, "beats" + n, plan => { const i = s.entry ? plan.indexOf(s.entry) : n - 1 - (cardOn(proj) ? 1 : 0); if (plan[i]) plan[i].beats = ctrl.value ? +ctrl.value : null; }); return; }
         commit("shot" + n);
-        const so = Object.assign({}, proj.shots[n] || {});
-        so[ctrl.dataset.k] = ctrl.value;
-        Object.keys(so).forEach(k => { if (so[k] === "inherit" || so[k] === "") delete so[k]; });
-        if (Object.keys(so).length) proj.shots[n] = so; else delete proj.shots[n];
+        const target = Array.isArray(proj.plan) && s.entry ? (s.entry.ovl = s.entry.ovl || {}) : (proj.shots[n] = proj.shots[n] || {});
+        target[k] = ctrl.value;
+        Object.keys(target).forEach(kk => { if (target[kk] === "inherit" || target[kk] === "") delete target[kk]; });
+        if (!Object.keys(target).length){ if (s.entry) delete s.entry.ovl; else delete proj.shots[n]; }
         onConfig("ovl");
         if (S.timeline && !S.playing) seekTo(s.start + Math.min(0.8, (s.end - s.start) / 2));
-        card.classList.toggle("has", !!Object.keys(so).length);
+        card.classList.toggle("has", !!Object.keys(target).length);
         card.querySelector(".st b").textContent = OVL[resolveOvl(s).style].name;
       });
       if (ctrl.tagName === "INPUT") ctrl.addEventListener("keydown", ev => { if (ev.key === "Enter") ctrl.blur(); });
+      ctrl.addEventListener("mousedown", ev => ev.stopPropagation());
+    });
+    // reorder by drag
+    card.addEventListener("dragstart", ev => { dragN = n; card.classList.add("dragging"); ev.dataTransfer.effectAllowed = "move"; try { ev.dataTransfer.setData("text/plain", String(n)); } catch (e) {} });
+    card.addEventListener("dragend", () => { dragN = null; card.classList.remove("dragging"); box.querySelectorAll(".shotc").forEach(c => c.classList.remove("drop-l", "drop-r")); });
+    card.addEventListener("dragover", ev => { if (dragN == null || dragN === n) return; ev.preventDefault(); const r = card.getBoundingClientRect(); const after = ev.clientX >= r.left + r.width / 2; card.classList.toggle("drop-l", !after); card.classList.toggle("drop-r", after); });
+    card.addEventListener("dragleave", () => card.classList.remove("drop-l", "drop-r"));
+    card.addEventListener("drop", ev => {
+      ev.preventDefault(); card.classList.remove("drop-l", "drop-r");
+      if (dragN == null || dragN === n) return;
+      const r = card.getBoundingClientRect(), after = ev.clientX >= r.left + r.width / 2, from = dragN; dragN = null;
+      moveShot(proj, from, n, after);
     });
   });
 }
+function moveShot(proj, fromN, toN, after){
+  const offset = cardOn(proj) ? 1 : 0;
+  planEdit(proj, "moveshot", plan => {
+    const fi = fromN - 1 - offset; let ti = toN - 1 - offset;
+    if (fi < 0 || fi >= plan.length) return;
+    const [e] = plan.splice(fi, 1);
+    if (fi < ti) ti--;
+    plan.splice(after ? ti + 1 : ti, 0, e);
+  });
+}
+const cardOn = p => !!(p && p.card && p.card.on);
 function previewOverlayShot(projId){
   if (!S.timeline || S.playing) return;
   const s = S.timeline.shots.find(x => (x.kind === "video" || x.kind === "placeholder") && (projId == null || x.projId === projId));
@@ -3414,7 +3640,7 @@ function renderProjects(){
       <span class="grip" title="Drag to reorder">⋮⋮</span>
       <div class="thumb">${thumb ? `<img src="${thumb.thumb}" alt="">` : `<i></i>`}</div>
       <div class="nm"><b>${escH(proj.name)}</b>
-        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${clips.length ? `${clips.length} upload${clips.length>1?"s":""}${clips.some(c => c.isImage) ? ` · ${clips.filter(c => c.isImage).length} image${clips.filter(c => c.isImage).length>1?"s":""}` : ""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
+        <small class="${clips.length ? "" : "warn"}">${proj.card && proj.card.on ? "text card · " : ""}${Array.isArray(proj.plan) ? `${proj.plan.length} shot${proj.plan.length === 1 ? "" : "s"} by hand · ` : ""}${clips.length ? `${clips.length} upload${clips.length>1?"s":""}${clips.some(c => c.isImage) ? ` · ${clips.filter(c => c.isImage).length} image${clips.filter(c => c.isImage).length>1?"s":""}` : ""}${segs ? ` · ${segs} scenes` : ""}` : "no footage · plays as shapes"}${proj.caption ? ` · “${escH(proj.caption)}”` : ""}</small></div>
       <button class="ib" title="Remove project" aria-label="Remove ${escH(proj.name)}">×</button>`;
     row.addEventListener("click", e => {
       if (e.target.closest(".ib")) return;
@@ -3491,8 +3717,11 @@ function renderInspector(){
     <div class="f" style="margin-top:16px"><span class="lbl">Mix it up <small>a different composition on each shot</small></span>
       <div class="seg" id="inspVary"><button data-v="same">Same on every shot</button><button data-v="cycle">Alternate</button></div></div>
     <div class="f" id="inspVaryBox"><span class="lbl">Alternate between <small>click in the order you want</small></span><div class="seg chips" id="inspVaryChips"></div></div>
-    <div class="f"><span class="lbl">Shot by shot <small>set any shot by hand</small></span><div class="shots" id="inspShots"></div></div>
-    <p class="hint">Click a picture to see that shot. What you set here wins for that shot, and the words animate in whenever the composition changes.</p>
+    <div class="shots-h"><span class="lbl">Shots <small id="inspShotsNote"></small></span>
+      <select id="inspAddShot" aria-label="Add a shot"><option value="">+ Add shot…</option></select>
+      <button class="btn" id="inspAutoShots" style="height:30px;font-size:12px" hidden title="Let the beat planner choose the shots again">↺ Auto</button></div>
+    <div class="shots" id="inspShots"></div>
+    <p class="hint">Drag a shot to reorder it. Each shot can take a chosen number of beats, its own composition, and its own line of copy. Click a picture to see it. Once you've edited the list by hand, the reel keeps exactly these shots until you press Auto.</p>
     <div class="f"><label class="check"><input type="checkbox" id="inspCardOn"> Open this project with a text card</label></div>
     <div id="inspCard" hidden>
       <div class="f"><span class="lbl">Template</span><div class="tpls" id="inspTpls"></div></div>
@@ -3793,6 +4022,7 @@ async function restoreState(st){
     P.projects = (st.projects || []).map(p => ({ id: p.id, name: p.name, caption: p.caption || "", clipIds: (p.clipIds || []).filter(id => CLIPS.has(id)),
       ovl: p.ovl || Object.assign({}, OVL_DEFAULT, C.ovl || {}, p.overlay && p.overlay !== "default" ? { style: p.overlay } : {}),
       shots: p.shots && typeof p.shots === "object" ? p.shots : {},
+      plan: Array.isArray(p.plan) ? p.plan : null,
       card: Object.assign({ on: false, tpl: "statement", eyebrow: "", title: "", body: "", bg: "slowburn" }, p.card || {}) }));
     P.nextId = st.nextId || 1;
     clipIdSeq = Math.max(clipIdSeq, st.clipIdSeq || 1);
@@ -3863,7 +4093,7 @@ const HELP = [
   { t: "Each project is a chapter", v: "rows",
     b: `<p>Add a project for each piece of work, in the order you want the story told. Drag the rows to reorder.</p><p>Drop screen recordings or images onto a project, or anywhere on the page. They play in the order you add them: a clip keeps rolling until it runs out, an image holds for a shot, and the reel changes to the next one on the beat. Clips that already have edits in them are detected, and each scene becomes a shot point.</p><p>No footage yet? The project plays as bold shapes, so the reel still flows.</p>` },
   { t: "Make it feel like us", v: "title",
-    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Every project has its own text style, can alternate compositions shot by shot, and can open with a text card of its own.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
+    b: `<p>Pick a template for the opening title and the sign-off: a lowercase statement, a poster, a big number that counts up, a quote, or a list. Choose how text sits over footage: a tag, a lower third, a headline, a corner label, or a split panel with the footage inset. Decide whether the title holds across every shot or shows once, how it comes in and goes out, and give each shot its own line of body copy. Every project has its own text style and its own shot list: reorder, add, remove, and set lengths by hand, or leave it to the beat planner.</p><p>Everything follows the brand book: Saans Bold, lowercase, Hot Heat on a Slow Burn field. <b>Shuffle the look</b> gives you another take on the same reel.</p>` },
   { t: "Sound: music, volume, voice", v: "beat",
     b: `<p>Under <b>Sound</b>, drag the bright window on the song to choose exactly where the music starts and ends, or type the seconds. The reel re-cuts to the beats under it.</p><p>Set the music volume and fades, or double-click the music lane under the timeline to add volume points and drag them. Press <b>Record voice-over</b> and talk while the reel plays; the take lands where you started, and the music lowers underneath it. Everything is mixed into the export.</p>` },
   { t: "Fine-tune the cut", v: "cut",
@@ -3875,6 +4105,7 @@ const HELP = [
       <li><kbd>S</kbd><span>Split the shot under the playhead.</span></li>
       <li><kbd>⌘Z</kbd><span>Undo, and <kbd>⇧⌘Z</kbd> to redo.</span></li>
       <li><kbd>Alt</kbd><span>Hold while dragging a cut to ignore the beat.</span></li>
+      <li><kbd>Fit</kbd><span>Under Look, uploads show whole by default. Pick Fill the frame if you'd rather crop.</span></li>
       <li><kbd>?</kbd><span>Opens this guide any time. <kbd>Esc</kbd> closes it.</span></li>
     </ul><p style="margin-top:12px">Export records in real time, so keep the tab visible. It downloads as an mp4 in Chrome and Edge.</p>` },
 ];
