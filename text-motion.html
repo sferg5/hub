@@ -153,6 +153,29 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
 .pal{display:flex;gap:4px;flex-wrap:wrap}
 .pal button{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);padding:0;background:var(--c)}
 .pal button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--fg)}
+.pal{gap:10px}
+.palg{display:inline-flex;gap:4px}
+.cname.off{color:var(--accent-ink);font-weight:600}
+/* brand check */
+.brand{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.brand-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.brand-head h2{font-size:15px;margin-right:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill.ok{color:#2f7d4f}.pill.note{color:var(--muted)}.pill.warn{color:var(--accent-ink);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.levels{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:11px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.levels span{padding:3px 9px;color:var(--faint)}
+.levels span.on{background:var(--sel);color:var(--sel-fg)}
+.bitems{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 18px}
+.bitems li{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:start;font-size:13px;line-height:1.4;padding:4px 0}
+.bitems .ic{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;margin-top:1px;color:#fff}
+.bitems .pass .ic{background:#2f7d4f}.bitems .note .ic{background:var(--faint)}.bitems .warn .ic{background:var(--accent)}
+.bitems small{display:block;color:var(--faint);font-size:11px;margin-top:1px}
+.bitems .btn{padding:3px 8px;font-size:12px}
+.brand-foot{font-size:11.5px;color:var(--faint)}
+.card .lvl{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:0 4px;font-weight:400}
+.card .lvl.core{background:var(--soft);color:var(--muted)}.card .lvl.seasonal{background:color-mix(in srgb,#feb899 45%,transparent);color:var(--fg)}.card .lvl.iconic{background:var(--accent);color:#fff}
+.card .warnmark{color:var(--accent-ink);font-size:12px;font-weight:700}
 .cname{font-size:12px;color:var(--muted)}
 /* ease */
 .ease-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
@@ -339,6 +362,8 @@ pre.code .cm{color:var(--faint)}
       <p class="trig-note" id="trigNote"></p>
     </section>
 
+    <section class="brand" id="brand" aria-label="Brand check" aria-live="polite"></section>
+
     <section aria-label="Variants">
       <div class="vhead">
         <h2>Variants</h2>
@@ -438,8 +463,36 @@ function easePath(a, w, h, pad){
 }
 
 /* ================= palette + fonts ================= */
-const PALETTE = [['Hot Heat', H], ['Slow Burn', SB], ['Coral', '#ff5f57'], ['Peach', '#feb899'], ['Black', INK], ['Ink', '#1c1210'], ['Mocha', '#94877e'], ['Fog', '#e9e7e1'], ['White', '#ffffff']];
+/* Brand palette from the Brand Creative Direction book (June 2026). Neutrals are unnamed in the book, so they're numbered lightest to darkest. */
+const PALETTE = [
+  ['Hot Heat', H, 'signature'], ['Slow Burn', SB, 'signature'],
+  ['Peach', '#feb899', 'seasonal'], ['Coral', '#ff5f57', 'seasonal'],
+  ['Nav black', INK, 'nav'], ['White', '#ffffff', 'nav'],
+  ['Neutral 1', '#fdfdf9', 'neutral'], ['Neutral 2', '#f2f1f0', 'neutral'], ['Neutral 3', '#e9e7e1', 'neutral'], ['Neutral 4', '#d2cdc4', 'neutral'],
+  ['Neutral 5', '#94877e', 'neutral'], ['Neutral 6', '#5e504b', 'neutral'], ['Neutral 7', '#3b3428', 'neutral'], ['Neutral 8', '#1c1210', 'neutral'],
+];
+const PAL_GROUPS = [['signature', 'Signature'], ['seasonal', 'Seasonal'], ['nav', 'Nav'], ['neutral', 'Neutrals']];
 const colorName = h => { const m = PALETTE.find(p => p[1].toLowerCase() === String(h).toLowerCase()); return m ? m[0] : null; };
+const cdist = (a, b) => { const A = hexToRgb(a), B = hexToRgb(b); return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); };
+/* Exact brand colour, a light tint of one (a wash toward white), or null. */
+function brandMatch(h){
+  if (!hexOk(h)) return null;
+  let best = null;
+  for (const [name, v, kind] of PALETTE){
+    const d = cdist(h, v);
+    if (d < 6) return {name, hex: v, kind, tint: 0};
+    if (kind === 'nav' && v === '#ffffff') continue;
+    for (let t = .05; t < .97; t += .01){ const dd = cdist(h, mix(v, '#ffffff', t)); if (dd < 14 && (!best || dd < best.d)) best = {name, hex: v, kind, tint: t, d: dd}; }
+  }
+  return best;
+}
+/* Saturated colours snap to the reds and seasonal colours, greys to the neutrals. */
+function nearestBrand(h){
+  const [r, g, b] = hexToRgb(h), mx = Math.max(r, g, b), mn = Math.min(r, g, b), sat = mx ? (mx - mn) / mx : 0;
+  const pool = PALETTE.filter(x => sat > .35 ? (x[2] === 'signature' || x[2] === 'seasonal') : true);
+  return pool.reduce((best, x) => { const d = cdist(h, x[1]); return !best || d < best.d ? {name: x[0], hex: x[1], d} : best; }, null);
+}
+const brandLabel = h => { const m = brandMatch(h); if (!m) return null; return m.tint ? `Tint of ${m.name}` : m.name; };
 const FONTS = [
   ['saans', 'Saans', '"Saans", system-ui, sans-serif'],
   ['system', 'System', 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'],
@@ -571,7 +624,7 @@ const FX = {
     name: 'Gradient flow', kind: 'label',
     desc: 'Colors drift continuously through the letters.',
     reduced: 'Animation off. The gradient stays still.',
-    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, trigger: 'loop', dir: 'left', dur: 4000, pause: 0, delay: 0, ease: E.linear},
+    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, trigger: 'loop', dir: 'left', dur: 3000, pause: 1500, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Colors', controls: [
         {k: 'c1', t: 'color', label: 'First color'},
@@ -582,7 +635,7 @@ const FX = {
       {title: 'Spread', controls: [
         {k: 'spread', t: 'range', label: 'Spread', hint: 'Higher numbers stretch the colors so fewer show at once.', min: 125, max: 600, step: 5, unit: '%'},
       ]},
-      timing({dir: [['left', 'Flow left'], ['right', 'Flow right']], durLabel: 'Cycle duration', durHint: 'Time for the colors to travel one full cycle.', durMax: 15000, easeHint: 'Linear keeps the flow even. Other curves make it surge.'}),
+      timing({dir: [['left', 'Flow left'], ['right', 'Flow right']], durLabel: 'Drift duration', durHint: 'Time for the colours to travel one full cycle.', durMax: 15000, easeHint: 'Ease-in-out makes the colours drift, then rest. Linear with no pause gives a constant flow.'}),
     ],
     compile(p){
       const cols = p.use3 ? [p.c1, p.c2, p.c3] : [p.c1, p.c2];
@@ -599,7 +652,7 @@ const FX = {
     name: 'Glow pulse', kind: 'label',
     desc: 'A soft glow swells behind the letters and fades.',
     reduced: 'Animation off. The label rests at its resting glow.',
-    defaults: {glow: H, size: 14, min: 0, max: 85, shift: false, shiftTo: H, trigger: 'loop', dur: 1400, pause: 400, delay: 0, ease: E['ease-in-out']},
+    defaults: {glow: H, size: 14, min: 0, max: 85, shift: false, shiftTo: H, trigger: 'loop', dur: 1400, pause: 1600, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Color', controls: [
         {k: 'glow', t: 'color', label: 'Glow color'},
@@ -825,7 +878,7 @@ const FX = {
     name: 'Wave', kind: 'char',
     desc: 'A ripple runs through the letters.',
     reduced: 'Animation off. Letters sit still on the line.',
-    defaults: {amp: .22, scale: 100, colorOn: false, color2: H, trigger: 'loop', dur: 500, stagger: 45, pause: 1400, delay: 0, ease: E['ease-out']},
+    defaults: {amp: .22, scale: 100, colorOn: false, color2: H, trigger: 'loop', dur: 500, stagger: 45, pause: 1800, delay: 0, ease: E['ease-out']},
     groups: [
       {title: 'Letters', controls: [
         {k: 'amp', t: 'range', label: 'Height', hint: 'How high each letter lifts, in ems.', min: 0, max: 1, step: .01, unit: 'em'},
@@ -1007,6 +1060,108 @@ function mount(host, fx, p, text, opt = {}){
   return ctrl;
 }
 
+/* ================= brand check =================
+   Rules from the Brand motion principles note, worked out from the Brand Creative Direction book.
+   The book has no motion chapter, so these are a working interpretation. */
+const LEVELS = ['core', 'seasonal', 'iconic'];
+const LEVEL_NAME = {core: 'Core', seasonal: 'Seasonal', iconic: 'Iconic'};
+const ENTRANCE = new Set(['rise', 'flip', 'type', 'scramble', 'roll']);
+const MOVES = new Set(['shimmer', 'fill', 'underline', 'marker', 'nudge', 'rise', 'flip', 'roll', 'wave']);
+const isBouncy = a => a && (a[1] < 0 || a[3] < 0 || a[1] > 1 || a[3] > 1);
+function shownColors(fx, p){
+  const out = [];
+  FX[fx].groups.forEach(g => g.controls.forEach(c => { if (c.t === 'color' && !(c.show && !c.show(p))) out.push(c); }));
+  return out;
+}
+function motionLevel(fx, p){
+  let L = {shimmer: 0, fill: 0, underline: 0, marker: 0, roll: 0, rise: 0, gradient: 1, glow: 1, wave: 1, flip: 1, type: 1, scramble: 1, nudge: 1}[fx] ?? 0;
+  if (fx === 'nudge' && (p.strength >= 10 || p.swings >= 4)) L = 2;
+  if (fx === 'flip' && (p.persp < 300 || Math.abs(p.angle) > 120)) L = 2;
+  if (fx === 'wave' && (p.amp > .4 || p.scale > 140)) L = 2;
+  if (fx === 'rise' && (Math.abs(p.dist) > .8 || p.scale < 60 || p.blur > 3 || p.order === 'random')) L = Math.max(L, 1);
+  if (fx === 'marker' && p.inkOn) L = Math.max(L, 1);
+  if (isBouncy(p.ease)) L = Math.max(L, 1);
+  return L;
+}
+function brandCheck(fx, p, C){
+  const items = [], F = FX[fx];
+  const add = (sev, text, from, fix, fixLabel) => items.push({sev, text, from, fix, fixLabel});
+  // 1, 2. colour
+  const cols = shownColors(fx, p);
+  const off = cols.filter(c => !brandMatch(p[c.k]));
+  off.forEach(c => { const n = nearestBrand(p[c.k]); add('warn', `${c.label} ${p[c.k]} isn't a brand colour. The nearest is ${n.name}.`, 'Colour: prioritize the brand palette', {[c.k]: n.hex}, `Use ${n.name}`); });
+  if (cols.length && !off.length) add('pass', 'Every colour is from the brand palette or a light tint of one.', 'Colour: use colour with clear intent');
+  const used = cols.map(c => brandMatch(p[c.k])).filter(Boolean);
+  const strong = name => used.some(m => m.name === name && m.tint < .35);
+  let cl = 0;
+  if (used.some(m => m.kind === 'seasonal')) cl = 1;
+  if (strong('Hot Heat') && strong('Slow Burn')) cl = 2;
+  if (strong('Hot Heat') && cl < 2) add('pass', 'Hot Heat is used as the highlight, the way the book uses it.', 'Colour: Hot Heat is the beacon');
+  // level
+  const level = LEVELS[Math.max(cl, motionLevel(fx, p))];
+  if (level === 'core') add('pass', 'Core level. Right for the nav, which is an everyday information touchpoint.', 'Expression system: Core');
+  else add('note', `Reads as ${LEVEL_NAME[level]}${level === 'iconic' ? ', bold enough to take over the nav' : ''}. Save it for ${level === 'iconic' ? 'a hero campaign moment' : 'a seasonal or campaign moment'}.`, `Expression system: ${LEVEL_NAME[level]}`);
+  // 3. rest between loops
+  if (p.trigger === 'loop' || p.trigger === 'repeat' && p.count > 3){
+    const holdStatic = (F.groups.some(g => g.controls.some(c => c.k === 'hold'))) && (p.exit ? p.exit !== 'none' : fx === 'scramble' || fx === 'fill') ? (p.hold || 0) : 0;
+    const rest = p.pause + holdStatic;
+    if (p.trigger === 'loop' && rest < 1500) add('warn', `Rests only ${(rest / 1000).toFixed(1)} s between loops. Constant motion competes with the product.`, 'Intentional: let product lead', {pause: Math.max(p.pause, 1500 - holdStatic + 500)}, 'Rest 2 s');
+    else if (p.trigger === 'loop') add('pass', `Rests ${(rest / 1000).toFixed(1)} s between loops.`, 'Intentional: nothing accidental');
+    if (p.trigger === 'repeat') add('note', `Plays ${p.count} times. Three or fewer passes keeps it a moment rather than a distraction.`, 'Voice: get to the point', {count: 3}, 'Play 3 times');
+  }
+  // 4. entrances finish fast
+  if (C && ENTRANCE.has(fx)){
+    const one = fx === 'type' ? 0 : p.dur;
+    const ent = C.spread + one + (fx === 'type' ? p.stagger : 0);
+    if (ent > 1500){
+      const max = Math.max(1, ...C.offsets.map((o, i) => i)), rank = fx === 'type' ? C.n : Math.max(1, C.n - 1);
+      const st = Math.max(fx === 'type' ? 10 : 0, Math.floor((1500 - one) / rank / 5) * 5);
+      add('warn', `The label takes ${(ent / 1000).toFixed(2)} s to arrive. Keep entrances under 1.5 s.`, 'Voice: respect people\'s time', {stagger: st}, `Stagger ${st} ms`);
+    } else add('pass', `Arrives in ${(ent / 1000).toFixed(2)} s.`, 'Voice: get to the point');
+  }
+  // 5. considered, not jittery
+  if ('dur' in p && F.groups.some(g => g.controls.some(c => c.k === 'dur')) && p.dur < 200) add('note', `${p.dur} ms is quick enough to feel abrupt.`, 'Intentional: thoughtful & crafted', {dur: 250}, 'Use 250 ms');
+  if (fx === 'scramble' && p.rate < 40) add('warn', 'The glyphs flicker very fast, which reads as jitter.', 'Intentional: thoughtful & crafted', {rate: 55}, 'Slow to 55 ms');
+  if (fx === 'nudge' && p.move === 'shake' && p.dur / (p.swings * 2) < 60) add('warn', 'The shake is fast enough to read as an error state.', 'Intentional: thoughtful & crafted', {dur: p.swings * 2 * 90}, 'Slow it down');
+  // 6. athletic easing
+  if (MOVES.has(fx) && p.ease && easeMatch(p.ease) && easeMatch(p.ease)[0] === 'linear') add('note', 'Linear easing feels mechanical. Athletic motion speeds up, then settles.', 'Standard: Athletic', {ease: E['ease-in-out']}, 'Use ease-in-out');
+  // 7. bounce
+  if (isBouncy(p.ease)) add('note', 'Overshoot reads playful. Use it with intent, not by default.', 'Daring: not to shock');
+  // 8. clarity
+  if (fx === 'rise' && p.blur > 6) add('warn', `A ${p.blur} px blur makes the label hard to read while it moves.`, 'Styling: clarity over effect', {blur: 4}, 'Use 4 px');
+  if (fx === 'scramble' && p.dur > 1000) add('note', 'A long scramble keeps the label unreadable for over a second.', 'Styling: clarity over effect', {dur: 600}, 'Use 600 ms');
+  if (fx === 'gradient' && p.spread < 160) add('note', 'Tight colour bands make the letters busy to read.', 'Styling: clarity over effect', {spread: 250}, 'Spread 250%');
+  // 9. trends
+  if (fx === 'scramble' || fx === 'type') add('note', `${F.name} is a tech-style effect. Use it only when the message calls for it.`, 'Styling: don\'t chase trends');
+  // 10. reduced motion
+  add('pass', 'Turns off for people who ask their device for reduced motion.', 'Intimate: human & connected');
+  const warns = items.filter(i => i.sev === 'warn').length, notes = items.filter(i => i.sev === 'note').length;
+  const status = warns ? 'warn' : notes ? 'note' : 'ok';
+  const statusText = warns ? `${warns} to fix` : notes ? 'On brand, with notes' : 'On brand';
+  const order = {warn: 0, note: 1, pass: 2};
+  items.sort((a, b) => order[a.sev] - order[b.sev]);
+  return {level, items, warns, notes, status, statusText};
+}
+function renderBrand(){
+  const C = player.ctrl.C, B = brandCheck(S.fx, P(), C), box = $('#brand');
+  box.textContent = '';
+  const fixes = B.items.filter(i => i.fix && i.sev === 'warn');
+  const fixAll = fixes.length ? el('button', {class: 'btn', type: 'button', onclick: () => { fixes.forEach(f => Object.assign(P(), f.fix)); changed('param'); toast('Brand fixes applied.'); }}, `Fix all (${fixes.length})`) : null;
+  box.append(el('div', {class: 'brand-head'},
+    el('h2', {}, 'Brand check'),
+    el('span', {class: 'levels', title: 'Expression level'}, LEVELS.map(l => el('span', {class: l === B.level ? 'on' : ''}, LEVEL_NAME[l]))),
+    el('span', {class: 'pill ' + B.status}, el('i'), B.statusText), fixAll));
+  const ul = el('ul', {class: 'bitems'});
+  B.items.forEach(it => {
+    const li = el('li', {class: it.sev}, el('span', {class: 'ic', 'aria-hidden': 'true'}, it.sev === 'pass' ? '✓' : it.sev === 'warn' ? '!' : 'i'),
+      el('span', {}, el('span', {class: 'sr'}, it.sev === 'pass' ? '' : ''), it.text, el('small', {}, it.from)),
+      it.fix ? el('button', {class: 'btn', type: 'button', onclick: () => { Object.assign(P(), it.fix); changed('param'); }}, it.fixLabel) : el('span'));
+    ul.append(li);
+  });
+  box.append(ul, el('p', {class: 'brand-foot'}, 'Rules are a working reading of the Brand Creative Direction book, which has no motion chapter. The nav is a Core touchpoint, so Seasonal and Iconic results are notes, not errors.'));
+}
+const schedBrand = debounce(() => renderBrand(), 80);
+
 /* ================= presets ================= */
 const PRESETS = [
   // Shimmer, neutral
@@ -1016,8 +1171,8 @@ const PRESETS = [
   {fx: 'shimmer', g: 'Neutral', name: 'Hard wipe', note: 'Zero softness, linear motion. A crisp-edged band.', p: {soft: 0, width: 30, dur: 1200, ease: E.linear}},
   {fx: 'shimmer', g: 'Neutral', name: 'Diagonal', note: 'Tilted band, so the sheen crosses tall letters at a slant.', p: {angle: 110, width: 40}},
   {fx: 'shimmer', g: 'Neutral', name: 'Double glint', note: 'A fainter second band trails the first.', p: {echoOn: true, echo: 45, width: 26}},
-  {fx: 'shimmer', g: 'Neutral', name: 'Subtle', note: 'Band only lifts to mid grey, so letters never disappear.', p: {hi: '#7a7a7a', width: 60, dur: 2200, pause: 3000}},
-  {fx: 'shimmer', g: 'Neutral', name: 'Bounce', note: 'Band crosses, then comes back, with no pause.', p: {dir: 'bounce', pause: 0}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Subtle', note: 'Band only lifts to a warm mid neutral, so letters never disappear.', p: {hi: '#94877e', width: 60, dur: 2200, pause: 3000}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Bounce', note: 'Band crosses, then comes back, then rests.', p: {dir: 'bounce', pause: 1800}},
   {fx: 'shimmer', g: 'Motion', name: 'Three passes', note: 'Sweeps three times on load, then stops.', p: {trigger: 'repeat', count: 3, pause: 600}},
   {fx: 'shimmer', g: 'Neutral', name: 'Hover only', note: 'Still at rest. Shimmers while hovered.', p: {trigger: 'hover-loop', dur: 900, pause: 200}},
   // Shimmer, red
@@ -1044,13 +1199,13 @@ const PRESETS = [
   {fx: 'gradient', g: 'Red', name: 'Peach heat', note: 'Peach, Hot Heat and Slow Burn. Warmer and brighter.', p: {c1: '#feb899', c2: H, c3: SB}},
   {fx: 'gradient', g: 'Red', name: 'Red to black, slow', note: 'A slow drift between Hot Heat and black.', p: {c1: H, c2: INK, use3: false, dur: 7000, spread: 200}},
   {fx: 'gradient', g: 'Neutral', name: 'Monochrome', note: 'Black and mocha.', p: {c1: INK, c2: '#94877e', c3: INK}},
-  {fx: 'gradient', g: 'Motion', name: 'Surge', note: 'Eased flow with a pause, so the colors surge then rest.', p: {ease: E['ease-in-out'], dur: 1800, pause: 1200}},
+  {fx: 'gradient', g: 'Motion', name: 'Surge', note: 'Eased flow with a pause, so the colors surge then rest.', p: {ease: E['ease-in-out'], dur: 1800, pause: 1600}},
   // Glow
   {fx: 'glow', g: 'Red', name: 'Hot Heat glow', note: 'A red glow swells behind black text.', p: {}},
   {fx: 'glow', g: 'Red', name: 'Ember glow', note: 'Wider, softer Slow Burn glow.', p: {glow: SB, size: 22, max: 65}},
   {fx: 'glow', g: 'Red', name: 'Red text pulse', note: 'No glow. The text itself pulses to Hot Heat.', p: {max: 0, shift: true, shiftTo: H}},
   {fx: 'glow', g: 'Red', name: 'Pulse and glow', note: 'Text turns Hot Heat and glows at the peak.', p: {shift: true, shiftTo: H, size: 10, max: 60}},
-  {fx: 'glow', g: 'Motion', name: 'Slow breathe', note: 'Long, even pulse with no rest.', p: {dur: 2600, pause: 0, max: 60}},
+  {fx: 'glow', g: 'Motion', name: 'Slow breathe', note: 'A long, slow pulse with a rest.', p: {dur: 2600, pause: 1500, max: 60}},
   // Underline
   {fx: 'underline', g: 'Neutral', name: 'Draw on hover', note: 'Draws in from the left on hover and stays.', p: {}},
   {fx: 'underline', g: 'Red', name: 'Hot Heat underline', note: 'Red line draws in on hover.', p: {color: H}},
@@ -1093,7 +1248,7 @@ const PRESETS = [
   {fx: 'rise', g: 'Red', name: 'Ember arrival', note: 'Slow Burn letters blur in and settle to black.', p: {arriveOn: true, arrive: SB, blur: 4, dist: .3}},
   {fx: 'rise', g: 'Sequence', name: 'Centre out', note: 'Starts in the middle and spreads outward.', p: {order: 'center', stagger: 45}},
   {fx: 'rise', g: 'Sequence', name: 'Random', note: 'Letters arrive in a shuffled order.', p: {order: 'random', stagger: 40}},
-  {fx: 'rise', g: 'Sequence', name: 'Gathering speed', note: 'Gaps shrink, so the letters arrive faster and faster.', p: {scurve: 'accel', stagger: 70}},
+  {fx: 'rise', g: 'Sequence', name: 'Gathering speed', note: 'Gaps shrink, so the letters arrive faster and faster.', p: {scurve: 'accel', stagger: 65}},
   {fx: 'rise', g: 'Motion', name: 'Rise and leave', note: 'Rises in, holds, rises out. Loops.', p: {trigger: 'loop', exit: 'up', hold: 1200}},
   {fx: 'rise', g: 'Motion', name: 'Drop in', note: 'Letters fall in from above.', p: {dist: -.6}},
   // Wave
@@ -1116,7 +1271,7 @@ const PRESETS = [
   {fx: 'scramble', g: 'Neutral', name: 'Symbols', note: 'Punctuation glyphs instead of letters.', p: {charset: 'symbols', scrambleColor: '#94877e'}},
   {fx: 'scramble', g: 'Red', name: 'Blocks', note: 'Block glyphs, like a signal resolving.', p: {charset: 'blocks'}},
   {fx: 'scramble', g: 'Motion', name: 'Hover decode', note: 'Scrambles once when hovered.', p: {trigger: 'hover', delay: 0}},
-  {fx: 'scramble', g: 'Motion', name: 'Slow decode', note: 'Longer scramble, slower settle.', p: {stagger: 90, dur: 700}},
+  {fx: 'scramble', g: 'Motion', name: 'Slow decode', note: 'Longer scramble, slower settle.', p: {stagger: 60, dur: 600}},
 ];
 
 /* ================= state ================= */
@@ -1226,8 +1381,12 @@ function makeControl(c, scope){
     const sw = el('label', {class: 'swatch', title: 'Open color picker'}, pick);
     const hex = el('input', {class: 'hex', type: 'text', maxlength: 7, spellcheck: 'false', 'aria-label': c.label + ' hex value'});
     const cname = el('span', {class: 'cname'});
-    const pal = el('div', {class: 'pal', role: 'group', 'aria-label': 'Brand colors'});
-    PALETTE.forEach(([n, v]) => { const b = el('button', {type: 'button', title: `${n} ${v}`, 'aria-label': n, 'data-v': v}); b.style.setProperty('--c', v); b.onclick = () => setVal(scope, c.k, v); pal.append(b); });
+    const pal = el('div', {class: 'pal', role: 'group', 'aria-label': 'Brand colours'});
+    PAL_GROUPS.forEach(([g, gl]) => {
+      const row = el('span', {class: 'palg', title: gl});
+      PALETTE.filter(x => x[2] === g).forEach(([n, v]) => { const b = el('button', {type: 'button', title: `${n} ${v}`, 'aria-label': n, 'data-v': v}); b.style.setProperty('--c', v); b.onclick = () => setVal(scope, c.k, v); row.append(b); });
+      pal.append(row);
+    });
     root.append(el('div', {class: 'ctl-head'}, el('label', {class: 'lab', for: id}, c.label), reset), el('div', {class: 'colorrow'}, sw, hex, cname), pal, hint);
     pick.addEventListener('input', () => setVal(scope, c.k, pick.value.toLowerCase()));
     hex.addEventListener('input', () => { let v = hex.value.trim(); if (!v.startsWith('#')) v = '#' + v; const ok = hexOk(v); hex.classList.toggle('bad', !ok); if (ok) setVal(scope, c.k, v.toLowerCase()); });
@@ -1236,7 +1395,7 @@ function makeControl(c, scope){
       const v = scope.obj()[c.k];
       pick.value = v; sw.style.setProperty('--c', v);
       if (document.activeElement !== hex) hex.value = v;
-      cname.textContent = colorName(v) || '';
+      const bl = brandLabel(v); cname.textContent = bl || 'Not a brand colour'; cname.classList.toggle('off', !bl);
       $$('button', pal).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v.toLowerCase() === v.toLowerCase())));
       root.classList.toggle('changed', !same(v, scope.def()[c.k]));
       hint.textContent = c.hint || ''; hint.hidden = !c.hint;
@@ -1512,7 +1671,10 @@ function renderGallery(){
     sw.append(host);
     applyType(sw, {...S.type, size: 17});
     const badge = isHover(p) ? el('span', {class: 'badge'}, 'hover') : p.trigger === 'once' ? el('span', {class: 'badge'}, 'once') : null;
-    const card = el('button', {type: 'button', class: 'card', 'aria-pressed': 'false'}, sw, el('div', {class: 'meta'}, el('b', {}, pr.name, badge), pr.note ? el('span', {}, pr.note) : (S.filter !== 'current' ? el('span', {}, FX[pr.fx].name) : null)));
+    const BC = brandCheck(pr.fx, p, build(pr.fx, p, 'New & Featured'));
+    const lvl = el('span', {class: 'lvl ' + BC.level, title: 'Expression level'}, LEVEL_NAME[BC.level]);
+    const wm = BC.warns ? el('span', {class: 'warnmark', title: BC.items.filter(i => i.sev === 'warn').map(i => i.text).join(' ')}, '!') : null;
+    const card = el('button', {type: 'button', class: 'card', 'aria-pressed': 'false'}, sw, el('div', {class: 'meta'}, el('b', {}, pr.name, lvl, badge, wm), pr.note ? el('span', {}, pr.note) : (S.filter !== 'current' ? el('span', {}, FX[pr.fx].name) : null)));
     card._match = {fx: pr.fx, p};
     card.onclick = () => applyPreset(pr.fx, p);
     if (pr.saved){
@@ -1667,7 +1829,7 @@ function jsonFor(C){
   const p = {};
   for (const [k, v] of Object.entries(C.p)) p[k] = k === 'ease' ? easeCSS(v) : v;
   const o = {tool: 'Text Motion Studio', effect: C.fx, effectName: C.F.name, label: C.text, plays: C.p.trigger, params: p,
-    computed: {cycleMs: Math.round(C.T), totalMs: Math.round(C.total), activeMs: Math.round(C.active)}, navDesign: 'unchanged'};
+    computed: {cycleMs: Math.round(C.T), totalMs: Math.round(C.total), activeMs: Math.round(C.active)}, navDesign: 'unchanged', brand: (B => ({level: B.level, result: B.statusText, issues: B.items.filter(i => i.sev !== 'pass').map(i => ({severity: i.sev, text: i.text, rule: i.from}))}))(brandCheck(C.fx, C.p, C))};
   if (C.chars){ o.computed.letters = C.n; o.computed.letterDelaysMs = C.offsets; }
   if (C.p.trigger === 'repeat') o.computed.plays = C.p.count;
   return JSON.stringify(o, null, 2);
@@ -1702,6 +1864,9 @@ function specData(C){
   const nav = 'Unchanged. Keep the existing nav type, size and #1a1a1a text color. This spec covers the animation only.';
   secs.push(['Nav label', [['Design', esc(nav), nav]]]);
   const a11y = C.chars ? 'Letters are split into spans hidden from screen readers. The label keeps an aria-label with the full text.' : 'The label stays real text. Nothing changes for screen readers.';
+  const BC = brandCheck(C.fx, C.p, C);
+  secs.push(['Brand check', [['Expression level', esc(LEVEL_NAME[BC.level]), LEVEL_NAME[BC.level]], ['Result', esc(BC.statusText), BC.statusText],
+    ...BC.items.filter(i => i.sev !== 'pass').map(i => [i.sev === 'warn' ? 'Fix' : 'Note', esc(i.text) + `<small>${esc(i.from)}</small>`, `${i.text} (${i.from})`])]]);
   secs.push(['Accessibility', [['Reduced motion', esc(C.F.reduced), C.F.reduced], ['Screen readers', esc(a11y), a11y], ['Keyboard', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.']]]);
   return secs;
 }
@@ -1763,11 +1928,11 @@ function changed(kind){
   updateControls();
   if (kind === 'stage') renderToolbar();
   rebuildStage();
-  schedHandoff(); schedHist(); schedSave();
+  schedHandoff(); schedBrand(); schedHist(); schedSave();
   if (kind === 'text' || kind === 'type') schedGallery(); else updateActiveCards();
 }
 function fullRender(){
-  renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderGallery(); schedSave();
+  renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderBrand(); renderGallery(); schedSave();
 }
 
 /* ================= boot ================= */
