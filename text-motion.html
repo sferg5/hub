@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Text Motion Studio</title>
+<style>
+@font-face{font-family:"Saans";src:url("lululemon-saans-regular.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Saans";src:url("lululemon-saans-semibold.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Saans";src:url("lululemon-saans-bold.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Saans Mono";src:url("saans-mono-regular.woff2") format("woff2");font-weight:400;font-display:swap}
+
+/* Layout: three working columns. Controls left, live stage + variants centre, developer handoff right.
+   Below 1280px the handoff drops under the stage; below 820px everything stacks with the stage pinned on top. */
+:root{
+  --bg:#f2f1f0; --panel:#fdfdf9; --raise:#ffffff; --fg:#1c1210; --muted:#5e504b; --faint:#94877e;
+  --line:#d2cdc4; --soft:#e9e7e1; --accent:#ff444c; --accent-ink:#b8302e; --sel:#1c1210; --sel-fg:#fdfdf9;
+  --sans:"Saans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono:"Saans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#110d0c; --panel:#1a1513; --raise:#241e1b; --fg:#f2f1f0; --muted:#c9c0b6; --faint:#8d8077;
+    --line:#3b3330; --soft:#2a2320; --accent:#ff444c; --accent-ink:#ff8a8f; --sel:#f2f1f0; --sel-fg:#1c1210; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#110d0c; --panel:#1a1513; --raise:#241e1b; --fg:#f2f1f0; --muted:#c9c0b6; --faint:#8d8077;
+  --line:#3b3330; --soft:#2a2320; --accent:#ff444c; --accent-ink:#ff8a8f; --sel:#f2f1f0; --sel-fg:#1c1210; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--sans);display:flex;flex-direction:column}
+h1,h2,h3{margin:0;font-weight:600;text-wrap:balance}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;gap:10px 16px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.top .back{color:var(--muted);text-decoration:none;font-size:13px}
+.top .back:hover{color:var(--fg)}
+.top h1{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.top .tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--muted)}
+.top .spacer{flex:1}
+.top .hist{display:inline-flex;gap:6px}
+@media (max-width:560px){ .top .spacer{flex-basis:100%;height:0} }
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--line);border-radius:5px;background:var(--raise);font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--sel);color:var(--sel-fg);border-color:var(--sel)}
+.btn.icon{padding:6px 8px}
+.btn svg{width:15px;height:15px;flex:none}
+.kbd{font-family:var(--mono);font-size:10px;color:var(--faint)}
+
+/* ---------- app grid ---------- */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:350px minmax(0,1fr) 440px}
+.side,.main,.handoff{overflow:auto;min-width:0}
+.side{border-right:1px solid var(--line);background:var(--panel)}
+.handoff{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
+.main{padding:16px;display:flex;flex-direction:column;gap:18px}
+.main > *{flex-shrink:0}
+@media (max-width:1280px){
+  html,body{height:auto} body{display:block}
+  .app{grid-template-columns:330px minmax(0,1fr)}
+  .side{grid-row:1 / 3;position:sticky;top:0;max-height:100vh;align-self:start}
+  .main,.handoff{overflow:visible}
+  .handoff{grid-column:2;border-left:0;border-top:1px solid var(--line)}
+}
+@media (max-width:820px){
+  .app{display:flex;flex-direction:column}
+  .side{position:static;max-height:none;order:2;border-right:0;border-top:1px solid var(--line)}
+  .main{order:1;padding-inline:16px}
+  .handoff{order:3}
+  .stagecard{position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+  .stage{min-height:150px;max-height:34vh}
+  .stage-inner{padding:20px 16px}
+  .legend,.trig-note{display:none}
+}
+
+/* ---------- side: effect picker ---------- */
+.side-sec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.side-sec > .eyebrow{display:block;margin-bottom:8px}
+.fx-group + .fx-group{margin-top:10px}
+.fx-group .eyebrow{display:block;margin-bottom:6px;font-size:10px;color:var(--faint)}
+.fx-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.fx-tile{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--raise);overflow:hidden;text-align:left}
+.fx-tile .mini{height:40px;display:grid;place-items:center;background:#e6e4e1;font-size:20px;color:#1a1a1a;overflow:hidden}
+.fx-tile .nm{padding:5px 7px;font-size:12px;font-weight:600;line-height:1.2}
+.fx-tile[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.fx-desc{margin-top:10px;color:var(--muted);font-size:13px}
+
+/* ---------- side: control groups ---------- */
+.grp{border-bottom:1px solid var(--line)}
+.grp > summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;user-select:none}
+.grp > summary::-webkit-details-marker{display:none}
+.grp > summary .eyebrow{flex:1;color:var(--fg)}
+.grp > summary .chev{width:10px;height:10px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);transition:transform .15s;margin-top:-4px}
+.grp:not([open]) > summary .chev{transform:rotate(-45deg);margin-top:0}
+.grp > summary .count{font-family:var(--mono);font-size:10px;color:var(--accent-ink)}
+.grp-body{display:flex;flex-direction:column;gap:16px;padding:2px 16px 18px}
+.ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctl-head{display:flex;align-items:center;gap:6px;min-height:26px}
+.ctl-head .lab{flex:1;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;min-width:0}
+.ctl.changed .ctl-head .lab::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.scrub{cursor:ew-resize;user-select:none;touch-action:none}
+.reset{border:0;background:none;padding:3px;border-radius:4px;color:var(--muted);display:inline-grid;place-items:center;visibility:hidden}
+.reset svg{width:14px;height:14px}
+.reset:hover{color:var(--fg);background:var(--soft)}
+.ctl.changed .reset{visibility:visible}
+.hint{font-size:12px;color:var(--muted);line-height:1.35}
+.num{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:5px;background:var(--raise);height:26px;padding-right:7px}
+.num:focus-within{border-color:var(--fg)}
+.num input{width:62px;border:0;background:none;padding:0 4px 0 8px;font-family:var(--mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}
+.num input:focus{outline:none}
+.num input::-webkit-inner-spin-button,.num input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.num .unit{font-family:var(--mono);font-size:11px;color:var(--faint);min-width:1ch}
+/* slider */
+.track{position:relative;height:22px;display:flex;align-items:center}
+.track .def{position:absolute;top:17px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--faint);left:calc(8px + (100% - 16px) * var(--d,0));pointer-events:none}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--fg) 0 calc(var(--p,0) * 100%),var(--line) calc(var(--p,0) * 100%) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--raise);border:2px solid var(--fg);margin-top:-6px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--fg)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--raise);border:2px solid var(--fg)}
+input[type=range]:focus{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent);outline-offset:2px}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
+/* segmented */
+.seg{display:flex;flex-wrap:wrap;gap:3px;padding:3px;background:var(--soft);border-radius:6px}
+.seg button{flex:1 1 auto;padding:5px 8px;border:0;border-radius:4px;background:none;font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+/* toggle */
+.ctl-toggle .ctl-head{cursor:pointer}
+.switch{position:relative;width:34px;height:20px;border-radius:10px;border:0;background:var(--line);flex:none;padding:0;transition:background .15s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--raise);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.switch[aria-checked="true"]{background:var(--fg)}
+.switch[aria-checked="true"]::after{transform:translateX(14px)}
+/* color */
+.colorrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.swatch{position:relative;width:30px;height:26px;border-radius:5px;border:1px solid var(--line);overflow:hidden;flex:none;cursor:pointer;background:var(--c)}
+.swatch input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+.hex{width:84px;height:26px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 8px;font-family:var(--mono);font-size:12px;text-transform:lowercase}
+.hex:focus{outline:none;border-color:var(--fg)}
+.hex.bad{border-color:var(--accent)}
+.pal{display:flex;gap:4px;flex-wrap:wrap}
+.pal button{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.18);padding:0;background:var(--c)}
+.pal button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--fg)}
+.cname{font-size:12px;color:var(--muted)}
+/* ease */
+.ease-chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.ease-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px 4px;border:1px solid var(--line);border-radius:5px;background:var(--raise);font-size:10px;font-weight:600;line-height:1.1;color:var(--muted)}
+.ease-chip svg{width:30px;height:22px;overflow:visible}
+.ease-chip path{fill:none;stroke:currentColor;stroke-width:1.6}
+.ease-chip[aria-pressed="true"]{border-color:var(--fg);color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.ease-edit{border:1px solid var(--line);border-radius:6px;background:var(--raise);padding:8px}
+.ease-edit > summary{cursor:pointer;font-size:12px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:8px}
+.ease-edit > summary::-webkit-details-marker{display:none}
+.ease-edit > summary .mono{color:var(--muted);font-weight:400;font-size:11px}
+.bez{display:block;width:100%;max-width:240px;margin:8px auto 4px;touch-action:none}
+.bez .box{fill:none;stroke:var(--line)}
+.bez .diag{stroke:var(--line);stroke-dasharray:3 3}
+.bez .curve{fill:none;stroke:var(--fg);stroke-width:2.5}
+.bez .arm{stroke:var(--accent);stroke-width:1.5}
+.bez .h{fill:var(--raise);stroke:var(--accent);stroke-width:2;cursor:grab}
+.bez .hit{fill:transparent;cursor:grab}
+.bez text{font-family:var(--mono);font-size:9px;fill:var(--faint)}
+.bez-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.bez-nums .num{padding-right:4px}
+.bez-nums .num input{width:100%;padding-left:4px}
+.ease-demo{position:relative;height:14px;margin-top:8px;border-radius:7px;background:var(--soft)}
+.ease-demo i{position:absolute;top:2px;left:0;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.type-note{font-size:12px;color:var(--muted)}
+
+/* ---------- stage ---------- */
+.stagecard{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.toolbar .field{display:flex;align-items:center;gap:6px;flex:1 1 220px;min-width:0}
+.toolbar .field input{flex:1;min-width:0;height:30px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 9px}
+.toolbar .field input:focus{outline:none;border-color:var(--fg)}
+.toolbar .seg{flex:none}
+.stage{position:relative;min-height:240px;max-height:56vh;overflow:auto;display:grid;place-items:center;transition:background .2s}
+.stage[data-ctx="nav"]{background:linear-gradient(160deg,#2a2b2d 0%,#56585b 55%,#36373a 100%)}
+.stage[data-ctx="light"]{background:#fdfdf9}
+.stage[data-ctx="dark"]{background:#141414}
+.stage[data-ctx="red"]{background:#ff444c}
+.stage[data-ctx="burn"]{background:#9c413c}
+.stage-inner{padding:40px 24px;width:100%;display:grid;place-items:center}
+.navbar{display:flex;align-items:center;gap:28px;color:#1a1a1a;width:min(100%,940px);min-width:0}
+.stage[data-ctx="nav"] .navbar{background:#e6e4e1;border-radius:6px;padding:0 22px;height:3.9em;box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden}
+.navbar .logo{width:1.7em;height:1.7em;border-radius:50%;background:#1a1a1a;flex:none}
+.navlinks{display:flex;align-items:center;gap:1.9em;min-width:0;white-space:nowrap}
+.stage:not([data-ctx="nav"]) .navbar{justify-content:center}
+.stage:not([data-ctx="nav"]) .logo,.stage:not([data-ctx="nav"]) .navlinks > :not(.host){display:none}
+.host{display:inline-block;outline-offset:6px;border-radius:2px}
+.tm-label{display:inline-block;position:relative}
+.tm-label .ch{display:inline-block;white-space:pre}
+.tm-label .ch.is-scrambling{color:var(--scr)}
+/* player */
+.player{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--raise);display:grid;place-items:center;flex:none}
+.pbtn svg{width:14px;height:14px}
+.pbtn.go{background:var(--sel);color:var(--sel-fg);border-color:var(--sel)}
+.scrubber{position:relative;flex:1 1 240px;min-width:160px;height:34px}
+.segs{position:absolute;left:0;right:0;top:9px;height:16px;border-radius:4px;overflow:hidden;background:var(--soft)}
+.segs .sg{position:absolute;top:0;bottom:0}
+.segs .sg.delay{background:repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 6px)}
+.segs .sg.motion{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+.segs .sg.pause{background:transparent}
+.segs .tk{position:absolute;top:3px;bottom:3px;width:1px;background:color-mix(in srgb,var(--accent) 70%,transparent)}
+.playhead{position:absolute;top:4px;bottom:4px;width:2px;margin-left:-1px;background:var(--fg);border-radius:1px;pointer-events:none}
+.scrubber input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.time{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:118px;text-align:right}
+.speed select{height:30px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 6px;font-size:12px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:0 12px 10px;font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:8px;border-radius:2px;display:inline-block}
+.trig-note{font-size:12px;color:var(--muted);padding:0 12px 10px}
+.trig-note:empty{display:none}
+.simhover[aria-pressed="true"]{background:var(--sel);color:var(--sel-fg);border-color:var(--sel)}
+
+/* ---------- variants ---------- */
+.vhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:10px}
+.vhead h2{font-size:15px;margin-right:auto}
+.save{display:flex;gap:6px;align-items:center}
+.save input{height:30px;width:170px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 9px;font-size:13px}
+.save input:focus{outline:none;border-color:var(--fg)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.vgroup{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.vgroup:first-child{margin-top:0}
+.vgroup h3{font-size:12px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.card{position:relative;display:flex;flex-direction:column;padding:0;border:1px solid var(--line);border-radius:7px;background:var(--panel);overflow:hidden;text-align:left;min-width:0}
+.card:hover{border-color:var(--faint)}
+.card[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
+.card .sw{height:66px;display:grid;place-items:center;font-size:17px;color:#1a1a1a;overflow:hidden;padding:0 10px}
+.sw[data-ctx="nav"]{background:#e6e4e1}.sw[data-ctx="light"]{background:#fdfdf9}.sw[data-ctx="dark"]{background:#141414}.sw[data-ctx="red"]{background:#ff444c}.sw[data-ctx="burn"]{background:#9c413c}
+.card .meta{padding:9px 11px 10px;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line)}
+.card .meta b{font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center}
+.card .meta span{font-size:12px;color:var(--muted);line-height:1.35}
+.badge{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:3px;padding:0 4px;color:var(--muted);font-weight:400}
+.card .del{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:13px;line-height:22px;padding:0;display:none}
+.card:hover .del,.card:focus-within .del{display:block}
+.empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);border-radius:7px;color:var(--muted);text-align:center}
+
+/* ---------- handoff ---------- */
+.ho-head{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.ho-head h2{font-size:15px}
+.ho-head p{font-size:12px;color:var(--muted)}
+.clsrow{display:flex;align-items:center;gap:8px}
+.clsrow label{font-size:12px;font-weight:600;white-space:nowrap}
+.clsrow input{flex:1;min-width:0;height:28px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 8px;font-family:var(--mono);font-size:12px}
+.clsrow input:focus{outline:none;border-color:var(--fg)}
+.tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 10px 9px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.ho-actions{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
+.ho-body{padding:12px 16px 24px;flex:1}
+pre.code{margin:0;padding:12px;background:var(--raise);border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:11.5px;line-height:1.55;overflow-x:auto;white-space:pre;tab-size:2}
+pre.code .cm{color:var(--faint)}
+.spec{width:100%;border-collapse:collapse;font-size:13px}
+.spec th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:14px 0 6px;border-bottom:1px solid var(--line)}
+.spec tr:first-child th{padding-top:0}
+.spec td{padding:7px 0;border-bottom:1px solid var(--soft);vertical-align:top}
+.spec td:first-child{color:var(--muted);width:42%;padding-right:12px}
+.spec td:last-child{font-variant-numeric:tabular-nums}
+.spec .sv{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.spec .chip{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.2);display:inline-block;flex:none}
+.spec .mini-ease{width:22px;height:16px;overflow:visible;flex:none}
+.spec .mini-ease path{fill:none;stroke:var(--fg);stroke-width:1.6}
+.spec small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(12px);background:var(--sel);color:var(--sel-fg);padding:9px 14px;border-radius:6px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:50;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){ .switch,.switch::after,.toast,.grp > summary .chev{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="back" href="tools.html">← Hub tools</a>
+  <h1>Text Motion Studio</h1>
+  <span class="tag">beta</span>
+  <span class="spacer"></span>
+  <span class="hist">
+  <button class="btn icon" id="undo" type="button" title="Undo (⌘Z)" aria-label="Undo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H7"/></svg></button>
+  <button class="btn icon" id="redo" type="button" title="Redo (⇧⌘Z)" aria-label="Redo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H9"/></svg></button>
+  </span>
+  <button class="btn" id="resetAll" type="button" title="Put every control for this effect back to its default">Reset effect</button>
+  <button class="btn primary" id="share" type="button">Copy share link</button>
+</header>
+
+<div class="app">
+  <aside class="side" aria-label="Controls">
+    <section class="side-sec">
+      <span class="eyebrow">Effect</span>
+      <div id="fxPick"></div>
+      <p class="fx-desc" id="fxDesc"></p>
+    </section>
+    <div id="controls"></div>
+  </aside>
+
+  <main class="main">
+    <section class="stagecard" aria-label="Preview">
+      <div class="toolbar">
+        <div class="field">
+          <label for="labelText" class="eyebrow">Label</label>
+          <input id="labelText" type="text" maxlength="48" autocomplete="off">
+        </div>
+        <div class="seg" id="ctxSeg" role="group" aria-label="Background"></div>
+        <div class="seg" id="zoomSeg" role="group" aria-label="Zoom"></div>
+      </div>
+      <div class="stage" id="stage" data-ctx="nav">
+        <div class="stage-inner" id="stageInner">
+          <div class="navbar" id="navbar">
+            <span class="logo" aria-hidden="true"></span>
+            <div class="navlinks"><span class="host" id="host" tabindex="0"></span><span>Women</span><span>Men</span><span>Accessories</span><span>Outerwear</span><span>Activity</span><span>We Made Too Much</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="player">
+        <button class="pbtn go" id="play" type="button" aria-label="Pause"></button>
+        <button class="pbtn" id="restart" type="button" aria-label="Restart" title="Restart"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg></button>
+        <div class="scrubber">
+          <div class="segs" id="segs"></div>
+          <div class="playhead" id="playhead"></div>
+          <input type="range" id="scrub" min="0" max="1000" step="1" value="0" aria-label="Scrub through the animation">
+        </div>
+        <span class="time" id="time">0.00 s</span>
+        <button class="btn simhover" id="simHover" type="button" aria-pressed="false" hidden>Preview hover</button>
+        <label class="speed"><span class="eyebrow" style="margin-right:4px">Speed</span>
+          <select id="speed"><option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+        </label>
+      </div>
+      <div class="legend" id="legend"></div>
+      <p class="trig-note" id="trigNote"></p>
+    </section>
+
+    <section aria-label="Variants">
+      <div class="vhead">
+        <h2>Variants</h2>
+        <div class="seg" id="filterSeg" role="group" aria-label="Show variants"></div>
+        <form class="save" id="saveForm">
+          <input id="saveName" type="text" maxlength="40" placeholder="Name this version" aria-label="Name for the saved version">
+          <button class="btn" type="submit">Save</button>
+        </form>
+      </div>
+      <div class="vgrid" id="vgrid"></div>
+    </section>
+  </main>
+
+  <aside class="handoff" aria-label="Developer handoff">
+    <div class="ho-head">
+      <h2>Handoff</h2>
+      <p>Everything a developer needs to build what's on the stage. It updates as you change controls.</p>
+      <div class="clsrow"><label for="clsName">Class name</label><input id="clsName" type="text" spellcheck="false" autocomplete="off"></div>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="ho-actions">
+      <button class="btn" id="copyTab" type="button">Copy</button>
+      <button class="btn" id="copyAll" type="button">Copy full handoff</button>
+    </div>
+    <div class="ho-body" id="hoBody"></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= helpers ================= */
+const H = '#ff444c', SB = '#9c413c', INK = '#1a1a1a';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+function el(tag, attrs = {}, ...kids){
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)){
+    if (v === false || v == null) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()){ if (c == null || c === false) continue; e.append(c.nodeType ? c : document.createTextNode(c)); }
+  return e;
+}
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const clone = o => JSON.parse(JSON.stringify(o));
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const hexOk = h => /^#[0-9a-f]{6}$/i.test(h);
+function hexToRgb(h){ h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+const rgbToHex = a => '#' + a.map(x => Math.round(clamp(x, 0, 255)).toString(16).padStart(2, '0')).join('');
+const mix = (a, b, t) => { const A = hexToRgb(a), B = hexToRgb(b); return rgbToHex(A.map((x, i) => x + (B[i] - x) * t)); };
+const rgba = (h, a) => { const [r, g, b] = hexToRgb(h); return `rgba(${r}, ${g}, ${b}, ${+a.toFixed(3)})`; };
+const r2 = x => +(+x).toFixed(2);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const kebab = k => { const s = k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()); return s.startsWith('webkit-') ? '-' + s : s; };
+function applyStyle(e, o){ for (const [k, v] of Object.entries(o || {})) if (v != null) e.style.setProperty(kebab(k), String(v)); }
+function debounce(fn, ms){ let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+const store = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } })();
+const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
+const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg>';
+
+/* ================= easing ================= */
+const EASES = [
+  ['linear', 'Linear', [0, 0, 1, 1]],
+  ['ease', 'Ease', [.25, .1, .25, 1]],
+  ['ease-in', 'Ease in', [.42, 0, 1, 1]],
+  ['ease-out', 'Ease out', [0, 0, .58, 1]],
+  ['ease-in-out', 'In-out', [.42, 0, .58, 1]],
+  ['standard', 'Standard', [.4, 0, .2, 1]],
+  ['strong', 'Strong', [.65, 0, .35, 1]],
+  ['snappy', 'Snappy', [.7, 0, .3, 1]],
+  ['glide', 'Glide', [.2, .8, .2, 1]],
+  ['expo-out', 'Expo out', [.16, 1, .3, 1]],
+  ['anticipate', 'Anticipate', [.6, -.28, .74, .05]],
+  ['overshoot', 'Overshoot', [.34, 1.56, .64, 1]],
+];
+const E = Object.fromEntries(EASES.map(e => [e[0], e[2]]));
+const KEYWORD_EASE = new Set(['linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out']);
+const easeMatch = a => EASES.find(e => e[2].every((v, i) => Math.abs(v - a[i]) < 1e-4)) || null;
+function easeCSS(a){ const m = easeMatch(a); if (m && KEYWORD_EASE.has(m[0])) return m[0]; return `cubic-bezier(${a.map(v => +(+v).toFixed(3)).join(', ')})`; }
+const easeLabel = a => { const m = easeMatch(a); return m ? m[1] : 'Custom'; };
+/* The time-reversed curve. Exits use it so an exit looks like the entrance played backwards. */
+const mirror = a => [1 - a[2], 1 - a[3], 1 - a[0], 1 - a[1]].map(v => r2(v));
+function easePath(a, w, h, pad){
+  const X = x => pad + x * (w - 2 * pad), Y = y => h - pad - y * (h - 2 * pad);
+  return `M${X(0)} ${Y(0)} C${X(a[0])} ${Y(a[1])} ${X(a[2])} ${Y(a[3])} ${X(1)} ${Y(1)}`;
+}
+
+/* ================= palette + fonts ================= */
+const PALETTE = [['Hot Heat', H], ['Slow Burn', SB], ['Coral', '#ff5f57'], ['Peach', '#feb899'], ['Black', INK], ['Ink', '#1c1210'], ['Mocha', '#94877e'], ['Fog', '#e9e7e1'], ['White', '#ffffff']];
+const colorName = h => { const m = PALETTE.find(p => p[1].toLowerCase() === String(h).toLowerCase()); return m ? m[0] : null; };
+const FONTS = [
+  ['saans', 'Saans', '"Saans", system-ui, sans-serif'],
+  ['system', 'System', 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'],
+  ['helvetica', 'Helvetica', '"Helvetica Neue", Helvetica, Arial, sans-serif'],
+  ['serif', 'Serif', 'Georgia, "Times New Roman", serif'],
+  ['mono', 'Mono', '"Saans Mono", ui-monospace, Menlo, monospace'],
+];
+const CONTEXTS = [['nav', 'Nav bar'], ['light', 'Light'], ['dark', 'Dark'], ['red', 'Hot Heat'], ['burn', 'Slow Burn']];
+
+/* ================= shared timing controls ================= */
+const TRIG = [['loop', 'Loop'], ['once', 'Once'], ['hover', 'Hover'], ['hover-loop', 'Hover loop']];
+const TRIG_TEXT = {
+  'loop': 'Loops continuously.',
+  'once': 'Plays once when the page loads, then holds the last frame.',
+  'hover': 'Plays once on hover or keyboard focus. Resets when the pointer leaves.',
+  'hover-loop': 'Loops while hovered or focused. Resets when the pointer leaves.',
+};
+const isLoop = p => p.trigger === 'loop' || p.trigger === 'hover-loop';
+const isHover = p => p.trigger === 'hover' || p.trigger === 'hover-loop';
+function timing(o = {}){
+  const c = [{k: 'trigger', t: 'seg', label: 'Plays', options: TRIG, hint: p => TRIG_TEXT[p.trigger]}];
+  if (o.dir) c.push({k: 'dir', t: 'seg', label: 'Direction', options: o.dir});
+  if (o.dur !== false) c.push({k: 'dur', t: 'range', label: o.durLabel || 'Duration', hint: o.durHint || 'How long one pass of the motion takes.', min: o.durMin || 100, max: o.durMax || 6000, step: o.durStep || 50, unit: 'ms'});
+  if (o.stagger) c.push({k: 'stagger', t: 'range', label: o.staggerLabel || 'Letter stagger', hint: o.staggerHint || 'Time between one letter starting and the next.', min: o.staggerMin ?? 0, max: 300, step: 5, unit: 'ms'});
+  if (o.hold) c.push({k: 'hold', t: 'range', label: 'Hold', hint: o.holdHint || 'How long the finished state stays before it exits.', min: 0, max: 6000, step: 50, unit: 'ms', show: o.holdShow});
+  c.push({k: 'pause', t: 'range', label: 'Pause between loops', hint: 'Rest time after a pass ends and before the next one starts.', min: 0, max: 10000, step: 100, unit: 'ms', show: isLoop});
+  c.push({k: 'delay', t: 'range', label: 'Start delay', hint: 'Wait before the very first pass.', min: 0, max: 3000, step: 50, unit: 'ms'});
+  if (o.ease !== false) c.push({k: 'ease', t: 'ease', label: 'Easing', hint: o.easeHint || 'The speed curve of each movement. Exits use the same curve played backwards.'});
+  return {title: 'Timing', controls: c};
+}
+const BG_CLIP = (img, size = '300% 100%', repeat = 'no-repeat') => ({
+  backgroundImage: img, backgroundSize: size, backgroundRepeat: repeat,
+  webkitBackgroundClip: 'text', backgroundClip: 'text', webkitTextFillColor: 'transparent', color: 'transparent',
+});
+const lastPad = frames => { const l = frames[frames.length - 1]; if (l.offset < 1){ const {easing, ...rest} = l; frames.push({...rest, offset: 1}); } return frames; };
+
+/* ================= effects ================= */
+function shimmerBand(p, at, strength){
+  const w = p.width / 3, pl = w * (1 - p.soft / 100);
+  const hi = mix(p.base, p.hi, p.peak / 100 * strength);
+  const a = at - w / 2, b = at - pl / 2, c = at + pl / 2, d = at + w / 2;
+  const out = [[a, p.base]];
+  if (p.tintOn){ const t = mix(p.base, p.tint, .85 * strength); out.push([a + (b - a) * .5, t], [b, hi], [c, hi], [c + (d - c) * .5, t]); }
+  else out.push([b, hi], [c, hi]);
+  out.push([d, p.base]);
+  return out;
+}
+function shimmerGradient(p){
+  let stops = shimmerBand(p, 50, 1);
+  if (p.echoOn){ const off = p.width / 3 * 1.15 * (p.dir === 'ltr' ? -1 : 1); stops = stops.concat(shimmerBand(p, 50 + off, p.echo / 100)).sort((x, y) => x[0] - y[0]); }
+  const list = [`${p.base} 0%`, ...stops.map(([pos, col]) => `${col} ${clamp(pos, 0, 100).toFixed(2)}%`), `${p.base} 100%`];
+  return `linear-gradient(${p.angle}deg, ${list.join(', ')})`;
+}
+
+const FX = {
+  shimmer: {
+    name: 'Shimmer', kind: 'label',
+    desc: 'A band of light travels across the label. This is the effect on the shop nav today.',
+    reduced: 'Animation off. The label shows in its text color.',
+    defaults: {base: INK, hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, echoOn: false, echo: 45,
+      trigger: 'loop', dir: 'rtl', dur: 1500, pause: 2000, delay: 0, ease: E['ease-in-out']},
+    groups: [
+      {title: 'Color', controls: [
+        {k: 'base', t: 'color', label: 'Text color', hint: 'The label color outside the band.'},
+        {k: 'hi', t: 'color', label: 'Band color', hint: 'The color at the centre of the band.'},
+        {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from the text color toward the band color.', min: 0, max: 100, step: 1, unit: '%'},
+        {k: 'tintOn', t: 'toggle', label: 'Tint the band edges'},
+        {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
+      ]},
+      {title: 'Band', controls: [
+        {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
+        {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
+        {k: 'angle', t: 'range', label: 'Angle', hint: '90° is upright. Tilt it for a slanted sheen.', min: 45, max: 135, step: 1, unit: '°'},
+        {k: 'echoOn', t: 'toggle', label: 'Trailing echo band', hint: 'A fainter second band follows the first.'},
+        {k: 'echo', t: 'range', label: 'Echo strength', min: 0, max: 100, step: 1, unit: '%', show: p => p.echoOn},
+      ]},
+      timing({dir: [['rtl', 'Right to left'], ['ltr', 'Left to right'], ['bounce', 'Bounce']], durLabel: 'Sweep duration', durHint: 'Time for the band to cross the label once.'}),
+    ],
+    compile(p){
+      const pos = {rtl: ['0% 0', '100% 0'], ltr: ['100% 0', '0% 0'], bounce: ['0% 0', '100% 0']}[p.dir];
+      const ez = easeCSS(p.ease);
+      let frames, active;
+      if (p.dir === 'bounce'){ active = p.dur * 2; frames = [{offset: 0, backgroundPosition: pos[0], easing: ez}, {offset: .5, backgroundPosition: pos[1], easing: easeCSS(mirror(p.ease))}, {offset: 1, backgroundPosition: pos[0]}]; }
+      else { active = p.dur; frames = [{offset: 0, backgroundPosition: pos[0], easing: ez}, {offset: 1, backgroundPosition: pos[1]}]; }
+      return {active, labelStyle: {...BG_CLIP(shimmerGradient(p)), backgroundPosition: pos[0]}, tracks: [{target: 'label', frames}]};
+    },
+  },
+
+  fill: {
+    name: 'Fill wipe', kind: 'label',
+    desc: 'A new color wipes through the label, holds, then wipes back out.',
+    reduced: 'Animation off. Looping labels stay in the starting color. Hover labels switch straight to the fill color.',
+    defaults: {from: INK, to: H, soft: 30, mode: 'inout', trigger: 'loop', dir: 'ltr', dur: 700, hold: 900, pause: 1500, delay: 0, ease: E.strong},
+    groups: [
+      {title: 'Color', controls: [
+        {k: 'from', t: 'color', label: 'Starting color'},
+        {k: 'to', t: 'color', label: 'Fill color'},
+      ]},
+      {title: 'Wipe', controls: [
+        {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a hard edge. 100 blends across the whole label.', min: 0, max: 100, step: 1, unit: '%'},
+        {k: 'mode', t: 'seg', label: 'Shape', options: [['inout', 'Fill, then empty'], ['in', 'Fill only']], hint: p => p.mode === 'in' ? 'Fills and stays. When looping it snaps back before the next pass.' : 'Fills, holds, then reverses out the way it came.'},
+      ]},
+      timing({dir: [['ltr', 'Left to right'], ['rtl', 'Right to left']], hold: true, holdHint: 'How long the label stays filled.', durLabel: 'Wipe duration'}),
+    ],
+    compile(p){
+      const e = p.soft / 100 * 33, a = (50 - e / 2).toFixed(2), b = (50 + e / 2).toFixed(2);
+      const L = p.dir === 'ltr' ? [p.to, p.from] : [p.from, p.to];
+      const g = `linear-gradient(90deg, ${L[0]} 0%, ${L[0]} ${a}%, ${L[1]} ${b}%, ${L[1]} 100%)`;
+      const start = p.dir === 'ltr' ? '100% 0' : '0% 0', end = p.dir === 'ltr' ? '0% 0' : '100% 0';
+      const ez = easeCSS(p.ease), ezOut = easeCSS(mirror(p.ease));
+      let frames, active;
+      if (p.mode === 'inout'){
+        active = 2 * p.dur + p.hold;
+        frames = [{offset: 0, backgroundPosition: start, easing: ez}, {offset: p.dur / active, backgroundPosition: end}, {offset: (p.dur + p.hold) / active, backgroundPosition: end, easing: ezOut}, {offset: 1, backgroundPosition: start}];
+      } else {
+        active = p.dur + p.hold;
+        frames = lastPad([{offset: 0, backgroundPosition: start, easing: ez}, {offset: p.dur / active, backgroundPosition: end}]);
+      }
+      return {active, labelStyle: {...BG_CLIP(g), backgroundPosition: start}, tracks: [{target: 'label', frames}],
+        rest: isHover(p) ? {label: {backgroundPosition: end}} : null};
+    },
+  },
+
+  gradient: {
+    name: 'Gradient flow', kind: 'label',
+    desc: 'Colors drift continuously through the letters.',
+    reduced: 'Animation off. The gradient stays still.',
+    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, trigger: 'loop', dir: 'left', dur: 4000, pause: 0, delay: 0, ease: E.linear},
+    groups: [
+      {title: 'Colors', controls: [
+        {k: 'c1', t: 'color', label: 'First color'},
+        {k: 'c2', t: 'color', label: 'Second color'},
+        {k: 'use3', t: 'toggle', label: 'Add a third color'},
+        {k: 'c3', t: 'color', label: 'Third color', show: p => p.use3},
+      ]},
+      {title: 'Spread', controls: [
+        {k: 'spread', t: 'range', label: 'Spread', hint: 'Higher numbers stretch the colors so fewer show at once.', min: 125, max: 600, step: 5, unit: '%'},
+      ]},
+      timing({dir: [['left', 'Flow left'], ['right', 'Flow right']], durLabel: 'Cycle duration', durHint: 'Time for the colors to travel one full cycle.', durMax: 15000, easeHint: 'Linear keeps the flow even. Other curves make it surge.'}),
+    ],
+    compile(p){
+      const cols = p.use3 ? [p.c1, p.c2, p.c3] : [p.c1, p.c2];
+      const seq = [...cols, ...cols, cols[0]];
+      const stops = seq.map((c, i) => `${c} ${(i / (seq.length - 1) * 100).toFixed(2)}%`).join(', ');
+      const s = p.spread / 100, endPos = (s / (2 * (s - 1)) * 100).toFixed(2) + '% 0';
+      const from = p.dir === 'left' ? '0% 0' : endPos, to = p.dir === 'left' ? endPos : '0% 0';
+      return {active: p.dur, labelStyle: {...BG_CLIP(`linear-gradient(90deg, ${stops})`, `${p.spread}% 100%`, 'repeat'), backgroundPosition: from},
+        tracks: [{target: 'label', frames: [{offset: 0, backgroundPosition: from, easing: easeCSS(p.ease)}, {offset: 1, backgroundPosition: to}]}]};
+    },
+  },
+
+  glow: {
+    name: 'Glow pulse', kind: 'label',
+    desc: 'A soft glow swells behind the letters and fades.',
+    reduced: 'Animation off. The label rests at its resting glow.',
+    defaults: {color: INK, glow: H, size: 14, min: 0, max: 85, shift: false, shiftTo: H, trigger: 'loop', dur: 1400, pause: 400, delay: 0, ease: E['ease-in-out']},
+    groups: [
+      {title: 'Color', controls: [
+        {k: 'color', t: 'color', label: 'Text color'},
+        {k: 'glow', t: 'color', label: 'Glow color'},
+        {k: 'shift', t: 'toggle', label: 'Change text color at the peak'},
+        {k: 'shiftTo', t: 'color', label: 'Peak text color', show: p => p.shift},
+      ]},
+      {title: 'Glow', controls: [
+        {k: 'size', t: 'range', label: 'Glow size', hint: 'Blur radius of the glow.', min: 0, max: 40, step: 1, unit: 'px'},
+        {k: 'min', t: 'range', label: 'Resting glow', min: 0, max: 100, step: 1, unit: '%'},
+        {k: 'max', t: 'range', label: 'Peak glow', min: 0, max: 100, step: 1, unit: '%'},
+      ]},
+      timing({durLabel: 'Pulse duration', durHint: 'Time to swell and fade once.'}),
+    ],
+    compile(p){
+      const sh = a => `0 0 ${r2(p.size * .35)}px ${rgba(p.glow, a)}, 0 0 ${p.size}px ${rgba(p.glow, a * .7)}`;
+      const lo = p.min / 100, hi = p.max / 100;
+      const c = v => p.shift ? {color: v} : {};
+      const frames = [
+        {offset: 0, textShadow: sh(lo), ...c(p.color), easing: easeCSS(p.ease)},
+        {offset: .5, textShadow: sh(hi), ...c(p.shiftTo), easing: easeCSS(mirror(p.ease))},
+        {offset: 1, textShadow: sh(lo), ...c(p.color)},
+      ];
+      return {active: p.dur, labelStyle: {color: p.color, textShadow: sh(lo)}, tracks: [{target: 'label', frames}]};
+    },
+  },
+
+  underline: {
+    name: 'Underline draw', kind: 'label', line: true,
+    desc: 'A line draws itself under the label.',
+    reduced: 'Animation off. The underline appears without drawing.',
+    defaults: {text: INK, color: INK, thick: 1.5, offset: 4, round: false, origin: 'left', exit: 'none', trigger: 'hover', dur: 450, hold: 800, pause: 1200, delay: 0, ease: E.strong},
+    groups: [
+      {title: 'Line', controls: [
+        {k: 'text', t: 'color', label: 'Text color'},
+        {k: 'color', t: 'color', label: 'Line color'},
+        {k: 'thick', t: 'range', label: 'Thickness', min: .5, max: 6, step: .5, unit: 'px'},
+        {k: 'offset', t: 'range', label: 'Distance below text', min: -4, max: 16, step: 1, unit: 'px'},
+        {k: 'round', t: 'toggle', label: 'Round ends'},
+      ]},
+      {title: 'Draw', controls: [
+        {k: 'origin', t: 'seg', label: 'Draws from', options: [['left', 'Left'], ['center', 'Centre'], ['right', 'Right']]},
+        {k: 'exit', t: 'seg', label: 'Then', options: [['none', 'Stays'], ['reverse', 'Retracts'], ['continue', 'Passes through']], hint: p => ({none: 'The line stays drawn.', reverse: 'After the hold, the line pulls back to where it started.', continue: 'After the hold, the line leaves out the far side.'})[p.exit]},
+      ]},
+      timing({hold: true, holdShow: p => p.exit !== 'none', durLabel: 'Draw duration'}),
+    ],
+    compile(p){
+      const hid = {left: 'inset(0 100% 0 0)', right: 'inset(0 0 0 100%)', center: 'inset(0 50% 0 50%)'}[p.origin];
+      const shown = 'inset(0 0 0 0)';
+      const out = p.exit === 'continue' ? {left: 'inset(0 0 0 100%)', right: 'inset(0 100% 0 0)', center: 'inset(0 50% 0 50%)'}[p.origin] : hid;
+      const ez = easeCSS(p.ease);
+      let frames, active;
+      if (p.exit === 'none'){ active = p.dur; frames = [{offset: 0, clipPath: hid, easing: ez}, {offset: 1, clipPath: shown}]; }
+      else { active = 2 * p.dur + p.hold; frames = [{offset: 0, clipPath: hid, easing: ez}, {offset: p.dur / active, clipPath: shown}, {offset: (p.dur + p.hold) / active, clipPath: shown, easing: p.exit === 'reverse' ? easeCSS(mirror(p.ease)) : ez}, {offset: 1, clipPath: out}]; }
+      return {active,
+        labelStyle: {color: p.text, position: 'relative', display: 'inline-block'},
+        lineStyle: {position: 'absolute', left: '0', right: '0', bottom: `${-p.offset}px`, height: `${p.thick}px`, background: p.color, borderRadius: p.round ? `${p.thick}px` : '0', clipPath: hid},
+        tracks: [{target: 'line', frames}], rest: {line: {clipPath: shown}}};
+    },
+  },
+
+  rise: {
+    name: 'Letter rise', kind: 'char',
+    desc: 'Letters rise into place one after another.',
+    reduced: 'Animation off. All letters show in place.',
+    defaults: {color: INK, dist: .6, fade: true, blur: 0, scale: 100, mask: false, exit: 'none', trigger: 'once', dur: 600, stagger: 35, hold: 1400, pause: 600, delay: 0, ease: E.glide},
+    groups: [
+      {title: 'Letters', controls: [
+        {k: 'color', t: 'color', label: 'Text color'},
+        {k: 'dist', t: 'range', label: 'Travel', hint: 'How far each letter moves, in ems. Negative drops letters in from above.', min: -1.5, max: 1.5, step: .05, unit: 'em'},
+        {k: 'fade', t: 'toggle', label: 'Fade in'},
+        {k: 'blur', t: 'range', label: 'Start blur', min: 0, max: 12, step: .5, unit: 'px'},
+        {k: 'scale', t: 'range', label: 'Start size', hint: 'Letter size at the start. 100% means no scaling.', min: 0, max: 200, step: 5, unit: '%'},
+        {k: 'mask', t: 'toggle', label: 'Clip to the line', hint: 'Letters appear from behind an invisible edge instead of floating in.'},
+      ]},
+      {title: 'Exit', controls: [
+        {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['fade', 'Fade out'], ['up', 'Rise out'], ['down', 'Drop out']]},
+      ]},
+      timing({stagger: true, hold: true, holdShow: p => p.exit !== 'none', durLabel: 'Letter duration', durHint: 'Time for one letter to arrive.'}),
+    ],
+    compile(p){
+      const useOp = p.fade || p.exit !== 'none';
+      const st = (y, sc, op, bl) => { const o = {transform: `translateY(${r2(y)}em) scale(${r2(sc)})`}; if (useOp) o.opacity = op; if (p.blur > 0) o.filter = `blur(${bl}px)`; return o; };
+      const hidden = st(p.dist, p.scale / 100, p.fade ? 0 : 1, p.blur), shown = st(0, 1, 1, 0);
+      const exitOp = p.mask && p.exit !== 'fade' ? 1 : 0;
+      const exitSt = {fade: st(0, 1, 0, p.blur), up: st(-Math.abs(p.dist || .6), 1, exitOp, p.blur), down: st(Math.abs(p.dist || .6), 1, exitOp, p.blur)}[p.exit];
+      const ez = easeCSS(p.ease);
+      let frames, active;
+      if (p.exit === 'none'){ active = p.dur; frames = [{offset: 0, ...hidden, easing: ez}, {offset: 1, ...shown}]; }
+      else { active = 2 * p.dur + p.hold; frames = [{offset: 0, ...hidden, easing: ez}, {offset: p.dur / active, ...shown}, {offset: (p.dur + p.hold) / active, ...shown, easing: easeCSS(mirror(p.ease))}, {offset: 1, ...exitSt}]; }
+      return {active,
+        labelStyle: p.mask ? {display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom', paddingBlock: '0.12em'} : {display: 'inline-block'},
+        charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color},
+        tracks: [{target: 'char', frames}]};
+    },
+  },
+
+  wave: {
+    name: 'Wave', kind: 'char',
+    desc: 'A ripple runs through the letters.',
+    reduced: 'Animation off. Letters sit still on the line.',
+    defaults: {color: INK, amp: .22, scale: 100, colorOn: false, color2: H, trigger: 'loop', dur: 500, stagger: 45, pause: 1400, delay: 0, ease: E['ease-out']},
+    groups: [
+      {title: 'Letters', controls: [
+        {k: 'color', t: 'color', label: 'Text color'},
+        {k: 'amp', t: 'range', label: 'Height', hint: 'How high each letter lifts, in ems.', min: 0, max: 1, step: .01, unit: 'em'},
+        {k: 'scale', t: 'range', label: 'Size at the peak', min: 50, max: 200, step: 5, unit: '%'},
+        {k: 'colorOn', t: 'toggle', label: 'Change color at the peak'},
+        {k: 'color2', t: 'color', label: 'Peak color', show: p => p.colorOn},
+      ]},
+      timing({stagger: true, durLabel: 'Letter duration', durHint: 'Time for one letter to go up and back down.', easeHint: 'Curve for the lift. The fall uses the same curve played backwards, so ease out reads like gravity.'}),
+    ],
+    compile(p){
+      const t = (y, s) => `translateY(${r2(y)}em) scale(${r2(s)})`;
+      const c = v => p.colorOn ? {color: v} : {};
+      const frames = [
+        {offset: 0, transform: t(0, 1), ...c(p.color), easing: easeCSS(p.ease)},
+        {offset: .5, transform: t(-p.amp, p.scale / 100), ...c(p.color2), easing: easeCSS(mirror(p.ease))},
+        {offset: 1, transform: t(0, 1), ...c(p.color)},
+      ];
+      return {active: p.dur, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color}, tracks: [{target: 'char', frames}]};
+    },
+  },
+
+  type: {
+    name: 'Typewriter', kind: 'char',
+    desc: 'Letters appear one at a time behind a caret.',
+    reduced: 'Animation off. The whole label shows with no caret.',
+    defaults: {color: INK, caret: true, caretColor: H, caretW: 2, blink: 530, exit: 'none', trigger: 'once', stagger: 70, hold: 1600, pause: 500, delay: 0},
+    groups: [
+      {title: 'Text', controls: [
+        {k: 'color', t: 'color', label: 'Text color'},
+      ]},
+      {title: 'Caret', controls: [
+        {k: 'caret', t: 'toggle', label: 'Show caret'},
+        {k: 'caretColor', t: 'color', label: 'Caret color', show: p => p.caret},
+        {k: 'caretW', t: 'range', label: 'Caret width', min: 1, max: 6, step: .5, unit: 'px', show: p => p.caret},
+        {k: 'blink', t: 'range', label: 'Blink speed', hint: 'Time the caret stays on, then off, while it waits.', min: 200, max: 1200, step: 10, unit: 'ms', show: p => p.caret},
+      ]},
+      {title: 'Exit', controls: [
+        {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['clear', 'Erase']], hint: p => p.exit === 'clear' ? 'Letters disappear left to right at typing speed.' : 'The line stays typed.'},
+      ]},
+      timing({dur: false, ease: false, stagger: true, staggerLabel: 'Time per letter', staggerMin: 10, staggerHint: 'Typing speed. Lower is faster.', hold: true, holdHint: 'How long the finished line waits, with the caret blinking.'}),
+    ],
+    compile(p, n){
+      const s = p.stagger, eps = 1, clear = p.exit === 'clear';
+      const L = n * s + p.hold, active = clear ? L + s : s + p.hold;
+      const cs = v => `${p.caretW}px 0 0 0 ${v ? p.caretColor : rgba(p.caretColor, 0)}`;
+      const vis = on => p.caret ? {opacity: 1, boxShadow: cs(on)} : {opacity: 1};
+      const hid = p.caret ? {opacity: 0, boxShadow: cs(false)} : {opacity: 0};
+      const f = (t, o) => ({offset: clamp(t / active, 0, 1), ...o, easing: 'step-end'});
+      const main = [f(0, hid), f(eps, vis(true)), f(s, vis(false))];
+      if (clear) main.push(f(L, hid));
+      const last = [f(0, hid), f(eps, vis(true))];
+      if (p.caret){ const stop = clear ? L : active; let on = false; for (let t = s; t < stop - 1; t += p.blink){ last.push(f(t, vis(on))); on = !on; } if (!clear) last.push(f(active, vis(true))); }
+      if (clear) last.push(f(L, hid));
+      [main, last].forEach(fr => { const l = fr[fr.length - 1]; delete l.easing; lastPad(fr); });
+      const tracks = n > 1 ? [{target: 'char', which: 'notlast', frames: main}, {target: 'char', which: 'last', frames: last}] : [{target: 'char', which: 'last', frames: last}];
+      return {active, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color}, tracks, countDependent: true};
+    },
+  },
+
+  scramble: {
+    name: 'Scramble', kind: 'char', js: true,
+    desc: 'Letters flicker through random glyphs, then settle into the label.',
+    reduced: 'Script skips the effect. The label shows as plain text.',
+    defaults: {color: INK, scrambleColor: H, charset: 'upper', start: 'all', rate: 55, trigger: 'loop', dur: 450, stagger: 45, hold: 1600, pause: 400, delay: 0},
+    groups: [
+      {title: 'Color', controls: [
+        {k: 'color', t: 'color', label: 'Settled color'},
+        {k: 'scrambleColor', t: 'color', label: 'Scrambling color'},
+      ]},
+      {title: 'Glyphs', controls: [
+        {k: 'charset', t: 'seg', label: 'Glyph set', options: [['upper', 'A–Z'], ['letters', 'a–z'], ['symbols', 'Symbols'], ['digits', '0–9'], ['binary', '0 1'], ['blocks', 'Blocks']]},
+        {k: 'start', t: 'seg', label: 'Scramble starts', options: [['all', 'All at once'], ['wave', 'Left to right']], hint: p => p.start === 'wave' ? 'Each letter appears scrambling just before it settles.' : 'Every letter scrambles from the start, then they settle in order.'},
+        {k: 'rate', t: 'range', label: 'Flicker rate', hint: 'Time between glyph changes. Lower flickers faster.', min: 20, max: 200, step: 5, unit: 'ms'},
+      ]},
+      timing({ease: false, durLabel: 'Scramble time', durHint: 'How long each letter scrambles before it settles.', durMin: 50, durMax: 3000, stagger: true, staggerHint: 'Time between one letter settling and the next.', hold: true, holdHint: 'How long the settled label stays before the next scramble.', holdShow: isLoop}),
+    ],
+    compile(p){ return {active: p.dur + (isLoop(p) ? p.hold : 0), labelStyle: {display: 'inline-block', color: p.color, '--scr': p.scrambleColor}, charStyle: {whiteSpace: 'pre'}, tracks: []}; },
+  },
+};
+const FX_GROUPS = [['Whole label', ['shimmer', 'fill', 'gradient', 'glow', 'underline']], ['Letter by letter', ['rise', 'wave', 'type', 'scramble']]];
+
+/* Shared by the preview and the exported script, so both behave the same. */
+function scrambleAt(chars, t, o){
+  var sets = {letters: 'abcdefghijklmnopqrstuvwxyz', upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', symbols: '!<>-_\\/[]{}=+*^?#%&', digits: '0123456789', binary: '01', blocks: '▖▗▘▙▚▛▜▝▞▟█▓▒░'};
+  var set = sets[o.charset] || sets.upper, n = chars.length;
+  var T = o.dur + (o.loop ? o.hold : 0) + (n - 1) * o.stagger + (o.loop ? o.pause : 0);
+  var u = t - o.delay;
+  if (o.loop && u >= 0) u = u % T;
+  var k = Math.floor(Math.max(0, u) / o.rate);
+  return chars.map(function(ch, i){
+    if (ch.trim() === '') return {ch: ch, done: true};
+    var start = o.start === 'wave' ? i * o.stagger : 0, end = o.dur + i * o.stagger;
+    if (u >= end) return {ch: ch, done: true};
+    if (u < start) return {ch: ch, hidden: true};
+    var h = (Math.imul(i + 1, 2654435761) ^ Math.imul(k + 1, 40503)) >>> 0;
+    return {ch: set[h % set.length], done: false};
+  });
+}
+
+/* ================= build + mount ================= */
+function fold(frames, active, T){
+  const k = active / T;
+  const out = frames.map(f => ({...f, offset: f.offset * k}));
+  if (k < 0.99999){ const {easing, ...last} = out[out.length - 1]; out[out.length - 1] = {...last}; out.push({...last, offset: 1}); }
+  return out;
+}
+function build(fx, p, text){
+  const F = FX[fx];
+  const chars = F.kind === 'char' ? Array.from(text || ' ') : null;
+  const n = chars ? chars.length : 1;
+  const r = F.compile(p, n);
+  const loop = isLoop(p), s = chars ? (p.stagger || 0) : 0, spread = (n - 1) * s;
+  const active = Math.max(1, r.active);
+  const T = Math.max(1, loop ? active + spread + p.pause : active);
+  const tracks = r.tracks.map(tr => ({...tr, frames: fold(tr.frames, active, T)}));
+  const total = loop ? p.delay + T : p.delay + spread + active;
+  return {fx, F, p, text, chars, n, s, T, active, spread, loop, iterations: loop ? Infinity : 1, total, delay: p.delay, ...r, tracks};
+}
+const liveJS = new Set();
+function mount(host, fx, p, text, opt = {}){
+  const pp = opt.forceLoop && !isLoop(p) ? {...p, trigger: 'loop', pause: Math.max(p.pause || 0, 1400)} : p;
+  const C = build(fx, pp, text);
+  host.textContent = '';
+  const label = el('span', {class: 'tm-label'});
+  applyStyle(label, C.labelStyle);
+  const chars = [];
+  if (C.chars){
+    label.setAttribute('aria-label', text);
+    C.chars.forEach((ch, i) => { const s = el('span', {class: 'ch', 'aria-hidden': 'true'}, ch); s.style.setProperty('--i', i); applyStyle(s, C.charStyle); label.append(s); chars.push(s); });
+  } else label.textContent = text;
+  let line = null;
+  if (C.lineStyle){ line = el('span', {class: 'tm-line', 'aria-hidden': 'true'}); applyStyle(line, C.lineStyle); label.append(line); }
+  host.append(label);
+  const anims = [];
+  C.tracks.forEach(tr => {
+    const targets = tr.target === 'label' ? [[label, 0]] : tr.target === 'line' ? [[line, 0]]
+      : chars.map((c, i) => [c, i]).filter(([, i]) => tr.which === 'last' ? i === chars.length - 1 : tr.which === 'notlast' ? i < chars.length - 1 : true);
+    targets.forEach(([e, i]) => {
+      const a = e.animate(tr.frames, {duration: C.T, delay: C.delay + (tr.target === 'char' ? i * C.s : 0), iterations: C.iterations, fill: 'both', easing: 'linear'});
+      if (!opt.native) a.pause();
+      anims.push(a);
+    });
+  });
+  const ctrl = {C, label, host,
+    setTime(t){
+      if (C.F.js){
+        if (t == null){ chars.forEach((s, i) => { s.textContent = C.chars[i]; s.style.visibility = ''; s.classList.remove('is-scrambling'); }); return; }
+        const st = scrambleAt(C.chars, t, {...C.p, loop: C.loop});
+        st.forEach((c, i) => { const s = chars[i]; s.textContent = c.hidden ? C.chars[i] : c.ch; s.style.visibility = c.hidden ? 'hidden' : ''; s.classList.toggle('is-scrambling', !c.done && !c.hidden); });
+        return;
+      }
+      if (t == null){ anims.forEach(a => a.cancel()); return; }
+      anims.forEach(a => { a.currentTime = t; });
+    },
+    destroy(){ anims.forEach(a => a.cancel()); liveJS.delete(ctrl); },
+  };
+  if (C.F.js && opt.native){ ctrl.start = performance.now(); liveJS.add(ctrl); }
+  return ctrl;
+}
+
+/* ================= presets ================= */
+const PRESETS = [
+  // Shimmer, neutral
+  {fx: 'shimmer', g: 'Neutral', name: 'Production', note: 'The shop nav today. Near-white band, long soft ramps, right to left, pause between sweeps.', p: {}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Slow glide', note: 'Longer sweep, wider band. Reads as a breath rather than a glint.', p: {dur: 3200, pause: 1500, width: 90, ease: E.glide}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Quick glint', note: 'Narrow and fast with a long pause. Light catching metal.', p: {dur: 700, pause: 4000, width: 18, soft: 70}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Hard wipe', note: 'Zero softness, linear motion. A crisp-edged band.', p: {soft: 0, width: 30, dur: 1200, ease: E.linear}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Diagonal', note: 'Tilted band, so the sheen crosses tall letters at a slant.', p: {angle: 110, width: 40}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Double glint', note: 'A fainter second band trails the first.', p: {echoOn: true, echo: 45, width: 26}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Subtle', note: 'Band only lifts to mid grey, so letters never disappear.', p: {hi: '#7a7a7a', width: 60, dur: 2200, pause: 3000}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Bounce', note: 'Band crosses, then comes back, with no pause.', p: {dir: 'bounce', pause: 0}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Hover only', note: 'Still at rest. Shimmers while hovered.', p: {trigger: 'hover-loop', dur: 900, pause: 200}},
+  {fx: 'shimmer', g: 'Neutral', name: 'Dark nav', note: 'Light label on a dark bar. The band dips toward the bar color.', stage: 'dark', p: {base: '#f5f5f5', hi: '#2a2a2a'}},
+  // Shimmer, red
+  {fx: 'shimmer', g: 'Red', name: 'Hot Heat band', note: 'Production shape with a Hot Heat band passing through black text.', p: {hi: H}},
+  {fx: 'shimmer', g: 'Red', name: 'Hot Heat glint', note: 'Narrow, fast red flash with a long pause.', p: {hi: H, width: 16, soft: 80, dur: 600, pause: 3500}},
+  {fx: 'shimmer', g: 'Red', name: 'Red core, white edge', note: 'White ramps, Hot Heat centre. Reads as a hot filament.', p: {tintOn: true, tint: '#ffffff', hi: H, width: 44}},
+  {fx: 'shimmer', g: 'Red', name: 'White core, red edge', note: 'Letters flare red, then go white at the centre.', p: {tintOn: true, tint: H, hi: '#ffe9ea', width: 50}},
+  {fx: 'shimmer', g: 'Red', name: 'Ember', note: 'Slow Burn ramps into a Hot Heat centre.', p: {tintOn: true, tint: SB, hi: H, width: 50, dur: 2000, pause: 2500}},
+  {fx: 'shimmer', g: 'Red', name: 'Red echo', note: 'Hot Heat band with a fainter red trail.', p: {hi: H, echoOn: true, echo: 50, width: 26}},
+  {fx: 'shimmer', g: 'Red', name: 'Hot Heat text', note: 'Label set in Hot Heat with a white band.', p: {base: H, hi: '#ffffff'}},
+  {fx: 'shimmer', g: 'Red', name: 'Hot Heat, dark glint', note: 'Hot Heat label. The sheen goes darker, to Slow Burn.', p: {base: H, hi: SB, width: 40}},
+  {fx: 'shimmer', g: 'Red', name: 'Slow Burn text', note: 'Slow Burn label with a warm light band.', p: {base: SB, hi: '#f3ddd9', width: 50, dur: 2000, pause: 3000}},
+  {fx: 'shimmer', g: 'Red', name: 'Slow Burn to Hot Heat', note: 'The red heats up as the band passes.', p: {base: SB, hi: H, width: 50}},
+  {fx: 'shimmer', g: 'Red', name: 'Rose dust', note: 'Black text with a pale pink band.', p: {hi: '#ffd6d8', width: 40}},
+  {fx: 'shimmer', g: 'Red', name: 'Red wipe', note: 'Hard-edged Hot Heat band, linear motion.', p: {hi: H, soft: 0, width: 28, dur: 1200, ease: E.linear}},
+  {fx: 'shimmer', g: 'Red', name: 'Red on dark', note: 'Hot Heat label with a white band on a dark bar.', stage: 'dark', p: {base: H, hi: '#ffffff'}},
+  {fx: 'shimmer', g: 'Red', name: 'Red band on dark', note: 'Light label, Hot Heat band. Red reads brightest on black.', stage: 'dark', p: {base: '#f5f5f5', hi: H, width: 40}},
+  // Fill
+  {fx: 'fill', g: 'Red', name: 'Black to Hot Heat', note: 'Hot Heat fills the label, holds, and empties.', p: {}},
+  {fx: 'fill', g: 'Red', name: 'Hot Heat to black', note: 'Starts red, fills to black.', p: {from: H, to: INK}},
+  {fx: 'fill', g: 'Red', name: 'Slow Burn to Hot Heat', note: 'Deep red heating up to bright red.', p: {from: SB, to: H}},
+  {fx: 'fill', g: 'Red', name: 'Hard red edge', note: 'A crisp line where the colors meet.', p: {soft: 0, ease: E.snappy}},
+  {fx: 'fill', g: 'Red', name: 'Soft red bloom', note: 'The edge blends across the label.', p: {soft: 100, dur: 1200}},
+  {fx: 'fill', g: 'Neutral', name: 'Black to mocha', note: 'A quiet neutral fill.', p: {to: '#94877e'}},
+  {fx: 'fill', g: 'Motion', name: 'Hover fill', note: 'Fills red on hover and stays while hovered.', p: {trigger: 'hover', mode: 'in', hold: 0}},
+  // Gradient
+  {fx: 'gradient', g: 'Red', name: 'Red ember', note: 'Hot Heat, Slow Burn and black drifting left.', p: {}},
+  {fx: 'gradient', g: 'Red', name: 'Two reds', note: 'Hot Heat and Slow Burn only.', p: {use3: false}},
+  {fx: 'gradient', g: 'Red', name: 'Peach heat', note: 'Peach, Hot Heat and Slow Burn. Warmer and brighter.', p: {c1: '#feb899', c2: H, c3: SB}},
+  {fx: 'gradient', g: 'Red', name: 'Red to black, slow', note: 'A slow drift between Hot Heat and black.', p: {c1: H, c2: INK, use3: false, dur: 7000, spread: 200}},
+  {fx: 'gradient', g: 'Neutral', name: 'Monochrome', note: 'Black and mocha.', p: {c1: INK, c2: '#94877e', c3: INK}},
+  {fx: 'gradient', g: 'Motion', name: 'Surge', note: 'Eased flow with a pause, so the colors surge then rest.', p: {ease: E['ease-in-out'], dur: 1800, pause: 1200}},
+  // Glow
+  {fx: 'glow', g: 'Red', name: 'Hot Heat glow', note: 'A red glow swells behind black text.', p: {}},
+  {fx: 'glow', g: 'Red', name: 'Ember glow', note: 'Wider, softer Slow Burn glow.', p: {glow: SB, size: 22, max: 65}},
+  {fx: 'glow', g: 'Red', name: 'Red text pulse', note: 'No glow. The text itself pulses to Hot Heat.', p: {max: 0, shift: true, shiftTo: H}},
+  {fx: 'glow', g: 'Red', name: 'Pulse and glow', note: 'Text turns Hot Heat and glows at the peak.', p: {shift: true, shiftTo: H, size: 10, max: 60}},
+  {fx: 'glow', g: 'Red', name: 'Neon on dark', note: 'White text with a strong Hot Heat glow.', stage: 'dark', p: {color: '#ffffff', glow: H, size: 16, max: 100, min: 25}},
+  {fx: 'glow', g: 'Motion', name: 'Slow breathe', note: 'Long, even pulse with no rest.', p: {dur: 2600, pause: 0, max: 60}},
+  // Underline
+  {fx: 'underline', g: 'Neutral', name: 'Draw on hover', note: 'Draws in from the left on hover and stays.', p: {}},
+  {fx: 'underline', g: 'Red', name: 'Hot Heat underline', note: 'Red line draws in on hover.', p: {color: H}},
+  {fx: 'underline', g: 'Red', name: 'Thick red bar', note: 'A heavier Hot Heat bar with round ends.', p: {color: H, thick: 3, round: true, offset: 5}},
+  {fx: 'underline', g: 'Neutral', name: 'From the centre', note: 'Grows outward from the middle.', p: {origin: 'center'}},
+  {fx: 'underline', g: 'Motion', name: 'Pass through, looping', note: 'Draws in, holds, exits right. Repeats.', p: {trigger: 'loop', exit: 'continue'}},
+  {fx: 'underline', g: 'Red', name: 'Red pass, looping', note: 'Hot Heat line passing through on a loop.', p: {trigger: 'loop', exit: 'continue', color: H, thick: 2}},
+  // Rise
+  {fx: 'rise', g: 'Neutral', name: 'Rise in', note: 'Letters rise and fade in on load.', p: {}},
+  {fx: 'rise', g: 'Neutral', name: 'Masked rise', note: 'Letters slide up from behind the line.', p: {mask: true, dist: 1.1, fade: false}},
+  {fx: 'rise', g: 'Neutral', name: 'Blur in', note: 'Letters sharpen into place.', p: {dist: .2, blur: 6}},
+  {fx: 'rise', g: 'Neutral', name: 'Pop', note: 'Letters scale up with a small overshoot.', p: {dist: 0, scale: 40, ease: E.overshoot, stagger: 30}},
+  {fx: 'rise', g: 'Red', name: 'Red rise', note: 'Hot Heat letters rising in.', p: {color: H}},
+  {fx: 'rise', g: 'Motion', name: 'Rise and leave', note: 'Rises in, holds, rises out. Loops.', p: {trigger: 'loop', exit: 'up', hold: 1200}},
+  {fx: 'rise', g: 'Motion', name: 'Drop in', note: 'Letters fall in from above.', p: {dist: -.6}},
+  // Wave
+  {fx: 'wave', g: 'Neutral', name: 'Ripple', note: 'A small ripple across the label, then a rest.', p: {}},
+  {fx: 'wave', g: 'Red', name: 'Red ripple', note: 'Letters flash Hot Heat as the ripple passes.', p: {colorOn: true, color2: H}},
+  {fx: 'wave', g: 'Red', name: 'Hot Heat swell', note: 'Letters grow and turn red at the peak.', p: {colorOn: true, color2: H, scale: 120, amp: .12}},
+  {fx: 'wave', g: 'Neutral', name: 'Big bounce', note: 'Higher lift with overshoot.', p: {amp: .45, ease: E['expo-out'], dur: 650}},
+  {fx: 'wave', g: 'Neutral', name: 'Gentle', note: 'Barely there. A slow, low ripple.', p: {amp: .08, dur: 900, stagger: 80}},
+  // Typewriter
+  {fx: 'type', g: 'Red', name: 'Type in', note: 'Types out on load with a Hot Heat caret.', p: {}},
+  {fx: 'type', g: 'Red', name: 'Type and erase', note: 'Types, waits, erases, repeats.', p: {trigger: 'loop', exit: 'clear'}},
+  {fx: 'type', g: 'Red', name: 'Hot Heat type', note: 'Hot Heat letters with a black caret.', p: {color: H, caretColor: INK}},
+  {fx: 'type', g: 'Neutral', name: 'Fast type', note: 'Twice the typing speed.', p: {stagger: 35}},
+  {fx: 'type', g: 'Neutral', name: 'No caret', note: 'Letters only.', p: {caret: false}},
+  // Scramble
+  {fx: 'scramble', g: 'Red', name: 'Decode', note: 'Red glyphs flicker, then settle left to right.', p: {}},
+  {fx: 'scramble', g: 'Red', name: 'Wave decode', note: 'Letters appear scrambling just before they settle.', p: {start: 'wave'}},
+  {fx: 'scramble', g: 'Neutral', name: 'Symbols', note: 'Punctuation glyphs instead of letters.', p: {charset: 'symbols', scrambleColor: '#94877e'}},
+  {fx: 'scramble', g: 'Red', name: 'Blocks', note: 'Block glyphs, like a signal resolving.', p: {charset: 'blocks'}},
+  {fx: 'scramble', g: 'Motion', name: 'Hover decode', note: 'Scrambles once when hovered.', p: {trigger: 'hover', delay: 0}},
+  {fx: 'scramble', g: 'Motion', name: 'Slow decode', note: 'Longer scramble, slower settle.', p: {stagger: 90, dur: 700}},
+];
+
+/* ================= state ================= */
+const TYPE_DEFAULTS = {font: 'saans', size: 15, weight: 400, tracking: 0, case: 'none'};
+const TYPE_GROUP = {title: 'Type', note: 'Preview only. Match it to the real nav label.', controls: [
+  {k: 'font', t: 'seg', label: 'Typeface', options: FONTS.map(f => [f[0], f[1]])},
+  {k: 'size', t: 'range', label: 'Size', hint: '15px matches the shop nav.', min: 10, max: 96, step: 1, unit: 'px'},
+  {k: 'weight', t: 'seg', label: 'Weight', options: [[400, 'Regular'], [500, 'Medium'], [600, 'Semibold'], [700, 'Bold']]},
+  {k: 'tracking', t: 'range', label: 'Letter spacing', min: -.05, max: .3, step: .005, unit: 'em'},
+  {k: 'case', t: 'seg', label: 'Case', options: [['none', 'As typed'], ['uppercase', 'Upper'], ['lowercase', 'Lower']]},
+]};
+function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec'}; }
+function normalize(o){
+  const d = defaultState();
+  if (!o || typeof o !== 'object') return d;
+  const s = {...d, ...o, type: {...d.type, ...(o.type || {})}, params: {...d.params}, cls: {...(o.cls || {})}};
+  for (const k of Object.keys(FX)) s.params[k] = {...clone(FX[k].defaults), ...((o.params || {})[k] || {})};
+  if (!FX[s.fx]) s.fx = 'shimmer';
+  return s;
+}
+function fromHash(){
+  const m = location.hash.match(/^#s=(.+)$/);
+  if (!m) return null;
+  try { return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch(e){ return null; }
+}
+let S = normalize(fromHash() || store.get('tms.state.v1'));
+const P = () => S.params[S.fx];
+const snapshot = () => JSON.stringify({fx: S.fx, text: S.text, stage: S.stage, type: S.type, params: S.params, cls: S.cls});
+let saved = store.get('tms.saved.v1') || [];
+
+/* ================= history ================= */
+const hist = {stack: [], i: -1};
+function pushHist(){ const s = snapshot(); if (hist.stack[hist.i] === s) return; hist.stack = hist.stack.slice(0, hist.i + 1); hist.stack.push(s); if (hist.stack.length > 200) hist.stack.shift(); hist.i = hist.stack.length - 1; updateUndo(); }
+const schedHist = debounce(pushHist, 400);
+function restore(s){ const o = JSON.parse(s); S = normalize({...S, ...o}); fullRender(); updateUndo(); }
+function undo(){ pushHist(); if (hist.i > 0){ hist.i--; restore(hist.stack[hist.i]); } }
+function redo(){ if (hist.i < hist.stack.length - 1){ hist.i++; restore(hist.stack[hist.i]); } }
+function updateUndo(){ $('#undo').disabled = hist.i <= 0; $('#redo').disabled = hist.i >= hist.stack.length - 1; }
+const schedSave = debounce(() => store.set('tms.state.v1', JSON.parse(snapshot())), 300);
+
+/* ================= controls ================= */
+let CTRLS = [];
+const collapsed = new Set(store.get('tms.collapsed.v1') || []);
+const paramScope = {obj: () => P(), def: () => FX[S.fx].defaults, kind: 'param'};
+const typeScope = {obj: () => S.type, def: () => TYPE_DEFAULTS, kind: 'type'};
+
+function setVal(scope, k, v){ scope.obj()[k] = v; changed(scope.kind); }
+
+function ctlShell(c, scope, kind){
+  const root = el('div', {class: 'ctl ctl-' + kind, 'data-k': c.k});
+  const reset = el('button', {class: 'reset', type: 'button', title: 'Reset to default', 'aria-label': 'Reset ' + c.label, html: ICON_RESET,
+    onclick: () => setVal(scope, c.k, clone(scope.def()[c.k]))});
+  const hint = el('p', {class: 'hint'});
+  return {root, reset, hint};
+}
+function makeControl(c, scope){
+  const id = 'c_' + scope.kind + '_' + c.k;
+  let api;
+  if (c.t === 'range'){
+    const {root, reset, hint} = ctlShell(c, scope, 'range');
+    const decimals = String(c.step).includes('.') ? String(c.step).split('.')[1].length : 0;
+    const lab = el('label', {class: 'lab scrub', for: id, title: 'Drag sideways to adjust. Hold Shift for bigger steps.'}, c.label);
+    const num = el('input', {type: 'number', id: id + '_n', min: c.min, max: c.max, step: c.step, inputmode: 'decimal', 'aria-label': c.label + ' value'});
+    const range = el('input', {type: 'range', id, min: c.min, max: c.max, step: c.step});
+    const def = el('span', {class: 'def', title: 'Default'});
+    root.append(el('div', {class: 'ctl-head'}, lab, reset, el('span', {class: 'num'}, num, el('span', {class: 'unit'}, c.unit || ''))), el('div', {class: 'track'}, range, def), hint);
+    const snap = v => +clamp(Math.round((v - c.min) / c.step) * c.step + c.min, c.min, c.max).toFixed(decimals);
+    range.addEventListener('input', () => setVal(scope, c.k, snap(+range.value)));
+    num.addEventListener('input', () => { if (num.value === '' || isNaN(+num.value)) return; setVal(scope, c.k, +clamp(+num.value, c.min, c.max).toFixed(decimals)); });
+    num.addEventListener('blur', () => api.update());
+    num.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const dir = e.key === 'ArrowUp' ? 1 : -1, mult = e.shiftKey ? 10 : 1;
+      setVal(scope, c.k, snap(scope.obj()[c.k] + dir * c.step * mult));
+      num.value = scope.obj()[c.k];
+    });
+    // Drag the label sideways to scrub the value, like a design tool.
+    let drag = null;
+    lab.addEventListener('pointerdown', e => { drag = {x: e.clientX, v: scope.obj()[c.k], moved: false}; lab.setPointerCapture(e.pointerId); e.preventDefault(); });
+    lab.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      if (Math.abs(dx) > 2) drag.moved = true;
+      if (!drag.moved) return;
+      const steps = (c.max - c.min) / c.step, pxPerStep = Math.max(1, 220 / steps);
+      setVal(scope, c.k, snap(drag.v + Math.round(dx / pxPerStep) * c.step * (e.shiftKey ? 10 : 1)));
+    });
+    const end = () => { if (drag && !drag.moved) num.focus(); drag = null; };
+    lab.addEventListener('pointerup', end); lab.addEventListener('pointercancel', () => { drag = null; });
+    api = {root, update(){
+      const v = scope.obj()[c.k], d = scope.def()[c.k];
+      range.value = v;
+      if (document.activeElement !== num) num.value = (+v).toFixed(decimals);
+      range.style.setProperty('--p', (v - c.min) / (c.max - c.min));
+      def.style.setProperty('--d', (d - c.min) / (c.max - c.min));
+      def.title = 'Default: ' + d + (c.unit || '');
+      root.classList.toggle('changed', !same(v, d));
+      hint.textContent = typeof c.hint === 'function' ? c.hint(scope.obj()) : (c.hint || ''); hint.hidden = !hint.textContent;
+    }};
+  }
+  else if (c.t === 'color'){
+    const {root, reset, hint} = ctlShell(c, scope, 'color');
+    const pick = el('input', {type: 'color', id, 'aria-label': c.label});
+    const sw = el('label', {class: 'swatch', title: 'Open color picker'}, pick);
+    const hex = el('input', {class: 'hex', type: 'text', maxlength: 7, spellcheck: 'false', 'aria-label': c.label + ' hex value'});
+    const cname = el('span', {class: 'cname'});
+    const pal = el('div', {class: 'pal', role: 'group', 'aria-label': 'Brand colors'});
+    PALETTE.forEach(([n, v]) => { const b = el('button', {type: 'button', title: `${n} ${v}`, 'aria-label': n, 'data-v': v}); b.style.setProperty('--c', v); b.onclick = () => setVal(scope, c.k, v); pal.append(b); });
+    root.append(el('div', {class: 'ctl-head'}, el('label', {class: 'lab', for: id}, c.label), reset), el('div', {class: 'colorrow'}, sw, hex, cname), pal, hint);
+    pick.addEventListener('input', () => setVal(scope, c.k, pick.value.toLowerCase()));
+    hex.addEventListener('input', () => { let v = hex.value.trim(); if (!v.startsWith('#')) v = '#' + v; const ok = hexOk(v); hex.classList.toggle('bad', !ok); if (ok) setVal(scope, c.k, v.toLowerCase()); });
+    hex.addEventListener('blur', () => { hex.classList.remove('bad'); api.update(); });
+    api = {root, update(){
+      const v = scope.obj()[c.k];
+      pick.value = v; sw.style.setProperty('--c', v);
+      if (document.activeElement !== hex) hex.value = v;
+      cname.textContent = colorName(v) || '';
+      $$('button', pal).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v.toLowerCase() === v.toLowerCase())));
+      root.classList.toggle('changed', !same(v, scope.def()[c.k]));
+      hint.textContent = c.hint || ''; hint.hidden = !c.hint;
+    }};
+  }
+  else if (c.t === 'seg'){
+    const {root, reset, hint} = ctlShell(c, scope, 'seg');
+    const seg = el('div', {class: 'seg', role: 'group', 'aria-label': c.label});
+    const btns = c.options.map(([v, l]) => { const b = el('button', {type: 'button'}, l); b.onclick = () => setVal(scope, c.k, v); seg.append(b); return [b, v]; });
+    root.append(el('div', {class: 'ctl-head'}, el('span', {class: 'lab'}, c.label), reset), seg, hint);
+    api = {root, update(){
+      const v = scope.obj()[c.k];
+      btns.forEach(([b, bv]) => b.setAttribute('aria-pressed', String(String(bv) === String(v))));
+      root.classList.toggle('changed', !same(v, scope.def()[c.k]));
+      hint.textContent = typeof c.hint === 'function' ? c.hint(scope.obj()) : (c.hint || ''); hint.hidden = !hint.textContent;
+    }};
+  }
+  else if (c.t === 'toggle'){
+    const {root, reset, hint} = ctlShell(c, scope, 'toggle');
+    const sw = el('button', {class: 'switch', type: 'button', role: 'switch', id, 'aria-label': c.label});
+    const flip = () => setVal(scope, c.k, !scope.obj()[c.k]);
+    sw.onclick = e => { e.stopPropagation(); flip(); };
+    const lab = el('span', {class: 'lab'}, c.label);
+    lab.onclick = flip;
+    root.append(el('div', {class: 'ctl-head'}, sw, lab, reset), hint);
+    api = {root, update(){
+      const v = !!scope.obj()[c.k];
+      sw.setAttribute('aria-checked', String(v));
+      root.classList.toggle('changed', !same(v, !!scope.def()[c.k]));
+      hint.textContent = c.hint || ''; hint.hidden = !c.hint;
+    }};
+  }
+  else if (c.t === 'ease'){
+    api = easeControl(c, scope);
+  }
+  api.c = c; api.scope = scope;
+  return api;
+}
+
+function easeControl(c, scope){
+  const {root, reset, hint} = ctlShell(c, scope, 'ease');
+  const chips = el('div', {class: 'ease-chips', role: 'group', 'aria-label': 'Easing presets'});
+  const chipBtns = EASES.map(([k, l, a]) => {
+    const b = el('button', {type: 'button', class: 'ease-chip', title: easeCSS(a), html: `<svg viewBox="0 0 30 22"><path d="${easePath(a, 30, 22, 3)}"/></svg>`}, l);
+    b.onclick = () => setVal(scope, c.k, a.slice());
+    chips.append(b); return [b, a];
+  });
+  const W = 220, Hh = 200, X0 = 22, X1 = 198, Y0 = 150, Y1 = 50;
+  const mx = x => X0 + x * (X1 - X0), my = y => Y0 - y * (Y0 - Y1);
+  const ix = X => (X - X0) / (X1 - X0), iy = Y => (Y0 - Y) / (Y0 - Y1);
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${Hh}`); svg.setAttribute('class', 'bez'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Curve editor. Drag the red handles.');
+  svg.innerHTML = `<rect class="box" x="${X0}" y="${Y1}" width="${X1 - X0}" height="${Y0 - Y1}"/><line class="diag" x1="${mx(0)}" y1="${my(0)}" x2="${mx(1)}" y2="${my(1)}"/>
+    <text x="${X0}" y="${Y0 + 14}">0</text><text x="${X1 - 18}" y="${Y0 + 14}">time</text><text x="${X0 - 18}" y="${Y1 + 3}">1</text>
+    <line class="arm" data-a="1"/><line class="arm" data-a="2"/><path class="curve"/>
+    <circle class="hit" data-h="1" r="13"/><circle class="h" data-h="1" r="6"/><circle class="hit" data-h="2" r="13"/><circle class="h" data-h="2" r="6"/>`;
+  const curve = svg.querySelector('.curve'), arms = svg.querySelectorAll('.arm');
+  const nums = [0, 1, 2, 3].map(i => el('input', {type: 'number', step: .01, min: i % 2 ? -1 : 0, max: i % 2 ? 2 : 1, 'aria-label': ['Handle 1 time', 'Handle 1 value', 'Handle 2 time', 'Handle 2 value'][i]}));
+  nums.forEach((n, i) => n.addEventListener('input', () => { if (n.value === '' || isNaN(+n.value)) return; const a = scope.obj()[c.k].slice(); a[i] = clamp(+n.value, i % 2 ? -1 : 0, i % 2 ? 2 : 1); setVal(scope, c.k, a); }));
+  const read = el('span', {class: 'mono'});
+  const demoDot = el('i');
+  const demo = el('div', {class: 'ease-demo', title: 'Speed preview'}, demoDot);
+  const ed = el('details', {class: 'ease-edit'}, el('summary', {}, el('span', {}, 'Edit curve'), read), svg, el('div', {class: 'bez-nums'}, nums.map(n => el('span', {class: 'num'}, n))), demo);
+  if (store.get('tms.easeOpen.v1')) ed.open = true;
+  ed.addEventListener('toggle', () => store.set('tms.easeOpen.v1', ed.open));
+  let dragH = 0;
+  const pt = svg.createSVGPoint();
+  svg.addEventListener('pointerdown', e => { const h = e.target.getAttribute && e.target.getAttribute('data-h'); if (!h) return; dragH = +h; svg.setPointerCapture(e.pointerId); e.preventDefault(); });
+  svg.addEventListener('pointermove', e => {
+    if (!dragH) return;
+    pt.x = e.clientX; pt.y = e.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const a = scope.obj()[c.k].slice(), i = (dragH - 1) * 2;
+    a[i] = r2(clamp(ix(q.x), 0, 1)); a[i + 1] = r2(clamp(iy(q.y), -.5, 1.5));
+    setVal(scope, c.k, a);
+  });
+  const stop = () => { dragH = 0; };
+  svg.addEventListener('pointerup', stop); svg.addEventListener('pointercancel', stop);
+  let demoAnim = null;
+  root.append(el('div', {class: 'ctl-head'}, el('span', {class: 'lab'}, c.label), reset), chips, ed, hint);
+  return {root, update(){
+    const a = scope.obj()[c.k];
+    chipBtns.forEach(([b, ca]) => b.setAttribute('aria-pressed', String(ca.every((v, i) => Math.abs(v - a[i]) < 1e-4))));
+    curve.setAttribute('d', `M${mx(0)} ${my(0)} C${mx(a[0])} ${my(a[1])} ${mx(a[2])} ${my(a[3])} ${mx(1)} ${my(1)}`);
+    arms[0].setAttribute('x1', mx(0)); arms[0].setAttribute('y1', my(0)); arms[0].setAttribute('x2', mx(a[0])); arms[0].setAttribute('y2', my(a[1]));
+    arms[1].setAttribute('x1', mx(1)); arms[1].setAttribute('y1', my(1)); arms[1].setAttribute('x2', mx(a[2])); arms[1].setAttribute('y2', my(a[3]));
+    svg.querySelectorAll('[data-h="1"]').forEach(h => { h.setAttribute('cx', mx(a[0])); h.setAttribute('cy', my(a[1])); });
+    svg.querySelectorAll('[data-h="2"]').forEach(h => { h.setAttribute('cx', mx(a[2])); h.setAttribute('cy', my(a[3])); });
+    nums.forEach((n, i) => { if (document.activeElement !== n) n.value = a[i]; });
+    read.textContent = `${easeLabel(a)} · ${easeCSS(a)}`;
+    if (!demoAnim){ demoAnim = demoDot.animate([{left: '0%'}, {left: 'calc(100% - 10px)'}], {duration: 1100, iterations: Infinity, direction: 'alternate', easing: easeCSS(a)}); if (REDUCED) demoAnim.pause(); }
+    else demoAnim.effect.updateTiming({easing: easeCSS(a)});
+    root.classList.toggle('changed', !same(a, scope.def()[c.k]));
+    hint.textContent = c.hint || ''; hint.hidden = !c.hint;
+  }};
+}
+
+function groupEl(g, scope, key){
+  const d = el('details', {class: 'grp'});
+  d.open = !collapsed.has(key);
+  const count = el('span', {class: 'count'});
+  d.append(el('summary', {}, el('span', {class: 'eyebrow'}, g.title), count, el('span', {class: 'chev', 'aria-hidden': 'true'})));
+  d.addEventListener('toggle', () => { d.open ? collapsed.delete(key) : collapsed.add(key); store.set('tms.collapsed.v1', [...collapsed]); });
+  const body = el('div', {class: 'grp-body'});
+  if (g.note) body.append(el('p', {class: 'type-note'}, g.note));
+  const apis = g.controls.map(c => makeControl(c, scope));
+  apis.forEach(a => body.append(a.root));
+  d.append(body);
+  return {d, apis, count};
+}
+let GROUPS = [];
+function renderControls(){
+  const box = $('#controls');
+  box.textContent = ''; CTRLS = []; GROUPS = [];
+  const F = FX[S.fx];
+  F.groups.forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
+  const T = groupEl(TYPE_GROUP, typeScope, 'type'); box.append(T.d); CTRLS.push(...T.apis); GROUPS.push(T);
+  $('#fxDesc').textContent = F.desc;
+  updateControls();
+}
+function updateControls(){
+  CTRLS.forEach(a => { const o = a.scope.obj(); a.root.hidden = !!(a.c.show && !a.c.show(o)); if (!a.root.hidden) a.update(); });
+  GROUPS.forEach(G => { const n = G.apis.filter(a => !a.root.hidden && !same(a.scope.obj()[a.c.k], a.scope.def()[a.c.k])).length; G.count.textContent = n ? `${n} changed` : ''; });
+}
+
+/* ================= effect picker ================= */
+let tileCtrls = [];
+function renderFxPick(){
+  tileCtrls.forEach(t => t.destroy()); tileCtrls = [];
+  const box = $('#fxPick'); box.textContent = '';
+  FX_GROUPS.forEach(([title, ids]) => {
+    const grid = el('div', {class: 'fx-grid'});
+    ids.forEach(id => {
+      const mini = el('span', {class: 'mini', 'aria-hidden': 'true'}), host = el('span');
+      mini.append(host); applyType(mini, {...S.type, size: 20, case: 'none'});
+      const b = el('button', {type: 'button', class: 'fx-tile', 'data-fx': id, 'aria-pressed': String(id === S.fx)}, mini, el('span', {class: 'nm'}, FX[id].name));
+      b.onclick = () => { if (S.fx === id) return; S.fx = id; pushHist(); fullRender(); };
+      grid.append(b);
+      if (!REDUCED) tileCtrls.push(mount(host, id, FX[id].defaults, 'Aa', {native: true, forceLoop: true}));
+      else host.textContent = 'Aa';
+    });
+    box.append(el('div', {class: 'fx-group'}, el('span', {class: 'eyebrow'}, title), grid));
+  });
+}
+function updateFxPick(){ $$('.fx-tile').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.fx === S.fx))); }
+
+/* ================= stage + player ================= */
+function applyType(node, t){
+  const f = FONTS.find(x => x[0] === t.font) || FONTS[0];
+  node.style.fontFamily = f[2]; node.style.fontSize = t.size + 'px'; node.style.fontWeight = t.weight;
+  node.style.letterSpacing = t.tracking + 'em'; node.style.textTransform = t.case;
+}
+const player = {ctrl: null, t: 0, playing: !REDUCED, speed: 1, hovered: false, sim: false, last: 0, ended: false, scrubbing: false};
+function rebuildStage(){
+  player.ctrl && player.ctrl.destroy();
+  applyType($('#navbar'), S.type);
+  $('#stage').dataset.ctx = S.stage;
+  $('#stageInner').style.zoom = S.zoom;
+  player.ctrl = mount($('#host'), S.fx, P(), S.text || ' ', {native: false});
+  const C = player.ctrl.C;
+  if (!C.loop && player.t > C.total) player.t = C.total;
+  renderSegs(C); renderTrigUI(C);
+  drawFrame();
+}
+function renderSegs(C){
+  const segs = $('#segs'); segs.textContent = '';
+  const pct = v => (v / C.total * 100) + '%';
+  const motionEnd = C.delay + C.spread + C.active;
+  if (C.delay > 0) segs.append(el('span', {class: 'sg delay', style: `left:0;width:${pct(C.delay)}`}));
+  segs.append(el('span', {class: 'sg motion', style: `left:${pct(C.delay)};width:${pct(Math.min(C.total, motionEnd) - C.delay)}`}));
+  if (C.chars && C.s > 0 && C.n <= 60) for (let i = 0; i < C.n; i++) segs.append(el('span', {class: 'tk', style: `left:${pct(C.delay + i * C.s)}`}));
+  const lg = $('#legend'); lg.textContent = '';
+  const item = (bg, txt) => { const i = el('i'); i.style.background = bg; return el('span', {}, i, txt); };
+  if (C.delay > 0) lg.append(item('repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 6px)', `Start delay ${C.delay} ms`));
+  lg.append(item('color-mix(in srgb,var(--accent) 28%,transparent)', C.chars ? `Motion ${Math.round(C.spread + C.active)} ms across ${C.n} letters` : `Motion ${Math.round(C.active)} ms`));
+  if (C.loop) lg.append(item('var(--soft)', `Pause ${C.p.pause} ms`));
+  if (C.chars && C.s > 0) lg.append(item('color-mix(in srgb,var(--accent) 70%,transparent)', 'Ticks mark each letter starting'));
+}
+function renderTrigUI(C){
+  const hov = isHover(C.p);
+  $('#simHover').hidden = !hov;
+  $('#simHover').setAttribute('aria-pressed', String(player.sim));
+  let note = '';
+  if (hov) note = player.sim ? 'Simulating hover. Turn it off and hover the label to try it for real.' : 'This plays on hover. Hover or tab to the label, or turn on Preview hover.';
+  else if (C.p.trigger === 'once') note = 'Plays once. Press play or restart to see it again.';
+  if (REDUCED) note = (note ? note + ' ' : '') + 'Your system asks for reduced motion, so playback starts paused.';
+  $('#trigNote').textContent = note;
+}
+function displayT(C, t){ return C.loop && t > C.total ? ((t - C.delay) % C.T) + C.delay : Math.min(t, C.total); }
+function drawFrame(){
+  const ctrl = player.ctrl; if (!ctrl) return;
+  const C = ctrl.C, hov = isHover(C.p);
+  const active = !hov || player.hovered || player.sim || player.scrubbing || !player.playing;
+  if (hov && !player.hovered && !player.sim && player.playing && !player.scrubbing){ ctrl.setTime(null); }
+  else ctrl.setTime(player.t);
+  const d = displayT(C, player.t);
+  $('#playhead').style.left = (d / C.total * 100) + '%';
+  if (!player.scrubbing) $('#scrub').value = Math.round(d / C.total * 1000);
+  $('#time').textContent = `${(d / 1000).toFixed(2)} s / ${(C.total / 1000).toFixed(2)} s`;
+  const showPlay = !player.playing || player.ended;
+  const pb = $('#play');
+  if (pb.dataset.state !== String(showPlay)){ pb.dataset.state = String(showPlay); pb.innerHTML = showPlay ? ICON_PLAY : ICON_PAUSE; pb.setAttribute('aria-label', showPlay ? 'Play' : 'Pause'); }
+  return active;
+}
+function tick(now){
+  const dt = player.last ? Math.min(100, now - player.last) : 0; player.last = now;
+  const ctrl = player.ctrl;
+  if (ctrl && player.playing && !player.scrubbing){
+    const C = ctrl.C, hov = isHover(C.p);
+    const running = !hov || player.hovered || player.sim;
+    if (running){
+      player.t += dt * player.speed;
+      if (!C.loop && player.t >= C.total){
+        if (hov && player.sim && player.t >= C.total + 900) player.t = 0;
+        else if (!hov){ player.t = C.total; player.ended = true; }
+        else player.t = Math.min(player.t, C.total + 900);
+      }
+    }
+  }
+  drawFrame();
+  liveJS.forEach(g => g.setTime(now - g.start));
+  requestAnimationFrame(tick);
+}
+function wirePlayer(){
+  $('#play').onclick = () => {
+    if (player.ended || (!player.ctrl.C.loop && player.t >= player.ctrl.C.total)){ player.t = 0; player.ended = false; player.playing = true; return; }
+    player.playing = !player.playing;
+  };
+  $('#restart').onclick = () => { player.t = 0; player.ended = false; player.playing = true; };
+  const scrub = $('#scrub');
+  scrub.addEventListener('pointerdown', () => { player.scrubbing = true; player.playing = false; });
+  scrub.addEventListener('input', () => { player.scrubbing = true; player.playing = false; player.ended = false; player.t = +scrub.value / 1000 * player.ctrl.C.total; drawFrame(); });
+  const endScrub = () => { player.scrubbing = false; };
+  scrub.addEventListener('pointerup', endScrub); scrub.addEventListener('change', endScrub); scrub.addEventListener('blur', endScrub);
+  $('#speed').onchange = e => { player.speed = +e.target.value; };
+  $('#simHover').onclick = () => { player.sim = !player.sim; player.t = 0; player.playing = true; player.ended = false; renderTrigUI(player.ctrl.C); };
+  const host = $('#host');
+  const enter = () => { if (!isHover(P())) return; player.hovered = true; player.t = 0; player.playing = true; player.ended = false; };
+  const leave = () => { if (!isHover(P())) return; player.hovered = false; player.t = 0; };
+  host.addEventListener('pointerenter', enter); host.addEventListener('pointerleave', leave);
+  host.addEventListener('focus', enter); host.addEventListener('blur', leave);
+}
+function renderToolbar(){
+  const t = $('#labelText'); if (document.activeElement !== t) t.value = S.text;
+  const segFill = (box, opts, cur, onPick) => {
+    box.textContent = '';
+    opts.forEach(([v, l]) => { const b = el('button', {type: 'button', 'aria-pressed': String(String(v) === String(cur))}, l); b.onclick = () => onPick(v); box.append(b); });
+  };
+  segFill($('#ctxSeg'), CONTEXTS, S.stage, v => { S.stage = v; changed('stage'); });
+  segFill($('#zoomSeg'), [[1, '1×'], [2, '2×'], [4, '4×']], S.zoom, v => { S.zoom = v; changed('stage'); });
+}
+
+/* ================= variants gallery ================= */
+let cardCtrls = [];
+function presetParams(pr){ return {...clone(FX[pr.fx].defaults), ...clone(pr.p)}; }
+function renderGallery(){
+  cardCtrls.forEach(c => c.destroy()); cardCtrls = [];
+  const grid = $('#vgrid'); grid.textContent = '';
+  const fs = $('#filterSeg'); fs.textContent = '';
+  [['current', FX[S.fx].name], ['all', 'All effects'], ['saved', `Saved${saved.length ? ' (' + saved.length + ')' : ''}`]].forEach(([v, l]) => {
+    const b = el('button', {type: 'button', 'aria-pressed': String(S.filter === v)}, l);
+    b.onclick = () => { S.filter = v; schedSave(); renderGallery(); };
+    fs.append(b);
+  });
+  let list;
+  if (S.filter === 'saved') list = saved.map(s => ({...s, saved: true}));
+  else list = PRESETS.filter(pr => S.filter === 'all' || pr.fx === S.fx);
+  if (!list.length){ grid.append(el('p', {class: 'empty'}, S.filter === 'saved' ? 'Nothing saved yet. Name the current setup above and press Save. Saved versions stay in this browser.' : 'No variants for this effect yet.')); return; }
+  let lastKey = null;
+  list.forEach(pr => {
+    const key = S.filter === 'saved' ? 'Saved' : (S.filter === 'all' ? FX[pr.fx].name + ' · ' : '') + pr.g;
+    if (key !== lastKey){ grid.append(el('div', {class: 'vgroup'}, el('h3', {}, key))); lastKey = key; }
+    const p = pr.saved ? {...clone(FX[pr.fx].defaults), ...clone(pr.p)} : presetParams(pr);
+    const sw = el('div', {class: 'sw', 'data-ctx': pr.stage || 'nav'}), host = el('span');
+    sw.append(host);
+    applyType(sw, {...S.type, size: 17});
+    const badge = isHover(p) ? el('span', {class: 'badge'}, 'hover') : p.trigger === 'once' ? el('span', {class: 'badge'}, 'once') : null;
+    const card = el('button', {type: 'button', class: 'card', 'aria-pressed': 'false'}, sw, el('div', {class: 'meta'}, el('b', {}, pr.name, badge), pr.note ? el('span', {}, pr.note) : (S.filter !== 'current' ? el('span', {}, FX[pr.fx].name) : null)));
+    card._match = {fx: pr.fx, p};
+    card.onclick = () => applyPreset(pr.fx, p, pr.stage);
+    if (pr.saved){
+      const del = el('span', {class: 'del', role: 'button', tabindex: '0', 'aria-label': 'Delete ' + pr.name, title: 'Delete'}, '×');
+      const kill = e => { e.stopPropagation(); saved = saved.filter(s => s.id !== pr.id); store.set('tms.saved.v1', saved); renderGallery(); toast('Deleted.'); };
+      del.onclick = kill; del.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') kill(e); };
+      card.append(del);
+    }
+    grid.append(card);
+    if (!REDUCED) cardCtrls.push(mount(host, pr.fx, p, S.text || 'New & Featured', {native: true, forceLoop: true}));
+    else host.textContent = S.text;
+  });
+  updateActiveCards();
+}
+function updateActiveCards(){ $$('#vgrid .card').forEach(c => c.setAttribute('aria-pressed', String(c._match.fx === S.fx && same(c._match.p, P())))); }
+function applyPreset(fx, p, stage){
+  S.fx = fx; S.params[fx] = clone(p); if (stage) S.stage = stage;
+  player.t = 0; player.ended = false; player.playing = !REDUCED;
+  pushHist(); fullRender();
+}
+$('#saveForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('#saveName').value.trim() || `${FX[S.fx].name} ${saved.filter(s => s.fx === S.fx).length + 1}`;
+  saved.unshift({id: Date.now().toString(36), name, fx: S.fx, p: clone(P()), stage: S.stage, note: ''});
+  store.set('tms.saved.v1', saved);
+  $('#saveName').value = '';
+  S.filter = 'saved'; renderGallery();
+  toast(`Saved as ${name}. Saved versions stay in this browser.`);
+});
+
+/* ================= handoff ================= */
+const TABS = [['spec', 'Spec'], ['css', 'CSS'], ['html', 'HTML'], ['js', 'JS'], ['json', 'JSON']];
+let HO = {};
+const className = () => (S.cls[S.fx] || `nav-label--${S.fx}`).replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^-+/, '') || 'nav-label';
+function rule(sel, obj, ind = ''){
+  const body = Object.entries(obj).filter(([, v]) => v != null && v !== '').map(([k, v]) => `${ind}  ${k.startsWith('--') ? k : kebab(k)}: ${v};`).join('\n');
+  return `${ind}${sel} {\n${body}\n${ind}}`;
+}
+function keyframesCSS(name, frames){
+  const out = [`@keyframes ${name} {`];
+  frames.forEach(f => { const {offset, easing, ...props} = f; const o = {...props}; if (easing && easing !== 'linear') o.animationTimingFunction = easing; out.push(rule(`${+(offset * 100).toFixed(3)}%`, o, '  ')); });
+  out.push('}');
+  return out.join('\n');
+}
+function cssFor(C, cls){
+  const sel = '.' + cls, hov = isHover(C.p);
+  const on = suf => hov ? `${sel}:hover${suf},\n${sel}:focus-visible${suf}` : sel + suf;
+  const out = [`/* ${C.F.name}. ${TRIG_TEXT[C.p.trigger]}\n   Generated by Text Motion Studio. */`];
+  out.push(rule(sel, C.labelStyle));
+  if (C.chars) out.push(rule(sel + ' .ch', C.charStyle));
+  if (C.F.js) out.push(rule(sel + ' .ch.is-scrambling', {color: C.p.scrambleColor}));
+  if (C.lineStyle) out.push(rule(sel + '::after', {content: '""', ...C.lineStyle}));
+  const names = [];
+  C.tracks.forEach(tr => {
+    const name = cls + (tr.which === 'last' ? '-last' : '');
+    const suf = tr.target === 'label' ? '' : tr.target === 'line' ? '::after' : (tr.which === 'last' ? ' .ch:last-child' : ' .ch');
+    const delay = tr.target === 'char' ? `calc(var(--i) * ${C.s}ms${C.delay ? ` + ${C.delay}ms` : ''})` : `${C.delay}ms`;
+    out.push(rule(on(suf), {animation: `${name} ${Math.round(C.T)}ms linear ${delay} ${C.loop ? 'infinite' : 1} both`}));
+    names.push([name, tr.frames]);
+  });
+  names.forEach(([n, f]) => out.push(keyframesCSS(n, f)));
+  if (C.tracks.length){
+    const targets = [sel, C.chars && sel + ' .ch', C.lineStyle && sel + '::after'].filter(Boolean);
+    const rm = ['@media (prefers-reduced-motion: reduce) {', rule(targets.join(',\n  '), {animation: 'none !important'}, '  ')];
+    if (C.rest){
+      if (C.rest.label) rm.push(rule(on(''), C.rest.label, '  '));
+      if (C.rest.line) rm.push(rule(on('::after'), C.rest.line, '  '));
+    }
+    rm.push('}');
+    out.push(rm.join('\n'));
+  }
+  return out.join('\n\n');
+}
+function splitterJS(cls){
+  return `// Splits each label into letter spans so every letter can animate.
+// The label keeps an aria-label, so screen readers still read one word.
+function splitLetters(el) {
+  const text = el.textContent;
+  el.setAttribute('aria-label', text);
+  el.textContent = '';
+  Array.from(text).forEach((ch, i) => {
+    const s = document.createElement('span');
+    s.className = 'ch';
+    s.setAttribute('aria-hidden', 'true');
+    s.style.setProperty('--i', i);
+    s.textContent = ch;
+    el.appendChild(s);
+  });
+}
+document.querySelectorAll('.${cls}').forEach(splitLetters);`;
+}
+function scrambleJS(C, cls){
+  const o = {charset: C.p.charset, start: C.p.start, rate: C.p.rate, dur: C.p.dur, stagger: C.p.stagger, hold: C.p.hold, pause: C.p.pause, delay: C.p.delay, loop: C.loop};
+  return `// Scramble text effect. No dependencies.
+${scrambleAt.toString().replace(/^ {2}/gm, '')}
+
+function startScramble(el, o) {
+  const text = el.textContent, chars = Array.from(text);
+  el.setAttribute('aria-label', text);
+  el.textContent = '';
+  const spans = chars.map(ch => {
+    const s = document.createElement('span');
+    s.className = 'ch';
+    s.setAttribute('aria-hidden', 'true');
+    s.textContent = ch;
+    el.appendChild(s);
+    return s;
+  });
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let raf = 0, t0 = 0;
+  const frame = now => {
+    if (!t0) t0 = now;
+    const st = scrambleAt(chars, now - t0, o);
+    st.forEach((c, i) => {
+      spans[i].textContent = c.hidden ? chars[i] : c.ch;
+      spans[i].style.visibility = c.hidden ? 'hidden' : '';
+      spans[i].classList.toggle('is-scrambling', !c.done && !c.hidden);
+    });
+    if (o.loop || !st.every(c => c.done)) raf = requestAnimationFrame(frame);
+  };
+  const play = () => { cancelAnimationFrame(raf); t0 = 0; raf = requestAnimationFrame(frame); };
+  const stop = () => {
+    cancelAnimationFrame(raf);
+    spans.forEach((s, i) => { s.textContent = chars[i]; s.style.visibility = ''; s.classList.remove('is-scrambling'); });
+  };
+  ${isHover(C.p) ? `el.addEventListener('mouseenter', play);
+  el.addEventListener('focus', play);
+  el.addEventListener('mouseleave', stop);
+  el.addEventListener('blur', stop);` : 'play();'}
+}
+
+document.querySelectorAll('.${cls}').forEach(el => startScramble(el, ${JSON.stringify(o)}));`;
+}
+function htmlFor(C, cls){
+  const t = esc(C.text);
+  if (C.F.kind === 'label') return `<!-- No extra markup needed. Add the class to the nav link. -->\n<a class="${cls}" href="/new-featured">${t}</a>`;
+  const spans = C.chars.map((ch, i) => `  <span class="ch" aria-hidden="true" style="--i:${i}">${esc(ch)}</span>`).join('\n');
+  const a = `<!-- Option A: plain markup. The script in the JS tab splits it into letters. -->\n<a class="${cls}" href="/new-featured">${t}</a>`;
+  if (C.F.js) return a;
+  return `${a}\n\n<!-- Option B: pre-split markup, if the label is rendered on the server. -->\n<a class="${cls}" href="/new-featured" aria-label="${t}">\n${spans}\n</a>`;
+}
+function jsFor(C, cls){
+  if (C.F.js) return scrambleJS(C, cls);
+  if (C.F.kind === 'char') return splitterJS(cls);
+  return '// No JavaScript needed. This effect is pure CSS.';
+}
+function jsonFor(C){
+  const p = {};
+  for (const [k, v] of Object.entries(C.p)) p[k] = k === 'ease' ? easeCSS(v) : v;
+  const o = {tool: 'Text Motion Studio', effect: C.fx, effectName: C.F.name, label: C.text, plays: C.p.trigger, params: p,
+    computed: {cycleMs: Math.round(C.T), totalMs: Math.round(C.total), activeMs: Math.round(C.active)}, previewType: S.type};
+  if (C.chars) o.computed.letters = C.n, o.computed.letterStartMs = `${C.delay} + index * ${C.s}`;
+  return JSON.stringify(o, null, 2);
+}
+function fmtVal(c, v){
+  if (c.t === 'color'){ const n = colorName(v); return {html: `<span class="sv"><span class="chip" style="background:${v}"></span><span class="mono">${v}</span>${n ? ' ' + esc(n) : ''}</span>`, text: v + (n ? ` (${n})` : '')}; }
+  if (c.t === 'ease'){ const css = easeCSS(v); return {html: `<span class="sv"><svg class="mini-ease" viewBox="0 0 22 16"><path d="${easePath(v, 22, 16, 2)}"/></svg>${esc(easeLabel(v))}<small class="mono">${esc(css)}</small></span>`, text: `${easeLabel(v)}, ${css}`}; }
+  if (c.t === 'seg'){ const o = c.options.find(x => String(x[0]) === String(v)); return {html: esc(o ? o[1] : v), text: o ? o[1] : String(v)}; }
+  if (c.t === 'toggle') return {html: v ? 'On' : 'Off', text: v ? 'On' : 'Off'};
+  return {html: `<span class="mono">${v}${c.unit === '%' || c.unit === '°' ? '' : ' '}${c.unit || ''}</span>`, text: `${v}${c.unit === '%' || c.unit === '°' ? '' : ' '}${c.unit || ''}`};
+}
+function specData(C){
+  const secs = [];
+  const ov = [['Effect', esc(C.F.name), C.F.name], ['What it does', esc(C.F.desc), C.F.desc], ['Plays', esc(TRIG_TEXT[C.p.trigger]), TRIG_TEXT[C.p.trigger]]];
+  const impl = C.F.js ? 'JavaScript. Snippet in the JS tab, plus one CSS rule.' : C.F.kind === 'char' ? 'CSS, plus a small script that splits the label into letters.' : 'CSS only.';
+  ov.push(['Build with', esc(impl), impl]);
+  if (C.loop) ov.push(['One full cycle', `<span class="mono">${Math.round(C.T)} ms</span><small>Motion ${Math.round(C.spread + C.active)} ms, then ${C.p.pause} ms pause</small>`, `${Math.round(C.T)} ms (motion ${Math.round(C.spread + C.active)} ms + pause ${C.p.pause} ms)`]);
+  else ov.push(['Total time', `<span class="mono">${Math.round(C.total)} ms</span>`, `${Math.round(C.total)} ms`]);
+  if (C.chars){
+    ov.push(['Letters', `<span class="mono">${C.n}</span><small>Cycle length depends on letter count. Regenerate the CSS if the label text changes.</small>`, `${C.n}. Cycle length depends on letter count, so regenerate the CSS if the label changes.`]);
+    if (C.s) ov.push(['Letter start time', `<span class="mono">${C.delay} + index × ${C.s} ms</span>`, `${C.delay} + index × ${C.s} ms`]);
+  }
+  secs.push(['Overview', ov]);
+  C.F.groups.forEach(g => {
+    const rows = [];
+    g.controls.forEach(c => { if (c.k === 'trigger') return; if (c.show && !c.show(C.p)) return; const v = fmtVal(c, C.p[c.k]); rows.push([c.label, v.html, v.text]); });
+    if (rows.length) secs.push([g.title, rows]);
+  });
+  const f = FONTS.find(x => x[0] === S.type.font) || FONTS[0];
+  const ty = `${f[1]}, ${S.type.size}px, weight ${S.type.weight}, ${S.type.tracking}em spacing${S.type.case !== 'none' ? ', ' + S.type.case : ''}`;
+  secs.push(['Preview type', [['Type used in the preview', esc(ty) + '<small>Use the nav label\'s real type in production.</small>', ty]]]);
+  const a11y = C.chars ? 'Letters are split into spans hidden from screen readers. The label keeps an aria-label with the full text.' : 'The label stays real text. Nothing changes for screen readers.';
+  secs.push(['Accessibility', [['Reduced motion', esc(C.F.reduced), C.F.reduced], ['Screen readers', esc(a11y), a11y], ['Keyboard', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.']]]);
+  return secs;
+}
+function renderHandoff(){
+  const C = player.ctrl.C, cls = className();
+  const sd = specData(C);
+  HO = {
+    spec: {html: `<table class="spec">${sd.map(([t, rows]) => `<tr><th colspan="2">${esc(t)}</th></tr>` + rows.map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join('')).join('')}</table>`,
+      text: `${C.F.name} for "${C.text}"\n` + sd.map(([t, rows]) => `\n${t.toUpperCase()}\n` + rows.map(r => `- ${r[0]}: ${r[2]}`).join('\n')).join('\n')},
+    css: {text: cssFor(C, cls)}, html: {text: htmlFor(C, cls)}, js: {text: jsFor(C, cls)}, json: {text: jsonFor(C)},
+  };
+  const ci = $('#clsName'); if (document.activeElement !== ci) ci.value = cls;
+  const tabs = $('#tabs'); tabs.textContent = '';
+  TABS.forEach(([k, l]) => { const b = el('button', {type: 'button', role: 'tab', 'aria-selected': String(S.tab === k)}, l); b.onclick = () => { S.tab = k; schedSave(); renderHandoff(); }; tabs.append(b); });
+  const body = $('#hoBody'); body.textContent = '';
+  const cur = HO[S.tab] || HO.spec;
+  if (S.tab === 'spec') body.innerHTML = cur.html;
+  else { const pre = el('pre', {class: 'code'}); pre.textContent = cur.text; body.append(pre); }
+  $('#copyTab').textContent = `Copy ${TABS.find(t => t[0] === S.tab)[1]}`;
+}
+const schedHandoff = debounce(renderHandoff, 120);
+function fullHandoffText(){
+  return [HO.spec.text, '', '/* ---------- CSS ---------- */', HO.css.text, '', '<!-- ---------- HTML ---------- -->', HO.html.text, '', '// ---------- JS ----------', HO.js.text, '', `Live setup: ${shareURL()}`].join('\n');
+}
+$('#clsName').addEventListener('input', e => { S.cls[S.fx] = e.target.value; schedSave(); schedHandoff(); });
+$('#clsName').addEventListener('blur', () => renderHandoff());
+
+/* ================= copy + share ================= */
+const toast = (() => { let t; return msg => { const e = $('#toast'); e.textContent = msg; e.classList.add('on'); clearTimeout(t); t = setTimeout(() => e.classList.remove('on'), 2600); }; })();
+function copyText(text, done){
+  const fallback = () => {
+    const ta = el('textarea', {style: 'position:fixed;left:-9999px;top:0'}); ta.value = text; document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch(e){}
+    ta.remove(); toast(ok ? done : 'Copy was blocked. Select the text and copy it by hand.');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(done)).catch(fallback);
+  else fallback();
+}
+function shareURL(){
+  const b = btoa(unescape(encodeURIComponent(snapshot()))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.href.split('#')[0] + '#s=' + b;
+}
+$('#share').onclick = () => copyText(shareURL(), 'Link copied. It opens this exact setup.');
+$('#copyTab').onclick = () => copyText(HO[S.tab].text, `${TABS.find(t => t[0] === S.tab)[1]} copied.`);
+$('#copyAll').onclick = () => copyText(fullHandoffText(), 'Full handoff copied: spec, CSS, HTML, JS and a link.');
+$('#undo').onclick = undo; $('#redo').onclick = redo;
+$('#resetAll').onclick = () => { S.params[S.fx] = clone(FX[S.fx].defaults); pushHist(); fullRender(); toast(`${FX[S.fx].name} reset to defaults.`); };
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.type === 'text' || t.tagName === 'TEXTAREA')) return;
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
+  else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y'){ e.preventDefault(); redo(); }
+  else if (e.key === ' ' && t === document.body){ e.preventDefault(); $('#play').click(); }
+});
+$('#labelText').addEventListener('input', e => { S.text = e.target.value; changed('text'); });
+
+/* ================= change pipeline ================= */
+const schedGallery = debounce(() => { renderGallery(); renderFxPick(); }, 350);
+function changed(kind){
+  updateControls();
+  if (kind === 'stage') renderToolbar();
+  rebuildStage();
+  schedHandoff(); schedHist(); schedSave();
+  if (kind === 'text' || kind === 'type') schedGallery(); else updateActiveCards();
+}
+function fullRender(){
+  renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderGallery(); schedSave();
+}
+
+/* ================= boot ================= */
+wirePlayer();
+renderFxPick();
+fullRender();
+pushHist();
+if (location.hash.startsWith('#s=')) history.replaceState(null, '', location.pathname + location.search);
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
