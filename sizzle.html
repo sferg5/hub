@@ -400,7 +400,7 @@ details.grp .gb{padding:0 0 8px}
     </div>
     <div class="base" role="group" aria-label="Reel settings">
       <div><span class="lbl">Length <small class="range-val" id="durationVal">40s</small></span>
-        <div class="base-len"><input type="range" data-c="duration" data-structural="1" min="5" max="120" step="1" value="40" aria-label="Reel length in seconds"><input type="number" id="durationNum" min="5" max="120" step="1" inputmode="numeric" aria-label="Reel length in seconds, typed"><span>s</span></div></div>
+        <div class="base-len"><input type="range" data-c="duration" data-structural="1" min="5" max="300" step="1" value="40" aria-label="Reel length in seconds"><input type="number" id="durationNum" min="5" max="300" step="1" inputmode="numeric" aria-label="Reel length in seconds, typed"><span>s</span></div></div>
       <div><span class="lbl">Format</span>
         <select data-c="format" aria-label="Export format"><option value="1280x720">720p 16:9</option><option value="1920x1080">1080p 16:9</option><option value="1080x1920">9:16 tall</option><option value="1080x1080">1:1 square</option></select></div>
       <div><span class="lbl">Pace</span>
@@ -446,7 +446,7 @@ details.grp .gb{padding:0 0 8px}
             <div class="f"><span class="lbl">Starts at <small>seconds in</small></span><input type="number" id="musicStartIn" min="0" step="0.1" inputmode="decimal"></div>
             <div class="f"><span class="lbl">Ends at <small id="musicEndHint">seconds in</small></span><input type="number" id="musicEndIn" min="5" step="0.1" inputmode="decimal"></div>
           </div>
-          <p class="hint">The reel's length is at the top of the panel, next to format and pace. Shorter plays better in a meeting: 30–45 seconds is the sweet spot.</p>
+          <p class="hint">The reel's length is at the top of the panel, next to format and pace. Shorter plays better in a meeting: 30–45 seconds is the sweet spot, and it can run up to five minutes for a song-length piece.</p>
         </div>
       </details>
 
@@ -645,6 +645,7 @@ const TRANS_LABELS = {
 const STOCK = Object.keys(TRANSITIONS).filter(k => k !== "cut");
 const DEFAULT_ON = ["crossfade"];
 const ENDCARD_BEATS = 6;
+const MAX_DUR = 300;          // seconds: five minutes, room for a song-length reel
 
 // every setting the panel edits lives here, so undo, presets and autosave are one JSON blob
 const DEFAULTS = {
@@ -2412,7 +2413,7 @@ function laneDrag(e){
   const dsec = (e.offsetX - d.x0) / W * dur;
   if (d.type === "music"){ d.pStart = Math.max(0, Math.min(full - dur, d.start0 - dsec)); drawTimeline(); }
   else if (d.type === "mhandle"){
-    if (d.tg.side === "r"){ d.pDur = Math.max(5, Math.min(120, full - d.start0, d.dur0 + dsec)); }
+    if (d.tg.side === "r"){ d.pDur = Math.max(5, Math.min(MAX_DUR, full - d.start0, d.dur0 + dsec)); }
     else { const ns = Math.max(0, Math.min(d.start0 + d.dur0 - 5, d.start0 + dsec)); d.pStart = ns; d.pDur = d.start0 + d.dur0 - ns; }
     setStatus(d.tg.side === "r" ? `Reel ends at ${fmtT(d.start0 + (d.pDur ?? d.dur0))} in the song (${Math.round(d.pDur ?? d.dur0)}s long)` : `Music starts ${fmtT(d.pStart ?? d.start0)} into the song`);
   }
@@ -3213,6 +3214,8 @@ function onConfig(key){
     const t = S.timeline.shots.find(s => s.kind === "title"); if (t) seekTo(t.start + 0.7);
   }
   if (key === "duration"){ $("durationVal").textContent = `${C.duration}s`; $("durationNum").value = C.duration; }
+  if ((key === "duration" || key === "musicStart") && S.timeline && S.timeline.duration < C.duration - 0.5)
+    setStatus(`The song ends before ${C.duration}s, so the reel runs ${Math.round(S.timeline.duration)}s. Start the music earlier under Sound for more.`);
   if (key === "shotMin" || key === "shotMax") $("shotVal").textContent = `${C.shotMin}–${C.shotMax} seconds`;
   renderSteps();
   scheduleSave();
@@ -3277,7 +3280,7 @@ function syncControls(){
 // numeric start / end
 function setMusicWindow(start, end){
   const full = S.audioBuf ? S.audioBuf.duration : Infinity;
-  let dur = Math.min(120, Math.max(5, end - start));
+  let dur = Math.min(MAX_DUR, Math.max(5, end - start));
   start = Math.max(0, Math.min(start, full - 5));
   dur = Math.min(dur, full - start);
   commit("musicwin");
@@ -3286,9 +3289,11 @@ function setMusicWindow(start, end){
   syncControls();
   if (S.audioBuf) rebuild(true);
   updateAudioLabels(); drawScrub(); scheduleSave();
+  if (S.timeline && S.timeline.duration < C.duration - 0.5)
+    setStatus(`The song ends before ${C.duration}s, so the reel runs ${Math.round(S.timeline.duration)}s. Start the music earlier for more.`);
 }
 $("durationNum").addEventListener("change", () => {
-  const v = Math.round(Math.min(120, Math.max(5, +$("durationNum").value || C.duration)));
+  const v = Math.round(Math.min(MAX_DUR, Math.max(5, +$("durationNum").value || C.duration)));
   if (v === C.duration){ $("durationNum").value = v; return; }
   commit("duration"); C.duration = v; syncControls(); onConfig("duration");
 });
@@ -3346,7 +3351,7 @@ scrub.addEventListener("pointermove", e => {
   const d = scrubDrag, dsec = (e.offsetX - d.x) / W * full;
   if (Math.abs(e.offsetX - d.x) > 2) d.moved = true;
   if (d.mode === "move") d.pStart = Math.max(0, Math.min(full - d.dur, d.start + dsec));
-  else if (d.mode === "end") d.pDur = Math.max(5, Math.min(120, full - d.start, d.dur + dsec));
+  else if (d.mode === "end") d.pDur = Math.max(5, Math.min(MAX_DUR, full - d.start, d.dur + dsec));
   drawScrub();
 });
 ["pointerup", "pointercancel"].forEach(ev => scrub.addEventListener(ev, e => {
