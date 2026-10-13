@@ -185,6 +185,7 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
 .toolbar .field{display:flex;align-items:center;gap:6px;flex:1 1 220px;min-width:0}
 .toolbar .field input{flex:1;min-width:0;height:30px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 9px}
 .toolbar .field input:focus{outline:none;border-color:var(--fg)}
+.toolbar .locked{font-size:12px;color:var(--muted)}
 .toolbar .seg{flex:none}
 .stage{position:relative;min-height:240px;max-height:56vh;overflow:auto;display:grid;place-items:center;transition:background .2s}
 .stage[data-ctx="nav"]{background:linear-gradient(160deg,#2a2b2d 0%,#56585b 55%,#36373a 100%)}
@@ -308,11 +309,8 @@ pre.code .cm{color:var(--faint)}
   <main class="main">
     <section class="stagecard" aria-label="Preview">
       <div class="toolbar">
-        <div class="field">
-          <label for="labelText" class="eyebrow">Label</label>
-          <input id="labelText" type="text" maxlength="48" autocomplete="off">
-        </div>
-        <div class="seg" id="ctxSeg" role="group" aria-label="Background"></div>
+        <div class="field"><span class="eyebrow">Shop nav</span><span class="locked">The nav design is fixed. Only the animation on New &amp; Featured changes.</span></div>
+        <span class="eyebrow">Zoom</span>
         <div class="seg" id="zoomSeg" role="group" aria-label="Zoom"></div>
       </div>
       <div class="stage" id="stage" data-ctx="nav">
@@ -449,23 +447,29 @@ const FONTS = [
   ['serif', 'Serif', 'Georgia, "Times New Roman", serif'],
   ['mono', 'Mono', '"Saans Mono", ui-monospace, Menlo, monospace'],
 ];
-const CONTEXTS = [['nav', 'Nav bar'], ['light', 'Light'], ['dark', 'Dark'], ['red', 'Hot Heat'], ['burn', 'Slow Burn']];
 
 /* ================= shared timing controls ================= */
-const TRIG = [['loop', 'Loop'], ['once', 'Once'], ['hover', 'Hover'], ['hover-loop', 'Hover loop']];
+const TRIG = [['loop', 'Loop'], ['repeat', 'Repeat'], ['once', 'Once'], ['hover', 'Hover'], ['hover-loop', 'Hover loop']];
 const TRIG_TEXT = {
   'loop': 'Loops continuously.',
   'once': 'Plays once when the page loads, then holds the last frame.',
+  'repeat': 'Plays a set number of times when the page loads, then stops.',
   'hover': 'Plays once on hover or keyboard focus. Resets when the pointer leaves.',
   'hover-loop': 'Loops while hovered or focused. Resets when the pointer leaves.',
 };
-const isLoop = p => p.trigger === 'loop' || p.trigger === 'hover-loop';
+const isLoop = p => p.trigger === 'loop' || p.trigger === 'hover-loop' || p.trigger === 'repeat';
 const isHover = p => p.trigger === 'hover' || p.trigger === 'hover-loop';
 function timing(o = {}){
-  const c = [{k: 'trigger', t: 'seg', label: 'Plays', options: TRIG, hint: p => TRIG_TEXT[p.trigger]}];
+  const c = [{k: 'trigger', t: 'seg', label: 'Plays', options: TRIG, hint: p => TRIG_TEXT[p.trigger]},
+    {k: 'count', t: 'range', label: 'Times to play', min: 2, max: 12, step: 1, unit: '×', show: p => p.trigger === 'repeat'}];
   if (o.dir) c.push({k: 'dir', t: 'seg', label: 'Direction', options: o.dir});
   if (o.dur !== false) c.push({k: 'dur', t: 'range', label: o.durLabel || 'Duration', hint: o.durHint || 'How long one pass of the motion takes.', min: o.durMin || 100, max: o.durMax || 6000, step: o.durStep || 50, unit: 'ms'});
   if (o.stagger) c.push({k: 'stagger', t: 'range', label: o.staggerLabel || 'Letter stagger', hint: o.staggerHint || 'Time between one letter starting and the next.', min: o.staggerMin ?? 0, max: 300, step: 5, unit: 'ms'});
+  if (o.stagger && o.order !== false){
+    c.push({k: 'order', t: 'seg', label: 'Letter order', options: [['lr', 'Left to right'], ['rl', 'Right to left'], ['center', 'Centre out'], ['edges', 'Edges in'], ['random', 'Random']], hint: p => ({lr: 'First letter starts first.', rl: 'Last letter starts first.', center: 'Starts in the middle and spreads to both ends.', edges: 'Starts at both ends and meets in the middle.', random: 'Letters start in a shuffled order.'})[p.order]});
+    c.push({k: 'seed', t: 'range', label: 'Shuffle', hint: 'Each number gives a different random order.', min: 1, max: 40, step: 1, unit: '', show: p => p.order === 'random'});
+    c.push({k: 'scurve', t: 'seg', label: 'Stagger rhythm', options: [['even', 'Even'], ['accel', 'Speeds up'], ['decel', 'Slows down']], hint: p => ({even: 'The same gap between every letter.', accel: 'Gaps shrink, so the sequence gathers speed.', decel: 'Gaps grow, so the sequence eases to a stop.'})[p.scurve]});
+  }
   if (o.hold) c.push({k: 'hold', t: 'range', label: 'Hold', hint: o.holdHint || 'How long the finished state stays before it exits.', min: 0, max: 6000, step: 50, unit: 'ms', show: o.holdShow});
   c.push({k: 'pause', t: 'range', label: 'Pause between loops', hint: 'Rest time after a pass ends and before the next one starts.', min: 0, max: 10000, step: 100, unit: 'ms', show: isLoop});
   c.push({k: 'delay', t: 'range', label: 'Start delay', hint: 'Wait before the very first pass.', min: 0, max: 3000, step: 50, unit: 'ms'});
@@ -481,18 +485,18 @@ const lastPad = frames => { const l = frames[frames.length - 1]; if (l.offset < 
 /* ================= effects ================= */
 function shimmerBand(p, at, strength){
   const w = p.width / 3, pl = w * (1 - p.soft / 100);
-  const hi = mix(p.base, p.hi, p.peak / 100 * strength);
+  const hi = mix(INK, p.hi, p.peak / 100 * strength);
   const a = at - w / 2, b = at - pl / 2, c = at + pl / 2, d = at + w / 2;
-  const out = [[a, p.base]];
-  if (p.tintOn){ const t = mix(p.base, p.tint, .85 * strength); out.push([a + (b - a) * .5, t], [b, hi], [c, hi], [c + (d - c) * .5, t]); }
+  const out = [[a, INK]];
+  if (p.tintOn){ const t = mix(INK, p.tint, .85 * strength); out.push([a + (b - a) * .5, t], [b, hi], [c, hi], [c + (d - c) * .5, t]); }
   else out.push([b, hi], [c, hi]);
-  out.push([d, p.base]);
+  out.push([d, INK]);
   return out;
 }
 function shimmerGradient(p){
   let stops = shimmerBand(p, 50, 1);
   if (p.echoOn){ const off = p.width / 3 * 1.15 * (p.dir === 'ltr' ? -1 : 1); stops = stops.concat(shimmerBand(p, 50 + off, p.echo / 100)).sort((x, y) => x[0] - y[0]); }
-  const list = [`${p.base} 0%`, ...stops.map(([pos, col]) => `${col} ${clamp(pos, 0, 100).toFixed(2)}%`), `${p.base} 100%`];
+  const list = [`${INK} 0%`, ...stops.map(([pos, col]) => `${col} ${clamp(pos, 0, 100).toFixed(2)}%`), `${INK} 100%`];
   return `linear-gradient(${p.angle}deg, ${list.join(', ')})`;
 }
 
@@ -501,12 +505,11 @@ const FX = {
     name: 'Shimmer', kind: 'label',
     desc: 'A band of light travels across the label. This is the effect on the shop nav today.',
     reduced: 'Animation off. The label shows in its text color.',
-    defaults: {base: INK, hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, echoOn: false, echo: 45,
+    defaults: {hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, echoOn: false, echo: 45,
       trigger: 'loop', dir: 'rtl', dur: 1500, pause: 2000, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Color', controls: [
-        {k: 'base', t: 'color', label: 'Text color', hint: 'The label color outside the band.'},
-        {k: 'hi', t: 'color', label: 'Band color', hint: 'The color at the centre of the band.'},
+        {k: 'hi', t: 'color', label: 'Band color', hint: 'The color at the centre of the band. The rest of the label keeps the nav color.'},
         {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from the text color toward the band color.', min: 0, max: 100, step: 1, unit: '%'},
         {k: 'tintOn', t: 'toggle', label: 'Tint the band edges'},
         {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
@@ -534,11 +537,10 @@ const FX = {
     name: 'Fill wipe', kind: 'label',
     desc: 'A new color wipes through the label, holds, then wipes back out.',
     reduced: 'Animation off. Looping labels stay in the starting color. Hover labels switch straight to the fill color.',
-    defaults: {from: INK, to: H, soft: 30, mode: 'inout', trigger: 'loop', dir: 'ltr', dur: 700, hold: 900, pause: 1500, delay: 0, ease: E.strong},
+    defaults: {to: H, soft: 30, mode: 'inout', trigger: 'loop', dir: 'ltr', dur: 700, hold: 900, pause: 1500, delay: 0, ease: E.strong},
     groups: [
       {title: 'Color', controls: [
-        {k: 'from', t: 'color', label: 'Starting color'},
-        {k: 'to', t: 'color', label: 'Fill color'},
+        {k: 'to', t: 'color', label: 'Fill color', hint: 'The color that wipes through the label. It starts and ends in the nav color.'},
       ]},
       {title: 'Wipe', controls: [
         {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a hard edge. 100 blends across the whole label.', min: 0, max: 100, step: 1, unit: '%'},
@@ -548,7 +550,7 @@ const FX = {
     ],
     compile(p){
       const e = p.soft / 100 * 33, a = (50 - e / 2).toFixed(2), b = (50 + e / 2).toFixed(2);
-      const L = p.dir === 'ltr' ? [p.to, p.from] : [p.from, p.to];
+      const L = p.dir === 'ltr' ? [p.to, INK] : [INK, p.to];
       const g = `linear-gradient(90deg, ${L[0]} 0%, ${L[0]} ${a}%, ${L[1]} ${b}%, ${L[1]} 100%)`;
       const start = p.dir === 'ltr' ? '100% 0' : '0% 0', end = p.dir === 'ltr' ? '0% 0' : '100% 0';
       const ez = easeCSS(p.ease), ezOut = easeCSS(mirror(p.ease));
@@ -597,10 +599,9 @@ const FX = {
     name: 'Glow pulse', kind: 'label',
     desc: 'A soft glow swells behind the letters and fades.',
     reduced: 'Animation off. The label rests at its resting glow.',
-    defaults: {color: INK, glow: H, size: 14, min: 0, max: 85, shift: false, shiftTo: H, trigger: 'loop', dur: 1400, pause: 400, delay: 0, ease: E['ease-in-out']},
+    defaults: {glow: H, size: 14, min: 0, max: 85, shift: false, shiftTo: H, trigger: 'loop', dur: 1400, pause: 400, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Color', controls: [
-        {k: 'color', t: 'color', label: 'Text color'},
         {k: 'glow', t: 'color', label: 'Glow color'},
         {k: 'shift', t: 'toggle', label: 'Change text color at the peak'},
         {k: 'shiftTo', t: 'color', label: 'Peak text color', show: p => p.shift},
@@ -617,11 +618,11 @@ const FX = {
       const lo = p.min / 100, hi = p.max / 100;
       const c = v => p.shift ? {color: v} : {};
       const frames = [
-        {offset: 0, textShadow: sh(lo), ...c(p.color), easing: easeCSS(p.ease)},
+        {offset: 0, textShadow: sh(lo), ...c(INK), easing: easeCSS(p.ease)},
         {offset: .5, textShadow: sh(hi), ...c(p.shiftTo), easing: easeCSS(mirror(p.ease))},
-        {offset: 1, textShadow: sh(lo), ...c(p.color)},
+        {offset: 1, textShadow: sh(lo), ...c(INK)},
       ];
-      return {active: p.dur, labelStyle: {color: p.color, textShadow: sh(lo)}, tracks: [{target: 'label', frames}]};
+      return {active: p.dur, labelStyle: {color: INK, textShadow: sh(lo)}, tracks: [{target: 'label', frames}]};
     },
   },
 
@@ -629,10 +630,9 @@ const FX = {
     name: 'Underline draw', kind: 'label', line: true,
     desc: 'A line draws itself under the label.',
     reduced: 'Animation off. The underline appears without drawing.',
-    defaults: {text: INK, color: INK, thick: 1.5, offset: 4, round: false, origin: 'left', exit: 'none', trigger: 'hover', dur: 450, hold: 800, pause: 1200, delay: 0, ease: E.strong},
+    defaults: {color: INK, thick: 1.5, offset: 4, round: false, origin: 'left', exit: 'none', trigger: 'hover', dur: 450, hold: 800, pause: 1200, delay: 0, ease: E.strong},
     groups: [
       {title: 'Line', controls: [
-        {k: 'text', t: 'color', label: 'Text color'},
         {k: 'color', t: 'color', label: 'Line color'},
         {k: 'thick', t: 'range', label: 'Thickness', min: .5, max: 6, step: .5, unit: 'px'},
         {k: 'offset', t: 'range', label: 'Distance below text', min: -4, max: 16, step: 1, unit: 'px'},
@@ -653,9 +653,134 @@ const FX = {
       if (p.exit === 'none'){ active = p.dur; frames = [{offset: 0, clipPath: hid, easing: ez}, {offset: 1, clipPath: shown}]; }
       else { active = 2 * p.dur + p.hold; frames = [{offset: 0, clipPath: hid, easing: ez}, {offset: p.dur / active, clipPath: shown}, {offset: (p.dur + p.hold) / active, clipPath: shown, easing: p.exit === 'reverse' ? easeCSS(mirror(p.ease)) : ez}, {offset: 1, clipPath: out}]; }
       return {active,
-        labelStyle: {color: p.text, position: 'relative', display: 'inline-block'},
+        labelStyle: {color: INK, position: 'relative', display: 'inline-block'},
         lineStyle: {position: 'absolute', left: '0', right: '0', bottom: `${-p.offset}px`, height: `${p.thick}px`, background: p.color, borderRadius: p.round ? `${p.thick}px` : '0', clipPath: hid},
         tracks: [{target: 'line', frames}], rest: {line: {clipPath: shown}}};
+    },
+  },
+
+  marker: {
+    name: 'Highlight sweep', kind: 'label', line: true,
+    desc: 'A highlight bar sweeps in behind the label, holds, then sweeps away.',
+    reduced: 'Animation off. Looping labels show no highlight. Hover labels show it straight away.',
+    defaults: {color: '#ffd6d8', height: 100, pos: 'full', inkOn: false, ink: '#ffffff', origin: 'left', exit: 'continue', trigger: 'loop', dur: 500, hold: 900, pause: 1500, delay: 0, ease: E.strong},
+    groups: [
+      {title: 'Highlight', controls: [
+        {k: 'color', t: 'color', label: 'Highlight color'},
+        {k: 'height', t: 'range', label: 'Height', hint: 'Bar height compared to the text.', min: 10, max: 130, step: 5, unit: '%'},
+        {k: 'pos', t: 'seg', label: 'Position', options: [['full', 'Centred'], ['low', 'Low, like a marker pen']]},
+        {k: 'inkOn', t: 'toggle', label: 'Change text color while highlighted'},
+        {k: 'ink', t: 'color', label: 'Highlighted text color', show: p => p.inkOn},
+      ]},
+      {title: 'Sweep', controls: [
+        {k: 'origin', t: 'seg', label: 'Sweeps from', options: [['left', 'Left'], ['center', 'Centre'], ['right', 'Right']]},
+        {k: 'exit', t: 'seg', label: 'Then', options: [['none', 'Stays'], ['reverse', 'Retracts'], ['continue', 'Passes through']]},
+      ]},
+      timing({hold: true, holdShow: p => p.exit !== 'none', durLabel: 'Sweep duration'}),
+    ],
+    compile(p){
+      const hid = {left: 'inset(0 100% 0 0)', right: 'inset(0 0 0 100%)', center: 'inset(0 50% 0 50%)'}[p.origin], shown = 'inset(0 0 0 0)';
+      const out = p.exit === 'continue' ? {left: 'inset(0 0 0 100%)', right: 'inset(0 100% 0 0)', center: 'inset(0 50% 0 50%)'}[p.origin] : hid;
+      const ez = easeCSS(p.ease), back = p.exit === 'reverse' ? easeCSS(mirror(p.ease)) : ez;
+      let lf, cf, active;
+      if (p.exit === 'none'){ active = p.dur; lf = [{offset: 0, clipPath: hid, easing: ez}, {offset: 1, clipPath: shown}]; cf = [{offset: 0, color: INK, easing: ez}, {offset: 1, color: p.ink}]; }
+      else {
+        active = 2 * p.dur + p.hold; const a = p.dur / active, b = (p.dur + p.hold) / active;
+        lf = [{offset: 0, clipPath: hid, easing: ez}, {offset: a, clipPath: shown}, {offset: b, clipPath: shown, easing: back}, {offset: 1, clipPath: out}];
+        cf = [{offset: 0, color: INK, easing: ez}, {offset: a, color: p.ink}, {offset: b, color: p.ink, easing: back}, {offset: 1, color: INK}];
+      }
+      const h = p.pos === 'low' ? p.height * .45 : p.height;
+      const tracks = [{target: 'line', frames: lf}];
+      if (p.inkOn) tracks.push({target: 'label', frames: cf});
+      return {active, tracks,
+        labelStyle: {position: 'relative', display: 'inline-block', isolation: 'isolate', color: INK},
+        lineStyle: {position: 'absolute', left: '-0.15em', right: '-0.15em', top: p.pos === 'low' ? null : `${r2((100 - h) / 2)}%`, bottom: p.pos === 'low' ? '4%' : null, height: `${r2(h)}%`, background: p.color, zIndex: '-1', clipPath: hid},
+        rest: isHover(p) ? {line: {clipPath: shown}, label: p.inkOn ? {color: p.ink} : null} : null};
+    },
+  },
+
+  nudge: {
+    name: 'Nudge', kind: 'label',
+    desc: 'A quick attention move: a shake, bounce, wiggle, pulse or jelly squash.',
+    reduced: 'Animation off. The label stays still.',
+    defaults: {move: 'bounce', strength: 4, swings: 2, settle: true, trigger: 'loop', dur: 700, pause: 2600, delay: 0, ease: E['ease-in-out']},
+    groups: [
+      {title: 'Move', controls: [
+        {k: 'move', t: 'seg', label: 'Move', options: [['shake', 'Shake'], ['bounce', 'Bounce'], ['wiggle', 'Wiggle'], ['pulse', 'Pulse'], ['jelly', 'Jelly']]},
+        {k: 'strength', t: 'range', label: 'Strength', hint: p => ({shake: 'Sideways travel, in pixels.', bounce: 'Jump height, in pixels.', wiggle: 'Rotation, in degrees.', pulse: 'Size change, in percent.', jelly: 'Squash amount, in percent.'})[p.move], min: 1, max: 24, step: 1, unit: ''},
+        {k: 'swings', t: 'range', label: 'Swings', hint: 'How many times it moves before it comes to rest.', min: 1, max: 6, step: 1, unit: ''},
+        {k: 'settle', t: 'toggle', label: 'Settle down', hint: 'Each swing is smaller than the last.'},
+      ]},
+      timing({durLabel: 'Move duration', durHint: 'Time for all the swings together.'}),
+    ],
+    compile(p){
+      const N = p.swings * 2, ez = easeCSS(p.ease), frames = [];
+      const T = (x, y, r, sx, sy) => `translate(${r2(x)}px, ${r2(y)}px) rotate(${r2(r)}deg) scale(${r2(sx)}, ${r2(sy)})`;
+      for (let k = 0; k <= N; k++){
+        const edge = k === 0 || k === N, a = edge ? 0 : p.strength * (p.settle ? (N - k + 1) / N : 1), sg = k % 2 ? 1 : -1;
+        let tf;
+        if (p.move === 'shake') tf = T(sg * a, 0, 0, 1, 1);
+        else if (p.move === 'bounce') tf = T(0, k % 2 ? -a : 0, 0, 1, 1);
+        else if (p.move === 'wiggle') tf = T(0, 0, sg * a, 1, 1);
+        else if (p.move === 'pulse') tf = T(0, 0, 0, k % 2 ? 1 + a / 100 : 1, k % 2 ? 1 + a / 100 : 1);
+        else tf = T(0, 0, 0, 1 + sg * a / 100, 1 - sg * a / 100);
+        const f = {offset: k / N, transform: tf}; if (k < N) f.easing = ez; frames.push(f);
+      }
+      return {active: p.dur, labelStyle: {display: 'inline-block', color: INK, transformOrigin: p.move === 'bounce' || p.move === 'jelly' ? '50% 100%' : '50% 50%'}, tracks: [{target: 'label', frames}]};
+    },
+  },
+
+  flip: {
+    name: 'Flip', kind: 'char',
+    desc: 'Letters flip into place in 3D, one after another.',
+    reduced: 'Animation off. All letters show in place.',
+    defaults: {axis: 'x', angle: 90, persp: 500, fade: true, exit: 'none', trigger: 'once', dur: 700, stagger: 40, hold: 1400, pause: 600, delay: 0, ease: E['expo-out']},
+    groups: [
+      {title: 'Flip', controls: [
+        {k: 'axis', t: 'seg', label: 'Turns', options: [['x', 'Tip forward'], ['y', 'Turn sideways']]},
+        {k: 'angle', t: 'range', label: 'Start angle', hint: 'How far each letter is turned at the start.', min: -180, max: 180, step: 5, unit: '°'},
+        {k: 'persp', t: 'range', label: 'Depth', hint: 'Lower numbers exaggerate the 3D.', min: 150, max: 1500, step: 50, unit: 'px'},
+        {k: 'fade', t: 'toggle', label: 'Fade in'},
+      ]},
+      {title: 'Exit', controls: [
+        {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['flip', 'Flip away'], ['fade', 'Fade out']]},
+      ]},
+      timing({stagger: true, hold: true, holdShow: p => p.exit !== 'none', durLabel: 'Letter duration', durHint: 'Time for one letter to turn into place.'}),
+    ],
+    compile(p){
+      const fn = p.axis === 'x' ? 'rotateX' : 'rotateY', useOp = p.fade || p.exit !== 'none';
+      const st = (a, op) => { const o = {transform: `perspective(${p.persp}px) ${fn}(${a}deg)`}; if (useOp) o.opacity = op; return o; };
+      const hidden = st(p.angle, p.fade ? 0 : 1), shown = st(0, 1), out = p.exit === 'flip' ? st(-p.angle, 0) : st(0, 0);
+      const ez = easeCSS(p.ease);
+      let frames, active;
+      if (p.exit === 'none'){ active = p.dur; frames = [{offset: 0, ...hidden, easing: ez}, {offset: 1, ...shown}]; }
+      else { active = 2 * p.dur + p.hold; frames = [{offset: 0, ...hidden, easing: ez}, {offset: p.dur / active, ...shown}, {offset: (p.dur + p.hold) / active, ...shown, easing: easeCSS(mirror(p.ease))}, {offset: 1, ...out}]; }
+      return {active, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: INK, transformOrigin: p.axis === 'x' ? '50% 70%' : '50% 50%', backfaceVisibility: 'hidden'}, tracks: [{target: 'char', frames}]};
+    },
+  },
+
+  roll: {
+    name: 'Roll', kind: 'char',
+    desc: 'Each letter rolls out of view as a copy rolls in behind it. A common nav hover.',
+    reduced: 'Animation off. Hover labels switch straight to the incoming color.',
+    defaults: {copy: H, dir: 'up', exit: 'none', trigger: 'hover', dur: 420, stagger: 18, hold: 900, pause: 1200, delay: 0, ease: E.strong},
+    groups: [
+      {title: 'Roll', controls: [
+        {k: 'copy', t: 'color', label: 'Incoming color', hint: 'Color of the copy that rolls in. Pick Black to keep the nav color.'},
+        {k: 'dir', t: 'seg', label: 'Direction', options: [['up', 'Roll up'], ['down', 'Roll down']]},
+        {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['back', 'Roll back']], hint: p => p.exit === 'back' ? 'Rolls back to the original after the hold.' : 'Stays rolled. On hover it resets when the pointer leaves.'},
+      ]},
+      timing({stagger: true, staggerHint: 'Time between letters. Set it to 0 to roll the whole word at once.', hold: true, holdShow: p => p.exit !== 'none', durLabel: 'Roll duration'}),
+    ],
+    compile(p){
+      const h = 1.3, sg = p.dir === 'up' ? -1 : 1, tr = y => `translateY(${r2(y)}em)`, ez = easeCSS(p.ease);
+      let frames, active;
+      if (p.exit === 'none'){ active = p.dur; frames = [{offset: 0, transform: tr(0), easing: ez}, {offset: 1, transform: tr(sg * h)}]; }
+      else { active = 2 * p.dur + p.hold; frames = [{offset: 0, transform: tr(0), easing: ez}, {offset: p.dur / active, transform: tr(sg * h)}, {offset: (p.dur + p.hold) / active, transform: tr(sg * h), easing: easeCSS(mirror(p.ease))}, {offset: 1, transform: tr(0)}]; }
+      return {active, tracks: [{target: 'char', frames}],
+        labelStyle: {display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom', lineHeight: String(h)},
+        charStyle: {display: 'inline-block', whiteSpace: 'pre', color: INK, textShadow: `0 ${-sg * h}em 0 ${p.copy}`},
+        rest: isHover(p) ? {char: {color: p.copy, textShadow: 'none'}} : null};
     },
   },
 
@@ -663,15 +788,16 @@ const FX = {
     name: 'Letter rise', kind: 'char',
     desc: 'Letters rise into place one after another.',
     reduced: 'Animation off. All letters show in place.',
-    defaults: {color: INK, dist: .6, fade: true, blur: 0, scale: 100, mask: false, exit: 'none', trigger: 'once', dur: 600, stagger: 35, hold: 1400, pause: 600, delay: 0, ease: E.glide},
+    defaults: {arriveOn: false, arrive: H, dist: .6, fade: true, blur: 0, scale: 100, mask: false, exit: 'none', trigger: 'once', dur: 600, stagger: 35, hold: 1400, pause: 600, delay: 0, ease: E.glide},
     groups: [
       {title: 'Letters', controls: [
-        {k: 'color', t: 'color', label: 'Text color'},
         {k: 'dist', t: 'range', label: 'Travel', hint: 'How far each letter moves, in ems. Negative drops letters in from above.', min: -1.5, max: 1.5, step: .05, unit: 'em'},
         {k: 'fade', t: 'toggle', label: 'Fade in'},
         {k: 'blur', t: 'range', label: 'Start blur', min: 0, max: 12, step: .5, unit: 'px'},
         {k: 'scale', t: 'range', label: 'Start size', hint: 'Letter size at the start. 100% means no scaling.', min: 0, max: 200, step: 5, unit: '%'},
         {k: 'mask', t: 'toggle', label: 'Clip to the line', hint: 'Letters appear from behind an invisible edge instead of floating in.'},
+        {k: 'arriveOn', t: 'toggle', label: 'Arrive in a color', hint: 'Letters start in a color and settle into the nav color.'},
+        {k: 'arrive', t: 'color', label: 'Arrival color', show: p => p.arriveOn},
       ]},
       {title: 'Exit', controls: [
         {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['fade', 'Fade out'], ['up', 'Rise out'], ['down', 'Drop out']]},
@@ -680,8 +806,8 @@ const FX = {
     ],
     compile(p){
       const useOp = p.fade || p.exit !== 'none';
-      const st = (y, sc, op, bl) => { const o = {transform: `translateY(${r2(y)}em) scale(${r2(sc)})`}; if (useOp) o.opacity = op; if (p.blur > 0) o.filter = `blur(${bl}px)`; return o; };
-      const hidden = st(p.dist, p.scale / 100, p.fade ? 0 : 1, p.blur), shown = st(0, 1, 1, 0);
+      const st = (y, sc, op, bl, col) => { const o = {transform: `translateY(${r2(y)}em) scale(${r2(sc)})`}; if (useOp) o.opacity = op; if (p.blur > 0) o.filter = `blur(${bl}px)`; if (p.arriveOn) o.color = col || INK; return o; };
+      const hidden = st(p.dist, p.scale / 100, p.fade ? 0 : 1, p.blur, p.arrive), shown = st(0, 1, 1, 0);
       const exitOp = p.mask && p.exit !== 'fade' ? 1 : 0;
       const exitSt = {fade: st(0, 1, 0, p.blur), up: st(-Math.abs(p.dist || .6), 1, exitOp, p.blur), down: st(Math.abs(p.dist || .6), 1, exitOp, p.blur)}[p.exit];
       const ez = easeCSS(p.ease);
@@ -690,7 +816,7 @@ const FX = {
       else { active = 2 * p.dur + p.hold; frames = [{offset: 0, ...hidden, easing: ez}, {offset: p.dur / active, ...shown}, {offset: (p.dur + p.hold) / active, ...shown, easing: easeCSS(mirror(p.ease))}, {offset: 1, ...exitSt}]; }
       return {active,
         labelStyle: p.mask ? {display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom', paddingBlock: '0.12em'} : {display: 'inline-block'},
-        charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color},
+        charStyle: {display: 'inline-block', whiteSpace: 'pre', color: INK},
         tracks: [{target: 'char', frames}]};
     },
   },
@@ -699,10 +825,9 @@ const FX = {
     name: 'Wave', kind: 'char',
     desc: 'A ripple runs through the letters.',
     reduced: 'Animation off. Letters sit still on the line.',
-    defaults: {color: INK, amp: .22, scale: 100, colorOn: false, color2: H, trigger: 'loop', dur: 500, stagger: 45, pause: 1400, delay: 0, ease: E['ease-out']},
+    defaults: {amp: .22, scale: 100, colorOn: false, color2: H, trigger: 'loop', dur: 500, stagger: 45, pause: 1400, delay: 0, ease: E['ease-out']},
     groups: [
       {title: 'Letters', controls: [
-        {k: 'color', t: 'color', label: 'Text color'},
         {k: 'amp', t: 'range', label: 'Height', hint: 'How high each letter lifts, in ems.', min: 0, max: 1, step: .01, unit: 'em'},
         {k: 'scale', t: 'range', label: 'Size at the peak', min: 50, max: 200, step: 5, unit: '%'},
         {k: 'colorOn', t: 'toggle', label: 'Change color at the peak'},
@@ -714,11 +839,11 @@ const FX = {
       const t = (y, s) => `translateY(${r2(y)}em) scale(${r2(s)})`;
       const c = v => p.colorOn ? {color: v} : {};
       const frames = [
-        {offset: 0, transform: t(0, 1), ...c(p.color), easing: easeCSS(p.ease)},
+        {offset: 0, transform: t(0, 1), ...c(INK), easing: easeCSS(p.ease)},
         {offset: .5, transform: t(-p.amp, p.scale / 100), ...c(p.color2), easing: easeCSS(mirror(p.ease))},
-        {offset: 1, transform: t(0, 1), ...c(p.color)},
+        {offset: 1, transform: t(0, 1), ...c(INK)},
       ];
-      return {active: p.dur, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color}, tracks: [{target: 'char', frames}]};
+      return {active: p.dur, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: INK}, tracks: [{target: 'char', frames}]};
     },
   },
 
@@ -726,11 +851,8 @@ const FX = {
     name: 'Typewriter', kind: 'char',
     desc: 'Letters appear one at a time behind a caret.',
     reduced: 'Animation off. The whole label shows with no caret.',
-    defaults: {color: INK, caret: true, caretColor: H, caretW: 2, blink: 530, exit: 'none', trigger: 'once', stagger: 70, hold: 1600, pause: 500, delay: 0},
+    defaults: {caret: true, caretColor: H, caretW: 2, blink: 530, exit: 'none', trigger: 'once', stagger: 70, hold: 1600, pause: 500, delay: 0},
     groups: [
-      {title: 'Text', controls: [
-        {k: 'color', t: 'color', label: 'Text color'},
-      ]},
       {title: 'Caret', controls: [
         {k: 'caret', t: 'toggle', label: 'Show caret'},
         {k: 'caretColor', t: 'color', label: 'Caret color', show: p => p.caret},
@@ -740,7 +862,7 @@ const FX = {
       {title: 'Exit', controls: [
         {k: 'exit', t: 'seg', label: 'After the hold', options: [['none', 'Stay'], ['clear', 'Erase']], hint: p => p.exit === 'clear' ? 'Letters disappear left to right at typing speed.' : 'The line stays typed.'},
       ]},
-      timing({dur: false, ease: false, stagger: true, staggerLabel: 'Time per letter', staggerMin: 10, staggerHint: 'Typing speed. Lower is faster.', hold: true, holdHint: 'How long the finished line waits, with the caret blinking.'}),
+      timing({dur: false, ease: false, stagger: true, order: false, staggerLabel: 'Time per letter', staggerMin: 10, staggerHint: 'Typing speed. Lower is faster.', hold: true, holdHint: 'How long the finished line waits, with the caret blinking.'}),
     ],
     compile(p, n){
       const s = p.stagger, eps = 1, clear = p.exit === 'clear';
@@ -756,7 +878,7 @@ const FX = {
       if (clear) last.push(f(L, hid));
       [main, last].forEach(fr => { const l = fr[fr.length - 1]; delete l.easing; lastPad(fr); });
       const tracks = n > 1 ? [{target: 'char', which: 'notlast', frames: main}, {target: 'char', which: 'last', frames: last}] : [{target: 'char', which: 'last', frames: last}];
-      return {active, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: p.color}, tracks, countDependent: true};
+      return {active, labelStyle: {display: 'inline-block'}, charStyle: {display: 'inline-block', whiteSpace: 'pre', color: INK}, tracks, countDependent: true};
     },
   },
 
@@ -764,10 +886,9 @@ const FX = {
     name: 'Scramble', kind: 'char', js: true,
     desc: 'Letters flicker through random glyphs, then settle into the label.',
     reduced: 'Script skips the effect. The label shows as plain text.',
-    defaults: {color: INK, scrambleColor: H, charset: 'upper', start: 'all', rate: 55, trigger: 'loop', dur: 450, stagger: 45, hold: 1600, pause: 400, delay: 0},
+    defaults: {scrambleColor: H, charset: 'upper', start: 'all', rate: 55, trigger: 'loop', dur: 450, stagger: 45, hold: 1600, pause: 400, delay: 0},
     groups: [
       {title: 'Color', controls: [
-        {k: 'color', t: 'color', label: 'Settled color'},
         {k: 'scrambleColor', t: 'color', label: 'Scrambling color'},
       ]},
       {title: 'Glyphs', controls: [
@@ -777,22 +898,26 @@ const FX = {
       ]},
       timing({ease: false, durLabel: 'Scramble time', durHint: 'How long each letter scrambles before it settles.', durMin: 50, durMax: 3000, stagger: true, staggerHint: 'Time between one letter settling and the next.', hold: true, holdHint: 'How long the settled label stays before the next scramble.', holdShow: isLoop}),
     ],
-    compile(p){ return {active: p.dur + (isLoop(p) ? p.hold : 0), labelStyle: {display: 'inline-block', color: p.color, '--scr': p.scrambleColor}, charStyle: {whiteSpace: 'pre'}, tracks: []}; },
+    compile(p){ return {active: p.dur + (isLoop(p) ? p.hold : 0), labelStyle: {display: 'inline-block', color: INK, '--scr': p.scrambleColor}, charStyle: {whiteSpace: 'pre'}, tracks: []}; },
   },
 };
-const FX_GROUPS = [['Whole label', ['shimmer', 'fill', 'gradient', 'glow', 'underline']], ['Letter by letter', ['rise', 'wave', 'type', 'scramble']]];
+const FX_GROUPS = [['Whole label', ['shimmer', 'fill', 'gradient', 'glow', 'underline', 'marker', 'nudge']], ['Letter by letter', ['rise', 'flip', 'roll', 'wave', 'type', 'scramble']]];
+/* Shared timing keys every effect gets. */
+for (const F of Object.values(FX)){ F.defaults.count ??= 3; if (F.kind === 'char'){ F.defaults.order ??= 'lr'; F.defaults.scurve ??= 'even'; F.defaults.seed ??= 7; } }
 
+const scrambleOpts = C => ({charset: C.p.charset, start: C.p.start, rate: C.p.rate, dur: C.p.dur, hold: C.p.hold, pause: C.p.pause, delay: C.p.delay, loop: C.loop, offsets: C.offsets, count: C.p.trigger === 'repeat' ? C.p.count : 0});
 /* Shared by the preview and the exported script, so both behave the same. */
 function scrambleAt(chars, t, o){
   var sets = {letters: 'abcdefghijklmnopqrstuvwxyz', upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', symbols: '!<>-_\\/[]{}=+*^?#%&', digits: '0123456789', binary: '01', blocks: '▖▗▘▙▚▛▜▝▞▟█▓▒░'};
-  var set = sets[o.charset] || sets.upper, n = chars.length;
-  var T = o.dur + (o.loop ? o.hold : 0) + (n - 1) * o.stagger + (o.loop ? o.pause : 0);
+  var set = sets[o.charset] || sets.upper, off = o.offsets;
+  var T = o.dur + (o.loop ? o.hold + o.pause : 0) + Math.max.apply(null, off);
   var u = t - o.delay;
+  if (o.count && u >= T * o.count) return chars.map(function(ch){ return {ch: ch, done: true}; });
   if (o.loop && u >= 0) u = u % T;
   var k = Math.floor(Math.max(0, u) / o.rate);
   return chars.map(function(ch, i){
     if (ch.trim() === '') return {ch: ch, done: true};
-    var start = o.start === 'wave' ? i * o.stagger : 0, end = o.dur + i * o.stagger;
+    var start = o.start === 'wave' ? off[i] : 0, end = o.dur + off[i];
     if (u >= end) return {ch: ch, done: true};
     if (u < start) return {ch: ch, hidden: true};
     var h = (Math.imul(i + 1, 2654435761) ^ Math.imul(k + 1, 40503)) >>> 0;
@@ -807,21 +932,42 @@ function fold(frames, active, T){
   if (k < 0.99999){ const {easing, ...last} = out[out.length - 1]; out[out.length - 1] = {...last}; out.push({...last, offset: 1}); }
   return out;
 }
+/* Start time of each letter, in ms after the start delay. */
+function letterOffsets(p, n){
+  const mid = (n - 1) / 2, idx = [...Array(n).keys()];
+  let rank;
+  if (p.order === 'rl') rank = idx.map(i => n - 1 - i);
+  else if (p.order === 'center') rank = idx.map(i => Math.abs(i - mid) * 2);
+  else if (p.order === 'edges') rank = idx.map(i => (mid - Math.abs(i - mid)) * 2);
+  else if (p.order === 'random'){
+    let x = (p.seed || 1) * 7919 % 233280; const rnd = () => (x = (x * 9301 + 49297) % 233280) / 233280;
+    const sh = idx.slice(); for (let i = n - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [sh[i], sh[j]] = [sh[j], sh[i]]; }
+    rank = Array(n); sh.forEach((ci, r) => { rank[ci] = r; });
+  } else rank = idx;
+  const max = Math.max(0, ...rank), spread = max * (p.stagger || 0);
+  const curve = {even: u => u, accel: u => 1 - (1 - u) * (1 - u), decel: u => u * u}[p.scurve] || (u => u);
+  return rank.map(r => Math.round(max ? spread * curve(r / max) : 0));
+}
 function build(fx, p, text){
   const F = FX[fx];
   const chars = F.kind === 'char' ? Array.from(text || ' ') : null;
   const n = chars ? chars.length : 1;
   const r = F.compile(p, n);
-  const loop = isLoop(p), s = chars ? (p.stagger || 0) : 0, spread = (n - 1) * s;
+  const loop = isLoop(p), s = chars ? (p.stagger || 0) : 0;
+  const offsets = chars ? letterOffsets(p, n) : [0];
+  const spread = Math.max(0, ...offsets);
+  const simpleOrder = !chars || ((p.order || 'lr') === 'lr' && (p.scurve || 'even') === 'even');
   const active = Math.max(1, r.active);
   const T = Math.max(1, loop ? active + spread + p.pause : active);
   const tracks = r.tracks.map(tr => ({...tr, frames: fold(tr.frames, active, T)}));
   const total = loop ? p.delay + T : p.delay + spread + active;
-  return {fx, F, p, text, chars, n, s, T, active, spread, loop, iterations: loop ? Infinity : 1, total, delay: p.delay, ...r, tracks};
+  const iterations = p.trigger === 'repeat' ? p.count : loop ? Infinity : 1;
+  const end = p.trigger === 'repeat' ? p.delay + T * p.count : loop ? Infinity : total;
+  return {fx, F, p, text, chars, n, s, T, active, spread, offsets, simpleOrder, loop, iterations, total, end, delay: p.delay, ...r, tracks};
 }
 const liveJS = new Set();
 function mount(host, fx, p, text, opt = {}){
-  const pp = opt.forceLoop && !isLoop(p) ? {...p, trigger: 'loop', pause: Math.max(p.pause || 0, 1400)} : p;
+  const pp = opt.forceLoop && (!isLoop(p) || p.trigger === 'repeat') ? {...p, trigger: 'loop', pause: Math.max(p.pause || 0, 1400)} : p;
   const C = build(fx, pp, text);
   host.textContent = '';
   const label = el('span', {class: 'tm-label'});
@@ -839,7 +985,7 @@ function mount(host, fx, p, text, opt = {}){
     const targets = tr.target === 'label' ? [[label, 0]] : tr.target === 'line' ? [[line, 0]]
       : chars.map((c, i) => [c, i]).filter(([, i]) => tr.which === 'last' ? i === chars.length - 1 : tr.which === 'notlast' ? i < chars.length - 1 : true);
     targets.forEach(([e, i]) => {
-      const a = e.animate(tr.frames, {duration: C.T, delay: C.delay + (tr.target === 'char' ? i * C.s : 0), iterations: C.iterations, fill: 'both', easing: 'linear'});
+      const a = e.animate(tr.frames, {duration: C.T, delay: C.delay + (tr.target === 'char' ? C.offsets[i] : 0), iterations: C.iterations, fill: 'both', easing: 'linear'});
       if (!opt.native) a.pause();
       anims.push(a);
     });
@@ -848,7 +994,7 @@ function mount(host, fx, p, text, opt = {}){
     setTime(t){
       if (C.F.js){
         if (t == null){ chars.forEach((s, i) => { s.textContent = C.chars[i]; s.style.visibility = ''; s.classList.remove('is-scrambling'); }); return; }
-        const st = scrambleAt(C.chars, t, {...C.p, loop: C.loop});
+        const st = scrambleAt(C.chars, t, scrambleOpts(C));
         st.forEach((c, i) => { const s = chars[i]; s.textContent = c.hidden ? C.chars[i] : c.ch; s.style.visibility = c.hidden ? 'hidden' : ''; s.classList.toggle('is-scrambling', !c.done && !c.hidden); });
         return;
       }
@@ -872,8 +1018,8 @@ const PRESETS = [
   {fx: 'shimmer', g: 'Neutral', name: 'Double glint', note: 'A fainter second band trails the first.', p: {echoOn: true, echo: 45, width: 26}},
   {fx: 'shimmer', g: 'Neutral', name: 'Subtle', note: 'Band only lifts to mid grey, so letters never disappear.', p: {hi: '#7a7a7a', width: 60, dur: 2200, pause: 3000}},
   {fx: 'shimmer', g: 'Neutral', name: 'Bounce', note: 'Band crosses, then comes back, with no pause.', p: {dir: 'bounce', pause: 0}},
+  {fx: 'shimmer', g: 'Motion', name: 'Three passes', note: 'Sweeps three times on load, then stops.', p: {trigger: 'repeat', count: 3, pause: 600}},
   {fx: 'shimmer', g: 'Neutral', name: 'Hover only', note: 'Still at rest. Shimmers while hovered.', p: {trigger: 'hover-loop', dur: 900, pause: 200}},
-  {fx: 'shimmer', g: 'Neutral', name: 'Dark nav', note: 'Light label on a dark bar. The band dips toward the bar color.', stage: 'dark', p: {base: '#f5f5f5', hi: '#2a2a2a'}},
   // Shimmer, red
   {fx: 'shimmer', g: 'Red', name: 'Hot Heat band', note: 'Production shape with a Hot Heat band passing through black text.', p: {hi: H}},
   {fx: 'shimmer', g: 'Red', name: 'Hot Heat glint', note: 'Narrow, fast red flash with a long pause.', p: {hi: H, width: 16, soft: 80, dur: 600, pause: 3500}},
@@ -881,18 +1027,13 @@ const PRESETS = [
   {fx: 'shimmer', g: 'Red', name: 'White core, red edge', note: 'Letters flare red, then go white at the centre.', p: {tintOn: true, tint: H, hi: '#ffe9ea', width: 50}},
   {fx: 'shimmer', g: 'Red', name: 'Ember', note: 'Slow Burn ramps into a Hot Heat centre.', p: {tintOn: true, tint: SB, hi: H, width: 50, dur: 2000, pause: 2500}},
   {fx: 'shimmer', g: 'Red', name: 'Red echo', note: 'Hot Heat band with a fainter red trail.', p: {hi: H, echoOn: true, echo: 50, width: 26}},
-  {fx: 'shimmer', g: 'Red', name: 'Hot Heat text', note: 'Label set in Hot Heat with a white band.', p: {base: H, hi: '#ffffff'}},
-  {fx: 'shimmer', g: 'Red', name: 'Hot Heat, dark glint', note: 'Hot Heat label. The sheen goes darker, to Slow Burn.', p: {base: H, hi: SB, width: 40}},
-  {fx: 'shimmer', g: 'Red', name: 'Slow Burn text', note: 'Slow Burn label with a warm light band.', p: {base: SB, hi: '#f3ddd9', width: 50, dur: 2000, pause: 3000}},
-  {fx: 'shimmer', g: 'Red', name: 'Slow Burn to Hot Heat', note: 'The red heats up as the band passes.', p: {base: SB, hi: H, width: 50}},
+  {fx: 'shimmer', g: 'Red', name: 'Slow Burn band', note: 'A deeper red band through black text.', p: {hi: SB, width: 44}},
+  {fx: 'shimmer', g: 'Red', name: 'Peach band', note: 'A warm peach band.', p: {hi: '#feb899', width: 40}},
   {fx: 'shimmer', g: 'Red', name: 'Rose dust', note: 'Black text with a pale pink band.', p: {hi: '#ffd6d8', width: 40}},
   {fx: 'shimmer', g: 'Red', name: 'Red wipe', note: 'Hard-edged Hot Heat band, linear motion.', p: {hi: H, soft: 0, width: 28, dur: 1200, ease: E.linear}},
-  {fx: 'shimmer', g: 'Red', name: 'Red on dark', note: 'Hot Heat label with a white band on a dark bar.', stage: 'dark', p: {base: H, hi: '#ffffff'}},
-  {fx: 'shimmer', g: 'Red', name: 'Red band on dark', note: 'Light label, Hot Heat band. Red reads brightest on black.', stage: 'dark', p: {base: '#f5f5f5', hi: H, width: 40}},
   // Fill
   {fx: 'fill', g: 'Red', name: 'Black to Hot Heat', note: 'Hot Heat fills the label, holds, and empties.', p: {}},
-  {fx: 'fill', g: 'Red', name: 'Hot Heat to black', note: 'Starts red, fills to black.', p: {from: H, to: INK}},
-  {fx: 'fill', g: 'Red', name: 'Slow Burn to Hot Heat', note: 'Deep red heating up to bright red.', p: {from: SB, to: H}},
+  {fx: 'fill', g: 'Red', name: 'Black to Slow Burn', note: 'A deeper red fill.', p: {to: SB}},
   {fx: 'fill', g: 'Red', name: 'Hard red edge', note: 'A crisp line where the colors meet.', p: {soft: 0, ease: E.snappy}},
   {fx: 'fill', g: 'Red', name: 'Soft red bloom', note: 'The edge blends across the label.', p: {soft: 100, dur: 1200}},
   {fx: 'fill', g: 'Neutral', name: 'Black to mocha', note: 'A quiet neutral fill.', p: {to: '#94877e'}},
@@ -909,7 +1050,6 @@ const PRESETS = [
   {fx: 'glow', g: 'Red', name: 'Ember glow', note: 'Wider, softer Slow Burn glow.', p: {glow: SB, size: 22, max: 65}},
   {fx: 'glow', g: 'Red', name: 'Red text pulse', note: 'No glow. The text itself pulses to Hot Heat.', p: {max: 0, shift: true, shiftTo: H}},
   {fx: 'glow', g: 'Red', name: 'Pulse and glow', note: 'Text turns Hot Heat and glows at the peak.', p: {shift: true, shiftTo: H, size: 10, max: 60}},
-  {fx: 'glow', g: 'Red', name: 'Neon on dark', note: 'White text with a strong Hot Heat glow.', stage: 'dark', p: {color: '#ffffff', glow: H, size: 16, max: 100, min: 25}},
   {fx: 'glow', g: 'Motion', name: 'Slow breathe', note: 'Long, even pulse with no rest.', p: {dur: 2600, pause: 0, max: 60}},
   // Underline
   {fx: 'underline', g: 'Neutral', name: 'Draw on hover', note: 'Draws in from the left on hover and stays.', p: {}},
@@ -918,24 +1058,56 @@ const PRESETS = [
   {fx: 'underline', g: 'Neutral', name: 'From the centre', note: 'Grows outward from the middle.', p: {origin: 'center'}},
   {fx: 'underline', g: 'Motion', name: 'Pass through, looping', note: 'Draws in, holds, exits right. Repeats.', p: {trigger: 'loop', exit: 'continue'}},
   {fx: 'underline', g: 'Red', name: 'Red pass, looping', note: 'Hot Heat line passing through on a loop.', p: {trigger: 'loop', exit: 'continue', color: H, thick: 2}},
+  // Highlight sweep
+  {fx: 'marker', g: 'Red', name: 'Pink marker', note: 'A pale pink bar passes behind the label.', p: {}},
+  {fx: 'marker', g: 'Red', name: 'Hot Heat bar, white text', note: 'A Hot Heat block with the text turning white.', p: {color: H, inkOn: true, ink: '#ffffff'}},
+  {fx: 'marker', g: 'Red', name: 'Slow Burn block', note: 'A deep red block with white text.', p: {color: SB, inkOn: true, ink: '#ffffff'}},
+  {fx: 'marker', g: 'Red', name: 'Peach marker pen', note: 'A low peach stroke, like a highlighter.', p: {pos: 'low', height: 110, color: '#feb899'}},
+  {fx: 'marker', g: 'Motion', name: 'Hover highlight', note: 'Sweeps in on hover and stays.', p: {trigger: 'hover', exit: 'none'}},
+  // Nudge
+  {fx: 'nudge', g: 'Neutral', name: 'Bounce', note: 'Two small hops, then a long rest.', p: {}},
+  {fx: 'nudge', g: 'Neutral', name: 'Shake', note: 'A quick side-to-side shake.', p: {move: 'shake', strength: 3, swings: 3, dur: 500}},
+  {fx: 'nudge', g: 'Neutral', name: 'Wiggle', note: 'A small rotation back and forth.', p: {move: 'wiggle', strength: 5, swings: 2}},
+  {fx: 'nudge', g: 'Neutral', name: 'Pulse', note: 'Swells and settles.', p: {move: 'pulse', strength: 8, swings: 1, dur: 600}},
+  {fx: 'nudge', g: 'Neutral', name: 'Jelly', note: 'Squashes and stretches like jelly.', p: {move: 'jelly', strength: 10, swings: 3, dur: 800}},
+  {fx: 'nudge', g: 'Motion', name: 'Three hops only', note: 'Bounces three times on load, then stops.', p: {trigger: 'repeat', count: 3, pause: 900}},
+  // Flip
+  {fx: 'flip', g: 'Neutral', name: 'Tip in', note: 'Letters tip forward into place.', p: {}},
+  {fx: 'flip', g: 'Neutral', name: 'Turn in', note: 'Letters turn in from the side.', p: {axis: 'y'}},
+  {fx: 'flip', g: 'Neutral', name: 'Deep flip', note: 'Stronger angle and depth.', p: {persp: 200, angle: 120}},
+  {fx: 'flip', g: 'Sequence', name: 'Random flip', note: 'Letters flip in a shuffled order.', p: {order: 'random', stagger: 35}},
+  {fx: 'flip', g: 'Motion', name: 'Flip and leave', note: 'Flips in, holds, flips away. Loops.', p: {trigger: 'loop', exit: 'flip'}},
+  // Roll
+  {fx: 'roll', g: 'Red', name: 'Roll to red', note: 'On hover, letters roll up into Hot Heat.', p: {}},
+  {fx: 'roll', g: 'Red', name: 'Roll to Slow Burn', note: 'A deeper red copy rolls in.', p: {copy: SB}},
+  {fx: 'roll', g: 'Neutral', name: 'Roll to black', note: 'Same color. Pure motion.', p: {copy: INK}},
+  {fx: 'roll', g: 'Neutral', name: 'Whole word', note: 'The whole label rolls at once.', p: {stagger: 0, dur: 380}},
+  {fx: 'roll', g: 'Sequence', name: 'Centre-out roll', note: 'Rolls from the middle letters outward.', p: {order: 'center', stagger: 25}},
+  {fx: 'roll', g: 'Motion', name: 'Looping red roll', note: 'Rolls to red, holds, rolls back. Loops.', p: {trigger: 'loop', exit: 'back'}},
   // Rise
   {fx: 'rise', g: 'Neutral', name: 'Rise in', note: 'Letters rise and fade in on load.', p: {}},
   {fx: 'rise', g: 'Neutral', name: 'Masked rise', note: 'Letters slide up from behind the line.', p: {mask: true, dist: 1.1, fade: false}},
   {fx: 'rise', g: 'Neutral', name: 'Blur in', note: 'Letters sharpen into place.', p: {dist: .2, blur: 6}},
   {fx: 'rise', g: 'Neutral', name: 'Pop', note: 'Letters scale up with a small overshoot.', p: {dist: 0, scale: 40, ease: E.overshoot, stagger: 30}},
-  {fx: 'rise', g: 'Red', name: 'Red rise', note: 'Hot Heat letters rising in.', p: {color: H}},
+  {fx: 'rise', g: 'Red', name: 'Arrive in red', note: 'Letters rise in Hot Heat and cool to black.', p: {arriveOn: true, arrive: H, dur: 900}},
+  {fx: 'rise', g: 'Red', name: 'Ember arrival', note: 'Slow Burn letters blur in and settle to black.', p: {arriveOn: true, arrive: SB, blur: 4, dist: .3}},
+  {fx: 'rise', g: 'Sequence', name: 'Centre out', note: 'Starts in the middle and spreads outward.', p: {order: 'center', stagger: 45}},
+  {fx: 'rise', g: 'Sequence', name: 'Random', note: 'Letters arrive in a shuffled order.', p: {order: 'random', stagger: 40}},
+  {fx: 'rise', g: 'Sequence', name: 'Gathering speed', note: 'Gaps shrink, so the letters arrive faster and faster.', p: {scurve: 'accel', stagger: 70}},
   {fx: 'rise', g: 'Motion', name: 'Rise and leave', note: 'Rises in, holds, rises out. Loops.', p: {trigger: 'loop', exit: 'up', hold: 1200}},
   {fx: 'rise', g: 'Motion', name: 'Drop in', note: 'Letters fall in from above.', p: {dist: -.6}},
   // Wave
   {fx: 'wave', g: 'Neutral', name: 'Ripple', note: 'A small ripple across the label, then a rest.', p: {}},
   {fx: 'wave', g: 'Red', name: 'Red ripple', note: 'Letters flash Hot Heat as the ripple passes.', p: {colorOn: true, color2: H}},
   {fx: 'wave', g: 'Red', name: 'Hot Heat swell', note: 'Letters grow and turn red at the peak.', p: {colorOn: true, color2: H, scale: 120, amp: .12}},
+  {fx: 'wave', g: 'Red', name: 'Color cascade', note: 'No movement. Hot Heat runs through the letters.', p: {amp: 0, colorOn: true, color2: H, dur: 700, stagger: 50}},
+  {fx: 'wave', g: 'Sequence', name: 'Edges in', note: 'Both ends lift first and meet in the middle.', p: {order: 'edges', stagger: 60}},
+  {fx: 'wave', g: 'Sequence', name: 'Right to left', note: 'The ripple runs backwards.', p: {order: 'rl'}},
   {fx: 'wave', g: 'Neutral', name: 'Big bounce', note: 'Higher lift with overshoot.', p: {amp: .45, ease: E['expo-out'], dur: 650}},
   {fx: 'wave', g: 'Neutral', name: 'Gentle', note: 'Barely there. A slow, low ripple.', p: {amp: .08, dur: 900, stagger: 80}},
   // Typewriter
   {fx: 'type', g: 'Red', name: 'Type in', note: 'Types out on load with a Hot Heat caret.', p: {}},
   {fx: 'type', g: 'Red', name: 'Type and erase', note: 'Types, waits, erases, repeats.', p: {trigger: 'loop', exit: 'clear'}},
-  {fx: 'type', g: 'Red', name: 'Hot Heat type', note: 'Hot Heat letters with a black caret.', p: {color: H, caretColor: INK}},
   {fx: 'type', g: 'Neutral', name: 'Fast type', note: 'Twice the typing speed.', p: {stagger: 35}},
   {fx: 'type', g: 'Neutral', name: 'No caret', note: 'Letters only.', p: {caret: false}},
   // Scramble
@@ -949,7 +1121,7 @@ const PRESETS = [
 
 /* ================= state ================= */
 const TYPE_DEFAULTS = {font: 'saans', size: 15, weight: 400, tracking: 0, case: 'none'};
-const TYPE_GROUP = {title: 'Type', note: 'Preview only. Match it to the real nav label.', controls: [
+const TYPE_UNUSED = {title: 'Type', controls: [
   {k: 'font', t: 'seg', label: 'Typeface', options: FONTS.map(f => [f[0], f[1]])},
   {k: 'size', t: 'range', label: 'Size', hint: '15px matches the shop nav.', min: 10, max: 96, step: 1, unit: 'px'},
   {k: 'weight', t: 'seg', label: 'Weight', options: [[400, 'Regular'], [500, 'Medium'], [600, 'Semibold'], [700, 'Bold']]},
@@ -957,12 +1129,15 @@ const TYPE_GROUP = {title: 'Type', note: 'Preview only. Match it to the real nav
   {k: 'case', t: 'seg', label: 'Case', options: [['none', 'As typed'], ['uppercase', 'Upper'], ['lowercase', 'Lower']]},
 ]};
 function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec'}; }
+/* Keep only keys the effect still has, so old saves and links can't carry stale settings. */
+function withDefaults(fx, p){ const d = clone(FX[fx].defaults); for (const k of Object.keys(d)) if (p && k in p) d[k] = clone(p[k]); return d; }
 function normalize(o){
   const d = defaultState();
   if (!o || typeof o !== 'object') return d;
-  const s = {...d, ...o, type: {...d.type, ...(o.type || {})}, params: {...d.params}, cls: {...(o.cls || {})}};
-  for (const k of Object.keys(FX)) s.params[k] = {...clone(FX[k].defaults), ...((o.params || {})[k] || {})};
+  const s = {...d, fx: o.fx, zoom: o.zoom || 1, filter: o.filter || 'current', tab: o.tab || 'spec', params: {}, cls: {...(o.cls || {})}};
+  for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
+  if (![1, 2, 4].includes(s.zoom)) s.zoom = 1;
   return s;
 }
 function fromHash(){
@@ -972,7 +1147,7 @@ function fromHash(){
 }
 let S = normalize(fromHash() || store.get('tms.state.v1'));
 const P = () => S.params[S.fx];
-const snapshot = () => JSON.stringify({fx: S.fx, text: S.text, stage: S.stage, type: S.type, params: S.params, cls: S.cls});
+const snapshot = () => JSON.stringify({fx: S.fx, zoom: S.zoom, params: S.params, cls: S.cls});
 let saved = store.get('tms.saved.v1') || [];
 
 /* ================= history ================= */
@@ -989,7 +1164,6 @@ const schedSave = debounce(() => store.set('tms.state.v1', JSON.parse(snapshot()
 let CTRLS = [];
 const collapsed = new Set(store.get('tms.collapsed.v1') || []);
 const paramScope = {obj: () => P(), def: () => FX[S.fx].defaults, kind: 'param'};
-const typeScope = {obj: () => S.type, def: () => TYPE_DEFAULTS, kind: 'type'};
 
 function setVal(scope, k, v){ scope.obj()[k] = v; changed(scope.kind); }
 
@@ -1180,7 +1354,6 @@ function renderControls(){
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
   F.groups.forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  const T = groupEl(TYPE_GROUP, typeScope, 'type'); box.append(T.d); CTRLS.push(...T.apis); GROUPS.push(T);
   $('#fxDesc').textContent = F.desc;
   updateControls();
 }
@@ -1224,7 +1397,7 @@ function rebuildStage(){
   $('#stageInner').style.zoom = S.zoom;
   player.ctrl = mount($('#host'), S.fx, P(), S.text || ' ', {native: false});
   const C = player.ctrl.C;
-  if (!C.loop && player.t > C.total) player.t = C.total;
+  if (isFinite(C.end) && player.t > C.end) player.t = C.end;
   renderSegs(C); renderTrigUI(C);
   drawFrame();
 }
@@ -1234,7 +1407,7 @@ function renderSegs(C){
   const motionEnd = C.delay + C.spread + C.active;
   if (C.delay > 0) segs.append(el('span', {class: 'sg delay', style: `left:0;width:${pct(C.delay)}`}));
   segs.append(el('span', {class: 'sg motion', style: `left:${pct(C.delay)};width:${pct(Math.min(C.total, motionEnd) - C.delay)}`}));
-  if (C.chars && C.s > 0 && C.n <= 60) for (let i = 0; i < C.n; i++) segs.append(el('span', {class: 'tk', style: `left:${pct(C.delay + i * C.s)}`}));
+  if (C.chars && C.s > 0 && C.n <= 60) C.offsets.forEach(o => segs.append(el('span', {class: 'tk', style: `left:${pct(C.delay + o)}`})));
   const lg = $('#legend'); lg.textContent = '';
   const item = (bg, txt) => { const i = el('i'); i.style.background = bg; return el('span', {}, i, txt); };
   if (C.delay > 0) lg.append(item('repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 6px)', `Start delay ${C.delay} ms`));
@@ -1249,10 +1422,11 @@ function renderTrigUI(C){
   let note = '';
   if (hov) note = player.sim ? 'Simulating hover. Turn it off and hover the label to try it for real.' : 'This plays on hover. Hover or tab to the label, or turn on Preview hover.';
   else if (C.p.trigger === 'once') note = 'Plays once. Press play or restart to see it again.';
+  else if (C.p.trigger === 'repeat') note = `Plays ${C.p.count} times, then stops. The timeline shows one pass.`;
   if (REDUCED) note = (note ? note + ' ' : '') + 'Your system asks for reduced motion, so playback starts paused.';
   $('#trigNote').textContent = note;
 }
-function displayT(C, t){ return C.loop && t > C.total ? ((t - C.delay) % C.T) + C.delay : Math.min(t, C.total); }
+function displayT(C, t){ if (isFinite(C.end) && t >= C.end) return C.total; return C.loop && t > C.total ? ((t - C.delay) % C.T) + C.delay : Math.min(t, C.total); }
 function drawFrame(){
   const ctrl = player.ctrl; if (!ctrl) return;
   const C = ctrl.C, hov = isHover(C.p);
@@ -1276,10 +1450,10 @@ function tick(now){
     const running = !hov || player.hovered || player.sim;
     if (running){
       player.t += dt * player.speed;
-      if (!C.loop && player.t >= C.total){
-        if (hov && player.sim && player.t >= C.total + 900) player.t = 0;
-        else if (!hov){ player.t = C.total; player.ended = true; }
-        else player.t = Math.min(player.t, C.total + 900);
+      if (isFinite(C.end) && player.t >= C.end){
+        if (hov && player.sim && player.t >= C.end + 900) player.t = 0;
+        else if (!hov){ player.t = C.end; player.ended = true; }
+        else player.t = Math.min(player.t, C.end + 900);
       }
     }
   }
@@ -1289,7 +1463,7 @@ function tick(now){
 }
 function wirePlayer(){
   $('#play').onclick = () => {
-    if (player.ended || (!player.ctrl.C.loop && player.t >= player.ctrl.C.total)){ player.t = 0; player.ended = false; player.playing = true; return; }
+    if (player.ended || (isFinite(player.ctrl.C.end) && player.t >= player.ctrl.C.end)){ player.t = 0; player.ended = false; player.playing = true; return; }
     player.playing = !player.playing;
   };
   $('#restart').onclick = () => { player.t = 0; player.ended = false; player.playing = true; };
@@ -1307,18 +1481,15 @@ function wirePlayer(){
   host.addEventListener('focus', enter); host.addEventListener('blur', leave);
 }
 function renderToolbar(){
-  const t = $('#labelText'); if (document.activeElement !== t) t.value = S.text;
   const segFill = (box, opts, cur, onPick) => {
     box.textContent = '';
     opts.forEach(([v, l]) => { const b = el('button', {type: 'button', 'aria-pressed': String(String(v) === String(cur))}, l); b.onclick = () => onPick(v); box.append(b); });
   };
-  segFill($('#ctxSeg'), CONTEXTS, S.stage, v => { S.stage = v; changed('stage'); });
   segFill($('#zoomSeg'), [[1, '1×'], [2, '2×'], [4, '4×']], S.zoom, v => { S.zoom = v; changed('stage'); });
 }
 
 /* ================= variants gallery ================= */
 let cardCtrls = [];
-function presetParams(pr){ return {...clone(FX[pr.fx].defaults), ...clone(pr.p)}; }
 function renderGallery(){
   cardCtrls.forEach(c => c.destroy()); cardCtrls = [];
   const grid = $('#vgrid'); grid.textContent = '';
@@ -1336,14 +1507,14 @@ function renderGallery(){
   list.forEach(pr => {
     const key = S.filter === 'saved' ? 'Saved' : (S.filter === 'all' ? FX[pr.fx].name + ' · ' : '') + pr.g;
     if (key !== lastKey){ grid.append(el('div', {class: 'vgroup'}, el('h3', {}, key))); lastKey = key; }
-    const p = pr.saved ? {...clone(FX[pr.fx].defaults), ...clone(pr.p)} : presetParams(pr);
-    const sw = el('div', {class: 'sw', 'data-ctx': pr.stage || 'nav'}), host = el('span');
+    const p = withDefaults(pr.fx, pr.p);
+    const sw = el('div', {class: 'sw', 'data-ctx': 'nav'}), host = el('span');
     sw.append(host);
     applyType(sw, {...S.type, size: 17});
     const badge = isHover(p) ? el('span', {class: 'badge'}, 'hover') : p.trigger === 'once' ? el('span', {class: 'badge'}, 'once') : null;
     const card = el('button', {type: 'button', class: 'card', 'aria-pressed': 'false'}, sw, el('div', {class: 'meta'}, el('b', {}, pr.name, badge), pr.note ? el('span', {}, pr.note) : (S.filter !== 'current' ? el('span', {}, FX[pr.fx].name) : null)));
     card._match = {fx: pr.fx, p};
-    card.onclick = () => applyPreset(pr.fx, p, pr.stage);
+    card.onclick = () => applyPreset(pr.fx, p);
     if (pr.saved){
       const del = el('span', {class: 'del', role: 'button', tabindex: '0', 'aria-label': 'Delete ' + pr.name, title: 'Delete'}, '×');
       const kill = e => { e.stopPropagation(); saved = saved.filter(s => s.id !== pr.id); store.set('tms.saved.v1', saved); renderGallery(); toast('Deleted.'); };
@@ -1357,15 +1528,15 @@ function renderGallery(){
   updateActiveCards();
 }
 function updateActiveCards(){ $$('#vgrid .card').forEach(c => c.setAttribute('aria-pressed', String(c._match.fx === S.fx && same(c._match.p, P())))); }
-function applyPreset(fx, p, stage){
-  S.fx = fx; S.params[fx] = clone(p); if (stage) S.stage = stage;
+function applyPreset(fx, p){
+  S.fx = fx; S.params[fx] = clone(p);
   player.t = 0; player.ended = false; player.playing = !REDUCED;
   pushHist(); fullRender();
 }
 $('#saveForm').addEventListener('submit', e => {
   e.preventDefault();
   const name = $('#saveName').value.trim() || `${FX[S.fx].name} ${saved.filter(s => s.fx === S.fx).length + 1}`;
-  saved.unshift({id: Date.now().toString(36), name, fx: S.fx, p: clone(P()), stage: S.stage, note: ''});
+  saved.unshift({id: Date.now().toString(36), name, fx: S.fx, p: clone(P()), note: ''});
   store.set('tms.saved.v1', saved);
   $('#saveName').value = '';
   S.filter = 'saved'; renderGallery();
@@ -1398,8 +1569,8 @@ function cssFor(C, cls){
   C.tracks.forEach(tr => {
     const name = cls + (tr.which === 'last' ? '-last' : '');
     const suf = tr.target === 'label' ? '' : tr.target === 'line' ? '::after' : (tr.which === 'last' ? ' .ch:last-child' : ' .ch');
-    const delay = tr.target === 'char' ? `calc(var(--i) * ${C.s}ms${C.delay ? ` + ${C.delay}ms` : ''})` : `${C.delay}ms`;
-    out.push(rule(on(suf), {animation: `${name} ${Math.round(C.T)}ms linear ${delay} ${C.loop ? 'infinite' : 1} both`}));
+    const delay = tr.target !== 'char' ? `${C.delay}ms` : C.simpleOrder ? `calc(var(--i) * ${C.s}ms${C.delay ? ` + ${C.delay}ms` : ''})` : (C.delay ? `calc(var(--d) + ${C.delay}ms)` : 'var(--d)');
+    out.push(rule(on(suf), {animation: `${name} ${Math.round(C.T)}ms linear ${delay} ${C.iterations === Infinity ? 'infinite' : C.iterations} both`}));
     names.push([name, tr.frames]);
   });
   names.forEach(([n, f]) => out.push(keyframesCSS(n, f)));
@@ -1409,15 +1580,19 @@ function cssFor(C, cls){
     if (C.rest){
       if (C.rest.label) rm.push(rule(on(''), C.rest.label, '  '));
       if (C.rest.line) rm.push(rule(on('::after'), C.rest.line, '  '));
+      if (C.rest.char) rm.push(rule(on(' .ch'), C.rest.char, '  '));
     }
     rm.push('}');
     out.push(rm.join('\n'));
   }
   return out.join('\n\n');
 }
-function splitterJS(cls){
+function splitterJS(C, cls){
+  const custom = !C.simpleOrder;
   return `// Splits each label into letter spans so every letter can animate.
-// The label keeps an aria-label, so screen readers still read one word.
+// The label keeps an aria-label, so screen readers still read one word.${custom ? `
+// Start time of each letter in ms, for "${C.text}" (${C.n} letters). Regenerate if the label changes.
+const LETTER_DELAYS = ${JSON.stringify(C.offsets)};` : ''}
 function splitLetters(el) {
   const text = el.textContent;
   el.setAttribute('aria-label', text);
@@ -1426,7 +1601,7 @@ function splitLetters(el) {
     const s = document.createElement('span');
     s.className = 'ch';
     s.setAttribute('aria-hidden', 'true');
-    s.style.setProperty('--i', i);
+    s.style.setProperty(${custom ? `'--d', LETTER_DELAYS[i] + 'ms'` : `'--i', i`});
     s.textContent = ch;
     el.appendChild(s);
   });
@@ -1434,7 +1609,7 @@ function splitLetters(el) {
 document.querySelectorAll('.${cls}').forEach(splitLetters);`;
 }
 function scrambleJS(C, cls){
-  const o = {charset: C.p.charset, start: C.p.start, rate: C.p.rate, dur: C.p.dur, stagger: C.p.stagger, hold: C.p.hold, pause: C.p.pause, delay: C.p.delay, loop: C.loop};
+  const o = scrambleOpts(C);
   return `// Scramble text effect. No dependencies.
 ${scrambleAt.toString().replace(/^ {2}/gm, '')}
 
@@ -1478,22 +1653,23 @@ document.querySelectorAll('.${cls}').forEach(el => startScramble(el, ${JSON.stri
 function htmlFor(C, cls){
   const t = esc(C.text);
   if (C.F.kind === 'label') return `<!-- No extra markup needed. Add the class to the nav link. -->\n<a class="${cls}" href="/new-featured">${t}</a>`;
-  const spans = C.chars.map((ch, i) => `  <span class="ch" aria-hidden="true" style="--i:${i}">${esc(ch)}</span>`).join('\n');
+  const spans = C.chars.map((ch, i) => `  <span class="ch" aria-hidden="true" style="${C.simpleOrder ? `--i:${i}` : `--d:${C.offsets[i]}ms`}">${esc(ch)}</span>`).join('\n');
   const a = `<!-- Option A: plain markup. The script in the JS tab splits it into letters. -->\n<a class="${cls}" href="/new-featured">${t}</a>`;
   if (C.F.js) return a;
   return `${a}\n\n<!-- Option B: pre-split markup, if the label is rendered on the server. -->\n<a class="${cls}" href="/new-featured" aria-label="${t}">\n${spans}\n</a>`;
 }
 function jsFor(C, cls){
   if (C.F.js) return scrambleJS(C, cls);
-  if (C.F.kind === 'char') return splitterJS(cls);
+  if (C.F.kind === 'char') return splitterJS(C, cls);
   return '// No JavaScript needed. This effect is pure CSS.';
 }
 function jsonFor(C){
   const p = {};
   for (const [k, v] of Object.entries(C.p)) p[k] = k === 'ease' ? easeCSS(v) : v;
   const o = {tool: 'Text Motion Studio', effect: C.fx, effectName: C.F.name, label: C.text, plays: C.p.trigger, params: p,
-    computed: {cycleMs: Math.round(C.T), totalMs: Math.round(C.total), activeMs: Math.round(C.active)}, previewType: S.type};
-  if (C.chars) o.computed.letters = C.n, o.computed.letterStartMs = `${C.delay} + index * ${C.s}`;
+    computed: {cycleMs: Math.round(C.T), totalMs: Math.round(C.total), activeMs: Math.round(C.active)}, navDesign: 'unchanged'};
+  if (C.chars){ o.computed.letters = C.n; o.computed.letterDelaysMs = C.offsets; }
+  if (C.p.trigger === 'repeat') o.computed.plays = C.p.count;
   return JSON.stringify(o, null, 2);
 }
 function fmtVal(c, v){
@@ -1501,18 +1677,21 @@ function fmtVal(c, v){
   if (c.t === 'ease'){ const css = easeCSS(v); return {html: `<span class="sv"><svg class="mini-ease" viewBox="0 0 22 16"><path d="${easePath(v, 22, 16, 2)}"/></svg>${esc(easeLabel(v))}<small class="mono">${esc(css)}</small></span>`, text: `${easeLabel(v)}, ${css}`}; }
   if (c.t === 'seg'){ const o = c.options.find(x => String(x[0]) === String(v)); return {html: esc(o ? o[1] : v), text: o ? o[1] : String(v)}; }
   if (c.t === 'toggle') return {html: v ? 'On' : 'Off', text: v ? 'On' : 'Off'};
-  return {html: `<span class="mono">${v}${c.unit === '%' || c.unit === '°' ? '' : ' '}${c.unit || ''}</span>`, text: `${v}${c.unit === '%' || c.unit === '°' ? '' : ' '}${c.unit || ''}`};
+  const sp = !c.unit || c.unit === '%' || c.unit === '°' || c.unit === '×' ? '' : ' ';
+  return {html: `<span class="mono">${v}${sp}${c.unit || ''}</span>`, text: `${v}${sp}${c.unit || ''}`};
 }
 function specData(C){
   const secs = [];
   const ov = [['Effect', esc(C.F.name), C.F.name], ['What it does', esc(C.F.desc), C.F.desc], ['Plays', esc(TRIG_TEXT[C.p.trigger]), TRIG_TEXT[C.p.trigger]]];
   const impl = C.F.js ? 'JavaScript. Snippet in the JS tab, plus one CSS rule.' : C.F.kind === 'char' ? 'CSS, plus a small script that splits the label into letters.' : 'CSS only.';
   ov.push(['Build with', esc(impl), impl]);
+  if (C.p.trigger === 'repeat') ov.push(['Plays', `<span class="mono">${C.p.count} times</span><small>${Math.round(C.end)} ms in total</small>`, `${C.p.count} times, ${Math.round(C.end)} ms in total`]);
   if (C.loop) ov.push(['One full cycle', `<span class="mono">${Math.round(C.T)} ms</span><small>Motion ${Math.round(C.spread + C.active)} ms, then ${C.p.pause} ms pause</small>`, `${Math.round(C.T)} ms (motion ${Math.round(C.spread + C.active)} ms + pause ${C.p.pause} ms)`]);
   else ov.push(['Total time', `<span class="mono">${Math.round(C.total)} ms</span>`, `${Math.round(C.total)} ms`]);
   if (C.chars){
     ov.push(['Letters', `<span class="mono">${C.n}</span><small>Cycle length depends on letter count. Regenerate the CSS if the label text changes.</small>`, `${C.n}. Cycle length depends on letter count, so regenerate the CSS if the label changes.`]);
-    if (C.s) ov.push(['Letter start time', `<span class="mono">${C.delay} + index × ${C.s} ms</span>`, `${C.delay} + index × ${C.s} ms`]);
+    if (C.s && C.simpleOrder) ov.push(['Letter start time', `<span class="mono">${C.delay} + index × ${C.s} ms</span>`, `${C.delay} + index × ${C.s} ms`]);
+    else if (C.s) ov.push(['Letter start times', `<span class="mono">${C.offsets.join(', ')} ms</span><small>After the start delay, in reading order. The JS tab sets these for you.</small>`, `${C.offsets.join(', ')} ms after the start delay, in reading order`]);
   }
   secs.push(['Overview', ov]);
   C.F.groups.forEach(g => {
@@ -1520,9 +1699,8 @@ function specData(C){
     g.controls.forEach(c => { if (c.k === 'trigger') return; if (c.show && !c.show(C.p)) return; const v = fmtVal(c, C.p[c.k]); rows.push([c.label, v.html, v.text]); });
     if (rows.length) secs.push([g.title, rows]);
   });
-  const f = FONTS.find(x => x[0] === S.type.font) || FONTS[0];
-  const ty = `${f[1]}, ${S.type.size}px, weight ${S.type.weight}, ${S.type.tracking}em spacing${S.type.case !== 'none' ? ', ' + S.type.case : ''}`;
-  secs.push(['Preview type', [['Type used in the preview', esc(ty) + '<small>Use the nav label\'s real type in production.</small>', ty]]]);
+  const nav = 'Unchanged. Keep the existing nav type, size and #1a1a1a text color. This spec covers the animation only.';
+  secs.push(['Nav label', [['Design', esc(nav), nav]]]);
   const a11y = C.chars ? 'Letters are split into spans hidden from screen readers. The label keeps an aria-label with the full text.' : 'The label stays real text. Nothing changes for screen readers.';
   secs.push(['Accessibility', [['Reduced motion', esc(C.F.reduced), C.F.reduced], ['Screen readers', esc(a11y), a11y], ['Keyboard', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.', isHover(C.p) ? 'Plays on keyboard focus as well as hover.' : 'No keyboard behavior.']]]);
   return secs;
@@ -1578,7 +1756,6 @@ document.addEventListener('keydown', e => {
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y'){ e.preventDefault(); redo(); }
   else if (e.key === ' ' && t === document.body){ e.preventDefault(); $('#play').click(); }
 });
-$('#labelText').addEventListener('input', e => { S.text = e.target.value; changed('text'); });
 
 /* ================= change pipeline ================= */
 const schedGallery = debounce(() => { renderGallery(); renderFxPick(); }, 350);
