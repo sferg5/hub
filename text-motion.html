@@ -436,18 +436,16 @@ const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduc
 const SIMPLE = !new URLSearchParams(location.search).has('full');
 if (SIMPLE) document.documentElement.classList.add('simple');
 /* Each version: band color, its name, and the band settings it starts from. */
-const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: 45, dir: 'bounce', path: 'diag'}]];
+// Both versions sweep corner to corner at 45°, top right to bottom left and back, then loop.
+const SWEEP = {angle: 45, dir: 'bounce', path: 'diag'};
+const SIMPLE_VERSIONS = [['#ffffff', 'Original', SWEEP], [H, 'Red', SWEEP]];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
-  {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label once.', min: 1000, max: 2500, step: 100, unit: 'ms'},
+  {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label one way. The sweep back takes the same time.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
 ]};
 /* The red band gets its own gradient controls. The original stays the production shimmer. */
 const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
-  {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']]},
-  {k: 'dir', t: 'seg', label: 'Direction', options: [['bounce', 'Both ways'], ['rtl', 'One way'], ['ltr', 'Reverse']], hint: p => {
-    const [a, b] = p.path === 'diag' ? ['top right', 'bottom left'] : ['right', 'left'];
-    return ({bounce: `From the ${a} to the ${b}, then back to the ${a}, then it loops.`, rtl: `From the ${a} to the ${b}, then it loops.`, ltr: `From the ${b} to the ${a}, then it loops.`})[p.dir];
-  }},
+  {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']], hint: p => p.path === 'diag' ? 'From the top right to the bottom left, then back to the top right, then it loops.' : 'From the right to the left, then back to the right, then it loops.'},
   {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the band. 45° lines it up with a corner-to-corner sweep. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
   {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
@@ -1223,12 +1221,13 @@ function normalize(o){
   if (SIMPLE){
     // Older saves carry settings from before a control existed: no sv = timing only; before sv 4 the red band's
     // angle, travel and direction were earlier defaults, so those reset to the corner-to-corner sweep.
-    const o2 = s.params.shimmer, p = simpleDefaults(o2.hi === H ? H : '#ffffff');
+    // Read only what was actually saved, so anything missing falls back to the version's own defaults.
+    const o2 = (o.params || {}).shimmer || {}, p = simpleDefaults(o2.hi === H ? H : '#ffffff');
     (o.sv >= 2 ? simpleGroups(p) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
       if (['dir', 'angle', 'path'].includes(c.k) && o.sv < 4) return;
       if (c.t === 'seg'){ if (c.options.some(x => x[0] === o2[c.k])) p[c.k] = o2[c.k]; return; }
       if (c.t === 'range'){ const v = Number(o2[c.k]); if (Number.isFinite(v)) p[c.k] = clamp(v, c.min, c.max); }
-      else if (c.t === 'toggle') p[c.k] = !!o2[c.k];
+      else if (c.t === 'toggle'){ if (typeof o2[c.k] === 'boolean') p[c.k] = o2[c.k]; }
       else if (c.t === 'color' && /^#[0-9a-f]{6}$/i.test(o2[c.k] || '')) p[c.k] = o2[c.k];
     }));
     s.fx = 'shimmer'; s.params.shimmer = p;
@@ -1454,7 +1453,7 @@ function renderControls(){
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
   (SIMPLE ? simpleGroups(P()) : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = SIMPLE ? (P().hi === H ? 'The New & Featured shimmer with a red band. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer. Pick a version, then adjust the timing if you need to.') : F.desc;
+  $('#fxDesc').textContent = SIMPLE ? (P().hi === H ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Pick a version, then adjust the timing if you need to.') : F.desc;
   updateControls();
 }
 function updateControls(){
