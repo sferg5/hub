@@ -65,9 +65,12 @@ button{cursor:pointer}
 .handoff{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column}
 .main{padding:16px;display:flex;flex-direction:column;gap:18px}
 .main > *{flex-shrink:0}
+/* Handoff hidden: the stage takes its column. */
+.ho-off .app{grid-template-columns:350px minmax(0,1fr)}
+.ho-off .handoff{display:none}
 @media (max-width:1280px){
   html,body{height:auto} body{display:block}
-  .app{grid-template-columns:330px minmax(0,1fr)}
+  .app,.ho-off .app{grid-template-columns:330px minmax(0,1fr)}
   .side{grid-row:1 / 3;position:sticky;top:0;max-height:100vh;align-self:start}
   .main,.handoff{overflow:visible}
   .handoff{grid-column:2;border-left:0;border-top:1px solid var(--line)}
@@ -316,6 +319,7 @@ pre.code .cm{color:var(--faint)}
   <button class="btn icon" id="undo" type="button" title="Undo (⌘Z)" aria-label="Undo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H7"/></svg></button>
   <button class="btn icon" id="redo" type="button" title="Redo (⇧⌘Z)" aria-label="Redo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H9"/></svg></button>
   </span>
+  <button class="btn" id="hoToggle" type="button" aria-controls="handoffPanel" title="Show or hide the developer handoff">Show handoff</button>
   <button class="btn" id="resetAll" type="button" title="Put every control for this effect back to its default">Reset effect</button>
   <button class="btn primary" id="share" type="button">Copy share link</button>
 </header>
@@ -378,7 +382,7 @@ pre.code .cm{color:var(--faint)}
     </section>
   </main>
 
-  <aside class="handoff" aria-label="Developer handoff">
+  <aside class="handoff" id="handoffPanel" aria-label="Developer handoff">
     <div class="ho-head">
       <h2>Handoff</h2>
       <p>Everything a developer needs to build what's on the stage. It updates as you change controls.</p>
@@ -1218,7 +1222,7 @@ function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: '
 function withDefaults(fx, p){ const d = clone(FX[fx].defaults); for (const k of Object.keys(d)) if (p && k in p) d[k] = clone(p[k]); return d; }
 function normalize(o){
   const d = defaultState();
-  if (!o || typeof o !== 'object') return d;
+  if (!o || typeof o !== 'object'){ if (!SIMPLE) return d; o = {}; }  // simple mode still needs its version defaults
   const s = {...d, fx: o.fx, zoom: o.zoom || 1, filter: o.filter || 'current', tab: o.tab || 'spec', params: {}, cls: {...(o.cls || {})}};
   for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
@@ -1826,6 +1830,14 @@ function shareURL(){
 }
 $('#share').onclick = () => copyText(shareURL(), 'Link copied. It opens this exact setup.');
 $('#copyTab').onclick = () => copyText(HO[S.tab].text, `${TABS.find(t => t[0] === S.tab)[1]} copied.`);
+/* Handoff panel: hidden by default so the page stays simple; the choice is remembered. */
+function setHandoff(on){
+  document.documentElement.classList.toggle('ho-off', !on);
+  const b = $('#hoToggle'); b.textContent = on ? 'Hide handoff' : 'Show handoff'; b.setAttribute('aria-expanded', String(on));
+  store.set('tms.handoff.v1', on);
+}
+setHandoff(store.get('tms.handoff.v1') === true);
+$('#hoToggle').onclick = () => setHandoff(document.documentElement.classList.contains('ho-off'));
 $('#copyAll').onclick = () => copyText(fullHandoffText(), 'Full handoff copied: spec, CSS, HTML, JS and a link.');
 $('#undo').onclick = undo; $('#redo').onclick = redo;
 $('#resetAll').onclick = () => {
