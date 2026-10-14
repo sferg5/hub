@@ -444,6 +444,8 @@ if (SIMPLE) document.documentElement.classList.add('simple');
 const SWEEP = {angle: 45, dir: 'bounce', path: 'diag'};
 const SIMPLE_VERSIONS = [['#ffffff', 'Original', SWEEP], [H, 'Red', SWEEP]];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
+  {k: 'trigger', t: 'seg', label: 'Plays', options: [['loop', 'Keep looping'], ['repeat', 'Set number']], hint: p => p.trigger === 'repeat' ? 'Plays the set number of times when the page loads, then stops.' : 'Keeps sweeping for as long as the page is open.'},
+  {k: 'count', t: 'range', label: 'Times on load', hint: 'One time is a full sweep across and back.', min: 1, max: 10, step: 1, unit: '×', show: p => p.trigger === 'repeat'},
   {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label one way. The sweep back takes the same time.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
 ]};
