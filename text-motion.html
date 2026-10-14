@@ -94,6 +94,8 @@ button{cursor:pointer}
 .fx-tile .nm{padding:5px 7px;font-size:12px;font-weight:600;line-height:1.2}
 .fx-tile[aria-pressed="true"]{border-color:var(--fg);box-shadow:0 0 0 1px var(--fg)}
 .fx-desc{margin-top:10px;color:var(--muted);font-size:13px}
+/* Simple mode (the default) hides everything beyond the nav shimmer. Add ?full to the URL for the whole tool. */
+.simple .full-only{display:none}
 
 /* ---------- side: control groups ---------- */
 .grp{border-bottom:1px solid var(--line)}
@@ -321,7 +323,7 @@ pre.code .cm{color:var(--faint)}
 <div class="app">
   <aside class="side" aria-label="Controls">
     <section class="side-sec">
-      <span class="eyebrow">Effect</span>
+      <span class="eyebrow" id="pickTitle">Effect</span>
       <div id="fxPick"></div>
       <p class="fx-desc" id="fxDesc"></p>
     </section>
@@ -361,9 +363,9 @@ pre.code .cm{color:var(--faint)}
       <p class="trig-note" id="trigNote"></p>
     </section>
 
-    <section class="brand" id="brand" aria-label="Brand check" aria-live="polite"></section>
+    <section class="brand full-only" id="brand" aria-label="Brand check" aria-live="polite"></section>
 
-    <section aria-label="Variants">
+    <section class="full-only" aria-label="Variants">
       <div class="vhead">
         <h2>Variants</h2>
         <div class="seg" id="filterSeg" role="group" aria-label="Show variants"></div>
@@ -430,6 +432,15 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 };
 const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){ return false; } })();
+/* Simple mode: the production shimmer in two versions, with timing kept inside a safe range. */
+const SIMPLE = !new URLSearchParams(location.search).has('full');
+if (SIMPLE) document.documentElement.classList.add('simple');
+const SIMPLE_VERSIONS = [['#ffffff', 'Original'], [H, 'Red']];
+const SIMPLE_GROUPS = [{title: 'Timing', controls: [
+  {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label once.', min: 1000, max: 2500, step: 100, unit: 'ms'},
+  {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
+]}];
+const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="2.5" width="3" height="11" rx="1"/><rect x="9.5" y="2.5" width="3" height="11" rx="1"/></svg>';
@@ -587,16 +598,16 @@ const FX = {
 
   fill: {
     name: 'Fill wipe', kind: 'label',
-    desc: 'A new color wipes through the label, holds, then wipes back out.',
+    desc: 'A new color wipes into the label, holds, then wipes out.',
     reduced: 'Animation off. Looping labels stay in the starting color. Hover labels switch straight to the fill color.',
-    defaults: {to: H, soft: 30, mode: 'inout', trigger: 'loop', dir: 'ltr', dur: 700, hold: 900, pause: 1500, delay: 0, ease: E.strong},
+    defaults: {to: H, soft: 30, mode: 'through', trigger: 'loop', dir: 'rtl', dur: 700, hold: 900, pause: 1500, delay: 0, ease: E.strong},
     groups: [
       {title: 'Color', controls: [
         {k: 'to', t: 'color', label: 'Fill color', hint: 'The color that wipes through the label. It starts and ends in the nav color.'},
       ]},
       {title: 'Wipe', controls: [
         {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a hard edge. 100 blends across the whole label.', min: 0, max: 100, step: 1, unit: '%'},
-        {k: 'mode', t: 'seg', label: 'Shape', options: [['inout', 'Fill, then empty'], ['in', 'Fill only']], hint: p => p.mode === 'in' ? 'Fills and stays. When looping it snaps back before the next pass.' : 'Fills, holds, then reverses out the way it came.'},
+        {k: 'mode', t: 'seg', label: 'Shape', options: [['through', 'Pass through'], ['inout', 'Fill, then empty'], ['in', 'Fill only']], hint: p => ({through: 'Fills, holds, then carries on out the far side.', inout: 'Fills, holds, then reverses out the way it came.', in: 'Fills and stays. When looping it snaps back before the next pass.'})[p.mode]},
       ]},
       timing({dir: [['ltr', 'Left to right'], ['rtl', 'Right to left']], hold: true, holdHint: 'How long the label stays filled.', durLabel: 'Wipe duration'}),
     ],
@@ -607,6 +618,16 @@ const FX = {
       const start = p.dir === 'ltr' ? '100% 0' : '0% 0', end = p.dir === 'ltr' ? '0% 0' : '100% 0';
       const ez = easeCSS(p.ease), ezOut = easeCSS(mirror(p.ease));
       let frames, active;
+      if (p.mode === 'through'){
+        // Nav color, fill, nav color, one label width apart, so the fill can leave out the far side.
+        const w = p.soft / 100 * 20;
+        const tg = `linear-gradient(90deg, ${INK} 0%, ${INK} ${(30 - w / 2).toFixed(2)}%, ${p.to} ${(30 + w / 2).toFixed(2)}%, ${p.to} ${(70 - w / 2).toFixed(2)}%, ${INK} ${(70 + w / 2).toFixed(2)}%, ${INK} 100%)`;
+        const [a0, a1] = p.dir === 'ltr' ? ['100% 0', '0% 0'] : ['0% 0', '100% 0'];
+        active = 2 * p.dur + p.hold;
+        frames = [{offset: 0, backgroundPosition: a0, easing: ez}, {offset: p.dur / active, backgroundPosition: '50% 0'}, {offset: (p.dur + p.hold) / active, backgroundPosition: '50% 0', easing: ez}, {offset: 1, backgroundPosition: a1}];
+        return {active, labelStyle: {...BG_CLIP(tg, '500% 100%'), backgroundPosition: a0}, tracks: [{target: 'label', frames}],
+          rest: isHover(p) ? {label: {backgroundPosition: '50% 0'}} : null};
+      }
       if (p.mode === 'inout'){
         active = 2 * p.dur + p.hold;
         frames = [{offset: 0, backgroundPosition: start, easing: ez}, {offset: p.dur / active, backgroundPosition: end}, {offset: (p.dur + p.hold) / active, backgroundPosition: end, easing: ezOut}, {offset: 1, backgroundPosition: start}];
@@ -1084,7 +1105,8 @@ const PRESETS = [
   {fx: 'shimmer', g: 'Red', name: 'Rose dust', note: 'Black text with a pale pink band.', p: {hi: '#ffd6d8', width: 40}},
   {fx: 'shimmer', g: 'Red', name: 'Red wipe', note: 'Hard-edged Hot Heat band, linear motion.', p: {hi: H, soft: 0, width: 28, dur: 1200, ease: E.linear}},
   // Fill
-  {fx: 'fill', g: 'Red', name: 'Black to Hot Heat', note: 'Hot Heat fills the label, holds, and empties.', p: {}},
+  {fx: 'fill', g: 'Red', name: 'Black to Hot Heat', note: 'Hot Heat wipes in from the right, holds, and wipes out to the left.', p: {}},
+  {fx: 'fill', g: 'Red', name: 'Fill and empty', note: 'Hot Heat fills, holds, and empties back the way it came.', p: {mode: 'inout'}},
   {fx: 'fill', g: 'Red', name: 'Black to Slow Burn', note: 'A deeper red fill.', p: {to: SB}},
   {fx: 'fill', g: 'Red', name: 'Hard red edge', note: 'A crisp line where the colors meet.', p: {soft: 0, ease: E.snappy}},
   {fx: 'fill', g: 'Red', name: 'Soft red bloom', note: 'The edge blends across the label.', p: {soft: 100, dur: 1200}},
@@ -1175,6 +1197,12 @@ function normalize(o){
   const s = {...d, fx: o.fx, zoom: o.zoom || 1, filter: o.filter || 'current', tab: o.tab || 'spec', params: {}, cls: {...(o.cls || {})}};
   for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
+  if (SIMPLE){
+    const o2 = s.params.shimmer, p = clone(FX.shimmer.defaults);
+    p.hi = o2.hi === H ? H : '#ffffff';
+    SIMPLE_GROUPS[0].controls.forEach(c => { p[c.k] = clamp(Number(o2[c.k]) || p[c.k], c.min, c.max); });
+    s.fx = 'shimmer'; s.params.shimmer = p;
+  }
   if (![1, 2, 4].includes(s.zoom)) s.zoom = 1;
   return s;
 }
@@ -1183,7 +1211,7 @@ function fromHash(){
   if (!m) return null;
   try { return JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch(e){ return null; }
 }
-let S = normalize(fromHash() || store.get('tms.state.v1'));
+let S = normalize(fromHash() || store.get(STATE_KEY));
 const P = () => S.params[S.fx];
 const snapshot = () => JSON.stringify({fx: S.fx, zoom: S.zoom, params: S.params, cls: S.cls});
 let saved = (store.get('tms.saved.v1') || []).filter(s => FX[s.fx]);
@@ -1196,7 +1224,7 @@ function restore(s){ const o = JSON.parse(s); S = normalize({...S, ...o}); fullR
 function undo(){ pushHist(); if (hist.i > 0){ hist.i--; restore(hist.stack[hist.i]); } }
 function redo(){ if (hist.i < hist.stack.length - 1){ hist.i++; restore(hist.stack[hist.i]); } }
 function updateUndo(){ $('#undo').disabled = hist.i <= 0; $('#redo').disabled = hist.i >= hist.stack.length - 1; }
-const schedSave = debounce(() => store.set('tms.state.v1', JSON.parse(snapshot())), 300);
+const schedSave = debounce(() => store.set(STATE_KEY, JSON.parse(snapshot())), 300);
 
 /* ================= controls ================= */
 let CTRLS = [];
@@ -1395,8 +1423,8 @@ function renderControls(){
   const box = $('#controls');
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
-  F.groups.forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = F.desc;
+  (SIMPLE ? SIMPLE_GROUPS : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
+  $('#fxDesc').textContent = SIMPLE ? 'The New & Featured shimmer. Pick a version, then adjust the timing if you need to.' : F.desc;
   updateControls();
 }
 function updateControls(){
@@ -1409,6 +1437,21 @@ let tileCtrls = [];
 function renderFxPick(){
   tileCtrls.forEach(t => t.destroy()); tileCtrls = [];
   const box = $('#fxPick'); box.textContent = '';
+  if (SIMPLE){
+    $('#pickTitle').textContent = 'Version';
+    const grid = el('div', {class: 'fx-grid'});
+    SIMPLE_VERSIONS.forEach(([hi, name]) => {
+      const mini = el('span', {class: 'mini', 'aria-hidden': 'true'}), host = el('span');
+      mini.append(host); applyType(mini, {...S.type, size: 20, case: 'none'});
+      const b = el('button', {type: 'button', class: 'fx-tile', 'data-hi': hi, 'aria-pressed': String(P().hi === hi)}, mini, el('span', {class: 'nm'}, name));
+      b.onclick = () => { if (P().hi === hi) return; P().hi = hi; changed('param'); };
+      grid.append(b);
+      if (!REDUCED) tileCtrls.push(mount(host, 'shimmer', {...FX.shimmer.defaults, hi}, 'Aa', {native: true}));
+      else host.textContent = 'Aa';
+    });
+    box.append(grid);
+    return;
+  }
   FX_GROUPS.forEach(([title, ids]) => {
     const grid = el('div', {class: 'fx-grid'});
     ids.forEach(id => {
@@ -1423,7 +1466,7 @@ function renderFxPick(){
     box.append(el('div', {class: 'fx-group'}, el('span', {class: 'eyebrow'}, title), grid));
   });
 }
-function updateFxPick(){ $$('.fx-tile').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.fx === S.fx))); }
+function updateFxPick(){ $$('.fx-tile').forEach(b => b.setAttribute('aria-pressed', String(SIMPLE ? b.dataset.hi === P().hi : b.dataset.fx === S.fx))); }
 
 /* ================= stage + player ================= */
 function applyType(node, t){
@@ -1533,6 +1576,7 @@ function renderToolbar(){
 let cardCtrls = [];
 function renderGallery(){
   cardCtrls.forEach(c => c.destroy()); cardCtrls = [];
+  if (SIMPLE) return;
   const grid = $('#vgrid'); grid.textContent = '';
   const fs = $('#filterSeg'); fs.textContent = '';
   [['current', FX[S.fx].name], ['all', 'All effects'], ['saved', `Saved${saved.length ? ' (' + saved.length + ')' : ''}`]].forEach(([v, l]) => {
@@ -1767,6 +1811,7 @@ function changed(kind){
   rebuildStage();
   schedHandoff(); schedBrand(); schedHist(); schedSave();
   if (kind === 'text' || kind === 'type') schedGallery(); else updateActiveCards();
+  updateFxPick();
 }
 function fullRender(){
   renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderBrand(); renderGallery(); schedSave();
