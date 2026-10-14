@@ -443,11 +443,15 @@ const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label one way. The sweep back takes the same time.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
 ]};
-/* The red band gets its own gradient controls. The original stays the production shimmer. */
+/* Quick band widths for both versions. The red version also keeps the fine slider. */
+const SIMPLE_WIDTH = {k: 'width', t: 'seg', label: 'Band width', options: [[20, 'Narrow'], [36, 'Medium'], [60, 'Wide']], hint: 'How much of the label the band covers as it sweeps.'};
+const SIMPLE_BAND = {title: 'Band', controls: [SIMPLE_WIDTH]};
+/* The red band gets its own gradient controls. */
 const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
+  SIMPLE_WIDTH,
+  {k: 'width', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 20%, Medium 36%, Wide 60%.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']], hint: p => p.path === 'diag' ? 'From the top right to the bottom left, then back to the top right, then it loops.' : 'From the right to the left, then back to the right, then it loops.'},
   {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the band. 45° lines it up with a corner-to-corner sweep. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
-  {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
   {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from black toward red.', min: 0, max: 100, step: 1, unit: '%'},
   {k: 'tintOn', t: 'toggle', label: 'Tint the band edges', hint: 'Adds a second color where the band fades out.'},
@@ -455,7 +459,7 @@ const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
 ]};
 const simpleVersion = hi => SIMPLE_VERSIONS.find(v => v[0] === hi) || SIMPLE_VERSIONS[0];
 const simpleDefaults = hi => ({...clone(FX.shimmer.defaults), ...simpleVersion(hi)[2], hi: simpleVersion(hi)[0]});
-const simpleGroups = p => p.hi === H ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : [SIMPLE_TIMING];
+const simpleGroups = p => p.hi === H ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
 const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
@@ -1458,7 +1462,7 @@ function renderControls(){
 }
 function updateControls(){
   CTRLS.forEach(a => { const o = a.scope.obj(); a.root.hidden = !!(a.c.show && !a.c.show(o)); if (!a.root.hidden) a.update(); });
-  GROUPS.forEach(G => { const n = G.apis.filter(a => !a.root.hidden && !same(a.scope.obj()[a.c.k], a.scope.def()[a.c.k])).length; G.count.textContent = n ? `${n} changed` : ''; });
+  GROUPS.forEach(G => { const n = new Set(G.apis.filter(a => !a.root.hidden && !same(a.scope.obj()[a.c.k], a.scope.def()[a.c.k])).map(a => a.c.k)).size; G.count.textContent = n ? `${n} changed` : ''; });
 }
 
 /* ================= effect picker ================= */
