@@ -436,15 +436,19 @@ const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduc
 const SIMPLE = !new URLSearchParams(location.search).has('full');
 if (SIMPLE) document.documentElement.classList.add('simple');
 /* Each version: band color, its name, and the band settings it starts from. */
-const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: -45, dir: 'bounce'}]];
+const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: 45, dir: 'bounce', path: 'diag'}]];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label once.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
 ]};
 /* The red band gets its own gradient controls. The original stays the production shimmer. */
 const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
-  {k: 'dir', t: 'seg', label: 'Direction', options: [['bounce', 'Both ways'], ['rtl', 'Right to left'], ['ltr', 'Left to right']], hint: p => p.dir === 'bounce' ? 'The band sweeps across, then sweeps back.' : 'The band sweeps one way, then starts again.'},
-  {k: 'angle', t: 'range', label: 'Angle', hint: '90° is upright. -45° slants the band up to the left.', min: -180, max: 180, step: 1, unit: '°'},
+  {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']]},
+  {k: 'dir', t: 'seg', label: 'Direction', options: [['bounce', 'Both ways'], ['rtl', 'One way'], ['ltr', 'Reverse']], hint: p => {
+    const [a, b] = p.path === 'diag' ? ['top right', 'bottom left'] : ['right', 'left'];
+    return ({bounce: `From the ${a} to the ${b}, then back to the ${a}, then it loops.`, rtl: `From the ${a} to the ${b}, then it loops.`, ltr: `From the ${b} to the ${a}, then it loops.`})[p.dir];
+  }},
+  {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the band. 45° lines it up with a corner-to-corner sweep. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
   {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
   {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from black toward red.', min: 0, max: 100, step: 1, unit: '%'},
@@ -582,7 +586,7 @@ const FX = {
     name: 'Shimmer', kind: 'label',
     desc: 'A band of light travels across the label. This is the effect on the shop nav today.',
     reduced: 'Animation off. The label shows in its text color.',
-    defaults: {hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, echoOn: false, echo: 45,
+    defaults: {hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, path: 'across', echoOn: false, echo: 45,
       trigger: 'loop', dir: 'rtl', dur: 1500, pause: 2000, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Color', controls: [
@@ -595,18 +599,23 @@ const FX = {
         {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
         {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
         {k: 'angle', t: 'range', label: 'Angle', hint: '90° is upright. Tilt it for a slanted sheen.', min: 45, max: 135, step: 1, unit: '°'},
+        {k: 'path', t: 'seg', label: 'Travel', options: [['across', 'Straight across'], ['diag', 'Corner to corner']], hint: p => p.path === 'diag' ? 'The band travels from the top right corner to the bottom left.' : 'The band travels straight across the label.'},
         {k: 'echoOn', t: 'toggle', label: 'Trailing echo band', hint: 'A fainter second band follows the first.'},
         {k: 'echo', t: 'range', label: 'Echo strength', min: 0, max: 100, step: 1, unit: '%', show: p => p.echoOn},
       ]},
       timing({dir: [['rtl', 'Right to left'], ['ltr', 'Left to right'], ['bounce', 'Bounce']], durLabel: 'Sweep duration', durHint: 'Time for the band to cross the label once.'}),
     ],
     compile(p){
-      const pos = {rtl: ['0% 0', '100% 0'], ltr: ['100% 0', '0% 0'], bounce: ['0% 0', '100% 0']}[p.dir];
+      // Corner to corner: the gradient is 3× the label both ways, so moving it from the bottom-left of the
+      // image to the top-right carries the band from the label's top right corner to its bottom left.
+      const diag = p.path === 'diag';
+      const pos = (diag ? {rtl: ['0% 100%', '100% 0%'], ltr: ['100% 0%', '0% 100%'], bounce: ['0% 100%', '100% 0%']}
+                        : {rtl: ['0% 0', '100% 0'], ltr: ['100% 0', '0% 0'], bounce: ['0% 0', '100% 0']})[p.dir];
       const ez = easeCSS(p.ease);
       let frames, active;
       if (p.dir === 'bounce'){ active = p.dur * 2; frames = [{offset: 0, backgroundPosition: pos[0], easing: ez}, {offset: .5, backgroundPosition: pos[1], easing: easeCSS(mirror(p.ease))}, {offset: 1, backgroundPosition: pos[0]}]; }
       else { active = p.dur; frames = [{offset: 0, backgroundPosition: pos[0], easing: ez}, {offset: 1, backgroundPosition: pos[1]}]; }
-      return {active, labelStyle: {...BG_CLIP(shimmerGradient(p)), backgroundPosition: pos[0]}, tracks: [{target: 'label', frames}]};
+      return {active, labelStyle: {...BG_CLIP(shimmerGradient(p), diag ? '300% 300%' : undefined), backgroundPosition: pos[0]}, tracks: [{target: 'label', frames}]};
     },
   },
 
@@ -1202,7 +1211,7 @@ const TYPE_UNUSED = {title: 'Type', controls: [
   {k: 'tracking', t: 'range', label: 'Letter spacing', min: -.05, max: .3, step: .005, unit: 'em'},
   {k: 'case', t: 'seg', label: 'Case', options: [['none', 'As typed'], ['uppercase', 'Upper'], ['lowercase', 'Lower']]},
 ]};
-function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec', sv: 3}; }
+function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec', sv: 4}; }
 /* Keep only keys the effect still has, so old saves and links can't carry stale settings. */
 function withDefaults(fx, p){ const d = clone(FX[fx].defaults); for (const k of Object.keys(d)) if (p && k in p) d[k] = clone(p[k]); return d; }
 function normalize(o){
@@ -1212,10 +1221,11 @@ function normalize(o){
   for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
   if (SIMPLE){
-    // Older saves carry settings from before a control existed: no sv = timing only, sv 2 = no direction yet.
+    // Older saves carry settings from before a control existed: no sv = timing only; before sv 4 the red band's
+    // angle, travel and direction were earlier defaults, so those reset to the corner-to-corner sweep.
     const o2 = s.params.shimmer, p = simpleDefaults(o2.hi === H ? H : '#ffffff');
     (o.sv >= 2 ? simpleGroups(p) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
-      if (c.k === 'dir' && o.sv < 3) return;
+      if (['dir', 'angle', 'path'].includes(c.k) && o.sv < 4) return;
       if (c.t === 'seg'){ if (c.options.some(x => x[0] === o2[c.k])) p[c.k] = o2[c.k]; return; }
       if (c.t === 'range'){ const v = Number(o2[c.k]); if (Number.isFinite(v)) p[c.k] = clamp(v, c.min, c.max); }
       else if (c.t === 'toggle') p[c.k] = !!o2[c.k];
