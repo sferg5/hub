@@ -435,11 +435,24 @@ const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduc
 /* Simple mode: the production shimmer in two versions, with timing kept inside a safe range. */
 const SIMPLE = !new URLSearchParams(location.search).has('full');
 if (SIMPLE) document.documentElement.classList.add('simple');
-const SIMPLE_VERSIONS = [['#ffffff', 'Original'], [H, 'Red']];
-const SIMPLE_GROUPS = [{title: 'Timing', controls: [
+/* Each version: band color, its name, and the band settings it starts from. */
+const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: -45}]];
+const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label once.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
-]}];
+]};
+/* The red band gets its own gradient controls. The original stays the production shimmer. */
+const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
+  {k: 'angle', t: 'range', label: 'Angle', hint: '90° is upright. -45° slants the band up to the left.', min: -180, max: 180, step: 1, unit: '°'},
+  {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
+  {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
+  {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from black toward red.', min: 0, max: 100, step: 1, unit: '%'},
+  {k: 'tintOn', t: 'toggle', label: 'Tint the band edges', hint: 'Adds a second color where the band fades out.'},
+  {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
+]};
+const simpleVersion = hi => SIMPLE_VERSIONS.find(v => v[0] === hi) || SIMPLE_VERSIONS[0];
+const simpleDefaults = hi => ({...clone(FX.shimmer.defaults), ...simpleVersion(hi)[2], hi: simpleVersion(hi)[0]});
+const simpleGroups = p => p.hi === H ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : [SIMPLE_TIMING];
 const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
@@ -1188,7 +1201,7 @@ const TYPE_UNUSED = {title: 'Type', controls: [
   {k: 'tracking', t: 'range', label: 'Letter spacing', min: -.05, max: .3, step: .005, unit: 'em'},
   {k: 'case', t: 'seg', label: 'Case', options: [['none', 'As typed'], ['uppercase', 'Upper'], ['lowercase', 'Lower']]},
 ]};
-function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec'}; }
+function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec', sv: 2}; }
 /* Keep only keys the effect still has, so old saves and links can't carry stale settings. */
 function withDefaults(fx, p){ const d = clone(FX[fx].defaults); for (const k of Object.keys(d)) if (p && k in p) d[k] = clone(p[k]); return d; }
 function normalize(o){
@@ -1198,9 +1211,13 @@ function normalize(o){
   for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
   if (SIMPLE){
-    const o2 = s.params.shimmer, p = clone(FX.shimmer.defaults);
-    p.hi = o2.hi === H ? H : '#ffffff';
-    SIMPLE_GROUPS[0].controls.forEach(c => { p[c.k] = clamp(Number(o2[c.k]) || p[c.k], c.min, c.max); });
+    // States saved before the red gradient controls (no sv: 2) carry the old 90° angle, so only their timing is kept.
+    const o2 = s.params.shimmer, p = simpleDefaults(o2.hi === H ? H : '#ffffff');
+    (o.sv === 2 ? simpleGroups(p) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
+      if (c.t === 'range'){ const v = Number(o2[c.k]); if (Number.isFinite(v)) p[c.k] = clamp(v, c.min, c.max); }
+      else if (c.t === 'toggle') p[c.k] = !!o2[c.k];
+      else if (c.t === 'color' && /^#[0-9a-f]{6}$/i.test(o2[c.k] || '')) p[c.k] = o2[c.k];
+    }));
     s.fx = 'shimmer'; s.params.shimmer = p;
   }
   if (![1, 2, 4].includes(s.zoom)) s.zoom = 1;
@@ -1229,7 +1246,7 @@ const schedSave = debounce(() => store.set(STATE_KEY, JSON.parse(snapshot())), 3
 /* ================= controls ================= */
 let CTRLS = [];
 const collapsed = new Set(store.get('tms.collapsed.v1') || []);
-const paramScope = {obj: () => P(), def: () => FX[S.fx].defaults, kind: 'param'};
+const paramScope = {obj: () => P(), def: () => SIMPLE ? simpleDefaults(P().hi) : FX[S.fx].defaults, kind: 'param'};
 
 function setVal(scope, k, v){ scope.obj()[k] = v; changed(scope.kind); }
 
@@ -1423,8 +1440,8 @@ function renderControls(){
   const box = $('#controls');
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
-  (SIMPLE ? SIMPLE_GROUPS : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = SIMPLE ? 'The New & Featured shimmer. Pick a version, then adjust the timing if you need to.' : F.desc;
+  (SIMPLE ? simpleGroups(P()) : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
+  $('#fxDesc').textContent = SIMPLE ? (P().hi === H ? 'The New & Featured shimmer with a red band. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer. Pick a version, then adjust the timing if you need to.') : F.desc;
   updateControls();
 }
 function updateControls(){
@@ -1440,13 +1457,14 @@ function renderFxPick(){
   if (SIMPLE){
     $('#pickTitle').textContent = 'Version';
     const grid = el('div', {class: 'fx-grid'});
-    SIMPLE_VERSIONS.forEach(([hi, name]) => {
+    SIMPLE_VERSIONS.forEach(([hi, name, preset]) => {
       const mini = el('span', {class: 'mini', 'aria-hidden': 'true'}), host = el('span');
       mini.append(host); applyType(mini, {...S.type, size: 20, case: 'none'});
       const b = el('button', {type: 'button', class: 'fx-tile', 'data-hi': hi, 'aria-pressed': String(P().hi === hi)}, mini, el('span', {class: 'nm'}, name));
-      b.onclick = () => { if (P().hi === hi) return; P().hi = hi; changed('param'); };
+      // Switching version starts from that version's band settings and keeps the timing.
+      b.onclick = () => { if (P().hi === hi) return; const {dur, pause} = P(); S.params.shimmer = {...simpleDefaults(hi), dur, pause}; renderControls(); changed('param'); };
       grid.append(b);
-      if (!REDUCED) tileCtrls.push(mount(host, 'shimmer', {...FX.shimmer.defaults, hi}, 'Aa', {native: true}));
+      if (!REDUCED) tileCtrls.push(mount(host, 'shimmer', simpleDefaults(hi), 'Aa', {native: true}));
       else host.textContent = 'Aa';
     });
     box.append(grid);
@@ -1794,7 +1812,10 @@ $('#share').onclick = () => copyText(shareURL(), 'Link copied. It opens this exa
 $('#copyTab').onclick = () => copyText(HO[S.tab].text, `${TABS.find(t => t[0] === S.tab)[1]} copied.`);
 $('#copyAll').onclick = () => copyText(fullHandoffText(), 'Full handoff copied: spec, CSS, HTML, JS and a link.');
 $('#undo').onclick = undo; $('#redo').onclick = redo;
-$('#resetAll').onclick = () => { S.params[S.fx] = clone(FX[S.fx].defaults); pushHist(); fullRender(); toast(`${FX[S.fx].name} reset to defaults.`); };
+$('#resetAll').onclick = () => {
+  if (SIMPLE){ const hi = P().hi; S.params.shimmer = simpleDefaults(hi); pushHist(); fullRender(); toast(`${simpleVersion(hi)[1]} reset to defaults.`); return; }
+  S.params[S.fx] = clone(FX[S.fx].defaults); pushHist(); fullRender(); toast(`${FX[S.fx].name} reset to defaults.`);
+};
 document.addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.type === 'text' || t.tagName === 'TEXTAREA')) return;
