@@ -436,13 +436,14 @@ const REDUCED = (() => { try { return matchMedia('(prefers-reduced-motion: reduc
 const SIMPLE = !new URLSearchParams(location.search).has('full');
 if (SIMPLE) document.documentElement.classList.add('simple');
 /* Each version: band color, its name, and the band settings it starts from. */
-const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: -45}]];
+const SIMPLE_VERSIONS = [['#ffffff', 'Original', {angle: 90}], [H, 'Red', {angle: -45, dir: 'bounce'}]];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'dur', t: 'range', label: 'Sweep duration', hint: 'Time for the band to cross the label once.', min: 1000, max: 2500, step: 100, unit: 'ms'},
   {k: 'pause', t: 'range', label: 'Pause between sweeps', hint: 'Rest time before the next sweep.', min: 1500, max: 5000, step: 100, unit: 'ms'},
 ]};
 /* The red band gets its own gradient controls. The original stays the production shimmer. */
 const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
+  {k: 'dir', t: 'seg', label: 'Direction', options: [['bounce', 'Both ways'], ['rtl', 'Right to left'], ['ltr', 'Left to right']], hint: p => p.dir === 'bounce' ? 'The band sweeps across, then sweeps back.' : 'The band sweeps one way, then starts again.'},
   {k: 'angle', t: 'range', label: 'Angle', hint: '90° is upright. -45° slants the band up to the left.', min: -180, max: 180, step: 1, unit: '°'},
   {k: 'width', t: 'range', label: 'Band width', hint: 'Width of the band compared to the label.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
@@ -1201,7 +1202,7 @@ const TYPE_UNUSED = {title: 'Type', controls: [
   {k: 'tracking', t: 'range', label: 'Letter spacing', min: -.05, max: .3, step: .005, unit: 'em'},
   {k: 'case', t: 'seg', label: 'Case', options: [['none', 'As typed'], ['uppercase', 'Upper'], ['lowercase', 'Lower']]},
 ]};
-function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec', sv: 2}; }
+function defaultState(){ return {fx: 'shimmer', text: 'New & Featured', stage: 'nav', zoom: 1, type: {...TYPE_DEFAULTS}, params: Object.fromEntries(Object.keys(FX).map(k => [k, clone(FX[k].defaults)])), cls: {}, filter: 'current', tab: 'spec', sv: 3}; }
 /* Keep only keys the effect still has, so old saves and links can't carry stale settings. */
 function withDefaults(fx, p){ const d = clone(FX[fx].defaults); for (const k of Object.keys(d)) if (p && k in p) d[k] = clone(p[k]); return d; }
 function normalize(o){
@@ -1211,9 +1212,11 @@ function normalize(o){
   for (const k of Object.keys(FX)) s.params[k] = withDefaults(k, (o.params || {})[k]);
   if (!FX[s.fx]) s.fx = 'shimmer';
   if (SIMPLE){
-    // States saved before the red gradient controls (no sv: 2) carry the old 90° angle, so only their timing is kept.
+    // Older saves carry settings from before a control existed: no sv = timing only, sv 2 = no direction yet.
     const o2 = s.params.shimmer, p = simpleDefaults(o2.hi === H ? H : '#ffffff');
-    (o.sv === 2 ? simpleGroups(p) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
+    (o.sv >= 2 ? simpleGroups(p) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
+      if (c.k === 'dir' && o.sv < 3) return;
+      if (c.t === 'seg'){ if (c.options.some(x => x[0] === o2[c.k])) p[c.k] = o2[c.k]; return; }
       if (c.t === 'range'){ const v = Number(o2[c.k]); if (Number.isFinite(v)) p[c.k] = clamp(v, c.min, c.max); }
       else if (c.t === 'toggle') p[c.k] = !!o2[c.k];
       else if (c.t === 'color' && /^#[0-9a-f]{6}$/i.test(o2[c.k] || '')) p[c.k] = o2[c.k];
