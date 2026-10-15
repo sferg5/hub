@@ -159,6 +159,18 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
 .colorrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .swatch{position:relative;width:30px;height:26px;border-radius:5px;border:1px solid var(--line);overflow:hidden;flex:none;cursor:pointer;background:var(--c)}
 .swatch input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+/* colour points editor */
+.stopbar{position:relative;height:24px;border-radius:5px;border:1px solid var(--line);margin:6px 9px 8px}
+.stopbar .h{position:absolute;top:50%;width:14px;height:30px;transform:translate(-50%,-50%);border-radius:4px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.55);background:var(--c);padding:0;cursor:ew-resize;touch-action:none}
+.stopbar .h[aria-pressed="true"]{border-color:var(--accent);z-index:1}
+.stoplist{display:flex;flex-direction:column;gap:4px}
+.stoprow{display:flex;align-items:center;gap:6px;padding:3px;border-radius:6px;border:1px solid transparent}
+.stoprow.sel{border-color:var(--line);background:var(--raise)}
+.stoprow .at{width:64px;height:26px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 6px;font-family:var(--mono);font-size:12px;text-align:right}
+.stoprow .pct{font-size:11px;color:var(--muted);margin-left:-3px}
+.stoprow .rm{margin-left:auto;width:26px;height:26px;border-radius:5px;border:1px solid var(--line);background:var(--raise);padding:0;font-size:14px;line-height:1}
+.stoprow .rm:disabled{opacity:.35;cursor:default}
+.stopadd{align-self:flex-start}
 .hex{width:84px;height:26px;border:1px solid var(--line);border-radius:5px;background:var(--raise);padding:0 8px;font-family:var(--mono);font-size:12px;text-transform:lowercase}
 .hex:focus{outline:none;border-color:var(--fg)}
 .hex.bad{border-color:var(--accent)}
@@ -493,9 +505,11 @@ if (SIMPLE) document.documentElement.classList.add('simple');
 // Both versions sweep corner to corner at 45°, top right to bottom left and back, then loop.
 const SWEEP = {angle: 45, dir: 'bounce', path: 'diag'};
 // [id, band colour it starts with, name, preset, effect]. The version is stored as S.ver, so the red can be any colour.
-// Red gradient is not a shimmer: Hot Heat and black drift slowly through the letters (Gradient flow).
-const SIMPLE_VERSIONS = [['original', '#ffffff', 'Original', SWEEP, 'shimmer'], ['red', H, 'Red', SWEEP, 'shimmer'],
-  ['gradient', null, 'Red gradient', {c1: H, c2: INK, use3: false, spread: 200, dur: 7000}, 'gradient']];
+// Red gradient is not a shimmer: red and black drift slowly through the letters (Gradient flow).
+// The red both red versions start from. Slightly deeper than Hot Heat (#ff444c), chosen for the nav.
+const SIMPLE_RED = '#ff3f44';
+const SIMPLE_VERSIONS = [['original', '#ffffff', 'Original', SWEEP, 'shimmer'], ['red', SIMPLE_RED, 'Red', SWEEP, 'shimmer'],
+  ['gradient', null, 'Red gradient', {c1: SIMPLE_RED, c2: INK, use3: false, spread: 200, dur: 7000}, 'gradient']];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'trigger', t: 'seg', label: 'Plays', options: [['loop', 'Keep looping'], ['repeat', 'Set number']], hint: p => p.trigger === 'repeat' ? 'Plays the set number of times when the page loads, then stops.' : 'Keeps sweeping for as long as the page is open.'},
   {k: 'count', t: 'range', label: 'Times on load', hint: 'One time is a full sweep across and back.', min: 1, max: 10, step: 1, unit: '×', show: p => p.trigger === 'repeat'},
@@ -504,24 +518,20 @@ const SIMPLE_TIMING = {title: 'Timing', controls: [
 ]};
 /* Quick band widths for both versions. The red version also keeps the fine slider. */
 const SIMPLE_WIDTH = {k: 'width', t: 'seg', label: 'Band width', options: [[20, 'Narrow'], [36, 'Medium'], [60, 'Wide']], hint: 'How much of the label the band covers as it sweeps.'};
-/* Both shimmer versions get the full band controls; only the colour wording differs. */
-const bandGroup = (title, colorLabel, toward) => ({title, controls: [
-  {k: 'hi', t: 'color', label: colorLabel, hint: 'The exact colour at the centre of the band. Pick a brand swatch or type a hex value.'},
+/* Both shimmer versions get the full band controls; only the wording differs. */
+const bandGroup = (title, toward) => ({title, controls: [
+  {k: 'band', t: 'stops', label: 'Color points', hint: 'Drag points along the bar or type exact values. 0% and 100% are the edges of the band; black there blends into the text.'},
   SIMPLE_WIDTH,
   {k: 'width', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 20%, Medium 36%, Wide 60%.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']], hint: p => p.path === 'diag' ? 'From the top right to the bottom left, then back to the top right, then it loops.' : 'From the right to the left, then back to the right, then it loops.'},
   {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the band. 45° lines it up with a corner-to-corner sweep. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
-  {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
   {k: 'peak', t: 'range', label: 'Band strength', hint: `How far the band moves from black toward ${toward}.`, min: 0, max: 100, step: 1, unit: '%'},
-  {k: 'tintOn', t: 'toggle', label: 'Tint the band edges', hint: 'Adds a second color where the band fades out.'},
-  {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
 ]});
-const SIMPLE_GRADIENT = bandGroup('Gradient', 'Red', 'red');
-const SIMPLE_BAND = bandGroup('Band', 'Band color', 'the band color');
+const SIMPLE_GRADIENT = bandGroup('Gradient', 'red');
+const SIMPLE_BAND = bandGroup('Band', 'the band color');
 /* Red gradient: the same idea where it applies. Spread stands in for band width; a drift has no edge or strength. */
 const SIMPLE_FLOW = {title: 'Gradient', controls: [
-  {k: 'c1', t: 'color', label: 'Red', hint: 'The exact red that drifts through the letters. Pick a brand swatch or type a hex value.'},
-  {k: 'c2', t: 'color', label: 'Second color', hint: 'The color the red blends into. Black matches the nav.'},
+  {k: 'stops', t: 'stops', wrap: true, label: 'Color points', hint: 'One full color cycle. Drag points along the bar or type exact values. The cycle repeats, so the end blends back into the start.'},
   {k: 'spread', t: 'seg', label: 'Width', options: [[150, 'Narrow'], [200, 'Medium'], [300, 'Wide']], hint: 'How stretched the colors are. Wider shows less of each color at once.'},
   {k: 'spread', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 150%, Medium 200%, Wide 300%.', min: 125, max: 600, step: 5, unit: '%'},
   {k: 'dir', t: 'seg', label: 'Travel', options: [['left', 'Flow left'], ['right', 'Flow right']], hint: 'Which way the colors move through the label.'},
@@ -536,7 +546,19 @@ const SIMPLE_FLOW_TIMING = {title: 'Timing', controls: [
 ]};
 const simpleVersion = id => SIMPLE_VERSIONS.find(v => v[0] === id) || SIMPLE_VERSIONS[0];
 const simpleFx = id => simpleVersion(id)[4];
-const simpleDefaults = id => { const v = simpleVersion(id); return v[4] === 'shimmer' ? {...clone(FX.shimmer.defaults), ...v[3], hi: v[1]} : {...clone(FX[v[4]].defaults), ...v[3]}; };
+const simpleDefaults = id => {
+  const v = simpleVersion(id);
+  if (v[4] === 'shimmer'){ const p = {...clone(FX.shimmer.defaults), ...v[3], hi: v[1]}; p.band = bandFromLegacy(p); return p; }
+  const p = {...clone(FX[v[4]].defaults), ...v[3]};
+  p.stops = [{c: p.c1, at: 0}, {c: p.c2, at: 50}];
+  return p;
+};
+/* A list of 2–8 colour points, or null if the value isn't one. */
+function cleanStops(v){
+  if (!Array.isArray(v) || v.length < 2 || v.length > 8) return null;
+  const out = v.map(x => x && /^#[0-9a-f]{6}$/i.test(x.c || '') && Number.isFinite(+x.at) ? {c: x.c.toLowerCase(), at: +clamp(+x.at, 0, 100).toFixed(1)} : null);
+  return out.every(Boolean) ? out : null;
+}
 const simpleGroups = id => id === 'red' ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : id === 'gradient' ? [SIMPLE_FLOW, SIMPLE_FLOW_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
 const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
@@ -573,8 +595,8 @@ function easePath(a, w, h, pad){
 /* ================= palette + fonts ================= */
 /* Brand palette from the Brand Creative Direction book (June 2026). Neutrals are unnamed in the book, so they're numbered lightest to darkest. */
 const PALETTE = [
-  ['Hot Heat', H, 'signature'], ['Slow Burn', SB, 'signature'],
-  ['Peach', '#feb899', 'seasonal'], ['Coral', '#ff5f57', 'seasonal'],
+  ['Red', SIMPLE_RED, 'signature'], ['Deep red', '#872527', 'signature'],
+  ['Peach', '#feb899', 'seasonal'],
   ['Nav black', INK, 'nav'], ['White', '#ffffff', 'nav'],
   ['Neutral 1', '#fdfdf9', 'neutral'], ['Neutral 2', '#f2f1f0', 'neutral'], ['Neutral 3', '#e9e7e1', 'neutral'], ['Neutral 4', '#d2cdc4', 'neutral'],
   ['Neutral 5', '#94877e', 'neutral'], ['Neutral 6', '#5e504b', 'neutral'], ['Neutral 7', '#3b3428', 'neutral'], ['Neutral 8', '#1c1210', 'neutral'],
@@ -644,7 +666,31 @@ const BG_CLIP = (img, size = '300% 100%', repeat = 'no-repeat') => ({
 const lastPad = frames => { const l = frames[frames.length - 1]; if (l.offset < 1){ const {easing, ...rest} = l; frames.push({...rest, offset: 1}); } return frames; };
 
 /* ================= effects ================= */
+/* Colour points across a band: 0 is the leading edge, 100 the trailing edge. Built from the older
+   softness and tint settings when a save has no points of its own. */
+function bandFromLegacy(p){
+  const h = (1 - p.soft / 100) * 50, out = [{c: INK, at: 0}];
+  if (p.tintOn) out.push({c: mix(INK, p.tint, .85), at: (50 - h) / 2});
+  out.push({c: p.hi, at: 50 - h});
+  if (h > 0) out.push({c: p.hi, at: 50 + h});
+  if (p.tintOn) out.push({c: mix(INK, p.tint, .85), at: 100 - (50 - h) / 2});
+  out.push({c: INK, at: 100});
+  return out.map(x => ({c: x.c, at: +x.at.toFixed(1)}));
+}
+const sortStops = a => a.slice().sort((x, y) => x.at - y.at);
+/* Points for one repeating cycle: where the cycle wraps, the last colour blends into the first. */
+function wrapStops(a){
+  const s = sortStops(a), f = s[0], l = s[s.length - 1], gap = 100 - l.at + f.at;
+  const edge = gap > 0 ? mix(l.c, f.c, (100 - l.at) / gap) : f.c;
+  if (f.at > 0) s.unshift({c: edge, at: 0});
+  if (l.at < 100) s.push({c: edge, at: 100});
+  return s;
+}
 function shimmerBand(p, at, strength){
+  if (Array.isArray(p.band)){
+    const w = p.width / 3, a = at - w / 2;
+    return sortStops(p.band).map(s => [a + s.at / 100 * w, mix(INK, s.c, p.peak / 100 * strength)]);
+  }
   const w = p.width / 3, pl = w * (1 - p.soft / 100);
   const hi = mix(INK, p.hi, p.peak / 100 * strength);
   const a = at - w / 2, b = at - pl / 2, c = at + pl / 2, d = at + w / 2;
@@ -666,7 +712,7 @@ const FX = {
     name: 'Shimmer', kind: 'label',
     desc: 'A band of light travels across the label. This is the effect on the shop nav today.',
     reduced: 'Animation off. The label shows in its text color.',
-    defaults: {hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, angle: 90, path: 'across', echoOn: false, echo: 45,
+    defaults: {hi: '#ffffff', peak: 100, tintOn: false, tint: H, width: 36, soft: 100, band: null, angle: 90, path: 'across', echoOn: false, echo: 45,
       trigger: 'loop', dir: 'rtl', dur: 1500, pause: 2000, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Color', controls: [
@@ -747,7 +793,7 @@ const FX = {
     name: 'Gradient flow', kind: 'label',
     desc: 'Colors drift continuously through the letters.',
     reduced: 'Animation off. The gradient stays still.',
-    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, angle: 90, trigger: 'loop', dir: 'left', dur: 3000, pause: 1500, delay: 0, ease: E['ease-in-out']},
+    defaults: {c1: H, c2: SB, use3: true, c3: INK, stops: null, spread: 250, angle: 90, trigger: 'loop', dir: 'left', dur: 3000, pause: 1500, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Colors', controls: [
         {k: 'c1', t: 'color', label: 'First color'},
@@ -768,8 +814,9 @@ const FX = {
       const P = p.spread / 100 * 7 / 2, rad = (p.angle ?? 90) * Math.PI / 180;
       const sn = Math.abs(Math.sin(rad)), cs = Math.abs(Math.cos(rad));
       const w = sn > 1e-3 ? P / sn : 0, h = cs > 1e-3 ? P / cs : 0, em = v => +v.toFixed(4) + 'em';
-      const seq = [...cols, cols[0]];
-      const stops = seq.map((c, i) => `${c} ${em(i / (seq.length - 1) * P)}`).join(', ');
+      // One cycle of colour points; the last blends back into the first so the drift repeats seamlessly.
+      const seq = wrapStops(Array.isArray(p.stops) ? p.stops : cols.map((c, i) => ({c, at: i / cols.length * 100})));
+      const stops = seq.map(x => `${x.c} ${em(x.at / 100 * P)}`).join(', ');
       const sign = p.dir === 'left' ? -1 : 1;
       // Sliding sideways by one tile moves the stripes exactly one cycle at any angle; flat stripes slide up or down.
       const end = w ? `${em(sign * w)} 0em` : `0em ${em(sign * h)}`;
@@ -1322,6 +1369,19 @@ function normalize(o){
       if (c.t === 'range'){ const v = Number(o2[c.k]); if (Number.isFinite(v)) p[c.k] = clamp(v, c.min, c.max); }
       else if (c.t === 'toggle'){ if (typeof o2[c.k] === 'boolean') p[c.k] = o2[c.k]; }
       else if (c.t === 'color' && /^#[0-9a-f]{6}$/i.test(o2[c.k] || '')) p[c.k] = o2[c.k];
+      else if (c.t === 'stops'){
+        const st = cleanStops(o2[c.k]);
+        if (st) p[c.k] = st;
+        else if (c.k === 'band' && o.sv >= 2){  // saved before colour points: rebuild them from its colour, softness and tint
+          const old = {...p};
+          if (/^#[0-9a-f]{6}$/i.test(o2.hi || '')) old.hi = o2.hi;
+          if (Number.isFinite(+o2.soft)) old.soft = clamp(+o2.soft, 0, 100);
+          if (typeof o2.tintOn === 'boolean') old.tintOn = o2.tintOn;
+          if (/^#[0-9a-f]{6}$/i.test(o2.tint || '')) old.tint = o2.tint;
+          p.band = bandFromLegacy(old);
+        }
+        else if (c.k === 'stops' && /^#[0-9a-f]{6}$/i.test(o2.c1 || '') && /^#[0-9a-f]{6}$/i.test(o2.c2 || '')) p.stops = [{c: o2.c1, at: 0}, {c: o2.c2, at: 50}];
+      }
     }));
     s.fx = fx; s.params[fx] = p;
   }
@@ -1464,10 +1524,95 @@ function makeControl(c, scope){
   else if (c.t === 'ease'){
     api = easeControl(c, scope);
   }
+  else if (c.t === 'stops'){
+    api = stopsControl(c, scope);
+  }
   api.c = c; api.scope = scope;
   return api;
 }
 
+/* Colour points: a bar with draggable handles, plus a row per point for exact colour and position. */
+function stopsControl(c, scope){
+  const {root, reset, hint} = ctlShell(c, scope, 'stops');
+  const bar = el('div', {class: 'stopbar', role: 'group', 'aria-label': c.label});
+  const list = el('div', {class: 'stoplist'});
+  const addBtn = el('button', {class: 'btn stopadd', type: 'button'}, '+ Add point');
+  const pal = el('div', {class: 'pal', role: 'group', 'aria-label': 'Colours for the selected point'});
+  let sel = 0, handles = [], rows = [];
+  const cur = () => scope.obj()[c.k].map(x => ({...x}));
+  const put = a => setVal(scope, c.k, a);
+  const setAt = (i, at) => { const a = cur(); a[i].at = +clamp(at, 0, 100).toFixed(1); put(a); };
+  const setC = (i, col) => { const a = cur(); a[i].c = col.toLowerCase(); put(a); };
+  const select = i => { sel = i; api.update(); };
+  PAL_GROUPS.forEach(([g, gl]) => {
+    const row = el('span', {class: 'palg', title: gl});
+    PALETTE.filter(x => x[2] === g).forEach(([n, v]) => { const b = el('button', {type: 'button', title: `${n} ${v}`, 'aria-label': n, 'data-v': v}); b.style.setProperty('--c', v); b.onclick = () => setC(sel, v); row.append(b); });
+    pal.append(row);
+  });
+  addBtn.onclick = () => {
+    const a = cur(); if (a.length >= 8) return;
+    // New point in the middle of the widest gap, coloured halfway between its neighbours.
+    const s = sortStops(a); let best = 0, at = 50, col = s[0].c;
+    for (let i = 0; i < s.length - 1; i++){ const g = s[i + 1].at - s[i].at; if (g > best){ best = g; at = (s[i].at + s[i + 1].at) / 2; col = mix(s[i].c, s[i + 1].c, .5); } }
+    a.push({c: col, at: +at.toFixed(1)}); sel = a.length - 1; put(a);
+  };
+  function build(n){
+    bar.textContent = ''; list.textContent = ''; handles = []; rows = [];
+    for (let i = 0; i < n; i++){
+      const h = el('button', {class: 'h', type: 'button', 'aria-label': `Point ${i + 1} position`});
+      h.addEventListener('pointerdown', e => {
+        e.preventDefault(); select(i); h.setPointerCapture(e.pointerId);
+        const move = ev => { const r = bar.getBoundingClientRect(); setAt(i, Math.round((ev.clientX - r.left) / r.width * 1000) / 10); };
+        const up = () => { h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up); };
+        h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+      });
+      h.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); select(i); setAt(i, cur()[i].at + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 10 : 1)); } });
+      bar.append(h); handles.push(h);
+      const pick = el('input', {type: 'color', 'aria-label': `Point ${i + 1} colour`});
+      const sw = el('label', {class: 'swatch', title: 'Open color picker'}, pick);
+      const hex = el('input', {class: 'hex', type: 'text', maxlength: 7, spellcheck: 'false', 'aria-label': `Point ${i + 1} hex value`});
+      const at = el('input', {class: 'at', type: 'number', min: 0, max: 100, step: 1, inputmode: 'decimal', 'aria-label': `Point ${i + 1} position`});
+      const rm = el('button', {class: 'rm', type: 'button', title: 'Remove point', 'aria-label': `Remove point ${i + 1}`}, '×');
+      const row = el('div', {class: 'stoprow'}, sw, hex, at, el('span', {class: 'pct'}, '%'), rm);
+      row.addEventListener('focusin', () => { if (sel !== i){ sel = i; paint(); } });
+      row.addEventListener('pointerdown', () => { if (sel !== i){ sel = i; paint(); } });
+      pick.addEventListener('input', () => setC(i, pick.value));
+      hex.addEventListener('input', () => { let v = hex.value.trim(); if (!v.startsWith('#')) v = '#' + v; const ok = hexOk(v); hex.classList.toggle('bad', !ok); if (ok) setC(i, v); });
+      hex.addEventListener('blur', () => { hex.classList.remove('bad'); api.update(); });
+      at.addEventListener('input', () => { if (at.value !== '' && Number.isFinite(+at.value)) setAt(i, +at.value); });
+      at.addEventListener('blur', () => api.update());
+      rm.onclick = () => { const a = cur(); if (a.length <= 2) return; a.splice(i, 1); sel = Math.min(sel, a.length - 2); put(a); };
+      list.append(row); rows.push({row, pick, sw, hex, at, rm});
+    }
+  }
+  function paint(){
+    const a = scope.obj()[c.k];
+    handles.forEach((h, i) => h.setAttribute('aria-pressed', String(i === sel)));
+    rows.forEach((r, i) => r.row.classList.toggle('sel', i === sel));
+    const v = a[sel] && a[sel].c;
+    $$('button', pal).forEach(b => b.setAttribute('aria-pressed', String(!!v && b.dataset.v.toLowerCase() === v)));
+  }
+  root.append(el('div', {class: 'ctl-head'}, el('span', {class: 'lab'}, c.label), reset), bar, list, el('div', {class: 'ctl-head'}, addBtn), pal, hint);
+  const api = {root, update(){
+    const a = scope.obj()[c.k];
+    if (!Array.isArray(a)) return;
+    if (handles.length !== a.length) build(a.length);
+    sel = Math.min(sel, a.length - 1);
+    bar.style.background = `linear-gradient(90deg, ${(c.wrap ? wrapStops(a) : sortStops(a)).map(x => `${x.c} ${x.at}%`).join(', ')})`;
+    a.forEach((x, i) => {
+      handles[i].style.left = x.at + '%'; handles[i].style.setProperty('--c', x.c);
+      const r = rows[i]; r.pick.value = x.c; r.sw.style.setProperty('--c', x.c);
+      if (document.activeElement !== r.hex) r.hex.value = x.c;
+      if (document.activeElement !== r.at) r.at.value = x.at;
+      r.rm.disabled = a.length <= 2;
+    });
+    addBtn.disabled = a.length >= 8;
+    paint();
+    root.classList.toggle('changed', !same(a, scope.def()[c.k]));
+    hint.textContent = c.hint || ''; hint.hidden = !c.hint;
+  }};
+  return api;
+}
 function easeControl(c, scope){
   const {root, reset, hint} = ctlShell(c, scope, 'ease');
   const chips = el('div', {class: 'ease-chips', role: 'group', 'aria-label': 'Easing presets'});
@@ -1546,7 +1691,7 @@ function renderControls(){
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
   (SIMPLE ? simpleGroups(S.ver) : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'gradient' ? 'Hot Heat and black drift slowly through the letters, then rest. Shape the gradient, then adjust the timing if you need to.' : S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Shape the band, then adjust the timing if you need to.') : F.desc;
+  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'gradient' ? 'Red and black drift slowly through the letters, then rest. Shape the gradient, then adjust the timing if you need to.' : S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Shape the band, then adjust the timing if you need to.') : F.desc;
   updateControls();
 }
 function updateControls(){
@@ -1849,6 +1994,7 @@ function fmtVal(c, v){
   if (c.t === 'ease'){ const css = easeCSS(v); return {html: `<span class="sv"><svg class="mini-ease" viewBox="0 0 22 16"><path d="${easePath(v, 22, 16, 2)}"/></svg>${esc(easeLabel(v))}<small class="mono">${esc(css)}</small></span>`, text: `${easeLabel(v)}, ${css}`}; }
   if (c.t === 'seg'){ const o = c.options.find(x => String(x[0]) === String(v)); return {html: esc(o ? o[1] : v), text: o ? o[1] : String(v)}; }
   if (c.t === 'toggle') return {html: v ? 'On' : 'Off', text: v ? 'On' : 'Off'};
+  if (c.t === 'stops'){ const s = sortStops(v || []); return {html: s.map(x => `<span class="sv"><span class="chip" style="background:${x.c}"></span><span class="mono">${x.c} ${x.at}%</span></span>`).join(''), text: s.map(x => `${x.c} at ${x.at}%`).join(', ')}; }
   const sp = !c.unit || c.unit === '%' || c.unit === '°' || c.unit === '×' ? '' : ' ';
   return {html: `<span class="mono">${v}${sp}${c.unit || ''}</span>`, text: `${v}${sp}${c.unit || ''}`};
 }
@@ -1866,7 +2012,7 @@ function specData(C){
     else if (C.s) ov.push(['Letter start times', `<span class="mono">${C.offsets.join(', ')} ms</span><small>After the start delay, in reading order. The JS tab sets these for you.</small>`, `${C.offsets.join(', ')} ms after the start delay, in reading order`]);
   }
   secs.push(['Overview', ov]);
-  C.F.groups.forEach(g => {
+  (SIMPLE ? simpleGroups(S.ver) : C.F.groups).forEach(g => {
     const rows = [];
     g.controls.forEach(c => { if (c.k === 'trigger') return; if (c.show && !c.show(C.p)) return; const v = fmtVal(c, C.p[c.k]); rows.push([c.label, v.html, v.text]); });
     if (rows.length) secs.push([g.title, rows]);

@@ -69,8 +69,10 @@ function rid() { return Date.now().toString(36) + Math.random().toString(36).sli
 function parseJSON(s, d) { try { return s ? JSON.parse(s) : d; } catch (e) { return d; } }
 function text(v, max) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, max); }
 
-// Settings are a flat object of short strings, finite numbers, booleans, or an
-// easing curve (an array of up to four numbers). Anything else is refused.
+// Settings are a flat object of short strings, finite numbers, booleans, an
+// easing curve (an array of up to four numbers), or a list of 2–8 colour points
+// ({ c: "#rrggbb", at: 0–100 }). Anything else is refused.
+function isPoint(x) { return x && typeof x === "object" && !Array.isArray(x) && Object.keys(x).length === 2 && /^#[0-9a-fA-F]{6}$/.test(x.c) && typeof x.at === "number" && isFinite(x.at); }
 function cleanParams(p) {
   if (!p || typeof p !== "object" || Array.isArray(p)) return null;
   var keys = Object.keys(p);
@@ -82,7 +84,12 @@ function cleanParams(p) {
     if (typeof v === "string") { if (v.length > 24) return null; }
     else if (typeof v === "number") { if (!isFinite(v)) return null; }
     else if (typeof v === "boolean") {}
-    else if (Array.isArray(v)) { if (v.length > 4 || !v.every(function (n) { return typeof n === "number" && isFinite(n); })) return null; }
+    else if (v === null) {}
+    else if (Array.isArray(v)) {
+      var nums = v.length <= 4 && v.every(function (n) { return typeof n === "number" && isFinite(n); });
+      var points = v.length >= 2 && v.length <= 8 && v.every(isPoint);
+      if (!nums && !points) return null;
+    }
     else return null;
     out[k] = v;
   }
