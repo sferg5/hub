@@ -99,6 +99,7 @@ button{cursor:pointer}
 .fx-desc{margin-top:10px;color:var(--muted);font-size:13px}
 /* Simple mode (the default) hides everything beyond the nav shimmer. Add ?full to the URL for the whole tool. */
 .simple .full-only{display:none}
+:root:not(.simple) .simple-only{display:none}
 
 /* ---------- side: control groups ---------- */
 .grp{border-bottom:1px solid var(--line)}
@@ -276,6 +277,13 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
 .card .del{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:13px;line-height:22px;padding:0;display:none}
 .card:hover .del,.card:focus-within .del{display:block}
 .empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);border-radius:7px;color:var(--muted);text-align:center}
+/* ---------- saved settings (simple mode) ---------- */
+.saved .save{flex-wrap:wrap}
+.saved #sharedGrid{margin-top:22px}
+.card .acts{display:flex;gap:12px;margin-top:4px}
+.card .act{font-size:12px;font-weight:600;color:var(--fg);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.card .act:hover{color:var(--accent)}
+.saved .note{font-size:12px;color:var(--muted);font-family:var(--sans);text-transform:none;letter-spacing:0}
 
 /* ---------- handoff ---------- */
 .ho-head{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
@@ -368,6 +376,19 @@ pre.code .cm{color:var(--faint)}
     </section>
 
     <section class="brand full-only" id="brand" aria-label="Brand check" aria-live="polite"></section>
+
+    <section class="saved simple-only" aria-label="Saved settings">
+      <div class="vhead">
+        <h2>Saved settings</h2>
+        <form class="save" id="setSave">
+          <input id="setName" type="text" maxlength="40" placeholder="Name these settings" aria-label="Name for the saved settings">
+          <button class="btn" type="submit" title="Keep these settings in this browser only">Save</button>
+          <button class="btn" type="button" id="setShare" title="Save in this browser and share with anyone who opens the studio">Save and share</button>
+        </form>
+      </div>
+      <div class="vgrid" id="localGrid"></div>
+      <div class="vgrid" id="sharedGrid"></div>
+    </section>
 
     <section class="full-only" aria-label="Variants">
       <div class="vhead">
@@ -1893,6 +1914,90 @@ document.addEventListener('keydown', e => {
   else if (e.key === ' ' && t === document.body){ e.preventDefault(); $('#play').click(); }
 });
 
+/* ================= saved settings (simple mode) =================
+   "Save" keeps settings in this browser. "Share" sends them to /api/text-motion so they show on every machine.
+   Anything loaded back goes through normalize(), so it lands inside the safe ranges. */
+const SET_API = 'api/text-motion';
+const SET_UID = (() => { let u = store.get('tms.uid'); if (!/^t[a-z0-9]{6,24}$/.test(u || '')){ u = 't' + Math.random().toString(36).slice(2, 12).replace(/[^a-z0-9]/g, '') + Date.now().toString(36); u = u.slice(0, 25); store.set('tms.uid', u); } return u; })();
+const setValid = it => it && typeof it.name === 'string' && SIMPLE_VERSIONS.some(v => v[0] === it.ver) && it.p && typeof it.p === 'object';
+let localSets = (store.get('tms.simple.saved.v1') || []).filter(setValid);
+let sharedSets = null, sharedMsg = 'Loading shared settings…', setCtrls = [];
+function setParams(it){ const fx = simpleFx(it.ver), n = normalize({sv: 4, ver: it.ver, fx, params: {[fx]: it.p}}); return {ver: n.ver, fx: n.fx, p: n.params[n.fx]}; }
+function currentSet(name){ return {id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, ver: S.ver, p: clone(P()), created: Date.now()}; }
+function applySet(it){
+  const n = setParams(it);
+  S.ver = n.ver; S.fx = n.fx; S.params[n.fx] = n.p;
+  player.t = 0; player.ended = false; player.playing = !REDUCED;
+  pushHist(); fullRender(); toast(`Loaded ${it.name}.`);
+}
+const setDate = t => { try { return new Date(t).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}); } catch(e){ return ''; } };
+function setCard(it, acts){
+  const n = setParams(it);
+  const sw = el('div', {class: 'sw', 'data-ctx': 'nav'}), host = el('span');
+  sw.append(host); applyType(sw, {...S.type, size: 17});
+  const meta = el('div', {class: 'meta'}, el('b', {}, it.name), el('span', {}, simpleVersion(n.ver)[2] + (it.created ? ' · ' + setDate(it.created) : '')));
+  const card = el('div', {class: 'card', role: 'button', tabindex: '0', 'aria-pressed': 'false'}, sw, meta);
+  card._set = n;
+  card.onclick = () => applySet(it);
+  card.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card){ e.preventDefault(); applySet(it); } };
+  if (acts.length){
+    const row = el('span', {class: 'acts'});
+    acts.forEach(([label, fn]) => { const a = el('span', {class: 'act', role: 'button', tabindex: '0'}, label); a.onclick = e => { e.stopPropagation(); fn(); }; a.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); fn(); } }; row.append(a); });
+    meta.append(row);
+  }
+  if (!REDUCED) setCtrls.push(mount(host, n.fx, n.p, S.text || 'New & Featured', {native: true, forceLoop: true}));
+  else host.textContent = S.text;
+  return card;
+}
+function renderSets(){
+  if (!SIMPLE) return;
+  setCtrls.forEach(c => c.destroy()); setCtrls = [];
+  const lg = $('#localGrid'), sg = $('#sharedGrid'); lg.textContent = ''; sg.textContent = '';
+  lg.append(el('div', {class: 'vgroup'}, el('h3', {}, 'On this browser'), el('span', {class: 'note'}, 'Only you see these, on this computer.')));
+  if (!localSets.length) lg.append(el('p', {class: 'empty'}, 'Nothing saved yet. Name your settings above and press Save.'));
+  localSets.forEach(it => lg.append(setCard(it, [
+    ['Share', () => shareSet(it)],
+    ['Delete', () => { localSets = localSets.filter(x => x.id !== it.id); store.set('tms.simple.saved.v1', localSets); renderSets(); toast('Deleted from this browser.'); }],
+  ])));
+  sg.append(el('div', {class: 'vgroup'}, el('h3', {}, 'Shared with the team'), el('span', {class: 'note'}, 'Anyone who opens the studio sees these, on any computer.')));
+  if (!sharedSets) sg.append(el('p', {class: 'empty'}, sharedMsg));
+  else if (!sharedSets.length) sg.append(el('p', {class: 'empty'}, 'Nothing shared yet. Press Save and share, or Share on one of your saved settings.'));
+  else sharedSets.forEach(it => sg.append(setCard(it, it.mine ? [['Delete', () => unshareSet(it)]] : [])));
+  updateSetCards();
+}
+function updateSetCards(){ $$('.saved .card').forEach(c => c.setAttribute('aria-pressed', String(c._set.ver === S.ver && same(c._set.p, P())))); }
+async function setApi(body){
+  const r = await fetch(SET_API + (body ? '' : '?uid=' + SET_UID), body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({uid: SET_UID, ...body})} : {cache: 'no-store'});
+  let j = null; try { j = await r.json(); } catch(e){}
+  if (!r.ok || !j) throw new Error((j && j.error) || `The server answered ${r.status}.`);
+  return j;
+}
+async function loadShared(){
+  if (!SIMPLE) return;
+  if (location.protocol === 'file:'){ sharedMsg = 'Shared settings work on the live hub, not from a file on your computer.'; renderSets(); return; }
+  try { sharedSets = (await setApi()).items.filter(setValid); }
+  catch(e){ sharedSets = null; sharedMsg = 'Shared settings are unavailable right now. ' + e.message; }
+  renderSets();
+}
+async function shareSet(it){
+  try { const j = await setApi({action: 'share', name: it.name, ver: it.ver, p: it.p}); sharedSets = j.items.filter(setValid); renderSets(); toast(`Shared ${it.name}. It shows on every computer now.`); }
+  catch(e){ toast('Could not share. ' + e.message); }
+}
+async function unshareSet(it){
+  try { const j = await setApi({action: 'delete', id: it.id}); sharedSets = j.items.filter(setValid); renderSets(); toast('Removed from the shared list.'); }
+  catch(e){ toast('Could not delete. ' + e.message); }
+}
+function saveSet(share){
+  const name = $('#setName').value.trim() || `${simpleVersion(S.ver)[2]} ${localSets.filter(x => x.ver === S.ver).length + 1}`;
+  const it = currentSet(name);
+  localSets.unshift(it); store.set('tms.simple.saved.v1', localSets);
+  $('#setName').value = '';
+  renderSets();
+  if (share) shareSet(it); else toast(`Saved ${name} in this browser.`);
+}
+$('#setSave').addEventListener('submit', e => { e.preventDefault(); saveSet(false); });
+$('#setShare').onclick = () => saveSet(true);
+
 /* ================= change pipeline ================= */
 const schedGallery = debounce(() => { renderGallery(); renderFxPick(); }, 350);
 function changed(kind){
@@ -1901,16 +2006,17 @@ function changed(kind){
   rebuildStage();
   schedHandoff(); schedBrand(); schedHist(); schedSave();
   if (kind === 'text' || kind === 'type') schedGallery(); else updateActiveCards();
-  updateFxPick();
+  updateFxPick(); if (SIMPLE) updateSetCards();
 }
 function fullRender(){
-  renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderBrand(); renderGallery(); schedSave();
+  renderToolbar(); renderControls(); updateFxPick(); rebuildStage(); renderHandoff(); renderBrand(); renderGallery(); if (SIMPLE) updateSetCards(); schedSave();
 }
 
 /* ================= boot ================= */
 wirePlayer();
 renderFxPick();
 fullRender();
+renderSets(); loadShared();
 pushHist();
 if (location.hash.startsWith('#s=')) history.replaceState(null, '', location.pathname + location.search);
 requestAnimationFrame(tick);
