@@ -442,8 +442,10 @@ if (SIMPLE) document.documentElement.classList.add('simple');
 /* Each version: band color, its name, and the band settings it starts from. */
 // Both versions sweep corner to corner at 45°, top right to bottom left and back, then loop.
 const SWEEP = {angle: 45, dir: 'bounce', path: 'diag'};
-// [id, band colour it starts with, name, preset]. The version is stored as S.ver, so the red can be any colour.
-const SIMPLE_VERSIONS = [['original', '#ffffff', 'Original', SWEEP], ['red', H, 'Red', SWEEP]];
+// [id, band colour it starts with, name, preset, effect]. The version is stored as S.ver, so the red can be any colour.
+// Red gradient is not a shimmer: Hot Heat and black drift slowly through the letters (Gradient flow).
+const SIMPLE_VERSIONS = [['original', '#ffffff', 'Original', SWEEP, 'shimmer'], ['red', H, 'Red', SWEEP, 'shimmer'],
+  ['gradient', null, 'Red gradient', {c1: H, c2: INK, use3: false, spread: 200, dur: 7000}, 'gradient']];
 const SIMPLE_TIMING = {title: 'Timing', controls: [
   {k: 'trigger', t: 'seg', label: 'Plays', options: [['loop', 'Keep looping'], ['repeat', 'Set number']], hint: p => p.trigger === 'repeat' ? 'Plays the set number of times when the page loads, then stops.' : 'Keeps sweeping for as long as the page is open.'},
   {k: 'count', t: 'range', label: 'Times on load', hint: 'One time is a full sweep across and back.', min: 1, max: 10, step: 1, unit: '×', show: p => p.trigger === 'repeat'},
@@ -465,9 +467,17 @@ const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
   {k: 'tintOn', t: 'toggle', label: 'Tint the band edges', hint: 'Adds a second color where the band fades out.'},
   {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
 ]};
+/* Gradient flow timing: one drift is slower than a sweep, so its range sits higher. */
+const SIMPLE_FLOW_TIMING = {title: 'Timing', controls: [
+  {k: 'trigger', t: 'seg', label: 'Plays', options: [['loop', 'Keep looping'], ['repeat', 'Set number']], hint: p => p.trigger === 'repeat' ? 'Plays the set number of times when the page loads, then stops.' : 'Keeps drifting for as long as the page is open.'},
+  {k: 'count', t: 'range', label: 'Times on load', min: 1, max: 10, step: 1, unit: '×', show: p => p.trigger === 'repeat'},
+  {k: 'dur', t: 'range', label: 'Drift duration', hint: 'Time for the colors to travel one full cycle.', min: 3000, max: 9000, step: 250, unit: 'ms'},
+  {k: 'pause', t: 'range', label: 'Pause between drifts', hint: 'Rest time before the colors move again.', min: 1500, max: 5000, step: 100, unit: 'ms'},
+]};
 const simpleVersion = id => SIMPLE_VERSIONS.find(v => v[0] === id) || SIMPLE_VERSIONS[0];
-const simpleDefaults = id => { const v = simpleVersion(id); return {...clone(FX.shimmer.defaults), ...v[3], hi: v[1]}; };
-const simpleGroups = id => id === 'red' ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
+const simpleFx = id => simpleVersion(id)[4];
+const simpleDefaults = id => { const v = simpleVersion(id); return v[4] === 'shimmer' ? {...clone(FX.shimmer.defaults), ...v[3], hi: v[1]} : {...clone(FX[v[4]].defaults), ...v[3]}; };
+const simpleGroups = id => id === 'red' ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : id === 'gradient' ? [SIMPLE_FLOW_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
 const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
@@ -1234,8 +1244,9 @@ function normalize(o){
     // Older saves carry settings from before a control existed: no sv = timing only; before sv 4 the red band's
     // angle, travel and direction were earlier defaults, so those reset to the corner-to-corner sweep.
     // Read only what was actually saved, so anything missing falls back to the version's own defaults.
-    const o2 = (o.params || {}).shimmer || {};
-    const ver = o.ver === 'red' || o.ver === 'original' ? o.ver : (o2.hi === H ? 'red' : 'original');  // older saves had no ver
+    const sh = (o.params || {}).shimmer || {};
+    const ver = SIMPLE_VERSIONS.some(v => v[0] === o.ver) ? o.ver : (sh.hi === H ? 'red' : 'original');  // older saves had no ver
+    const fx = simpleFx(ver), o2 = (o.params || {})[fx] || {};
     const p = simpleDefaults(ver); s.ver = ver;
     (o.sv >= 2 ? simpleGroups(ver) : [SIMPLE_TIMING]).forEach(g => g.controls.forEach(c => {
       if (['dir', 'angle', 'path'].includes(c.k) && o.sv < 4) return;
@@ -1244,7 +1255,7 @@ function normalize(o){
       else if (c.t === 'toggle'){ if (typeof o2[c.k] === 'boolean') p[c.k] = o2[c.k]; }
       else if (c.t === 'color' && /^#[0-9a-f]{6}$/i.test(o2[c.k] || '')) p[c.k] = o2[c.k];
     }));
-    s.fx = 'shimmer'; s.params.shimmer = p;
+    s.fx = fx; s.params[fx] = p;
   }
   if (![1, 2, 4].includes(s.zoom)) s.zoom = 1;
   return s;
@@ -1467,7 +1478,7 @@ function renderControls(){
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
   (SIMPLE ? simpleGroups(S.ver) : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Pick a version, then adjust the timing if you need to.') : F.desc;
+  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'gradient' ? 'Hot Heat and black drift slowly through the letters, then rest. Adjust the timing if you need to.' : S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Pick a version, then adjust the timing if you need to.') : F.desc;
   updateControls();
 }
 function updateControls(){
@@ -1488,9 +1499,15 @@ function renderFxPick(){
       mini.append(host); applyType(mini, {...S.type, size: 20, case: 'none'});
       const b = el('button', {type: 'button', class: 'fx-tile', 'data-ver': id, 'aria-pressed': String(S.ver === id)}, mini, el('span', {class: 'nm'}, name));
       // Switching version starts from that version's band settings and keeps the timing.
-      b.onclick = () => { if (S.ver === id) return; const {dur, pause, trigger, count} = P(); S.ver = id; S.params.shimmer = {...simpleDefaults(id), dur, pause, trigger, count}; renderControls(); changed('param'); };
+      // Sweep and drift durations use different ranges, so duration only carries over within the same effect.
+      b.onclick = () => {
+        if (S.ver === id) return;
+        const {dur, pause, trigger, count} = P(), fx = simpleFx(id), keep = fx === S.fx ? {dur} : {};
+        S.ver = id; S.fx = fx; S.params[fx] = {...simpleDefaults(id), ...keep, pause, trigger, count};
+        renderControls(); changed('param');
+      };
       grid.append(b);
-      if (!REDUCED) tileCtrls.push(mount(host, 'shimmer', simpleDefaults(id), 'Aa', {native: true}));
+      if (!REDUCED) tileCtrls.push(mount(host, simpleFx(id), simpleDefaults(id), 'Aa', {native: true}));
       else host.textContent = 'Aa';
     });
     box.append(grid);
@@ -1847,7 +1864,7 @@ $('#hoToggle').onclick = () => setHandoff(document.documentElement.classList.con
 $('#copyAll').onclick = () => copyText(fullHandoffText(), 'Full handoff copied: spec, CSS, HTML, JS and a link.');
 $('#undo').onclick = undo; $('#redo').onclick = redo;
 $('#resetAll').onclick = () => {
-  if (SIMPLE){ S.params.shimmer = simpleDefaults(S.ver); pushHist(); fullRender(); toast(`${simpleVersion(S.ver)[2]} reset to defaults.`); return; }
+  if (SIMPLE){ S.params[S.fx] = simpleDefaults(S.ver); pushHist(); fullRender(); toast(`${simpleVersion(S.ver)[2]} reset to defaults.`); return; }
   S.params[S.fx] = clone(FX[S.fx].defaults); pushHist(); fullRender(); toast(`${FX[S.fx].name} reset to defaults.`);
 };
 document.addEventListener('keydown', e => {
