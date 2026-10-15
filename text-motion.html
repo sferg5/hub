@@ -454,18 +454,27 @@ const SIMPLE_TIMING = {title: 'Timing', controls: [
 ]};
 /* Quick band widths for both versions. The red version also keeps the fine slider. */
 const SIMPLE_WIDTH = {k: 'width', t: 'seg', label: 'Band width', options: [[20, 'Narrow'], [36, 'Medium'], [60, 'Wide']], hint: 'How much of the label the band covers as it sweeps.'};
-const SIMPLE_BAND = {title: 'Band', controls: [SIMPLE_WIDTH]};
-/* The red band gets its own gradient controls. */
-const SIMPLE_GRADIENT = {title: 'Gradient', controls: [
-  {k: 'hi', t: 'color', label: 'Red', hint: 'The exact colour at the centre of the band. Pick a brand swatch or type a hex value.'},
+/* Both shimmer versions get the full band controls; only the colour wording differs. */
+const bandGroup = (title, colorLabel, toward) => ({title, controls: [
+  {k: 'hi', t: 'color', label: colorLabel, hint: 'The exact colour at the centre of the band. Pick a brand swatch or type a hex value.'},
   SIMPLE_WIDTH,
   {k: 'width', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 20%, Medium 36%, Wide 60%.', min: 5, max: 150, step: 1, unit: '%'},
   {k: 'path', t: 'seg', label: 'Travel', options: [['diag', 'Corner to corner'], ['across', 'Straight across']], hint: p => p.path === 'diag' ? 'From the top right to the bottom left, then back to the top right, then it loops.' : 'From the right to the left, then back to the right, then it loops.'},
   {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the band. 45° lines it up with a corner-to-corner sweep. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
   {k: 'soft', t: 'range', label: 'Edge softness', hint: '0 is a crisp edge. 100 is a long smooth ramp.', min: 0, max: 100, step: 1, unit: '%'},
-  {k: 'peak', t: 'range', label: 'Band strength', hint: 'How far the band moves from black toward red.', min: 0, max: 100, step: 1, unit: '%'},
+  {k: 'peak', t: 'range', label: 'Band strength', hint: `How far the band moves from black toward ${toward}.`, min: 0, max: 100, step: 1, unit: '%'},
   {k: 'tintOn', t: 'toggle', label: 'Tint the band edges', hint: 'Adds a second color where the band fades out.'},
   {k: 'tint', t: 'color', label: 'Edge tint', show: p => p.tintOn},
+]});
+const SIMPLE_GRADIENT = bandGroup('Gradient', 'Red', 'red');
+const SIMPLE_BAND = bandGroup('Band', 'Band color', 'the band color');
+/* Red gradient: the same idea where it applies. Spread stands in for band width; a drift has no angle, edge or strength. */
+const SIMPLE_FLOW = {title: 'Gradient', controls: [
+  {k: 'c1', t: 'color', label: 'Red', hint: 'The exact red that drifts through the letters. Pick a brand swatch or type a hex value.'},
+  {k: 'c2', t: 'color', label: 'Second color', hint: 'The color the red blends into. Black matches the nav.'},
+  {k: 'spread', t: 'seg', label: 'Width', options: [[150, 'Narrow'], [200, 'Medium'], [300, 'Wide']], hint: 'How stretched the colors are. Wider shows less of each color at once.'},
+  {k: 'spread', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 150%, Medium 200%, Wide 300%.', min: 125, max: 600, step: 5, unit: '%'},
+  {k: 'dir', t: 'seg', label: 'Travel', options: [['left', 'Flow left'], ['right', 'Flow right']], hint: 'Which way the colors move through the label.'},
 ]};
 /* Gradient flow timing: one drift is slower than a sweep, so its range sits higher. */
 const SIMPLE_FLOW_TIMING = {title: 'Timing', controls: [
@@ -477,7 +486,7 @@ const SIMPLE_FLOW_TIMING = {title: 'Timing', controls: [
 const simpleVersion = id => SIMPLE_VERSIONS.find(v => v[0] === id) || SIMPLE_VERSIONS[0];
 const simpleFx = id => simpleVersion(id)[4];
 const simpleDefaults = id => { const v = simpleVersion(id); return v[4] === 'shimmer' ? {...clone(FX.shimmer.defaults), ...v[3], hi: v[1]} : {...clone(FX[v[4]].defaults), ...v[3]}; };
-const simpleGroups = id => id === 'red' ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : id === 'gradient' ? [SIMPLE_FLOW_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
+const simpleGroups = id => id === 'red' ? [SIMPLE_GRADIENT, SIMPLE_TIMING] : id === 'gradient' ? [SIMPLE_FLOW, SIMPLE_FLOW_TIMING] : [SIMPLE_BAND, SIMPLE_TIMING];
 const STATE_KEY = SIMPLE ? 'tms.simple.v1' : 'tms.state.v1';
 const ICON_RESET = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
@@ -1478,7 +1487,7 @@ function renderControls(){
   box.textContent = ''; CTRLS = []; GROUPS = [];
   const F = FX[S.fx];
   (SIMPLE ? simpleGroups(S.ver) : F.groups).forEach(g => { const G = groupEl(g, paramScope, S.fx + ':' + g.title); box.append(G.d); CTRLS.push(...G.apis); GROUPS.push(G); });
-  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'gradient' ? 'Hot Heat and black drift slowly through the letters, then rest. Adjust the timing if you need to.' : S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Pick a version, then adjust the timing if you need to.') : F.desc;
+  $('#fxDesc').textContent = SIMPLE ? (S.ver === 'gradient' ? 'Hot Heat and black drift slowly through the letters, then rest. Shape the gradient, then adjust the timing if you need to.' : S.ver === 'red' ? 'The New & Featured shimmer with a red band, sweeping corner to corner and back. Shape the gradient, then adjust the timing if you need to.' : 'The New & Featured shimmer, sweeping corner to corner and back. Shape the band, then adjust the timing if you need to.') : F.desc;
   updateControls();
 }
 function updateControls(){
