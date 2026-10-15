@@ -468,13 +468,14 @@ const bandGroup = (title, colorLabel, toward) => ({title, controls: [
 ]});
 const SIMPLE_GRADIENT = bandGroup('Gradient', 'Red', 'red');
 const SIMPLE_BAND = bandGroup('Band', 'Band color', 'the band color');
-/* Red gradient: the same idea where it applies. Spread stands in for band width; a drift has no angle, edge or strength. */
+/* Red gradient: the same idea where it applies. Spread stands in for band width; a drift has no edge or strength. */
 const SIMPLE_FLOW = {title: 'Gradient', controls: [
   {k: 'c1', t: 'color', label: 'Red', hint: 'The exact red that drifts through the letters. Pick a brand swatch or type a hex value.'},
   {k: 'c2', t: 'color', label: 'Second color', hint: 'The color the red blends into. Black matches the nav.'},
   {k: 'spread', t: 'seg', label: 'Width', options: [[150, 'Narrow'], [200, 'Medium'], [300, 'Wide']], hint: 'How stretched the colors are. Wider shows less of each color at once.'},
   {k: 'spread', t: 'range', label: 'Exact width', hint: 'Fine-tune the width. Narrow is 150%, Medium 200%, Wide 300%.', min: 125, max: 600, step: 5, unit: '%'},
   {k: 'dir', t: 'seg', label: 'Travel', options: [['left', 'Flow left'], ['right', 'Flow right']], hint: 'Which way the colors move through the label.'},
+  {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the colors. 90° is upright. 45° slants them corner to corner.', min: -180, max: 180, step: 1, unit: '°'},
 ]};
 /* Gradient flow timing: one drift is slower than a sweep, so its range sits higher. */
 const SIMPLE_FLOW_TIMING = {title: 'Timing', controls: [
@@ -696,7 +697,7 @@ const FX = {
     name: 'Gradient flow', kind: 'label',
     desc: 'Colors drift continuously through the letters.',
     reduced: 'Animation off. The gradient stays still.',
-    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, trigger: 'loop', dir: 'left', dur: 3000, pause: 1500, delay: 0, ease: E['ease-in-out']},
+    defaults: {c1: H, c2: SB, use3: true, c3: INK, spread: 250, angle: 90, trigger: 'loop', dir: 'left', dur: 3000, pause: 1500, delay: 0, ease: E['ease-in-out']},
     groups: [
       {title: 'Colors', controls: [
         {k: 'c1', t: 'color', label: 'First color'},
@@ -706,16 +707,24 @@ const FX = {
       ]},
       {title: 'Spread', controls: [
         {k: 'spread', t: 'range', label: 'Spread', hint: 'Higher numbers stretch the colors so fewer show at once.', min: 125, max: 600, step: 5, unit: '%'},
+        {k: 'angle', t: 'range', label: 'Angle', hint: 'The slant of the colors. 90° is upright.', min: -180, max: 180, step: 1, unit: '°'},
       ]},
       timing({dir: [['left', 'Flow left'], ['right', 'Flow right']], durLabel: 'Drift duration', durHint: 'Time for the colours to travel one full cycle.', durMax: 15000, easeHint: 'Ease-in-out makes the colours drift, then rest. Linear with no pause gives a constant flow.'}),
     ],
     compile(p){
       const cols = p.use3 ? [p.c1, p.c2, p.c3] : [p.c1, p.c2];
-      const seq = [...cols, ...cols, cols[0]];
-      const stops = seq.map((c, i) => `${c} ${(i / (seq.length - 1) * 100).toFixed(2)}%`).join(', ');
-      const s = p.spread / 100, endPos = (s / (2 * (s - 1)) * 100).toFixed(2) + '% 0';
-      const from = p.dir === 'left' ? '0% 0' : endPos, to = p.dir === 'left' ? endPos : '0% 0';
-      return {active: p.dur, labelStyle: {...BG_CLIP(`linear-gradient(90deg, ${stops})`, `${p.spread}% 100%`, 'repeat'), backgroundPosition: from},
+      // One color cycle is half the spread, measured against the nav label (about 7em wide).
+      // Tiles are sized so the stripes meet seamlessly at any angle; moving one tile length loops the drift.
+      const P = p.spread / 100 * 7 / 2, rad = (p.angle ?? 90) * Math.PI / 180;
+      const sn = Math.abs(Math.sin(rad)), cs = Math.abs(Math.cos(rad));
+      const w = sn > 1e-3 ? P / sn : 0, h = cs > 1e-3 ? P / cs : 0, em = v => +v.toFixed(4) + 'em';
+      const seq = [...cols, cols[0]];
+      const stops = seq.map((c, i) => `${c} ${em(i / (seq.length - 1) * P)}`).join(', ');
+      const sign = p.dir === 'left' ? -1 : 1;
+      // Sliding sideways by one tile moves the stripes exactly one cycle at any angle; flat stripes slide up or down.
+      const end = w ? `${em(sign * w)} 0em` : `0em ${em(sign * h)}`;
+      const from = '0em 0em', to = end;
+      return {active: p.dur, labelStyle: {...BG_CLIP(`repeating-linear-gradient(${p.angle ?? 90}deg, ${stops})`, `${w ? em(w) : '100%'} ${h ? em(h) : '100%'}`, 'repeat'), backgroundPosition: from},
         tracks: [{target: 'label', frames: [{offset: 0, backgroundPosition: from, easing: easeCSS(p.ease)}, {offset: 1, backgroundPosition: to}]}]};
     },
   },
