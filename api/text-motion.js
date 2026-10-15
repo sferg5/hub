@@ -4,18 +4,20 @@
  * Lets people share saved text motion settings across machines.
  * Settings saved "to this browser" never come here; only ones someone shares.
  *
- *   GET  /api/text-motion?uid=<id>                      -> { items: [ {id,name,ver,p,created,mine} ] }
- *   POST /api/text-motion  { action:"share",  uid, name, ver, p }   -> { ok, item, items }
- *   POST /api/text-motion  { action:"delete", uid, id }             -> { ok, items }
+ *   GET  /api/text-motion?uid=<id>        -> { items: [ {id,name,label,by,ver,p,created,mine} ] }
+ *   POST /api/text-motion  { action:"share",  uid, name, label?, by?, ver, p }   -> { ok, item, items }
+ *   POST /api/text-motion  { action:"edit",   uid, id, name, label?, by? }       -> { ok, items }
+ *   POST /api/text-motion  { action:"delete", uid, id }                          -> { ok, items }
  *
- * uid is a random id each browser makes for itself (no names, no accounts). Only
- * the browser that shared a setting can delete it. Writes are accepted from the
+ * uid is a random id each browser makes for itself (no accounts). `by` is whatever
+ * name the person chooses to type, and `label` is a short tag like "Draft". Only
+ * the browser that shared a setting can edit or delete it. Writes are accepted from the
  * hub's own pages only.
  *
  * Storage is the same Vercel KV / Upstash Redis database the other APIs use, in
  * its own HASH so nothing here can touch the site's data blob:
  *
- *      textmotion:shared    <id>  ->  JSON { id, name, ver, p, owner, created }
+ *      textmotion:shared    <id>  ->  JSON { id, name, label, by, ver, p, owner, created, edited? }
  *
  * The settings are animation values only (colors, timings, angles). The page
  * clamps them to its safe ranges when they load, so a bad entry can't make the
@@ -65,6 +67,7 @@ function sameOrigin(req) {
 }
 function rid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function parseJSON(s, d) { try { return s ? JSON.parse(s) : d; } catch (e) { return d; } }
+function text(v, max) { return String(v == null ? "" : v).replace(/\s+/g, " ").trim().slice(0, max); }
 
 // Settings are a flat object of short strings, finite numbers, booleans, or an
 // easing curve (an array of up to four numbers). Anything else is refused.
@@ -90,7 +93,7 @@ async function list(uid) {
   var raw = pairs(await kv(["HGETALL", KEY]));
   return Object.keys(raw).map(function (id) { return parseJSON(raw[id], null); }).filter(Boolean)
     .sort(function (a, b) { return (b.created || 0) - (a.created || 0); })
-    .map(function (it) { return { id: it.id, name: it.name, ver: it.ver, p: it.p, created: it.created, mine: !!uid && it.owner === uid }; });
+    .map(function (it) { return { id: it.id, name: it.name, label: it.label || "", by: it.by || "", ver: it.ver, p: it.p, created: it.created, mine: !!uid && it.owner === uid }; });
 }
 
 module.exports = async function handler(req, res) {
@@ -126,16 +129,30 @@ module.exports = async function handler(req, res) {
       if (!UID_RE.test(who)) { res.status(400).json({ error: "Bad uid." }); return; }
 
       if (body.action === "share") {
-        var name = String(body.name || "").replace(/\s+/g, " ").trim().slice(0, 40);
+        var name = text(body.name, 40);
         if (!name) { res.status(400).json({ error: "Give the settings a name." }); return; }
         if (VERSIONS.indexOf(body.ver) < 0) { res.status(400).json({ error: "Unknown version." }); return; }
         var p = cleanParams(body.p);
         if (!p) { res.status(400).json({ error: "Settings are not in the expected shape." }); return; }
         var len = Number(await kv(["HLEN", KEY])) || 0;
         if (len >= MAX_ITEMS) { res.status(507).json({ error: "The shared list is full. Delete some old settings first." }); return; }
-        var item = { id: rid(), name: name, ver: body.ver, p: p, owner: who, created: Date.now() };
+        var item = { id: rid(), name: name, label: text(body.label, 24), by: text(body.by, 40), ver: body.ver, p: p, owner: who, created: Date.now() };
         await kv(["HSET", KEY, item.id, JSON.stringify(item)]);
-        res.status(200).json({ ok: true, item: { id: item.id, name: name, ver: item.ver, p: p, created: item.created, mine: true }, items: await list(who) });
+        res.status(200).json({ ok: true, item: { id: item.id, name: name, label: item.label, by: item.by, ver: item.ver, p: p, created: item.created, mine: true }, items: await list(who) });
+        return;
+      }
+
+      if (body.action === "edit") {
+        var eid = String(body.id || "");
+        if (!ID_RE.test(eid)) { res.status(400).json({ error: "Bad id." }); return; }
+        var was = parseJSON(await kv(["HGET", KEY, eid]), null);
+        if (!was) { res.status(404).json({ error: "These settings were deleted." }); return; }
+        if (was.owner !== who) { res.status(403).json({ error: "Only the browser that shared these settings can edit them." }); return; }
+        var newName = text(body.name, 40);
+        if (!newName) { res.status(400).json({ error: "Give the settings a name." }); return; }
+        was.name = newName; was.label = text(body.label, 24); was.by = text(body.by, 40); was.edited = Date.now();
+        await kv(["HSET", KEY, eid, JSON.stringify(was)]);
+        res.status(200).json({ ok: true, items: await list(who) });
         return;
       }
 
