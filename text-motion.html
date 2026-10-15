@@ -68,12 +68,18 @@ button{cursor:pointer}
 /* Handoff hidden: the stage takes its column. */
 .ho-off .app{grid-template-columns:350px minmax(0,1fr)}
 .ho-off .handoff{display:none}
+/* Controls hidden (simple mode default): the stage and library take the side column too. */
+.ctl-off .side{display:none}
+.ctl-off .app{grid-template-columns:minmax(0,1fr) 440px}
+.ctl-off.ho-off .app{grid-template-columns:minmax(0,1fr)}
 @media (max-width:1280px){
   html,body{height:auto} body{display:block}
   .app,.ho-off .app{grid-template-columns:330px minmax(0,1fr)}
   .side{grid-row:1 / 3;position:sticky;top:0;max-height:100vh;align-self:start}
   .main,.handoff{overflow:visible}
   .handoff{grid-column:2;border-left:0;border-top:1px solid var(--line)}
+  .ctl-off .app,.ctl-off.ho-off .app{grid-template-columns:minmax(0,1fr)}
+  .ctl-off .handoff{grid-column:1}
 }
 @media (max-width:820px){
   .app{display:flex;flex-direction:column}
@@ -279,7 +285,18 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.12)}
 .empty{grid-column:1/-1;padding:24px;border:1px dashed var(--line);border-radius:7px;color:var(--muted);text-align:center}
 /* ---------- saved settings (simple mode) ---------- */
 .saved .save{flex-wrap:wrap}
-.saved #sharedGrid{margin-top:22px}
+.saved #localGrid{margin-top:22px}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:3px;padding:1px 5px;background:var(--soft);color:var(--fg);font-weight:400;white-space:nowrap}
+.dlg{border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--fg);padding:0;width:min(400px,calc(100% - 32px))}
+.dlg::backdrop{background:rgba(0,0,0,.45)}
+.dlg form{display:flex;flex-direction:column;gap:12px;padding:18px}
+.dlg h2{font-size:16px}
+.dlg p{font-size:12.5px;color:var(--muted)}
+.dlg label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600}
+.dlg label small{font-weight:400;color:var(--muted);font-size:12px}
+.dlg input{height:34px;border:1px solid var(--line);border-radius:5px;background:var(--raise);color:var(--fg);padding:0 10px;font:inherit;font-weight:400}
+.dlg input:focus{outline:none;border-color:var(--fg)}
+.dlg .row{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
 .card .acts{display:flex;gap:12px;margin-top:4px}
 .card .act{font-size:12px;font-weight:600;color:var(--fg);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
 .card .act:hover{color:var(--accent)}
@@ -327,6 +344,7 @@ pre.code .cm{color:var(--faint)}
   <button class="btn icon" id="undo" type="button" title="Undo (⌘Z)" aria-label="Undo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 2 6l3 3"/><path d="M2 6h7.5a4 4 0 0 1 0 8H7"/></svg></button>
   <button class="btn icon" id="redo" type="button" title="Redo (⇧⌘Z)" aria-label="Redo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m11 3 3 3-3 3"/><path d="M14 6H6.5a4 4 0 0 0 0 8H9"/></svg></button>
   </span>
+  <button class="btn simple-only" id="ctlToggle" type="button" title="Show or hide the version and timing controls">Show controls</button>
   <button class="btn" id="hoToggle" type="button" aria-controls="handoffPanel" title="Show or hide the developer handoff">Show handoff</button>
   <button class="btn" id="resetAll" type="button" title="Put every control for this effect back to its default">Reset effect</button>
   <button class="btn primary" id="share" type="button">Copy share link</button>
@@ -377,17 +395,28 @@ pre.code .cm{color:var(--faint)}
 
     <section class="brand full-only" id="brand" aria-label="Brand check" aria-live="polite"></section>
 
-    <section class="saved simple-only" aria-label="Saved settings">
+    <section class="saved simple-only" aria-label="Library of saved settings">
       <div class="vhead">
-        <h2>Saved settings</h2>
+        <h2>Library</h2>
         <form class="save" id="setSave">
           <input id="setName" type="text" maxlength="40" placeholder="Name these settings" aria-label="Name for the saved settings">
           <button class="btn" type="submit" title="Keep these settings in this browser only">Save</button>
           <button class="btn" type="button" id="setShare" title="Save in this browser and share with anyone who opens the studio">Save and share</button>
         </form>
       </div>
-      <div class="vgrid" id="localGrid"></div>
       <div class="vgrid" id="sharedGrid"></div>
+      <div class="vgrid" id="localGrid"></div>
+      <dialog class="dlg" id="shareDlg" aria-labelledby="shareTitle">
+        <form id="shareForm" method="dialog">
+          <h2 id="shareTitle">Share with the team</h2>
+          <p>Anyone who opens the studio will see these settings, with the label and your name.</p>
+          <label>Name<input id="shName" type="text" maxlength="40" required autocomplete="off"></label>
+          <label>Label <small>Optional. A short tag, like Draft or For review.</small><input id="shLabel" type="text" maxlength="24" list="shLabels" autocomplete="off"></label>
+          <datalist id="shLabels"><option value="Draft"><option value="For review"><option value="Final"><option value="Holiday"><option value="Campaign"></datalist>
+          <label>Your name <small>Optional. This browser remembers it for next time.</small><input id="shBy" type="text" maxlength="40" autocomplete="name"></label>
+          <div class="row"><button class="btn" type="button" id="shCancel">Cancel</button><button class="btn primary" type="submit" id="shGo">Share</button></div>
+        </form>
+      </dialog>
     </section>
 
     <section class="full-only" aria-label="Variants">
@@ -1899,6 +1928,14 @@ function setHandoff(on){
   store.set('tms.handoff.v1', on);
 }
 setHandoff(store.get('tms.handoff.v1') === true);
+/* Simple mode opens on the library with the controls tucked away; the choice is remembered. */
+function setControls(on){
+  document.documentElement.classList.toggle('ctl-off', SIMPLE && !on);
+  const b = $('#ctlToggle'); b.textContent = on ? 'Hide controls' : 'Show controls'; b.setAttribute('aria-expanded', String(on));
+  store.set('tms.controls.v1', on);
+}
+setControls(store.get('tms.controls.v1') === true);
+$('#ctlToggle').onclick = () => setControls(document.documentElement.classList.contains('ctl-off'));
 $('#hoToggle').onclick = () => setHandoff(document.documentElement.classList.contains('ho-off'));
 $('#copyAll').onclick = () => copyText(fullHandoffText(), 'Full handoff copied: spec, CSS, HTML, JS and a link.');
 $('#undo').onclick = undo; $('#redo').onclick = redo;
@@ -1935,7 +1972,8 @@ function setCard(it, acts){
   const n = setParams(it);
   const sw = el('div', {class: 'sw', 'data-ctx': 'nav'}), host = el('span');
   sw.append(host); applyType(sw, {...S.type, size: 17});
-  const meta = el('div', {class: 'meta'}, el('b', {}, it.name), el('span', {}, simpleVersion(n.ver)[2] + (it.created ? ' · ' + setDate(it.created) : '')));
+  const meta = el('div', {class: 'meta'}, el('b', {}, it.name, it.label ? el('span', {class: 'tag'}, it.label) : null),
+    el('span', {}, [simpleVersion(n.ver)[2], it.by ? 'by ' + it.by : '', it.created ? setDate(it.created) : ''].filter(Boolean).join(' · ')));
   const card = el('div', {class: 'card', role: 'button', tabindex: '0', 'aria-pressed': 'false'}, sw, meta);
   card._set = n;
   card.onclick = () => applySet(it);
@@ -1954,15 +1992,15 @@ function renderSets(){
   setCtrls.forEach(c => c.destroy()); setCtrls = [];
   const lg = $('#localGrid'), sg = $('#sharedGrid'); lg.textContent = ''; sg.textContent = '';
   lg.append(el('div', {class: 'vgroup'}, el('h3', {}, 'On this browser'), el('span', {class: 'note'}, 'Only you see these, on this computer.')));
-  if (!localSets.length) lg.append(el('p', {class: 'empty'}, 'Nothing saved yet. Name your settings above and press Save.'));
+  if (!localSets.length) lg.append(el('p', {class: 'empty'}, 'Nothing saved yet. Press Show controls to shape the animation, then name it above and press Save.'));
   localSets.forEach(it => lg.append(setCard(it, [
-    ['Share', () => shareSet(it)],
+    ['Share', () => openShare(it)],
     ['Delete', () => { localSets = localSets.filter(x => x.id !== it.id); store.set('tms.simple.saved.v1', localSets); renderSets(); toast('Deleted from this browser.'); }],
   ])));
   sg.append(el('div', {class: 'vgroup'}, el('h3', {}, 'Shared with the team'), el('span', {class: 'note'}, 'Anyone who opens the studio sees these, on any computer.')));
   if (!sharedSets) sg.append(el('p', {class: 'empty'}, sharedMsg));
-  else if (!sharedSets.length) sg.append(el('p', {class: 'empty'}, 'Nothing shared yet. Press Save and share, or Share on one of your saved settings.'));
-  else sharedSets.forEach(it => sg.append(setCard(it, it.mine ? [['Delete', () => unshareSet(it)]] : [])));
+  else if (!sharedSets.length) sg.append(el('p', {class: 'empty'}, 'Nothing shared yet. Shape the animation with Show controls, then press Save and share.'));
+  else sharedSets.forEach(it => sg.append(setCard(it, it.mine ? [['Edit', () => openShare(it, true)], ['Delete', () => unshareSet(it)]] : [])));
   updateSetCards();
 }
 function updateSetCards(){ $$('.saved .card').forEach(c => c.setAttribute('aria-pressed', String(c._set.ver === S.ver && same(c._set.p, P())))); }
@@ -1979,10 +2017,34 @@ async function loadShared(){
   catch(e){ sharedSets = null; sharedMsg = 'Shared settings are unavailable right now. ' + e.message; }
   renderSets();
 }
-async function shareSet(it){
-  try { const j = await setApi({action: 'share', name: it.name, ver: it.ver, p: it.p}); sharedSets = j.items.filter(setValid); renderSets(); toast(`Shared ${it.name}. It shows on every computer now.`); }
-  catch(e){ toast('Could not share. ' + e.message); }
+/* One dialog for sharing and for editing what you shared: name, an optional label, and your name. */
+let shareTarget = null, shareEdit = false;
+function openShare(it, edit = false){
+  shareTarget = it; shareEdit = edit;
+  $('#shareTitle').textContent = edit ? 'Edit shared settings' : 'Share with the team';
+  $('#shGo').textContent = edit ? 'Save changes' : 'Share';
+  $('#shName').value = it.name; $('#shLabel').value = it.label || '';
+  $('#shBy').value = edit ? (it.by || '') : (store.get('tms.by') || '');
+  const d = $('#shareDlg');
+  if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  $('#shName').focus(); $('#shName').select();
 }
+function closeShare(){ const d = $('#shareDlg'); if (d.close) d.close(); else d.removeAttribute('open'); shareTarget = null; }
+$('#shCancel').onclick = closeShare;
+$('#shareForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const it = shareTarget; if (!it) return;
+  const name = $('#shName').value.trim(), label = $('#shLabel').value.trim(), by = $('#shBy').value.trim();
+  if (!name){ $('#shName').focus(); return; }
+  store.set('tms.by', by);
+  $('#shGo').disabled = true;
+  try {
+    const j = shareEdit ? await setApi({action: 'edit', id: it.id, name, label, by}) : await setApi({action: 'share', name, label, by, ver: it.ver, p: it.p});
+    sharedSets = j.items.filter(setValid); closeShare(); renderSets();
+    toast(shareEdit ? 'Changes saved.' : `Shared ${name}. It shows on every computer now.`);
+  } catch(err){ toast((shareEdit ? 'Could not save. ' : 'Could not share. ') + err.message); }
+  finally { $('#shGo').disabled = false; }
+});
 async function unshareSet(it){
   try { const j = await setApi({action: 'delete', id: it.id}); sharedSets = j.items.filter(setValid); renderSets(); toast('Removed from the shared list.'); }
   catch(e){ toast('Could not delete. ' + e.message); }
@@ -1993,7 +2055,7 @@ function saveSet(share){
   localSets.unshift(it); store.set('tms.simple.saved.v1', localSets);
   $('#setName').value = '';
   renderSets();
-  if (share) shareSet(it); else toast(`Saved ${name} in this browser.`);
+  if (share) openShare(it); else toast(`Saved ${name} in this browser.`);
 }
 $('#setSave').addEventListener('submit', e => { e.preventDefault(); saveSet(false); });
 $('#setShare').onclick = () => saveSet(true);
